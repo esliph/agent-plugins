@@ -4,10 +4,10 @@ Insumo para o plano seguinte. Escrito ao fechar o plano de `DA-0001` + Fase 2
 (`docs/superpowers/plans/2026-08-24-living-docs-toolkit-fase-2.md`), a partir da
 spec `LIVING-DOCUMENTATION-TOOLKIT.md` §10.
 
-**Estado em 2026-08-24:** Fases 0–1 implementadas (`CI-1`, `CI-2`, `SK-0`, `SK-3`,
-`HK-1`, `HK-3`, `CM-1`–`CM-3`, `CM-6`). Fase 2 e a separação de raízes estão
-planejadas, não implementadas — enquanto o plano acima não for executado, tudo
-abaixo depende dele.
+**Estado em 2026-08-24:** Fases 0–2 implementadas (`CI-1`, `CI-2`, `CI-3`, `SK-0`
+com `--stage`, `SK-3`, `SK-4`, `HK-1`, `HK-3`, `CM-1`–`CM-3`, `CM-6`), e a
+separação de raízes fechada por `ADR-0003` (`DA-0001` resolvida). Tudo abaixo
+parte daí.
 
 Cada fase abaixo traz: o que entrega, de que depende, que peça de engine ainda
 não existe, e o risco que só aparece quando alguém tenta implementar. A ordem é
@@ -93,10 +93,11 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
 
 - **`TDR-0001`** — `HK-1` não congela seção revogada dentro de arquivo de
   coleção. Gatilho de pagamento: o primeiro PR que revogar um requisito.
-- **`ADR-0001` e `ADR-0002` seguem `draft`.** Nenhum ADR deste repositório foi
-  aceito por uma pessoa até aqui. Enquanto estiverem em `draft`, `CI-3` regra 6
-  não os cobra; ao aceitá-los, `relates-to` precisa já estar preenchido, porque
-  `accepted` é congelado e `relates-to` não está na `mutable-fields`.
+- **`ADR-0001` e `ADR-0002` seguem `draft`** — só `ADR-0003` foi aceito por uma
+  pessoa até aqui. O `relates-to` dos dois **já está preenchido**, o que torna a
+  aceitação um ato barato: `accepted` congela o arquivo e `relates-to` não está
+  na `mutable-fields`, então um ADR aceito com `relates-to: []` só se conserta
+  supersedindo. Preencher antes de aceitar é pré-condição, não consequência.
 - **Distribuição do toolkit.** `ADR-0003` decide as duas raízes e **não** decide
   como o toolkit chega a um projeto consumidor (clone? imagem publicada? pacote?).
   Vale abrir uma `DA` no primeiro consumidor real.

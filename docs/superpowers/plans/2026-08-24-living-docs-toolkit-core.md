@@ -4807,7 +4807,7 @@ git commit -m "feat: dogfooding do toolkit no próprio repositório (ADR-0001, A
 | §5 `SK-0` living-docs-bootstrap | Task 8 (`init`) + Task 13 (`/docs-setup`) | Implementado |
 | §5 `SK-3` decision-recorder | Task 13 | Implementado |
 | §7 `HK-1`, `HK-3` | Tasks 10, 11, 12 | Implementado |
-| §8 Rastreabilidade por ID (citações) | Task 6 | Parcial — `CI-2` (citação resolve); pares bidirecionais são `CI-3`, Fase 2 |
+| §8 Rastreabilidade por ID (citações) | Task 6 | Coberta — `CI-2` (citação resolve) aqui; pares bidirecionais e cobertura de `RN` fechados por `CI-3` em `docs/superpowers/plans/2026-08-24-living-docs-toolkit-fase-2.md` |
 | §9 `CI-1`, `CI-2` | Tasks 5, 6 | Implementado |
 | §10 `CM-1`, `CM-2`, `CM-3`, `CM-6` | Task 13 | Implementado |
 | §11 Convenções de autoria | Task 13 (com teste de enforcement) | Implementado |
