@@ -4811,7 +4811,7 @@ git commit -m "feat: dogfooding do toolkit no próprio repositório (ADR-0001, A
 | §9 `CI-1`, `CI-2` | Tasks 5, 6 | Implementado |
 | §10 `CM-1`, `CM-2`, `CM-3`, `CM-6` | Task 13 | Implementado |
 | §11 Convenções de autoria | Task 13 (com teste de enforcement) | Implementado |
-| §12 Critérios de aceite 1, 2, 3, 4 | Task 14 | Verificados por teste |
+| §12 Critérios de aceite 1, 2, 3 | Task 14 | Verificados por teste |
 
 **Deliberadamente fora deste plano** (Fases 2–7 da spec §10, a serem cobertas por
 planos próprios): `SK-1` charter-keeper, `SK-2` glossary-keeper, `SK-4`
@@ -4823,5 +4823,8 @@ decision-adversary, `HK-2` (artefato gerado), `HK-4`–`HK-7`, `CI-3`
 `/docs-audit`, `CM-7` `/release`.
 
 Critérios de aceite §12 que **não** são verificáveis nas Fases 0–1, por
-dependerem de peças fora do escopo: 5 (`HK-5`), 7 (`CI-4`), 8 (`HK-6`), 9
-(`SK-6`), 10 (julgamento humano contínuo).
+dependerem de peças fora do escopo ou de julgamento que teste unitário não
+alcança: 4 (resultado de procedimento de agente — `SK-3` abre `DA-nnn` e para; a
+skill declara a invariante, o teste unitário não a afirma), 5 (`HK-5`), 6
+(`HK-2`/`CI-5`), 7 (`CI-4`), 8 (`HK-6`), 9 (`SK-6`), 10 (julgamento humano
+contínuo).

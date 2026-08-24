@@ -59,6 +59,25 @@ test('adota diretório de ADR preexistente em vez de criar um paralelo', () => {
   });
 });
 
+test('adoção + segunda execução: nada é readotado, duplicado nem reescrito', () => {
+  withTempRepo({ 'docs/adr/0001-antigo.md': '# antigo\n', 'README.md': '' }, (root) => {
+    const first = runInit(root, OPTIONS);
+    assert.ok(first.adopted.some((entry) => entry.idPrefix === 'ADR' && entry.path === 'docs/adr/'));
+
+    const config = readFileSync(join(root, OWNERSHIP_PATH), 'utf8');
+
+    const second = runInit(root, OPTIONS);
+    assert.deepEqual(second.adopted, [], 'os caminhos vêm do .ownership.yml, não de uma nova varredura');
+    assert.deepEqual(second.created, [], 'a segunda execução não cria nada');
+    assert.ok(second.skipped.includes('docs/adr/'), 'o diretório adotado é mantido, não recriado');
+
+    // Nenhum paralelo criado, e nem o mapa nem o artefato preexistente reescritos.
+    assert.equal(existsSync(join(root, 'docs/decisions/adr')), false);
+    assert.equal(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), config);
+    assert.equal(readFileSync(join(root, 'docs/adr/0001-antigo.md'), 'utf8'), '# antigo\n');
+  });
+});
+
 test('adota arquivo de open decisions preexistente sob outro nome', () => {
   withTempRepo({ 'docs/decisoes-abertas.md': '# abertas\n', 'README.md': '' }, (root) => {
     const result = runInit(root, OPTIONS);
