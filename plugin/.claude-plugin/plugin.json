@@ -1,0 +1,6 @@
+{
+  "name": "living-docs",
+  "version": "0.1.0",
+  "description": "Documentação viva: ADR, Open Decisions e Debt Register com dono, gatilho e enforcement. Fases 0–1.",
+  "keywords": ["adr", "documentation", "decisions", "living-docs"]
+}
