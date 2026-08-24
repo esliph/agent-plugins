@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.env.LIVING_DOCS_ROOT ?? '/app';
@@ -52,5 +52,56 @@ test('todo hook referenciado existe no repositório', () => {
       const name = hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? '';
       assert.ok(existsSync(join(ROOT, 'src/hooks', `${name}.ts`)), `src/hooks/${name}.ts deveria existir`);
     }
+  }
+});
+
+/**
+ * Toda referência a uma skill, em qualquer artefato que o repositório publica,
+ * precisa apontar para uma skill que existe. É o irmão do teste de hooks acima:
+ * nome citado sem arquivo por trás é um comando que não faz nada.
+ */
+const SKILL_REFERENCES: readonly { file: string; pattern: RegExp }[] = [
+  ...readdirSync(join(ROOT, 'plugin/commands')).map((name) => ({
+    file: `plugin/commands/${name}`,
+    pattern: /skill\s+`([a-z][a-z0-9-]*)`/g,
+  })),
+  { file: 'src/cli/index.ts', pattern: /skill dona:\s*([a-z][a-z0-9-]*)/g },
+  { file: 'src/config/ownership.ts', pattern: /skill dona:\s*([a-z][a-z0-9-]*)/g },
+  { file: 'templates/ownership.yml', pattern: /^\s*skill:\s*([a-z][a-z0-9-]*)\s*$/gm },
+  { file: 'docs/.ownership.yml', pattern: /^\s*skill:\s*([a-z][a-z0-9-]*)\s*$/gm },
+];
+
+function referencedSkills(): Map<string, string[]> {
+  const found = new Map<string, string[]>();
+  for (const { file, pattern } of SKILL_REFERENCES) {
+    const source = readFileSync(join(ROOT, file), 'utf8');
+    for (const match of source.matchAll(pattern)) {
+      const name = match[1];
+      if (name === undefined) continue;
+      found.set(name, [...(found.get(name) ?? []), file]);
+    }
+  }
+  return found;
+}
+
+test('toda skill referenciada existe em plugin/skills/', () => {
+  const referenced = referencedSkills();
+
+  // Guarda contra um scanner que casa nada e passa por vacuidade.
+  assert.ok(referenced.has('decision-recorder'), 'o scanner deveria achar decision-recorder');
+  assert.ok(referenced.has('living-docs-bootstrap'), 'o scanner deveria achar living-docs-bootstrap');
+
+  for (const [name, files] of referenced) {
+    const skill = join(ROOT, 'plugin/skills', name, 'SKILL.md');
+    assert.ok(existsSync(skill), `plugin/skills/${name}/SKILL.md deveria existir — citado em ${files.join(', ')}`);
+  }
+});
+
+test('o nome no frontmatter de cada skill casa com o diretório', () => {
+  const dirs = readdirSync(join(ROOT, 'plugin/skills'));
+  assert.ok(dirs.length > 0);
+  for (const dir of dirs) {
+    const source = readFileSync(join(ROOT, 'plugin/skills', dir, 'SKILL.md'), 'utf8');
+    assert.match(source, new RegExp(`^name:\\s*${dir}\\s*$`, 'm'), `${dir}/SKILL.md declara outro name`);
   }
 });
