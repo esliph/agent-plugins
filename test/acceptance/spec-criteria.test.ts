@@ -82,7 +82,7 @@ test('critério 3: trigger com cadência falha no CI nomeando o campo', () => {
   });
 });
 
-test('critério 4: promover uma decisão exige ato humano — HK-3 pergunta', () => {
+test('HK-3 pergunta ao promover uma decisão sem ato humano (mecanismo do spec §4)', () => {
   withTempRepo({}, (root) => {
     runInit(root, OPTIONS);
     const file = seedAdr(root, 'draft');
