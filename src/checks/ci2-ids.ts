@@ -18,7 +18,7 @@ function collectDeclarations(context: CheckContext): Declaration[] {
   const declarations: Declaration[] = [];
 
   for (const doc of context.docs) {
-    if (doc.rule.collection === 'table') {
+    if (doc.rule.collection !== 'per-file') {
       for (const item of doc.items) {
         declarations.push({ id: item.id, file: doc.file, line: item.line });
       }

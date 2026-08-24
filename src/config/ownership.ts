@@ -6,7 +6,7 @@ import type { DocItem } from '../docs/item.ts';
 
 export const OWNERSHIP_PATH = 'docs/.ownership.yml';
 
-export type Collection = 'per-file' | 'table';
+export type Collection = 'per-file' | 'table' | 'sections';
 
 export interface ArtifactRule {
   idPrefix: string;
@@ -95,8 +95,10 @@ function parseArtifact(raw: unknown, index: number): ArtifactRule {
   }
 
   const collectionRaw = item.collection ?? 'per-file';
-  if (collectionRaw !== 'per-file' && collectionRaw !== 'table') {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.collection precisa ser "per-file" ou "table".`);
+  if (collectionRaw !== 'per-file' && collectionRaw !== 'table' && collectionRaw !== 'sections') {
+    throw new OwnershipError(
+      `${OWNERSHIP_PATH}: ${where}.collection precisa ser "per-file", "table" ou "sections".`,
+    );
   }
 
   const fieldMapRaw = item['field-map'];

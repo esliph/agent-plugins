@@ -4,6 +4,7 @@ import type { ArtifactRule, OwnershipConfig } from '../config/ownership.ts';
 import { parseFrontmatter, FrontmatterSyntaxError } from '../frontmatter/parse.ts';
 import type { Frontmatter } from '../frontmatter/parse.ts';
 import { parseItemTable } from './table.ts';
+import { parseItemSections } from './sections.ts';
 import type { DocItem } from './item.ts';
 
 export interface ArtifactDoc {
@@ -38,6 +39,19 @@ function listMarkdown(root: string, relativeDir: string): string[] {
   return found;
 }
 
+/**
+ * Qual parser lê os itens deste artefato. A escolha é da configuração, não do
+ * check: `per-file` não tem itens, `table` os lê em linhas e `sections` em
+ * títulos com ID (spec §3).
+ */
+function parseItems(rule: ArtifactRule, source: string, body: string | null, bodyStart: number): DocItem[] {
+  const text = body ?? source;
+  const start = body === null ? 1 : bodyStart;
+  if (rule.collection === 'table') return parseItemTable(text, start);
+  if (rule.collection === 'sections') return parseItemSections(text, start);
+  return [];
+}
+
 function readDoc(root: string, file: string, rule: ArtifactRule): ArtifactDoc | null {
   let source: string;
   try {
@@ -55,12 +69,12 @@ function readDoc(root: string, file: string, rule: ArtifactRule): ArtifactDoc | 
     syntaxError = err;
   }
 
-  const items =
-    rule.collection === 'table' && frontmatter
-      ? parseItemTable(frontmatter.body, frontmatter.bodyStartLine)
-      : rule.collection === 'table'
-        ? parseItemTable(source, 1)
-        : [];
+  const items = parseItems(
+    rule,
+    source,
+    frontmatter ? frontmatter.body : null,
+    frontmatter ? frontmatter.bodyStartLine : 1,
+  );
 
   return { file, rule, source, frontmatter, syntaxError, items };
 }

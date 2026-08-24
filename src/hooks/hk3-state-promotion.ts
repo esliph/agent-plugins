@@ -13,6 +13,8 @@ import type { ArtifactRule } from '../config/ownership.ts';
 import { parseFrontmatter } from '../frontmatter/parse.ts';
 import { HUMAN_PROMOTIONS } from '../docs/schema.ts';
 import { parseItemTable } from '../docs/table.ts';
+import { parseItemSections } from '../docs/sections.ts';
+import type { DocItem } from '../docs/item.ts';
 import { applyToolInput } from './lib/edit.ts';
 import { toRepoPath } from './lib/paths.ts';
 import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts';
@@ -45,9 +47,11 @@ function statusOf(source: string): { id: string; status: string } | null {
 }
 
 function findPromotion(before: string, after: string, rule: ArtifactRule): Promotion | null {
-  if (rule.collection === 'table') {
-    const previous = new Map(parseItemTable(before, 1).map((item) => [item.id, item.status]));
-    for (const item of parseItemTable(after, 1)) {
+  if (rule.collection !== 'per-file') {
+    const parse = (source: string): DocItem[] =>
+      rule.collection === 'table' ? parseItemTable(source, 1) : parseItemSections(source, 1);
+    const previous = new Map(parse(before).map((item) => [item.id, item.status]));
+    for (const item of parse(after)) {
       const from = previous.get(item.id);
       if (from !== undefined && isHumanPromotion(from, item.status)) {
         return { id: item.id, from, to: item.status };

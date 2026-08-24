@@ -49,7 +49,7 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
 
   const { data, lines } = frontmatter;
   const lineOf = (field: string): number => lines[field] ?? 1;
-  const isContainer = doc.rule.collection === 'table';
+  const isContainer = doc.rule.collection !== 'per-file';
   const required = isContainer ? CONTAINER_REQUIRED_FIELDS : REQUIRED_FIELDS;
 
   for (const field of required) {
@@ -149,6 +149,17 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
 
   if (isContainer && states) {
     for (const item of doc.items) {
+      if (item.status === '') {
+        findings.push(
+          error(
+            doc.file,
+            item.line,
+            `Item ${item.id} não declara \`status\`.`,
+            `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título (spec §4).`,
+          ),
+        );
+        continue;
+      }
       if (!states.includes(item.status)) {
         findings.push(
           error(
