@@ -74,7 +74,7 @@ test('frontmatter ausente falha na linha 1', () => {
 });
 
 test('YAML inválido no bloco falha sem derrubar o check', () => {
-  const findings = run({ 'docs/decisions/adr/ADR-0001-x.md': '---\nid: ADR-0001\n  : ruim\n---\n' });
+  const findings = run({ 'docs/decisions/adr/ADR-0001-x.md': '---\nid: ADR-0001\ntitle: "unterminated\n---\n' });
   assert.equal(findings.length, 1);
   assert.match(findings[0]?.message ?? '', /YAML|inválid/i);
 });
