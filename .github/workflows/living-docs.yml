@@ -22,5 +22,7 @@ jobs:
       - name: Type-check
         run: docker compose run --rm toolkit npm run typecheck
 
-      - name: CI-1 e CI-2 — documentação viva
-        run: docker compose run --rm toolkit node /app/src/cli/index.ts validate
+      - name: CI-1, CI-2 e CI-3 — documentação viva
+        run: >
+          docker compose run --rm -w /workspace toolkit
+          node /opt/living-docs/src/cli/index.ts validate

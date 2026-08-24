@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Ponte host → container. O host não executa Node: todo trabalho acontece
-# dentro de `living-docs-toolkit`, com o repositório montado em /app.
+# Ponte host -> container. O host não executa Node: todo trabalho acontece dentro
+# de `living-docs-toolkit`. A fonte do toolkit está em /opt/living-docs e o
+# repositório validado em /workspace — raízes distintas por ADR-0003.
 set -euo pipefail
 
 CONTAINER="${LIVING_DOCS_CONTAINER:-living-docs-toolkit}"
 
 if ! docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -q true; then
   echo "living-docs: o container '$CONTAINER' não está rodando. Suba com: docker compose up -d" >&2
+  echo "             para validar outro projeto: LIVING_DOCS_TARGET=/caminho docker compose up -d" >&2
   exit 2
 fi
 
-exec docker exec -i -e LIVING_DOCS_ROOT=/app "$CONTAINER" node /app/src/cli/index.ts "$@"
+exec docker exec -i -w /workspace "$CONTAINER" node /opt/living-docs/src/cli/index.ts "$@"

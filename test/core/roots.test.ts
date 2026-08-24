@@ -49,3 +49,14 @@ test('RNF-0003: nenhum caminho absoluto de container está embutido em src/ ou t
   walk('test');
   assert.deepEqual(ofensas, [], 'caminho de container só pode aparecer em Dockerfile, compose e wrappers (ADR-0003)');
 });
+
+test('RNF-0003: o container declara as duas raízes, e elas são distintas', () => {
+  // Substitui a antiga asserção "o repositório está montado em /app", que
+  // afirmava a raiz única que ADR-0003 aboliu. Nada roda no host (ADR-0001),
+  // então estas variáveis sempre existem quando o teste roda.
+  const toolkit = process.env.LIVING_DOCS_TOOLKIT_ROOT;
+  const repo = process.env.LIVING_DOCS_REPO_ROOT;
+  assert.equal(typeof toolkit, 'string');
+  assert.equal(typeof repo, 'string');
+  assert.notEqual(toolkit, repo, 'toolkit e repositório validado não podem compartilhar o caminho (ADR-0003)');
+});
