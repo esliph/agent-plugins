@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Ponte host → container. O host não executa Node: todo trabalho acontece
+# dentro de `living-docs-toolkit`, com o repositório montado em /app.
+set -euo pipefail
+
+CONTAINER="${LIVING_DOCS_CONTAINER:-living-docs-toolkit}"
+
+if ! docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -q true; then
+  echo "living-docs: o container '$CONTAINER' não está rodando. Suba com: docker compose up -d" >&2
+  exit 2
+fi
+
+exec docker exec -i -e LIVING_DOCS_ROOT=/app "$CONTAINER" node /app/src/cli/index.ts "$@"
