@@ -14,7 +14,7 @@ torna o raio de impacto calculável por `grep`. Formato: `templates/requirements
 
 ## RN-0001 — Todo artefato tem exatamente um dono declarado
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0002
 - **fora de escopo:** quem revisa o artefato; isto trata de propriedade, não de revisão
 
@@ -24,7 +24,7 @@ Um artefato de documentação viva pertence a um e apenas um dono, declarado em
 
 ## RN-0002 — `trigger` nomeia um evento observável, nunca uma cadência
 
-- **status:** draft
+- **status:** active
 - **fora de escopo:** a redação do gatilho; o que se exige é a natureza dele
 
 O campo `trigger` declara **quando** o artefato deve ser atualizado, e a resposta
@@ -34,7 +34,7 @@ mudança — e é o que transforma documento em ritual.
 
 ## RN-0003 — Um ID identifica um item, para sempre
 
-- **status:** draft
+- **status:** active
 - **fora de escopo:** o formato do ID, que é contrato de máquina e não regra de negócio
 
 Um ID nunca identifica dois itens, e nunca é reaproveitado depois que o item
@@ -44,7 +44,7 @@ silêncio, que é pior do que apontar para nada.
 
 ## RN-0004 — Item congelado só muda nos campos da allowlist
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0006
 - **fora de escopo:** quem decide congelar; isso é a máquina de estados
 
@@ -54,7 +54,7 @@ essa allowlist que permite supersedir um ADR sem violar a imutabilidade dele.
 
 ## RN-0005 — Promoção de estado é ato humano
 
-- **status:** draft
+- **status:** active
 - **fora de escopo:** a criação do item, que é ato de agente
 
 Nenhum agente promove sozinho um item para um estado que significa aceitação
@@ -64,7 +64,7 @@ máximo que uma skill escreve é `draft`/`open`. Aceitar é decidir, e decidir n
 
 ## RN-0006 — Estado terminal não permite edição do corpo
 
-- **status:** draft
+- **status:** active
 - **relates-to:** TDR-0001
 - **fora de escopo:** o congelamento por seção dentro de arquivo de coleção, que TDR-0001 registra como dívida
 
@@ -74,7 +74,7 @@ erro.
 
 ## RN-0007 — Toda citação resolve, ou o CI falha
 
-- **status:** draft
+- **status:** active
 - **fora de escopo:** citação a prefixo não declarado no `.ownership.yml`, que é ignorada de propósito para permitir instalação por fases
 
 Uma referência `<PREFIXO>-<número>` a um prefixo conhecido aponta para um item

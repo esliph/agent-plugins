@@ -13,7 +13,7 @@ Cada requisito é uma seção com ID citável. Formato: `templates/requirements.
 
 ## RNF-0001 — Hook falha aberta, em até 5 segundos, sem rede
 
-- **status:** draft
+- **status:** active
 - **fora de escopo:** o CI, que falha fechado de propósito
 
 Qualquer erro na execução de um hook — configuração ilegível, container fora do
@@ -23,7 +23,7 @@ primeiro dia, e aí não há enforcement nenhum.
 
 ## RNF-0002 — Nada roda no host além de Docker
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0001
 - **fora de escopo:** o próprio Docker e o `git`
 
@@ -32,7 +32,7 @@ empresta apenas o daemon.
 
 ## RNF-0003 — A raiz do toolkit e a do repositório validado são independentes
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0003
 - **fora de escopo:** o mecanismo de distribuição do toolkit, que ADR-0003 deliberadamente não decide
 
