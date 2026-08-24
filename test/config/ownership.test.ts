@@ -4,6 +4,7 @@ import {
   parseOwnership,
   loadOwnership,
   findArtifactRule,
+  fieldOf,
   OwnershipError,
   OWNERSHIP_PATH,
 } from '../../src/config/ownership.ts';
@@ -149,4 +150,63 @@ test('findArtifactRule casa arquivo dentro de diretório e arquivo exato', () =>
   assert.equal(findArtifactRule(config, 'docs/decisions/adr/ADR-0001-x.md')?.idPrefix, 'ADR');
   assert.equal(findArtifactRule(config, 'docs/open-decisions.md')?.idPrefix, 'DA');
   assert.equal(findArtifactRule(config, 'src/index.ts'), null);
+});
+
+const COM_FIELD_MAP = `
+version: 1
+artifacts:
+  - id-prefix: DA
+    path: docs/open-decisions.md
+    owner: "@product"
+    skill: decision-recorder
+    collection: table
+    field-map:
+      resolved-by: "Resolvida por"
+`;
+
+test('RN-0001: field-map traduz o nome canônico e normaliza as duas pontas', () => {
+  const rule = parseOwnership(COM_FIELD_MAP).artifacts[0]!;
+  assert.equal(rule.fieldMap['resolved-by'], 'resolvida por');
+});
+
+test('fieldOf traduz pelo field-map e trata vazio como ausente', () => {
+  const rule = parseOwnership(COM_FIELD_MAP).artifacts[0]!;
+  assert.equal(
+    fieldOf(rule, { id: 'DA-0001', status: 'resolved', line: 1, fields: { 'resolvida por': 'ADR-0007' } }, 'resolved-by'),
+    'ADR-0007',
+  );
+  assert.equal(
+    fieldOf(rule, { id: 'DA-0002', status: 'open', line: 2, fields: { 'resolvida por': '—' } }, 'resolved-by'),
+    null,
+  );
+  assert.equal(
+    fieldOf(rule, { id: 'DA-0003', status: 'open', line: 3, fields: {} }, 'resolved-by'),
+    null,
+  );
+});
+
+test('sem field-map, o nome canônico é o próprio nome do campo', () => {
+  const rule = parseOwnership(VALID).artifacts[1]!;
+  assert.equal(
+    fieldOf(rule, { id: 'DA-0001', status: 'open', line: 1, fields: { 'relates-to': 'ADR-0001' } }, 'relates-to'),
+    'ADR-0001',
+  );
+});
+
+test('field-map com valor vazio é erro de configuração, não silêncio', () => {
+  assert.throws(
+    () =>
+      parseOwnership(`
+version: 1
+artifacts:
+  - id-prefix: DA
+    path: docs/open-decisions.md
+    owner: "@product"
+    skill: decision-recorder
+    collection: table
+    field-map:
+      resolved-by: ""
+`),
+    (err: unknown) => err instanceof OwnershipError && err.message.includes('field-map'),
+  );
 });

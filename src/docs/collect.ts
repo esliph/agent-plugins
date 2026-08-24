@@ -4,7 +4,7 @@ import type { ArtifactRule, OwnershipConfig } from '../config/ownership.ts';
 import { parseFrontmatter, FrontmatterSyntaxError } from '../frontmatter/parse.ts';
 import type { Frontmatter } from '../frontmatter/parse.ts';
 import { parseItemTable } from './table.ts';
-import type { TableItem } from './table.ts';
+import type { DocItem } from './item.ts';
 
 export interface ArtifactDoc {
   /** Caminho relativo à raiz do repositório, sempre com `/`. */
@@ -13,8 +13,8 @@ export interface ArtifactDoc {
   source: string;
   frontmatter: Frontmatter | null;
   syntaxError: FrontmatterSyntaxError | null;
-  /** Itens da tabela quando `rule.collection === 'table'`; vazio caso contrário. */
-  items: TableItem[];
+  /** Itens da coleção (`table` ou `sections`); vazio para `per-file`. */
+  items: DocItem[];
 }
 
 function listMarkdown(root: string, relativeDir: string): string[] {

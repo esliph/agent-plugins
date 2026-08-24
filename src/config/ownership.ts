@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import YAML from 'yaml';
+import { isEmptyValue, normalizeKey } from '../docs/item.ts';
+import type { DocItem } from '../docs/item.ts';
 
 export const OWNERSHIP_PATH = 'docs/.ownership.yml';
 
@@ -15,6 +17,8 @@ export interface ArtifactRule {
   mutableFields: string[];
   citedBy: string[];
   collection: Collection;
+  /** Canônico -> nome real do campo neste projeto. Ex.: { 'resolved-by': 'resolvida por' }. */
+  fieldMap: Record<string, string>;
   /** Máquina de estados declarada pelo projeto; null usa a embutida em src/docs/schema.ts. */
   states: string[] | null;
 }
@@ -95,6 +99,19 @@ function parseArtifact(raw: unknown, index: number): ArtifactRule {
     throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.collection precisa ser "per-file" ou "table".`);
   }
 
+  const fieldMapRaw = item['field-map'];
+  const fieldMap: Record<string, string> = {};
+  if (fieldMapRaw !== undefined && fieldMapRaw !== null) {
+    for (const [canonical, real] of Object.entries(asRecord(fieldMapRaw, `${where}.field-map`))) {
+      if (typeof real !== 'string' || real.trim() === '') {
+        throw new OwnershipError(
+          `${OWNERSHIP_PATH}: ${where}.field-map.${canonical} precisa ser uma string não vazia.`,
+        );
+      }
+      fieldMap[normalizeKey(canonical)] = normalizeKey(real);
+    }
+  }
+
   const states = item.states === undefined ? null : asStringList(item.states, `${where}.states`);
 
   return {
@@ -106,6 +123,7 @@ function parseArtifact(raw: unknown, index: number): ArtifactRule {
     mutableFields: asStringList(item['mutable-fields'], `${where}.mutable-fields`),
     citedBy: asStringList(item['cited-by'], `${where}.cited-by`),
     collection: collectionRaw,
+    fieldMap,
     states,
   };
 }
@@ -189,6 +207,20 @@ export function loadOwnership(root: string): OwnershipConfig {
     );
   }
   return parseOwnership(source);
+}
+
+/**
+ * Valor de um campo canônico do item, respeitando o `field-map` do artefato.
+ * Devolve null para célula vazia — `CI-3` trata "vazio" e "ausente" igual.
+ *
+ * Mora aqui, e não em `src/checks/`, porque traduzir "resolved-by" para o nome
+ * real da coluna é configuração do projeto: nenhum check aprende português.
+ */
+export function fieldOf(rule: ArtifactRule, item: DocItem, canonical: string): string | null {
+  const key = rule.fieldMap[normalizeKey(canonical)] ?? normalizeKey(canonical);
+  const value = item.fields[key];
+  if (value === undefined || isEmptyValue(value)) return null;
+  return value.trim();
 }
 
 /** Regra dona de um caminho relativo à raiz do repositório, ou null. */

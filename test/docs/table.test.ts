@@ -18,8 +18,18 @@ const BODY = [
 test('extrai id, status e linha de cada item', () => {
   const items = parseItemTable(BODY, 10);
   assert.equal(items.length, 2);
-  assert.deepEqual(items[0], { id: 'DA-0001', status: 'open', line: 16 });
-  assert.deepEqual(items[1], { id: 'DA-0002', status: 'resolved', line: 17 });
+  assert.deepEqual(items[0], {
+    id: 'DA-0001',
+    status: 'open',
+    line: 16,
+    fields: { id: 'DA-0001', lacuna: 'Como cobrar reembolso parcial', status: 'open', 'resolvida por': '—' },
+  });
+  assert.deepEqual(items[1], {
+    id: 'DA-0002',
+    status: 'resolved',
+    line: 17,
+    fields: { id: 'DA-0002', lacuna: 'Fuso do fechamento mensal', status: 'resolved', 'resolvida por': 'ADR-0007' },
+  });
 });
 
 test('para de ler ao fim da tabela', () => {
@@ -37,4 +47,17 @@ test('ignora linhas cuja primeira célula não é um ID', () => {
   const items = parseItemTable(source, 1);
   assert.equal(items.length, 1);
   assert.equal(items[0]?.id, 'DA-0001');
+});
+
+test('o item traz todas as colunas, normalizadas', () => {
+  const items = parseItemTable(
+    [
+      '| ID | Lacuna | Status | Resolvida por |',
+      '| --- | --- | --- | --- |',
+      '| DA-0001 | X | resolved | ADR-0007 |',
+    ].join('\n'),
+    1,
+  );
+  assert.equal(items[0]?.fields['resolvida por'], 'ADR-0007');
+  assert.equal(items[0]?.fields['lacuna'], 'X');
 });

@@ -22,6 +22,7 @@ function rule(overrides: Partial<ArtifactRule> = {}): ArtifactRule {
     mutableFields: ['status', 'superseded-by', 'last-reviewed'],
     citedBy: [],
     collection: 'per-file',
+    fieldMap: {},
     states: null,
     ...overrides,
   };
