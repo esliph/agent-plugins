@@ -3,8 +3,9 @@ import { dirname, join } from 'node:path';
 import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts';
 import type { OwnershipConfig } from '../config/ownership.ts';
 import { RETIRED_IDS_PATH } from '../ids/citations.ts';
+import { templatesDir } from '../core/roots.ts';
 
-const TEMPLATES_DIR = join(import.meta.dirname, '..', '..', 'templates');
+const TEMPLATES_DIR = templatesDir();
 
 export const DEFAULT_PATHS: Readonly<Record<'ADR' | 'DA' | 'TDR', string>> = Object.freeze({
   ADR: 'docs/decisions/adr/',

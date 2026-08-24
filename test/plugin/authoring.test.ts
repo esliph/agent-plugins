@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseFrontmatter } from '../../src/frontmatter/parse.ts';
+import { toolkitRoot } from '../../src/core/roots.ts';
 
-const ROOT = process.env.LIVING_DOCS_ROOT ?? '/app';
+const ROOT = toolkitRoot();
 const SKILL = readFileSync(join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'), 'utf8');
 
 test('a skill tem frontmatter com name e description', () => {

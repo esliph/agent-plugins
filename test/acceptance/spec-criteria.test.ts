@@ -8,8 +8,9 @@ import { decideHk1 } from '../../src/hooks/hk1-append-only.ts';
 import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts';
 import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
+import { repoRoot } from '../../src/core/roots.ts';
 
-const ROOT = process.env.LIVING_DOCS_ROOT ?? '/app';
+const ROOT = repoRoot();
 const OPTIONS = { owner: '@team', dryRun: false };
 
 function seedAdr(root: string, status: string): string {

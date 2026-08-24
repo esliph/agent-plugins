@@ -3,6 +3,7 @@ import { runValidate } from './validate.ts';
 import { runInit } from './init.ts';
 import { formatFindings } from './report.ts';
 import { OwnershipError } from '../config/ownership.ts';
+import { repoRoot } from '../core/roots.ts';
 
 const USAGE = `living-docs <comando>
 
@@ -15,7 +16,7 @@ Opções de init:
 `;
 
 function main(argv: readonly string[]): number {
-  const root = process.env.LIVING_DOCS_ROOT ?? process.cwd();
+  const root = repoRoot();
   const command = argv[0];
 
   if (command === undefined || command === '--help' || command === '-h') {

@@ -1,5 +1,7 @@
+import { repoRoot } from '../../core/roots.ts';
+
 export interface HookEnv {
-  /** Raiz do repositório dentro do container. */
+  /** Raiz do repositório validado (ADR-0003). */
   root: string;
   /** Raízes reconhecidas em `file_path`: a do container e a do host. */
   hostRoots: readonly string[];
@@ -10,8 +12,12 @@ export interface HookPayload {
   tool_input?: Record<string, unknown>;
 }
 
+/**
+ * Ambiente do hook. `LIVING_DOCS_HOST_ROOT` não muda de nome em ADR-0003: ela
+ * sempre significou "o prefixo de caminho do lado do host", que não é ambíguo.
+ */
 export function hookEnv(): HookEnv {
-  const root = process.env.LIVING_DOCS_ROOT ?? '/app';
+  const root = repoRoot();
   const host = process.env.LIVING_DOCS_HOST_ROOT;
   return { root, hostRoots: host ? [root, host] : [root] };
 }

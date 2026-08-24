@@ -2,8 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { toolkitRoot } from '../../src/core/roots.ts';
 
-const ROOT = process.env.LIVING_DOCS_ROOT ?? '/app';
+const ROOT = toolkitRoot();
 
 function readJson(relative: string): Record<string, unknown> {
   return JSON.parse(readFileSync(join(ROOT, relative), 'utf8')) as Record<string, unknown>;
