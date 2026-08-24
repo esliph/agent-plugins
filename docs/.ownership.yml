@@ -1,0 +1,32 @@
+# O único arquivo específico deste projeto. Hooks e checks não conhecem
+# caminho nenhum — leem daqui. Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §3.
+version: 1
+stale-after-months: 6
+
+artifacts:
+  - id-prefix: ADR
+    path: docs/decisions/adr/
+    owner: "@dan"
+    skill: decision-recorder
+    append-only: true
+    mutable-fields: [status, superseded-by, last-reviewed]
+
+  - id-prefix: DA
+    path: docs/open-decisions.md
+    owner: "@dan"
+    skill: decision-recorder
+    collection: table
+
+  - id-prefix: TDR
+    path: docs/decisions/debt/
+    owner: "@dan"
+    skill: decision-recorder
+    append-only: true
+    mutable-fields: [status, last-reviewed]
+
+generated: []
+
+# Fases 3+ preenchem `watches` (código → doc dono). Vazio nas Fases 0–1.
+watches: []
+
+consumer-visible-paths: []

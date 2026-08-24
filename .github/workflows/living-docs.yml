@@ -1,0 +1,26 @@
+name: living-docs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construir a imagem
+        run: docker compose build
+
+      - name: Instalar dependências
+        run: docker compose run --rm toolkit npm ci
+
+      - name: Testes
+        run: docker compose run --rm toolkit npm test
+
+      - name: Type-check
+        run: docker compose run --rm toolkit npm run typecheck
+
+      - name: CI-1 e CI-2 — documentação viva
+        run: docker compose run --rm toolkit node /app/src/cli/index.ts validate

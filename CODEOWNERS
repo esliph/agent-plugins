@@ -1,0 +1,5 @@
+# Espelha o campo `owner` de docs/.ownership.yml. Um artefato, um dono.
+docs/decisions/adr/    @dan
+docs/open-decisions.md    @dan
+docs/decisions/debt/    @dan
+docs/.ownership.yml    @dan
