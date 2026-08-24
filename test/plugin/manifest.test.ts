@@ -106,3 +106,10 @@ test('o nome no frontmatter de cada skill casa com o diretório', () => {
     assert.match(source, new RegExp(`^name:\\s*${dir}\\s*$`, 'm'), `${dir}/SKILL.md declara outro name`);
   }
 });
+
+test('nenhum script executável carrega CR — o runtime é Linux (ADR-0001)', () => {
+  for (const relative of ['bin/living-docs', 'plugin/hooks/run-hook.sh']) {
+    const source = readFileSync(join(ROOT, relative), 'utf8');
+    assert.equal(source.includes('\r'), false, `${relative} com CRLF: o shebang quebra dentro do container`);
+  }
+});
