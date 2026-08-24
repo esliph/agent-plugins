@@ -22,6 +22,11 @@ artifacts:
     owner: "@product"
     skill: decision-recorder
     collection: table
+  - id-prefix: RN
+    path: docs/requirements/rules.md
+    owner: "@team"
+    skill: requirements-keeper
+    collection: sections
 `;
 
 const ADR_FILE = 'docs/decisions/adr/ADR-0001-fila.md';
@@ -114,4 +119,74 @@ test('falha aberta: sem configuração, permite', () => {
     );
   });
   assert.equal(decision.action, 'allow');
+});
+
+const RULES_FILE = 'docs/requirements/rules.md';
+
+function rules(status: string): string {
+  return [
+    '---',
+    'title: Regras de negócio',
+    'owner: "@team"',
+    'trigger: A toda regra nova ou alterada.',
+    'last-reviewed: 2026-08-24',
+    '---',
+    '',
+    '## RN-0001 — Todo artefato tem um dono',
+    '',
+    `- **status:** ${status}`,
+    '',
+    'Enunciado.',
+    '',
+  ].join('\n');
+}
+
+test('RN-0005: promover um requisito de draft para active pergunta', () => {
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('draft') }, (root) => {
+    const decision = decideHk3(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: RULES_FILE,
+          old_string: '- **status:** draft',
+          new_string: '- **status:** active',
+        },
+      },
+      { root, hostRoots: [root] },
+    );
+    assertAsk(decision);
+    assert.match(decision.reason, /RN-0001/);
+    assert.match(decision.reason, /active/);
+  });
+});
+
+test('RN-0005: revogar um requisito também pergunta', () => {
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('active') }, (root) => {
+    const decision = decideHk3(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: RULES_FILE,
+          old_string: '- **status:** active',
+          new_string: '- **status:** revoked',
+        },
+      },
+      { root, hostRoots: [root] },
+    );
+    assertAsk(decision);
+    assert.match(decision.reason, /revoked/);
+  });
+});
+
+test('editar o enunciado de um requisito em draft não pergunta', () => {
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('draft') }, (root) => {
+    const decision = decideHk3(
+      {
+        tool_name: 'Edit',
+        tool_input: { file_path: RULES_FILE, old_string: 'Enunciado.', new_string: 'Outro enunciado.' },
+      },
+      { root, hostRoots: [root] },
+    );
+    assert.equal(decision.action, 'allow');
+  });
 });

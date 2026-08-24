@@ -34,18 +34,26 @@ test('a máquina de estados da spec §4 está codificada', () => {
   assert.deepEqual(STATUS_MACHINE.TDR, ['open', 'paid', 'accepted-permanently']);
 });
 
-test('os estados congelados incluem os cinco do esqueleto da spec §7', () => {
-  for (const status of ['accepted', 'superseded', 'deprecated', 'published', 'paid']) {
+test('as três famílias de requisito compartilham o ciclo draft → active → revoked', () => {
+  for (const prefix of ['RF', 'RNF', 'RN']) {
+    assert.deepEqual(STATUS_MACHINE[prefix], ['draft', 'active', 'revoked'], `${prefix} fora do ciclo da spec §4`);
+  }
+});
+
+test('RN-0006: os estados terminais são congelados, revoked incluído', () => {
+  for (const status of ['accepted', 'superseded', 'deprecated', 'published', 'paid', 'revoked']) {
     assert.ok(FROZEN_STATUSES.has(status), `${status} deveria ser congelado`);
   }
   assert.equal(FROZEN_STATUSES.has('draft'), false);
   assert.equal(FROZEN_STATUSES.has('open'), false);
 });
 
-test('as promoções que exigem ato humano são exatamente draft→accepted e open→resolved', () => {
+test('RN-0005: toda promoção que significa aceitação exige ato humano', () => {
   assert.deepEqual(HUMAN_PROMOTIONS, [
     { from: 'draft', to: 'accepted' },
     { from: 'open', to: 'resolved' },
+    { from: 'draft', to: 'active' },
+    { from: 'active', to: 'revoked' },
   ]);
 });
 

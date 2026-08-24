@@ -26,6 +26,9 @@ export const STATUS_MACHINE: Readonly<Record<string, readonly string[]>> = Objec
   ADR: ['draft', 'accepted', 'superseded'],
   DA: ['open', 'resolved', 'dropped'],
   TDR: ['open', 'paid', 'accepted-permanently'],
+  RF: ['draft', 'active', 'revoked'],
+  RNF: ['draft', 'active', 'revoked'],
+  RN: ['draft', 'active', 'revoked'],
 });
 
 /** "Nenhum estado terminal permite edição do corpo" (spec §4). */
@@ -35,12 +38,15 @@ export const FROZEN_STATUSES: ReadonlySet<string> = new Set([
   'deprecated',
   'published',
   'paid',
+  'revoked',
 ]);
 
 /** "Nenhum agente promove estado sozinho" (spec §4); é o gatilho de HK-3. */
 export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.freeze([
   { from: 'draft', to: 'accepted' },
   { from: 'open', to: 'resolved' },
+  { from: 'draft', to: 'active' },
+  { from: 'active', to: 'revoked' },
 ]);
 
 export function statesFor(rule: ArtifactRule): readonly string[] | null {
