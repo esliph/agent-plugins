@@ -1,0 +1,2 @@
+# IDs retirados. Nunca são reciclados (LIVING-DOCUMENTATION-TOOLKIT.md §2).
+# Um ID por linha.

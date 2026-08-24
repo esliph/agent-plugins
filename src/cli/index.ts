@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { runValidate } from './validate.ts';
+import { runInit } from './init.ts';
 import { formatFindings } from './report.ts';
 import { OwnershipError } from '../config/ownership.ts';
 
@@ -30,8 +31,17 @@ function main(argv: readonly string[]): number {
     }
 
     if (command === 'init') {
-      process.stderr.write('living-docs: `init` ainda não implementado.\n');
-      return 2;
+      const ownerIndex = argv.indexOf('--owner');
+      const owner = ownerIndex === -1 ? '@owners' : (argv[ownerIndex + 1] ?? '@owners');
+      const result = runInit(root, { owner, dryRun: argv.includes('--dry-run') });
+
+      for (const entry of result.adopted) {
+        process.stdout.write(`adotado   ${entry.path}  (${entry.idPrefix} — já existia; nenhum paralelo criado)\n`);
+      }
+      for (const path of result.created) process.stdout.write(`criado    ${path}\n`);
+      for (const path of result.skipped) process.stdout.write(`mantido   ${path}\n`);
+      if (result.created.length === 0) process.stdout.write('living-docs: nada a criar; a moldura já existe.\n');
+      return 0;
     }
   } catch (err) {
     if (err instanceof OwnershipError) {

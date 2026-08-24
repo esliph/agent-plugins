@@ -1,0 +1,5 @@
+# Espelha o campo `owner` de docs/.ownership.yml. Um artefato, um dono.
+{{ADR_PATH}}    {{OWNER}}
+{{DA_PATH}}    {{OWNER}}
+{{TDR_PATH}}    {{OWNER}}
+docs/.ownership.yml    {{OWNER}}
