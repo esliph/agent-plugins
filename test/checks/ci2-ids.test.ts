@@ -95,6 +95,43 @@ test('ID presente em ids-retired.txt reaparecendo falha', () => {
   assert.match(findings[0]?.message ?? '', /reciclado|retirado/i);
 });
 
+test('ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não dois artefatos', () => {
+  const findings = run({
+    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
+    'docs/decisions/adr/ADR-001-b.md': adr('ADR-001'),
+    'docs/open-decisions.md': openDecisions([]),
+  });
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0]?.ruleId, 'CI-2');
+  assert.match(findings[0]?.message ?? '', /duplicado/);
+  // A mensagem mostra o ID como a pessoa escreveu, não a forma canônica.
+  assert.match(findings[0]?.message ?? '', /ID ADR-001 duplicado/);
+  assert.match(findings[0]?.message ?? '', /ADR-0001-a\.md/);
+});
+
+test('repadding não recicla um ID retirado: ADR-0002 retirado barra ADR-002', () => {
+  const findings = run({
+    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
+    'docs/decisions/adr/ADR-002-b.md': adr('ADR-002'),
+    'docs/open-decisions.md': openDecisions([]),
+    [RETIRED_IDS_PATH]: 'ADR-0002\n',
+  });
+  assert.equal(findings.length, 1);
+  assert.match(findings[0]?.message ?? '', /ID ADR-002 está em/);
+  assert.match(findings[0]?.message ?? '', /reciclado/i);
+});
+
+test('ID retirado sem padding canônico ainda barra a forma padded', () => {
+  const findings = run({
+    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
+    'docs/decisions/adr/ADR-0002-b.md': adr('ADR-0002'),
+    'docs/open-decisions.md': openDecisions([]),
+    [RETIRED_IDS_PATH]: 'ADR-002\n',
+  });
+  assert.equal(findings.length, 1);
+  assert.match(findings[0]?.message ?? '', /ID ADR-0002 está em/);
+});
+
 test('buraco na sequência falha apontando o registro de retirados', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),

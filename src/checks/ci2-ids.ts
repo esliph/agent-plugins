@@ -1,5 +1,5 @@
 import type { Check, CheckContext, Finding } from '../core/types.ts';
-import { parseId } from '../docs/schema.ts';
+import { canonicalId, parseId } from '../docs/schema.ts';
 import { findCitations, loadRetiredIds, RETIRED_IDS_PATH } from '../ids/citations.ts';
 
 const RULE = 'CI-2';
@@ -33,17 +33,30 @@ function collectDeclarations(context: CheckContext): Declaration[] {
   return declarations;
 }
 
+/**
+ * Chave de identidade de um ID. `ADR-001` e `ADR-0001` são a mesma coisa: sem
+ * canonizar, um repadding criaria um segundo artefato com o mesmo número e
+ * driblaria `ids-retired.txt` (spec §2 — "id nunca é reciclado").
+ * Linha que não é ID válido (comentário solto em `ids-retired.txt`) volta crua:
+ * ela nunca casa com uma declaração, que sempre passou por `parseId`.
+ */
+function key(id: string): string {
+  const parsed = parseId(id);
+  return parsed ? canonicalId(parsed) : id;
+}
+
 export const ci2Ids: Check = {
   id: RULE,
   name: 'ID lint',
   run(context: CheckContext): Finding[] {
     const findings: Finding[] = [];
-    const retired = loadRetiredIds(context.root);
+    const retired = new Set([...loadRetiredIds(context.root)].map(key));
     const declarations = collectDeclarations(context);
 
     const byId = new Map<string, Declaration>();
     for (const declaration of declarations) {
-      const previous = byId.get(declaration.id);
+      const id = key(declaration.id);
+      const previous = byId.get(id);
       if (previous) {
         findings.push(
           error(
@@ -55,9 +68,9 @@ export const ci2Ids: Check = {
         );
         continue;
       }
-      byId.set(declaration.id, declaration);
+      byId.set(id, declaration);
 
-      if (retired.has(declaration.id)) {
+      if (retired.has(id)) {
         findings.push(
           error(
             declaration.file,
@@ -99,19 +112,20 @@ export const ci2Ids: Check = {
     // Citações precisam resolver para um ID existente e não retirado.
     for (const doc of context.docs) {
       const declaredHere = new Set(
-        declarations.filter((declaration) => declaration.file === doc.file).map((d) => d.id),
+        declarations.filter((declaration) => declaration.file === doc.file).map((d) => key(d.id)),
       );
       for (const citation of findCitations(doc.source)) {
         const parsed = parseId(citation.id);
         if (!parsed || !known.has(parsed.prefix)) continue;
-        if (declaredHere.has(citation.id)) continue;
-        if (byId.has(citation.id) && !retired.has(citation.id)) continue;
+        const cited = canonicalId(parsed);
+        if (declaredHere.has(cited)) continue;
+        if (byId.has(cited) && !retired.has(cited)) continue;
 
         findings.push(
           error(
             doc.file,
             citation.line,
-            retired.has(citation.id)
+            retired.has(cited)
               ? `Citação a ${citation.id}, que está retirado.`
               : `Citação a ${citation.id}, que não resolve para nenhum artefato existente.`,
             `Cite um ID existente ou crie o artefato (skill dona: ${doc.rule.skill}).`,

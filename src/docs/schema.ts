@@ -98,3 +98,12 @@ export function parseId(value: unknown): { prefix: string; number: number } | nu
   if (!match?.[1] || !match[2]) return null;
   return { prefix: match[1], number: Number.parseInt(match[2], 10) };
 }
+
+/**
+ * Forma canônica de um ID para comparação de identidade.
+ * `ADR-001` e `ADR-0001` são strings diferentes e o **mesmo** ID lógico — sem
+ * canonizar, repadding burlaria "ID nunca é reciclado" (spec §2).
+ */
+export function canonicalId(parsed: { prefix: string; number: number }): string {
+  return `${parsed.prefix}-${String(parsed.number).padStart(4, '0')}`;
+}

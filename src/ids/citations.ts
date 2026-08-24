@@ -9,6 +9,10 @@ export const RETIRED_IDS_PATH = 'docs/ids-retired.txt';
  * padrão como "ISO-8601") é inofensivo: `ci2-ids.ts` só resolve citações cujo
  * prefixo está em `known` (`.ownership.yml`), então esses casos são ignorados
  * silenciosamente — mesma regra que permite instalar o toolkit por fases.
+ *
+ * Deliberadamente global e sem âncoras (varre texto livre em busca de várias
+ * citações), mas com o MESMO formato de prefixo e contagem de dígitos que
+ * `parseId` em `src/docs/schema.ts` — se aquele formato mudar, mude aqui também.
  */
 const CITATION = /\b([A-Z]{2,4})-(\d{3,4})\b/g;
 

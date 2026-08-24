@@ -1,4 +1,4 @@
-const ID_CELL = /^[A-Z]{2,4}-\d{3,4}$/;
+import { parseId } from './schema.ts';
 
 export interface TableItem {
   id: string;
@@ -41,7 +41,7 @@ export function parseItemTable(source: string, startLine: number): TableItem[] {
       const row = cells(lines[j] ?? '');
       if (row.length === 0) break;
       const id = row[idColumn] ?? '';
-      if (!ID_CELL.test(id)) continue;
+      if (!parseId(id)) continue;
       items.push({ id, status: row[statusColumn] ?? '', line: startLine + j });
     }
     return items;
