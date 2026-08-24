@@ -186,9 +186,9 @@ test('citação de prefixo não declarado é ignorada — instalação por fases
   );
 });
 
-test('o registry expõe CI-1 e CI-2 nessa ordem', () => {
+test('o registry expõe CI-1, CI-2 e CI-3 nessa ordem', () => {
   assert.deepEqual(
     CHECKS.map((check) => check.id),
-    ['CI-1', 'CI-2'],
+    ['CI-1', 'CI-2', 'CI-3'],
   );
 });
