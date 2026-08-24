@@ -23,10 +23,21 @@ docker compose exec toolkit npm run typecheck
 
 ## Plugin do Claude Code
 
-`plugin/` traz a skill `decision-recorder` (`/adr`, `/open-decision`, `/debt`,
-`/docs-setup`) e os hooks `HK-1` (bloqueia editar item congelado) e `HK-3`
-(promoção de estado exige ato humano). Os hooks falham abertos: com o container
-parado, eles não bloqueiam nada — o enforcement que sobrevive a isso é o CI.
+`plugin/` traz as skills `decision-recorder` (`/adr`, `/open-decision`, `/debt`)
+e `living-docs-bootstrap` (`/docs-setup`), e os hooks `HK-1` (bloqueia editar
+item congelado) e `HK-3` (promoção de estado exige ato humano). Os hooks falham
+abertos: com o container parado, eles não bloqueiam nada — o enforcement que
+sobrevive a isso é o CI.
+
+## Limitações desta fase
+
+Os hooks do plugin assumem que **a fonte do toolkit e o repositório validado são
+o mesmo checkout**: `plugin/hooks/run-hook.sh` fixa `LIVING_DOCS_ROOT=/app` tanto
+para achar `docs/.ownership.yml` quanto para executar `/app/src/hooks/*.ts`.
+Isso serve exatamente ao caso das Fases 0–1 — este repositório validando a si
+mesmo (dogfooding). Um projeto consumidor separado precisaria da raiz do toolkit
+e da raiz do repositório validado apartadas, o que é trabalho de Fase 2+ e está
+registrado como `DA-0001` em `docs/open-decisions.md`.
 
 ## O que está fora
 
