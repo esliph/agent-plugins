@@ -1,0 +1,16 @@
+services:
+  toolkit:
+    build: .
+    container_name: living-docs-toolkit
+    working_dir: /app
+    user: node
+    init: true
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      LIVING_DOCS_ROOT: /app
+    command: ["sleep", "infinity"]
+
+volumes:
+  node_modules:
