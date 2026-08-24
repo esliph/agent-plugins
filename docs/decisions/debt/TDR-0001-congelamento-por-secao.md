@@ -6,7 +6,7 @@ owner: "@dan"
 trigger: >
   Nunca. Imutável enquanto a dívida existir; o pagamento a marca como paid.
 last-reviewed: 2026-08-24
-relates-to: []
+relates-to: [RN-0006]
 ---
 
 # TDR-0001 — HK-1 não congela seção revogada dentro de arquivo de coleção

@@ -34,7 +34,7 @@ test('hooks.json registra HK-1 e HK-3 em PreToolUse com matcher Edit|Write', () 
   }
 });
 
-test('o wrapper existe, é executável e falha aberta', () => {
+test('RNF-0002: o wrapper existe, é executável e falha aberta — o host só empresta o Docker', () => {
   const wrapper = join(ROOT, 'plugin/hooks/run-hook.sh');
   assert.ok(existsSync(wrapper));
   assert.ok((statSync(wrapper).mode & 0o111) !== 0, 'run-hook.sh precisa ser executável');
@@ -107,7 +107,7 @@ test('o nome no frontmatter de cada skill casa com o diretório', () => {
   }
 });
 
-test('nenhum script executável carrega CR — o runtime é Linux (ADR-0001)', () => {
+test('RNF-0002: nenhum script executável carrega CR — o runtime é Linux (ADR-0001)', () => {
   for (const relative of ['bin/living-docs', 'plugin/hooks/run-hook.sh']) {
     const source = readFileSync(join(ROOT, relative), 'utf8');
     assert.equal(source.includes('\r'), false, `${relative} com CRLF: o shebang quebra dentro do container`);

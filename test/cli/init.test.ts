@@ -36,7 +36,7 @@ test('o repositório recém-inicializado passa no próprio validate', () => {
   });
 });
 
-test('é idempotente: a segunda execução não recria nem reescreve nada', () => {
+test('RF-0002: é idempotente — a segunda execução não recria nem reescreve nada', () => {
   withTempRepo({ 'README.md': '' }, (root) => {
     runInit(root, OPTIONS);
     writeFileSync(join(root, 'docs/open-decisions.md'), 'CONTEÚDO DO USUÁRIO\n', 'utf8');
@@ -49,7 +49,7 @@ test('é idempotente: a segunda execução não recria nem reescreve nada', () =
   });
 });
 
-test('adota diretório de ADR preexistente em vez de criar um paralelo', () => {
+test('RF-0002: adota diretório de ADR preexistente em vez de criar um paralelo', () => {
   withTempRepo({ 'docs/adr/0001-antigo.md': '# antigo\n' }, (root) => {
     const result = runInit(root, OPTIONS);
 
@@ -78,7 +78,7 @@ test('adoção + segunda execução: nada é readotado, duplicado nem reescrito'
   });
 });
 
-test('adota arquivo de open decisions preexistente sob outro nome', () => {
+test('RF-0002: adota arquivo de open decisions preexistente sob outro nome', () => {
   withTempRepo({ 'docs/decisoes-abertas.md': '# abertas\n', 'README.md': '' }, (root) => {
     const result = runInit(root, OPTIONS);
     assert.ok(result.adopted.some((entry) => entry.path === 'docs/decisoes-abertas.md'));

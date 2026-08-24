@@ -6,7 +6,7 @@ owner: "@dan"
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24
-relates-to: [ADR-0001]
+relates-to: [ADR-0001, RN-0001, RNF-0001]
 supersedes: null
 superseded-by: null
 ---

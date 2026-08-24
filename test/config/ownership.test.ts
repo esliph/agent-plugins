@@ -101,7 +101,7 @@ test('rejeita id-prefix fora do formato', () => {
   );
 });
 
-test('rejeita id-prefix duplicado — um artefato, um dono', () => {
+test('RN-0001: rejeita id-prefix duplicado — um artefato, um dono', () => {
   const dup = `
 version: 1
 artifacts:

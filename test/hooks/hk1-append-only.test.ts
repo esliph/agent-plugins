@@ -55,7 +55,7 @@ function decide(files: Record<string, string>, toolInput: Record<string, unknown
   return decision;
 }
 
-test('nega alterar o corpo de um ADR accepted — critério de aceite 2', () => {
+test('RN-0006: nega alterar o corpo de um ADR accepted — critério de aceite 2', () => {
   const decision = decide({ [FILE]: adr('accepted') }, {
     file_path: FILE,
     old_string: 'texto original',
@@ -67,13 +67,13 @@ test('nega alterar o corpo de um ADR accepted — critério de aceite 2', () => 
   assert.match(decision.reason, /ADR-0001-fila\.md/);
 });
 
-test('permite alterar só status + superseded-by — é assim que se supersede', () => {
+test('RN-0004: permite alterar só status + superseded-by — é assim que se supersede', () => {
   const after = adr('superseded').replace('superseded-by: null', 'superseded-by: ADR-0002');
   const decision = decide({ [FILE]: adr('accepted') }, { file_path: FILE, content: after });
   assert.equal(decision.action, 'allow');
 });
 
-test('nega mudar um campo fora da allowlist mesmo sem tocar no corpo', () => {
+test('RN-0004: nega mudar um campo fora da allowlist mesmo sem tocar no corpo', () => {
   const after = adr('accepted').replace('title: Fila de eventos', 'title: Outro título');
   const decision = decide({ [FILE]: adr('accepted') }, { file_path: FILE, content: after });
   assertDeny(decision);
@@ -105,7 +105,7 @@ test('ignora caminho fora de qualquer artefato append-only', () => {
   );
 });
 
-test('falha aberta: .ownership.yml ausente permite', () => {
+test('RNF-0001: falha aberta — .ownership.yml ilegível permite', () => {
   let decision: HookDecision = { action: 'deny', reason: 'não deveria' };
   withTempRepo({ [FILE]: adr('accepted') }, (root) => {
     decision = decideHk1(
@@ -116,7 +116,7 @@ test('falha aberta: .ownership.yml ausente permite', () => {
   assert.equal(decision.action, 'allow');
 });
 
-test('falha aberta: edição não projetável permite', () => {
+test('RNF-0001: falha aberta — edição não projetável permite', () => {
   const decision = decide({ [FILE]: adr('accepted') }, {
     file_path: FILE,
     old_string: 'trecho que não existe',

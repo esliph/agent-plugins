@@ -27,7 +27,7 @@ const GOOD = [
   '## Contexto',
 ].join('\n');
 
-test('repositório conforme sai com 0', () => {
+test('RF-0001: repositório conforme sai com 0', () => {
   withTempRepo({ [OWNERSHIP_PATH]: CONFIG, 'docs/decisions/adr/ADR-0001-a.md': GOOD }, (root) => {
     const result = runValidate(root);
     assert.deepEqual(result.findings, []);
@@ -35,7 +35,7 @@ test('repositório conforme sai com 0', () => {
   });
 });
 
-test('erro de qualquer check leva a exit 1', () => {
+test('RF-0001: erro de qualquer check leva a exit 1', () => {
   withTempRepo(
     { [OWNERSHIP_PATH]: CONFIG, 'docs/decisions/adr/ADR-0001-a.md': GOOD.replace('status: draft', 'status: aprovado') },
     (root) => {

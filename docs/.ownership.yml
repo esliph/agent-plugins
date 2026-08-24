@@ -29,6 +29,27 @@ artifacts:
     append-only: true
     mutable-fields: [status, last-reviewed]
 
+  - id-prefix: RF
+    path: docs/requirements/functional.md
+    owner: "@dan"
+    skill: requirements-keeper
+    collection: sections
+    cited-by: ["test/**"]
+
+  - id-prefix: RNF
+    path: docs/requirements/non-functional.md
+    owner: "@dan"
+    skill: requirements-keeper
+    collection: sections
+    cited-by: ["test/**"]
+
+  - id-prefix: RN
+    path: docs/requirements/rules.md
+    owner: "@dan"
+    skill: requirements-keeper
+    collection: sections
+    cited-by: ["test/**", "src/**"]
+
 generated: []
 
 # Fases 3+ preenchem `watches` (código → doc dono). Vazio nas Fases 0–1.

@@ -69,7 +69,7 @@ function decide(files: Record<string, string>, toolInput: Record<string, unknown
   return decision;
 }
 
-test('pergunta ao promover ADR de draft para accepted', () => {
+test('RN-0005: pergunta ao promover ADR de draft para accepted', () => {
   const decision = decide({ [ADR_FILE]: adr('draft') }, {
     file_path: ADR_FILE,
     old_string: 'status: draft',
@@ -81,7 +81,7 @@ test('pergunta ao promover ADR de draft para accepted', () => {
   assert.match(decision.reason, /decision-recorder/);
 });
 
-test('pergunta ao resolver uma DA na tabela', () => {
+test('RN-0005: pergunta ao resolver uma DA na tabela', () => {
   const decision = decide({ 'docs/open-decisions.md': openDecisions('open', '—') }, {
     file_path: 'docs/open-decisions.md',
     content: openDecisions('resolved', 'ADR-0002'),
@@ -110,7 +110,7 @@ test('permite adicionar linha nova em open na tabela', () => {
   assert.equal(decide({ 'docs/open-decisions.md': before }, { file_path: 'docs/open-decisions.md', content: after }).action, 'allow');
 });
 
-test('falha aberta: sem configuração, permite', () => {
+test('RNF-0001: falha aberta — sem configuração, permite', () => {
   let decision: Hk3Decision = { action: 'ask', reason: 'não deveria' };
   withTempRepo({ [ADR_FILE]: adr('draft') }, (root) => {
     decision = decideHk3(

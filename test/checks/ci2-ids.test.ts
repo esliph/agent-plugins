@@ -95,7 +95,7 @@ test('ID presente em ids-retired.txt reaparecendo falha', () => {
   assert.match(findings[0]?.message ?? '', /reciclado|retirado/i);
 });
 
-test('ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não dois artefatos', () => {
+test('RN-0003: ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não dois artefatos', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-001-b.md': adr('ADR-001'),
@@ -109,7 +109,7 @@ test('ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não dois artefa
   assert.match(findings[0]?.message ?? '', /ADR-0001-a\.md/);
 });
 
-test('repadding não recicla um ID retirado: ADR-0002 retirado barra ADR-002', () => {
+test('RN-0003: repadding não recicla um ID retirado — ADR-0002 retirado barra ADR-002', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-002-b.md': adr('ADR-002'),
@@ -155,7 +155,7 @@ test('buraco explicado por ids-retired.txt não falha', () => {
   );
 });
 
-test('citação que não resolve falha na linha da citação', () => {
+test('RN-0007: citação que não resolve falha na linha da citação', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Supersede ADR-0099.'),
     'docs/open-decisions.md': openDecisions([]),
@@ -165,7 +165,7 @@ test('citação que não resolve falha na linha da citação', () => {
   assert.equal(findings[0]?.file, 'docs/decisions/adr/ADR-0001-a.md');
 });
 
-test('citação para um ID retirado falha', () => {
+test('RN-0007: citação para um ID retirado falha', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Ver DA-0001.'),
     'docs/open-decisions.md': openDecisions([]),

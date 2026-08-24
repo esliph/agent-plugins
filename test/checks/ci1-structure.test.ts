@@ -106,7 +106,7 @@ test('status fora da máquina de estados falha na linha do campo', () => {
   assert.match(findings[0]?.fix ?? '', /draft.*accepted.*superseded/);
 });
 
-test('trigger com cadência falha nomeando o campo e o termo — critério de aceite 3', () => {
+test('RN-0002: trigger com cadência falha nomeando o campo e o termo — critério de aceite 3', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
       id: 'ADR-0001',
