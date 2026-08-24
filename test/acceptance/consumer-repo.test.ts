@@ -8,7 +8,7 @@ import { decideHk1 } from '../../src/hooks/hk1-append-only.ts';
 import { toolkitRoot } from '../../src/core/roots.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
 
-const OPTIONS = { owner: '@consumidor', dryRun: false };
+const OPTIONS = { owner: '@consumidor', dryRun: false, stage: 'solo' as const };
 
 test('DA-0001/RNF-0003: init escreve no repositório validado, nunca no toolkit', () => {
   const antes = readdirSync(toolkitRoot()).sort();

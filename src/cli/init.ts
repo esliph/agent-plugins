@@ -7,32 +7,98 @@ import { templatesDir } from '../core/roots.ts';
 
 const TEMPLATES_DIR = templatesDir();
 
-export const DEFAULT_PATHS: Readonly<Record<'ADR' | 'DA' | 'TDR', string>> = Object.freeze({
+/**
+ * Estágios de maturidade (spec §10, SK-0 passo 2). Cada estágio instala o
+ * conjunto mínimo que ele pede — e nada além. Um estágio que instala moldura
+ * vazia é a wiki morta nascendo de fábrica, por isso `production` e `multi-team`
+ * só entram junto com as fases que os preenchem.
+ */
+export const STAGES = ['solo', 'small-team'] as const;
+export type Stage = (typeof STAGES)[number];
+
+type Kind = 'ADR' | 'DA' | 'TDR' | 'RF' | 'RNF' | 'RN';
+
+/** Artefatos que só o estágio `small-team` em diante instala. */
+const REQUIREMENT_KINDS: readonly Kind[] = ['RF', 'RNF', 'RN'];
+
+export const DEFAULT_PATHS: Readonly<Record<Kind, string>> = Object.freeze({
   ADR: 'docs/decisions/adr/',
   DA: 'docs/open-decisions.md',
   TDR: 'docs/decisions/debt/',
+  RF: 'docs/requirements/functional.md',
+  RNF: 'docs/requirements/non-functional.md',
+  RN: 'docs/requirements/rules.md',
+});
+
+const REQUIREMENT_TITLES: Readonly<Record<'RF' | 'RNF' | 'RN', string>> = Object.freeze({
+  RF: 'Requisitos funcionais',
+  RNF: 'Requisitos não funcionais',
+  RN: 'Regras de negócio',
+});
+
+/** Caminhos varridos por `cited-by` para provar cobertura de requisito (CI-3). */
+const REQUIREMENT_CITED_BY: Readonly<Record<'RF' | 'RNF' | 'RN', readonly string[]>> = Object.freeze({
+  RF: ['test/**'],
+  RNF: ['test/**'],
+  RN: ['test/**', 'src/**'],
 });
 
 /**
  * Caminhos onde um artefato equivalente pode já existir sob outro nome.
  * Adotar o que existe; nunca criar um paralelo (spec §5, SK-0 passo 1).
+ *
+ * As listas de requisito não se cruzam por acidente: `resolvePath` marca cada
+ * caminho adotado, para que duas famílias nunca acabem donas do mesmo arquivo.
  */
-const ADOPTION_CANDIDATES: Readonly<Record<'ADR' | 'DA' | 'TDR', readonly string[]>> = Object.freeze({
+const ADOPTION_CANDIDATES: Readonly<Record<Kind, readonly string[]>> = Object.freeze({
   ADR: ['docs/adr/', 'adr/', 'doc/adr/', 'docs/architecture/decisions/'],
   DA: ['docs/decisoes-abertas.md', 'docs/open-questions.md', 'docs/decision-backlog.md'],
   TDR: ['docs/debt/', 'docs/tech-debt/', 'docs/divida/'],
+  RF: [
+    'docs/requisitos-funcionais.md',
+    'docs/functional-requirements.md',
+    'docs/requisitos.md',
+    'docs/requirements.md',
+    'spec/functional.md',
+    'docs/spec/functional.md',
+  ],
+  RNF: [
+    'docs/requisitos-nao-funcionais.md',
+    'docs/non-functional-requirements.md',
+    'spec/non-functional.md',
+    'docs/spec/non-functional.md',
+  ],
+  RN: [
+    'docs/regras-de-negocio.md',
+    'docs/business-rules.md',
+    'spec/rules.md',
+    'docs/spec/rules.md',
+  ],
 });
 
 export interface InitOptions {
   owner: string;
   dryRun: boolean;
+  stage: Stage;
 }
 
 export interface InitResult {
   created: string[];
   skipped: string[];
   adopted: { idPrefix: string; path: string }[];
+  stage: Stage;
+  /** O que este estágio pediria e esta versão do toolkit ainda não entrega. */
+  notInstalled: string[];
 }
+
+/** O que `small-team` pede e as Fases 3–4 é que vão entregar (spec §10). */
+const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
+  solo: [],
+  'small-team': [
+    'SK-6 + Definition of Done + HK-4/HK-5 (Fase 3) — não implementados nesta versão',
+    'SK-1, SK-2, AG-2 (Fase 4) — não implementados nesta versão',
+  ],
+});
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -52,19 +118,26 @@ function template(name: string, values: Record<string, string>): string {
  */
 function resolvePath(
   root: string,
-  kind: 'ADR' | 'DA' | 'TDR',
+  kind: Kind,
   existing: OwnershipConfig | null,
   result: InitResult,
+  claimed: Set<string>,
 ): string {
   const declared = existing?.artifacts.find((artifact) => artifact.idPrefix === kind);
-  if (declared) return declared.path;
+  if (declared) {
+    claimed.add(declared.path);
+    return declared.path;
+  }
 
   for (const candidate of ADOPTION_CANDIDATES[kind]) {
+    if (claimed.has(candidate)) continue;
     if (existsSync(join(root, candidate))) {
       result.adopted.push({ idPrefix: kind, path: candidate });
+      claimed.add(candidate);
       return candidate;
     }
   }
+  claimed.add(DEFAULT_PATHS[kind]);
   return DEFAULT_PATHS[kind];
 }
 
@@ -99,8 +172,35 @@ function ensureDirectory(root: string, relative: string, options: InitOptions, r
   writeFileSync(join(root, relative, '.gitkeep'), '', 'utf8');
 }
 
+/** O bloco de artefatos de requisito do `.ownership.yml`, ou vazio no estágio solo. */
+function requirementsBlock(owner: string, paths: Record<Kind, string>, stage: Stage): string {
+  if (stage === 'solo') return '';
+
+  const entries = REQUIREMENT_KINDS.map((kind) => {
+    const citedBy = REQUIREMENT_CITED_BY[kind as 'RF' | 'RNF' | 'RN']
+      .map((glob) => `"${glob}"`)
+      .join(', ');
+    return [
+      `  - id-prefix: ${kind}`,
+      `    path: ${paths[kind]}`,
+      `    owner: "${owner}"`,
+      '    skill: requirements-keeper',
+      '    collection: sections',
+      `    cited-by: [${citedBy}]`,
+    ].join('\n');
+  });
+
+  return `\n${entries.join('\n\n')}\n`;
+}
+
 export function runInit(root: string, options: InitOptions): InitResult {
-  const result: InitResult = { created: [], skipped: [], adopted: [] };
+  const result: InitResult = {
+    created: [],
+    skipped: [],
+    adopted: [],
+    stage: options.stage,
+    notInstalled: [...NOT_INSTALLED[options.stage]],
+  };
 
   let existing: OwnershipConfig | null = null;
   try {
@@ -109,24 +209,87 @@ export function runInit(root: string, options: InitOptions): InitResult {
     existing = null; // primeira execução, ou configuração ilegível
   }
 
-  const adrPath = resolvePath(root, 'ADR', existing, result);
-  const daPath = resolvePath(root, 'DA', existing, result);
-  const tdrPath = resolvePath(root, 'TDR', existing, result);
+  const claimed = new Set<string>();
+  const kinds: Kind[] =
+    options.stage === 'solo' ? ['ADR', 'DA', 'TDR'] : ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS];
+  const paths = Object.fromEntries(
+    kinds.map((kind) => [kind, resolvePath(root, kind, existing, result, claimed)]),
+  ) as Record<Kind, string>;
+
+  const requirementsCodeowners =
+    options.stage === 'solo'
+      ? ''
+      : REQUIREMENT_KINDS.map((kind) => `${paths[kind]}    ${options.owner}\n`).join('');
 
   const values = {
     OWNER: options.owner,
     TODAY: today(),
-    ADR_PATH: adrPath,
-    DA_PATH: daPath,
-    TDR_PATH: tdrPath,
+    ADR_PATH: paths.ADR,
+    DA_PATH: paths.DA,
+    TDR_PATH: paths.TDR,
+    REQUIREMENTS_BLOCK: requirementsBlock(options.owner, paths, options.stage),
+    REQUIREMENTS_CODEOWNERS: requirementsCodeowners,
   };
 
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);
   writeIfAbsent(root, RETIRED_IDS_PATH, template('ids-retired.txt', values), options, result);
-  writeIfAbsent(root, daPath, template('open-decisions.md', values), options, result);
+  writeIfAbsent(root, paths.DA, template('open-decisions.md', values), options, result);
   writeIfAbsent(root, 'CODEOWNERS', template('CODEOWNERS', values), options, result);
-  ensureDirectory(root, adrPath, options, result);
-  ensureDirectory(root, tdrPath, options, result);
+  ensureDirectory(root, paths.ADR, options, result);
+  ensureDirectory(root, paths.TDR, options, result);
+
+  if (options.stage !== 'solo') {
+    // Subir de estágio num repositório que já rodou `solo`: os três artefatos
+    // precisam ser declarados, senão os arquivos nascem sem dono — e artefato
+    // órfão não é enforceável (spec §3). Só entra o que ainda não está lá.
+    const faltando = REQUIREMENT_KINDS.filter(
+      (kind) => !existing?.artifacts.some((artifact) => artifact.idPrefix === kind),
+    );
+    if (existing && faltando.length > 0) {
+      declareRequirements(root, options, result, values.REQUIREMENTS_BLOCK);
+    }
+
+    for (const kind of REQUIREMENT_KINDS) {
+      const title = REQUIREMENT_TITLES[kind as 'RF' | 'RNF' | 'RN'];
+      writeIfAbsent(
+        root,
+        paths[kind],
+        template('requirements.md', { ...values, TITLE: title, PREFIX: kind }),
+        options,
+        result,
+      );
+    }
+  }
 
   return result;
+}
+
+/**
+ * Acrescenta o bloco de requisitos a um `.ownership.yml` que já existe.
+ * Nada é reescrito: o bloco entra imediatamente antes de `generated:`, que é a
+ * primeira chave depois de `artifacts:` no template. Sem essa âncora — um
+ * arquivo reorganizado à mão — o init não adivinha: ele diz o que falta e
+ * deixa a edição para quem é dono do arquivo.
+ */
+function declareRequirements(
+  root: string,
+  options: InitOptions,
+  result: InitResult,
+  block: string,
+): void {
+  const file = join(root, OWNERSHIP_PATH);
+  const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const anchor = '\ngenerated:';
+
+  if (!source.includes(anchor)) {
+    result.notInstalled.push(
+      `artefatos RF/RNF/RN em ${OWNERSHIP_PATH} — âncora \`generated:\` não encontrada; ` +
+        'declare-os à mão para que os requisitos tenham dono',
+    );
+    return;
+  }
+
+  result.created.push(`${OWNERSHIP_PATH} (artefatos RF, RNF e RN)`);
+  if (options.dryRun) return;
+  writeFileSync(file, source.replace(anchor, `${block}\ngenerated:`), 'utf8');
 }

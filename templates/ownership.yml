@@ -28,7 +28,7 @@ artifacts:
     skill: decision-recorder
     append-only: true
     mutable-fields: [status, last-reviewed]
-
+{{REQUIREMENTS_BLOCK}}
 generated: []
 
 # Fases 3+ preenchem `watches` (código → doc dono). Vazio nas Fases 0–1.

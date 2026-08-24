@@ -11,7 +11,7 @@ import { withTempRepo } from '../helpers/tmp.ts';
 import { repoRoot } from '../../src/core/roots.ts';
 
 const ROOT = repoRoot();
-const OPTIONS = { owner: '@team', dryRun: false };
+const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const };
 
 function seedAdr(root: string, status: string): string {
   const file = 'docs/decisions/adr/ADR-0001-teste.md';
