@@ -50,6 +50,7 @@ não o ambiente.
 | O que se aceitou dever | `docs/decisions/debt/` |
 | Quem é dono de cada caminho | `docs/.ownership.yml` e `CODEOWNERS` |
 | Qual é o vocabulário do domínio | `docs/glossary.md` |
+| O que é inviolável, e a visão do produto | `docs/charter/` |
 | Quando está pronto | `docs/definition-of-done.md` |
 
 Nenhuma dessas respostas é copiada para outro lugar. Duplicata apodrece, e a

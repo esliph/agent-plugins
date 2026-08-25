@@ -127,6 +127,24 @@ test('glossary-keeper não duplica o formato da tabela que governa', () => {
   assert.match(source, /templates\/glossary\.md/, 'ela deve apontar para o template, não copiá-lo');
 });
 
+test('charter-keeper: a description nomeia princípio, visão e emenda', () => {
+  const description = String(parseFrontmatter(skillSource('charter-keeper'))?.data.description ?? '');
+  assert.match(description, /Use quando/i);
+  for (const sintoma of ['princípio', 'visão']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`);
+  }
+});
+
+test('charter-keeper não duplica o conteúdo dos artefatos que governa', () => {
+  const source = skillSource('charter-keeper');
+  // Título de seção, não menção em prosa: é o corpo da Constitution que não
+  // pode ser copiado para cá, e é ele que começa a linha com `## `.
+  assert.doesNotMatch(source, /^## Log de emendas/m, 'a skill não deve conter o corpo da Constitution');
+  assert.doesNotMatch(source, /^## Princípios/m, 'a skill não deve conter os princípios deste repositório');
+  assert.match(source, /templates\/constitution\.md/, 'ela deve apontar para o template, não copiá-lo');
+  assert.match(source, /templates\/vision\.md/, 'os dois templates, porque são dois artefatos');
+});
+
 test('working-agreements-keeper: a description nomeia o erro por falta de contexto', () => {
   const description = String(parseFrontmatter(skillSource('working-agreements-keeper'))?.data.description ?? '');
   assert.match(description, /Use quando/i);
