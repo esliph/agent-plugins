@@ -21,7 +21,7 @@ test('hooks.json registra os quatro hooks nos eventos e matchers da spec §7', (
   const config = readJson('plugin/hooks/hooks.json');
   const hooks = config.hooks as Record<string, { matcher: string; hooks: { command: string }[] }[]>;
 
-  const grupos = new Map(
+  const grupos = new Map<string, string[]>(
     Object.entries(hooks).flatMap(([evento, lista]) =>
       lista.map((grupo) => [`${evento}:${grupo.matcher}`, grupo.hooks.map((hook) => hook.command)] as const),
     ),
