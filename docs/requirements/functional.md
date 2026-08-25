@@ -53,7 +53,7 @@ ninguém reconhece é ruído que ensina a ignorar o lembrete.
 
 ## RF-0005 — `init --stage small-team` instala a moldura de linguagem e intenção
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RF-0004
 - **fora de escopo:** o conteúdo real dos termos e princípios — a semente é o formato, não o vocabulário deste ou de outro projeto
 

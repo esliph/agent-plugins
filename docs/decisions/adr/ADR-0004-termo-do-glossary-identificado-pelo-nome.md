@@ -1,7 +1,7 @@
 ---
 id: ADR-0004
 title: Termo do glossary é identificado pelo nome, não por ID numerado
-status: draft
+status: accepted
 owner: "@dan"
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.

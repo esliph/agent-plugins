@@ -125,7 +125,7 @@ por repetição.
 
 ## RN-0011 — Termo do glossary tem um significado só, identificado pelo nome
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0004
 - **fora de escopo:** a declaração de `docs/glossary.md` em `artifacts:` no `.ownership.yml` — fica em aberto por `DA-0002` (`ADR-0004` não a resolve)
 
