@@ -6,6 +6,9 @@ import { runInit } from '../../src/cli/init.ts';
 import { runValidate } from '../../src/cli/validate.ts';
 import { decideHk1 } from '../../src/hooks/hk1-append-only.ts';
 import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts';
+import { decideHk4 } from '../../src/hooks/hk4-watch-reminder.ts';
+import { decideHk5 } from '../../src/hooks/hk5-commit-guard.ts';
+import type { GitRunner } from '../../src/git/staged.ts';
 import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
 import { repoRoot } from '../../src/core/roots.ts';
@@ -100,4 +103,41 @@ test('este repositório passa nos próprios checks', () => {
   const result = runValidate(ROOT);
   assert.deepEqual(result.findings, [], JSON.stringify(result.findings, null, 2));
   assert.equal(result.exitCode, 0);
+});
+
+const NUL = String.fromCharCode(0);
+
+const WATCHED_CONFIG = `
+version: 1
+artifacts:
+  - id-prefix: RN
+    path: docs/requirements/rules.md
+    owner: "@team"
+    skill: requirements-keeper
+    collection: sections
+watches:
+  - code: "src/domain/**"
+    doc: docs/requirements/rules.md
+    reason: "comportamento novo exige regra com ID antes do código"
+`;
+
+test('critério 5: alterar caminho vigiado sem tocar o doc dono é lembrado e perguntado', () => {
+  withTempRepo({ [OWNERSHIP_PATH]: WATCHED_CONFIG }, (root) => {
+    const env = { root, hostRoots: [root] };
+
+    // Metade 1 — logo depois da edição, HK-4 lembra.
+    const lembrete = decideHk4({ tool_name: 'Edit', tool_input: { file_path: 'src/domain/reembolso.ts' } }, env);
+    assert.equal(lembrete.action, 'remind');
+
+    // Metade 2 — na hora do commit, HK-5 lista os pendentes e pergunta.
+    const staged: GitRunner = () => `src/domain/reembolso.ts${NUL}`;
+    const pergunta = decideHk5({ tool_name: 'Bash', tool_input: { command: 'git commit -m "feat: reembolso"' } }, env, staged);
+    assert.equal(pergunta.action, 'ask');
+    assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /docs\/requirements\/rules\.md/);
+
+    // E com o doc no mesmo commit, o caminho fica livre.
+    const comDoc: GitRunner = () => `src/domain/reembolso.ts${NUL}docs/requirements/rules.md${NUL}`;
+    const livre = decideHk5({ tool_name: 'Bash', tool_input: { command: 'git commit -m "feat: reembolso"' } }, env, comDoc);
+    assert.equal(livre.action, 'allow');
+  });
 });

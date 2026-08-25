@@ -52,7 +52,27 @@ artifacts:
 
 generated: []
 
-# Fases 3+ preenchem `watches` (código → doc dono). Vazio nas Fases 0–1.
-watches: []
+# Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
+# antes do commit. Na Fase 7, CI-7 lê daqui também.
+watches:
+  - code: "src/checks/**"
+    doc: docs/requirements/rules.md
+    reason: "check é regra executável — a RN vem antes, e é ela que o check verifica"
+
+  - code: "src/hooks/**"
+    doc: docs/requirements/rules.md
+    reason: "hook bloqueia ou pergunta em nome de uma regra; sem RN citada, o bloqueio não tem origem"
+
+  - code: "src/cli/**"
+    doc: docs/requirements/functional.md
+    reason: "o que o comando faz de observável é RF, não detalhe de implementação"
+
+  - code: "src/core/**"
+    doc: docs/requirements/non-functional.md
+    reason: "as duas raízes são propriedade do sistema (ADR-0003), não comportamento de comando"
+
+  - code: "plugin/skills/**"
+    doc: CONTRIBUTING.md
+    reason: "skill nova ou alterada muda como se trabalha aqui"
 
 consumer-visible-paths: []
