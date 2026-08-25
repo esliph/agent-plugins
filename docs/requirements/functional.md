@@ -4,7 +4,7 @@ owner: "@dan"
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-08-24
+last-reviewed: 2026-08-25
 ---
 
 # Requisitos funcionais
@@ -36,3 +36,17 @@ adota-o no `.ownership.yml` em vez de criar um paralelo.
 
 `living-docs init --stage <estágio>` instala apenas a moldura que o estágio pede,
 e lista explicitamente o que ficou fora.
+
+## RF-0004 — `init --stage small-team` instala os acordos de trabalho
+
+- **status:** draft
+- **relates-to:** RF-0002
+- **fora de escopo:** preencher `watches`, que exige conhecer o código do projeto e é ato humano
+
+No estágio `small-team`, `living-docs init` cria `CONTRIBUTING.md`, a Definition
+of Done e o contrato do agente. Encontrando `AGENTS.md`, adota-o como contrato em
+vez de criar um `CLAUDE.md` paralelo; encontrando qualquer um deles já escrito,
+mantém o conteúdo intacto.
+
+O que o comando **não** faz é inventar `watches`: um vínculo código→doc que
+ninguém reconhece é ruído que ensina a ignorar o lembrete.

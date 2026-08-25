@@ -4,7 +4,7 @@ owner: "@dan"
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-08-24
+last-reviewed: 2026-08-25
 ---
 
 # Regras de negócio
@@ -80,3 +80,45 @@ erro.
 Uma referência `<PREFIXO>-<número>` a um prefixo conhecido aponta para um item
 existente e não retirado. Citação pendurada é pior que ausência de citação:
 ela afirma uma rastreabilidade que não existe.
+
+## RN-0008 — Caminho vigiado e doc dono viajam no mesmo commit
+
+- **status:** draft
+- **relates-to:** RN-0001
+- **fora de escopo:** qual caminho exige qual doc, que é configuração do projeto e mora em `watches`
+
+Um caminho de código declarado em `watches` tem um documento dono, e a mudança
+dos dois cabe no mesmo commit. Documentação que espera um segundo PR é
+documentação que não acontece: quem a adiaria já está com o contexto na cabeça
+agora, e não estará depois.
+
+Quando a mudança realmente não afeta o doc, quem decide isso é uma pessoa, no
+momento em que o enforcement pergunta — não o agente, e não o silêncio.
+
+## RN-0009 — O enforcement do vínculo código→doc lembra e pergunta, nunca nega
+
+- **status:** draft
+- **relates-to:** RN-0008
+- **fora de escopo:** o congelamento de item imutável (`RN-0006`), que nega por outro motivo
+
+O que liga código a documento informa (`additionalContext`) ou pergunta
+(`ask`). Nunca bloqueia. Um atalho legítimo existe e precisa ser possível: o
+enforcement que impede um commit honesto é desligado no primeiro dia, e um
+enforcement desligado não protege nada.
+
+Isto não afrouxa `RN-0006`: item congelado continua sendo `deny`. A diferença é
+o que se protege — lá, uma história que não se reescreve; aqui, um hábito que se
+ensina.
+
+## RN-0010 — O contrato do agente é índice e política, não conteúdo
+
+- **status:** draft
+- **fora de escopo:** a detecção automática de duplicação textual, que é `CI-7` e chega na Fase 7
+
+O documento que orienta agentes (`CLAUDE.md`, `AGENTS.md`) aponta onde a verdade
+mora e declara o que nunca fazer. Toda afirmação factual vive no artefato dono e
+é linkada de lá.
+
+Conteúdo copiado para dentro dele apodrece igual a qualquer duplicata — com o
+agravante de ser lido em toda sessão, o que faz a versão velha ganhar da nova
+por repetição.
