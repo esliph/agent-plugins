@@ -17,20 +17,32 @@ test('o manifesto do plugin declara nome, versão e descrição', () => {
   assert.equal(typeof manifest.description, 'string');
 });
 
-test('hooks.json registra HK-1 e HK-3 em PreToolUse com matcher Edit|Write', () => {
+test('hooks.json registra os quatro hooks nos eventos e matchers da spec §7', () => {
   const config = readJson('plugin/hooks/hooks.json');
-  const hooks = config.hooks as Record<string, unknown[]>;
-  const preToolUse = hooks.PreToolUse as { matcher: string; hooks: { command: string }[] }[];
+  const hooks = config.hooks as Record<string, { matcher: string; hooks: { command: string }[] }[]>;
 
-  assert.equal(preToolUse.length, 1);
-  assert.equal(preToolUse[0]?.matcher, 'Edit|Write');
+  const grupos = new Map(
+    Object.entries(hooks).flatMap(([evento, lista]) =>
+      lista.map((grupo) => [`${evento}:${grupo.matcher}`, grupo.hooks.map((hook) => hook.command)] as const),
+    ),
+  );
 
-  const commands = (preToolUse[0]?.hooks ?? []).map((hook) => hook.command);
-  assert.equal(commands.length, 2);
-  assert.ok(commands.some((command) => command.includes('hk1-append-only')));
-  assert.ok(commands.some((command) => command.includes('hk3-state-promotion')));
-  for (const command of commands) {
-    assert.ok(command.includes('${CLAUDE_PLUGIN_ROOT}'), 'o comando precisa ser relocável');
+  const esperado: Record<string, string[]> = {
+    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk3-state-promotion'],
+    'PreToolUse:Bash': ['hk5-commit-guard'],
+    'PostToolUse:Edit|Write': ['hk4-watch-reminder'],
+  };
+
+  assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort());
+  for (const [chave, nomes] of Object.entries(esperado)) {
+    const comandos = grupos.get(chave) ?? [];
+    assert.equal(comandos.length, nomes.length, `${chave}: ${comandos.length} hooks`);
+    for (const nome of nomes) {
+      assert.ok(comandos.some((comando) => comando.includes(nome)), `${chave} deveria invocar ${nome}`);
+    }
+    for (const comando of comandos) {
+      assert.ok(comando.includes('${CLAUDE_PLUGIN_ROOT}'), 'o comando precisa ser relocável');
+    }
   }
 });
 
@@ -48,12 +60,19 @@ test('RNF-0002: o wrapper existe, é executável e falha aberta — o host só e
 test('todo hook referenciado existe no repositório', () => {
   const config = readJson('plugin/hooks/hooks.json');
   const hooks = config.hooks as Record<string, { hooks: { command: string }[] }[]>;
-  for (const group of hooks.PreToolUse ?? []) {
-    for (const hook of group.hooks) {
-      const name = hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? '';
-      assert.ok(existsSync(join(ROOT, 'src/hooks', `${name}.ts`)), `src/hooks/${name}.ts deveria existir`);
+  let vistos = 0;
+
+  for (const grupos of Object.values(hooks)) {
+    for (const grupo of grupos) {
+      for (const hook of grupo.hooks) {
+        const name = hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? '';
+        assert.ok(existsSync(join(ROOT, 'src/hooks', `${name}.ts`)), `src/hooks/${name}.ts deveria existir`);
+        vistos += 1;
+      }
     }
   }
+
+  assert.equal(vistos, 4, 'a varredura deveria ver os quatro hooks das Fases 1 e 3');
 });
 
 /**
