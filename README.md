@@ -1,9 +1,10 @@
 # living-docs-toolkit
 
-Documentação viva com dono, gatilho e enforcement — Fases 0–3 da spec
+Documentação viva com dono, gatilho e enforcement — Fases 0–4 da spec
 `LIVING-DOCUMENTATION-TOOLKIT.md`: ADR, Open Decisions, Debt Register e
 requisitos com ID estável; os checks `CI-1`/`CI-2`/`CI-3`; os hooks
-`HK-1`/`HK-3`/`HK-4`/`HK-5`; os acordos de trabalho (`SK-6`).
+`HK-1`/`HK-3`/`HK-4`/`HK-5`; os acordos de trabalho (`SK-6`); o vocabulário do
+domínio e os princípios invioláveis (`SK-2`, `SK-1`).
 
 **Nada roda no host além de Docker.**
 
@@ -25,9 +26,10 @@ LIVING_DOCS_TARGET=/caminho/do/projeto docker compose up -d
 ```
 
 Estágios de maturidade (`--stage`): `solo` instala decisões, lacunas e dívida;
-`small-team` acrescenta a moldura de requisitos (`RF`, `RNF`, `RN`). O comando
-imprime o que o estágio pede e esta versão **não** instala, em vez de fingir o
-conjunto completo.
+`small-team` acrescenta a moldura de requisitos (`RF`, `RNF`, `RN`), os acordos
+de trabalho, o glossary e o charter. Nesta versão, `small-team` instala o
+conjunto inteiro do estágio — quando algo do estágio ficar de fora, o comando
+diz o que é em vez de fingir o conjunto completo.
 
 Desenvolvimento:
 
@@ -48,11 +50,16 @@ o doc). `HK-4` e `HK-5` nunca negam: lembram e perguntam. Os hooks falham
 abertos: com o container parado, eles não bloqueiam nada — o enforcement que
 sobrevive a isso é o CI.
 
+As skills `glossary-keeper` (`/term`) e `charter-keeper` completam o estágio
+`small-team`, e `plugin/agents/decision-adversary.md` (`AG-2`) é o primeiro
+agent do plugin — contexto isolado, sem `Edit`/`Write`, que tenta refutar um
+ADR, uma emenda de Constitution ou um TDR antes da aceitação humana.
+
 ## O que está fora
 
-`SK-1`, `SK-2`, `SK-5`, `SK-7`, `AG-1`, `AG-2`, `HK-2`, `HK-6`, `HK-7`,
-`CI-4`–`CI-8`, `CM-4`, `CM-5`, `CM-7` — Fases 4 a 7 da spec. O que falta e em
-que ordem: `docs/superpowers/plans/BACKLOG-fases-3-7.md`.
+`SK-5`, `SK-7`, `AG-1`, `HK-2`, `HK-6`, `HK-7`, `CI-4`–`CI-8`, `CM-5`, `CM-7`
+— Fases 5 a 7 da spec. O que falta e em que ordem:
+`docs/superpowers/plans/BACKLOG-fases-3-7.md`.
 
 Do critério de aceite 5 da spec §12, a Fase 3 entrega a metade do hook: o commit
 que leva caminho vigiado sem o doc dono é perguntado. A outra metade — "e o CI

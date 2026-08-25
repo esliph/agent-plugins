@@ -14,6 +14,8 @@ test('RN-0010: o contrato do agente aponta para os artefatos donos', () => {
     'CONTRIBUTING.md',
     'docs/definition-of-done.md',
     'docs/requirements/',
+    'docs/glossary.md',
+    'docs/charter/',
   ];
   for (const alvo of alvos) {
     assert.ok(CONTRATO.includes(alvo), `o contrato deveria apontar para ${alvo}`);

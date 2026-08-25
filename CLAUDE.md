@@ -10,6 +10,8 @@ artefato dono e é lida de lá (`RN-0010`).
   adivinha: lê-se de lá.
 - Como se trabalha aqui: `CONTRIBUTING.md`. Quando algo está pronto:
   `docs/definition-of-done.md`.
+- Vocabulário do domínio: `docs/glossary.md`. Princípios invioláveis e visão
+  de produto: `docs/charter/`.
 
 ## Política
 
@@ -29,10 +31,10 @@ artefato dono e é lida de lá (`RN-0010`).
 
 ## Comandos
 
-`/adr`, `/open-decision`, `/debt`, `/docs-setup`. As skills
-`decision-recorder`, `requirements-keeper`, `working-agreements-keeper` e
-`living-docs-bootstrap` são selecionadas pela `description`; não é preciso
-invocá-las pelo nome.
+`/adr`, `/open-decision`, `/debt`, `/docs-setup`, `/term`. As skills
+`decision-recorder`, `requirements-keeper`, `working-agreements-keeper`,
+`glossary-keeper` e `charter-keeper` são selecionadas pela `description`; não
+é preciso invocá-las pelo nome.
 
 ## O que nunca fazer
 

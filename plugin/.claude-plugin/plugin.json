@@ -1,6 +1,6 @@
 {
   "name": "living-docs",
   "version": "0.1.0",
-  "description": "Documentação viva: ADR, Open Decisions, Debt Register, requisitos com ID estável e acordos de trabalho — com dono, gatilho e enforcement. Fases 0–3.",
+  "description": "Documentação viva: ADR, Open Decisions, Debt Register, requisitos com ID estável, acordos de trabalho, vocabulário do domínio e princípios invioláveis — com dono, gatilho e enforcement. Fases 0–4.",
   "keywords": ["adr", "documentation", "decisions", "living-docs"]
 }
