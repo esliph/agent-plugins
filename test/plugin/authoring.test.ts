@@ -112,3 +112,17 @@ test('os quatro comandos existem, têm description e não contêm lógica própr
     assert.match(source, /decision-recorder|living-docs-bootstrap/, `${nome} deve apontar a skill que aciona`);
   }
 });
+
+test('working-agreements-keeper: a description nomeia o erro por falta de contexto', () => {
+  const description = String(parseFrontmatter(skillSource('working-agreements-keeper'))?.data.description ?? '');
+  assert.match(description, /Use quando/i);
+  for (const sintoma of ['falta de contexto', 'não estava escrito', 'pronto']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`);
+  }
+});
+
+test('working-agreements-keeper não duplica o conteúdo dos acordos que governa', () => {
+  const source = skillSource('working-agreements-keeper');
+  assert.match(source, /templates\/definition-of-done\.md/, 'ela deve apontar para o template, não copiá-lo');
+  assert.doesNotMatch(source, /^- \[ \] `npm test`/m, 'a skill não deve conter a DoD');
+});
