@@ -132,3 +132,41 @@ test('RNF-0002: nenhum script executável carrega CR — o runtime é Linux (ADR
     assert.equal(source.includes('\r'), false, `${relative} com CRLF: o shebang quebra dentro do container`);
   }
 });
+
+/**
+ * Varredura, não lista fixa — mesma escolha que `authoring.test.ts` faz para as
+ * skills: um agent novo entra nas convenções no dia em que nasce, sem ninguém
+ * lembrar de acrescentá-lo aqui.
+ */
+const AGENTS = readdirSync(join(ROOT, 'plugin/agents')).filter((name) => name.endsWith('.md'));
+
+test('AG-2: o diretório de agents existe e traz decision-adversary', () => {
+  assert.ok(AGENTS.includes('decision-adversary.md'), `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`);
+});
+
+for (const file of AGENTS) {
+  test(`${file}: frontmatter com name casando o arquivo, description e tools declaradas`, () => {
+    const source = readFileSync(join(ROOT, 'plugin/agents', file), 'utf8');
+    const name = file.replace(/\.md$/, '');
+
+    assert.match(source, new RegExp(`^name:\\s*${name}\\s*$`, 'm'), `${file} declara outro name`);
+    assert.match(source, /^description:/m, `${file} sem description — é ela que diz quando usar`);
+    assert.notEqual(
+      source.match(/^tools:\s*(.+)$/m)?.[1] ?? '',
+      '',
+      `${file} precisa declarar tools explicitamente — agent sem allowlist herda tudo`,
+    );
+  });
+}
+
+test('AG-2: decision-adversary aponta e para — sem Edit nem Write', () => {
+  const source = readFileSync(join(ROOT, 'plugin/agents/decision-adversary.md'), 'utf8');
+  const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? '';
+  assert.doesNotMatch(toolsLine, /\bEdit\b/, 'AG-2 aponta e para — nunca reescreve (spec §6)');
+  assert.doesNotMatch(toolsLine, /\bWrite\b/, 'AG-2 aponta e para — nunca reescreve (spec §6)');
+});
+
+test('decision-recorder referencia o agent decision-adversary antes da aceitação', () => {
+  const source = readFileSync(join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'), 'utf8');
+  assert.match(source, /decision-adversary/);
+});

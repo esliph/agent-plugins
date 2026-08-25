@@ -74,10 +74,14 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
 7. **Feche os dois lados da referência.** DA resolvida aponta o ADR que a fechou;
    o ADR aponta de volta em `relates-to`. Superseder preenche `supersedes` no
    novo e `superseded-by` no antigo.
-8. **Pare em `draft`/`open`.** Diga qual decisão falta e a quem ela cabe. Se
+8. **Antes de pedir aceitação de um ADR ou TDR importante**, considere rodar
+   o agent `decision-adversary` sobre a proposta — ele tenta refutar com um
+   checklist fixo, e o veredito ajuda a decidir se falta alternativa
+   considerada ou consequência omitida antes de gastar o tempo de quem aceita.
+9. **Pare em `draft`/`open`.** Diga qual decisão falta e a quem ela cabe. Se
    você tentar promover, `HK-3` vai perguntar — e a resposta não é sua.
-9. **Rode `living-docs validate`** antes de encerrar.
-10. **Cite o ID na mensagem de commit.**
+10. **Rode `living-docs validate`** antes de encerrar.
+11. **Cite o ID na mensagem de commit.**
 
 ## Fronteiras
 
@@ -100,3 +104,4 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
 - [ ] ADR declara alternativas consideradas e o que se aceita perder — verificação humana
 - [ ] TDR tem gatilho de pagamento observável, não uma data vaga — verificação humana
 - [ ] A implementação **não** avançou enquanto havia DA aberta sobre ela — verificação humana
+- [ ] Para decisão de peso, `decision-adversary` foi considerado antes de pedir aceitação — verificação humana
