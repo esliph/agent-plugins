@@ -196,11 +196,29 @@ test('adota docs/requisitos.md preexistente em vez de criar um paralelo', () => 
   });
 });
 
-test('RF-0003: o resultado lista o que não foi instalado, em vez de fingir o estágio completo', () => {
+test('RF-0003: small-team não deixa nada de fora nesta versão — Fases 2, 3 e 4 completas', () => {
   withTempRepo({ 'README.md': '# projeto\n' }, (root) => {
     const result = runInit(root, SMALL_TEAM);
-    assert.ok(result.notInstalled.length >= 1, JSON.stringify(result.notInstalled));
-    assert.ok(result.notInstalled.some((item) => /Fase 4/.test(item)));
+    assert.deepEqual(result.notInstalled, []);
+  });
+});
+
+test('RF-0003: quando algo realmente fica de fora, o resultado diz o que é', () => {
+  withTempRepo({ 'README.md': '# projeto\n' }, (root) => {
+    runInit(root, OPTIONS); // solo: o .ownership.yml nasce sem RF/RNF/RN
+    const file = join(root, OWNERSHIP_PATH);
+    // A linha some inteira, não vira outra chave: `generated` é opcional no
+    // parser, e uma chave estranha testaria o parser em vez da honestidade.
+    // Sem a âncora, subir de estágio não adivinha onde declarar os requisitos.
+    const sem = readFileSync(file, 'utf8').replace(/\ngenerated: \[\]\n/, '\n');
+    assert.notEqual(sem, readFileSync(file, 'utf8'), 'a âncora precisa ter sido removida de fato');
+    writeFileSync(file, sem, 'utf8');
+
+    const result = runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner });
+    assert.ok(
+      result.notInstalled.some((item) => item.includes(OWNERSHIP_PATH)),
+      `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`,
+    );
   });
 });
 
@@ -254,18 +272,49 @@ test('RF-0004: acordo já escrito não é reescrito na segunda execução', () =
   });
 });
 
-test('RF-0003: small-team não promete mais a Fase 3 como pendente', () => {
-  withTempRepo({}, (root) => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
-    assert.equal(result.notInstalled.some((item) => /Fase 3/.test(item)), false);
-    assert.ok(result.notInstalled.some((item) => /Fase 4/.test(item)));
-  });
-});
-
 test('o init não inventa `watches` — o vínculo código→doc é ato humano', () => {
   withTempRepo({}, (root) => {
     runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
     const config = loadOwnership(root);
     assert.deepEqual(config.watches, []);
+  });
+});
+
+test('RF-0005: small-team instala glossary e charter', () => {
+  withTempRepo({}, (root) => {
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
+      assert.ok(existsSync(join(root, path)), `${path} deveria existir`);
+      assert.ok(result.created.includes(path), `${path} deveria constar como criado`);
+    }
+    assert.match(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), /@time/);
+  });
+});
+
+test('RF-0005: solo não instala glossary nem charter', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' });
+    for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
+      assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`);
+    }
+  });
+});
+
+test('RF-0005: glossary já escrito não é reescrito na segunda execução', () => {
+  withTempRepo({ 'docs/glossary.md': '# do jeito deles\n' }, (root) => {
+    const options = { owner: '@time', dryRun: false, stage: 'small-team' as const };
+    runInit(root, options);
+    const segunda = runInit(root, options);
+    assert.equal(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), '# do jeito deles\n');
+    assert.ok(segunda.skipped.includes('docs/glossary.md'));
+  });
+});
+
+test('RF-0005: o CODEOWNERS semeado dá dono a glossary e charter', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
+    assert.match(codeowners, /docs\/glossary\.md\s+@time/);
+    assert.match(codeowners, /docs\/charter\/\s+@time/);
   });
 });

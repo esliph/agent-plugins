@@ -49,6 +49,13 @@ const WORKING_AGREEMENTS: readonly { path: string; template: string }[] = Object
   { path: 'docs/definition-of-done.md', template: 'definition-of-done.md' },
 ]);
 
+/** Linguagem e intenção (SK-1, SK-2), instalados a partir do estágio `small-team` (spec §10, Fase 4). */
+const LANGUAGE_AND_INTENT: readonly { path: string; template: string }[] = Object.freeze([
+  { path: 'docs/glossary.md', template: 'glossary.md' },
+  { path: 'docs/charter/constitution.md', template: 'constitution.md' },
+  { path: 'docs/charter/vision.md', template: 'vision.md' },
+]);
+
 /**
  * Caminhos onde um artefato equivalente pode já existir sob outro nome.
  * Adotar o que existe; nunca criar um paralelo (spec §5, SK-0 passo 1).
@@ -97,10 +104,10 @@ export interface InitResult {
   notInstalled: string[];
 }
 
-/** O que este estágio pede e a Fase 4 é que vai entregar (spec §10). */
+/** O que este estágio pede. Vazio: `small-team` cobre as Fases 2, 3 e 4 por completo nesta versão. */
 const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
   solo: [],
-  'small-team': ['SK-1, SK-2, AG-2 (Fase 4) — não implementados nesta versão'],
+  'small-team': [],
 });
 
 function today(): string {
@@ -235,7 +242,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
     AGREEMENTS_CODEOWNERS:
       options.stage === 'solo'
         ? ''
-        : `CONTRIBUTING.md    ${options.owner}\ndocs/definition-of-done.md    ${options.owner}\nCLAUDE.md    ${options.owner}\n`,
+        : `CONTRIBUTING.md    ${options.owner}\ndocs/definition-of-done.md    ${options.owner}\nCLAUDE.md    ${options.owner}\ndocs/glossary.md    ${options.owner}\ndocs/charter/    ${options.owner}\n`,
   };
 
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);
@@ -268,6 +275,10 @@ export function runInit(root: string, options: InitOptions): InitResult {
     }
 
     for (const agreement of WORKING_AGREEMENTS) {
+      writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result);
+    }
+
+    for (const agreement of LANGUAGE_AND_INTENT) {
       writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result);
     }
 
