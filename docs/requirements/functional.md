@@ -50,3 +50,14 @@ mantém o conteúdo intacto.
 
 O que o comando **não** faz é inventar `watches`: um vínculo código→doc que
 ninguém reconhece é ruído que ensina a ignorar o lembrete.
+
+## RF-0005 — `init --stage small-team` instala a moldura de linguagem e intenção
+
+- **status:** draft
+- **relates-to:** RF-0004
+- **fora de escopo:** o conteúdo real dos termos e princípios — a semente é o formato, não o vocabulário deste ou de outro projeto
+
+No estágio `small-team`, `living-docs init` cria `docs/glossary.md`,
+`docs/charter/constitution.md` e `docs/charter/vision.md` a partir dos
+templates, com a mesma idempotência e a mesma política de adoção dos demais
+artefatos: não recria o que existe, não reescreve conteúdo do usuário.

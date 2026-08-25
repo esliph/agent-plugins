@@ -122,3 +122,15 @@ mora e declara o que nunca fazer. Toda afirmação factual vive no artefato dono
 Conteúdo copiado para dentro dele apodrece igual a qualquer duplicata — com o
 agravante de ser lido em toda sessão, o que faz a versão velha ganhar da nova
 por repetição.
+
+## RN-0011 — Termo do glossary tem um significado só, identificado pelo nome
+
+- **status:** draft
+- **relates-to:** ADR-0004
+- **fora de escopo:** a declaração de `docs/glossary.md` em `artifacts:` no `.ownership.yml` — fica em aberto por `DA-0002` (`ADR-0004` não a resolve)
+
+Um termo do glossary é identificado pelo nome — não por um ID numerado do
+tipo `<PREFIXO>-<número>` — e cobre exatamente um significado. Duas coisas
+com o mesmo nome não são a mesma entrada: criam-se dois termos, e um deles é
+`banned`, apontando o substituto. Divergência entre o nome no código e o
+termo é bug a corrigir no código, não um segundo termo no glossary.
