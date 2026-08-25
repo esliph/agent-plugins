@@ -43,6 +43,12 @@ const REQUIREMENT_CITED_BY: Readonly<Record<'RF' | 'RNF' | 'RN', readonly string
   RN: ['test/**', 'src/**'],
 });
 
+/** Acordos de trabalho (SK-6), instalados a partir do estágio `small-team` (spec §10). */
+const WORKING_AGREEMENTS: readonly { path: string; template: string }[] = Object.freeze([
+  { path: 'CONTRIBUTING.md', template: 'contributing.md' },
+  { path: 'docs/definition-of-done.md', template: 'definition-of-done.md' },
+]);
+
 /**
  * Caminhos onde um artefato equivalente pode já existir sob outro nome.
  * Adotar o que existe; nunca criar um paralelo (spec §5, SK-0 passo 1).
@@ -91,13 +97,10 @@ export interface InitResult {
   notInstalled: string[];
 }
 
-/** O que `small-team` pede e as Fases 3–4 é que vão entregar (spec §10). */
+/** O que este estágio pede e a Fase 4 é que vai entregar (spec §10). */
 const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
   solo: [],
-  'small-team': [
-    'SK-6 + Definition of Done + HK-4/HK-5 (Fase 3) — não implementados nesta versão',
-    'SK-1, SK-2, AG-2 (Fase 4) — não implementados nesta versão',
-  ],
+  'small-team': ['SK-1, SK-2, AG-2 (Fase 4) — não implementados nesta versão'],
 });
 
 function today(): string {
@@ -229,6 +232,10 @@ export function runInit(root: string, options: InitOptions): InitResult {
     TDR_PATH: paths.TDR,
     REQUIREMENTS_BLOCK: requirementsBlock(options.owner, paths, options.stage),
     REQUIREMENTS_CODEOWNERS: requirementsCodeowners,
+    AGREEMENTS_CODEOWNERS:
+      options.stage === 'solo'
+        ? ''
+        : `CONTRIBUTING.md    ${options.owner}\ndocs/definition-of-done.md    ${options.owner}\nCLAUDE.md    ${options.owner}\n`,
   };
 
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);
@@ -258,6 +265,18 @@ export function runInit(root: string, options: InitOptions): InitResult {
         options,
         result,
       );
+    }
+
+    for (const agreement of WORKING_AGREEMENTS) {
+      writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result);
+    }
+
+    // O contrato do agente pode já existir com outro nome. Adotar, nunca duplicar
+    // (RF-0002): dois contratos é a garantia de que um deles está errado.
+    if (existsSync(join(root, 'AGENTS.md'))) {
+      result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' });
+    } else {
+      writeIfAbsent(root, 'CLAUDE.md', template('agent-contract.md', values), options, result);
     }
   }
 

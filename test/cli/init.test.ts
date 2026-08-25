@@ -4,7 +4,7 @@ import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runInit } from '../../src/cli/init.ts';
 import { runValidate } from '../../src/cli/validate.ts';
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
+import { loadOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts';
 import { RETIRED_IDS_PATH } from '../../src/ids/citations.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
 
@@ -199,8 +199,7 @@ test('adota docs/requisitos.md preexistente em vez de criar um paralelo', () => 
 test('RF-0003: o resultado lista o que não foi instalado, em vez de fingir o estágio completo', () => {
   withTempRepo({ 'README.md': '# projeto\n' }, (root) => {
     const result = runInit(root, SMALL_TEAM);
-    assert.ok(result.notInstalled.length >= 2, JSON.stringify(result.notInstalled));
-    assert.ok(result.notInstalled.some((item) => /Fase 3/.test(item)));
+    assert.ok(result.notInstalled.length >= 1, JSON.stringify(result.notInstalled));
     assert.ok(result.notInstalled.some((item) => /Fase 4/.test(item)));
   });
 });
@@ -212,5 +211,61 @@ test('a semente de requisitos não declara requisito nenhum — o exemplo é lit
     assert.match(rules, /RN-nnnn/, 'o exemplo precisa usar o placeholder literal');
     assert.doesNotMatch(rules, /RN-\d{3,4}/, 'a semente não pode nascer com um requisito fantasma');
     assert.equal(runValidate(root).exitCode, 0);
+  });
+});
+
+test('RF-0004: small-team instala os acordos de trabalho', () => {
+  withTempRepo({}, (root) => {
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
+      assert.ok(existsSync(join(root, path)), `${path} deveria existir`);
+      assert.ok(result.created.includes(path), `${path} deveria constar como criado`);
+    }
+    assert.match(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), /@time/);
+  });
+});
+
+test('RF-0004: solo não instala acordo de trabalho nenhum', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' });
+    for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
+      assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`);
+    }
+  });
+});
+
+test('RF-0004: AGENTS.md existente é adotado; nenhum CLAUDE.md paralelo nasce', () => {
+  withTempRepo({ 'AGENTS.md': '# contrato antigo\n' }, (root) => {
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    assert.equal(existsSync(join(root, 'CLAUDE.md')), false);
+    assert.equal(readFileSync(join(root, 'AGENTS.md'), 'utf8'), '# contrato antigo\n');
+    assert.ok(result.adopted.some((entry) => entry.path === 'AGENTS.md'));
+  });
+});
+
+test('RF-0004: acordo já escrito não é reescrito na segunda execução', () => {
+  withTempRepo({ 'CONTRIBUTING.md': '# do jeito deles\n' }, (root) => {
+    const options = { owner: '@time', dryRun: false, stage: 'small-team' as const };
+    runInit(root, options);
+    const segunda = runInit(root, options);
+    assert.equal(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), '# do jeito deles\n');
+    assert.ok(segunda.skipped.includes('CONTRIBUTING.md'));
+    assert.deepEqual(segunda.created, []);
+  });
+});
+
+test('RF-0003: small-team não promete mais a Fase 3 como pendente', () => {
+  withTempRepo({}, (root) => {
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    assert.equal(result.notInstalled.some((item) => /Fase 3/.test(item)), false);
+    assert.ok(result.notInstalled.some((item) => /Fase 4/.test(item)));
+  });
+});
+
+test('o init não inventa `watches` — o vínculo código→doc é ato humano', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    const config = loadOwnership(root);
+    assert.deepEqual(config.watches, []);
   });
 });
