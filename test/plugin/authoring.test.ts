@@ -98,8 +98,8 @@ test('requirements-keeper não duplica o formato do requisito', () => {
   assert.doesNotMatch(source, /^- \*\*status:\*\*/m, 'a skill não deve conter o template do requisito');
 });
 
-test('os quatro comandos existem, têm description e não contêm lógica própria', () => {
-  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md'];
+test('os cinco comandos existem, têm description e não contêm lógica própria', () => {
+  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'term.md'];
   const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort();
   assert.deepEqual(encontrados, esperados.sort());
 
@@ -109,8 +109,22 @@ test('os quatro comandos existem, têm description e não contêm lógica própr
     assert.ok(frontmatter, `${nome} sem frontmatter`);
     assert.equal(typeof frontmatter.data.description, 'string');
     assert.ok(source.split('\n').length < 25, `${nome} é longo demais para um atalho fino`);
-    assert.match(source, /decision-recorder|living-docs-bootstrap/, `${nome} deve apontar a skill que aciona`);
+    assert.match(source, /decision-recorder|living-docs-bootstrap|glossary-keeper/, `${nome} deve apontar a skill que aciona`);
   }
+});
+
+test('glossary-keeper: a description nomeia os sintomas de termo novo, ambíguo ou renomeado', () => {
+  const description = String(parseFrontmatter(skillSource('glossary-keeper'))?.data.description ?? '');
+  assert.match(description, /Use quando/i);
+  for (const sintoma of ['termo', 'renome']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`);
+  }
+});
+
+test('glossary-keeper não duplica o formato da tabela que governa', () => {
+  const source = skillSource('glossary-keeper');
+  assert.doesNotMatch(source, /\| Termo exemplo \|/, 'a skill não deve conter a linha de exemplo do template');
+  assert.match(source, /templates\/glossary\.md/, 'ela deve apontar para o template, não copiá-lo');
 });
 
 test('working-agreements-keeper: a description nomeia o erro por falta de contexto', () => {
