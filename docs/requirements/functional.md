@@ -39,7 +39,7 @@ e lista explicitamente o que ficou fora.
 
 ## RF-0004 — `init --stage small-team` instala os acordos de trabalho
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RF-0002
 - **fora de escopo:** preencher `watches`, que exige conhecer o código do projeto e é ato humano
 

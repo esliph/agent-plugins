@@ -83,7 +83,7 @@ ela afirma uma rastreabilidade que não existe.
 
 ## RN-0008 — Caminho vigiado e doc dono viajam no mesmo commit
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0001
 - **fora de escopo:** qual caminho exige qual doc, que é configuração do projeto e mora em `watches`
 
@@ -97,7 +97,7 @@ momento em que o enforcement pergunta — não o agente, e não o silêncio.
 
 ## RN-0009 — O enforcement do vínculo código→doc lembra e pergunta, nunca nega
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0008
 - **fora de escopo:** o congelamento de item imutável (`RN-0006`), que nega por outro motivo
 
@@ -112,7 +112,7 @@ ensina.
 
 ## RN-0010 — O contrato do agente é índice e política, não conteúdo
 
-- **status:** draft
+- **status:** active
 - **fora de escopo:** a detecção automática de duplicação textual, que é `CI-7` e chega na Fase 7
 
 O documento que orienta agentes (`CLAUDE.md`, `AGENTS.md`) aponta onde a verdade
