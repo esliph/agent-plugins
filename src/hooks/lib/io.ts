@@ -53,6 +53,18 @@ export function askOutput(reason: string): string {
   return output('ask', reason);
 }
 
+/**
+ * Saída de hook que **não** decide permissão: injeta contexto e devolve o
+ * controle. É a forma de HK-4 (PostToolUse) e, na Fase 7, de HK-6 (SessionStart).
+ * Não existe variante com `permissionDecision` aqui de propósito — o mecanismo 1
+ * lembra e pergunta, nunca nega (spec §7).
+ */
+export function contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string {
+  return JSON.stringify({
+    hookSpecificOutput: { hookEventName: event, additionalContext: context },
+  });
+}
+
 /** Emite a decisão; `null` significa "deixe passar em silêncio". */
 export function emit(value: string | null): void {
   if (value !== null) process.stdout.write(`${value}\n`);
