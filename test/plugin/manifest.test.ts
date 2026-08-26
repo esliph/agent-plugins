@@ -17,7 +17,7 @@ test('o manifesto do plugin declara nome, versão e descrição', () => {
   assert.equal(typeof manifest.description, 'string');
 });
 
-test('hooks.json registra os cinco hooks nos eventos e matchers da spec §7', () => {
+test('hooks.json registra os seis hooks nos eventos e matchers da spec §7', () => {
   const config = readJson('plugin/hooks/hooks.json');
   const hooks = config.hooks as Record<string, { matcher: string; hooks: { command: string }[] }[]>;
 
@@ -30,7 +30,7 @@ test('hooks.json registra os cinco hooks nos eventos e matchers da spec §7', ()
   const esperado: Record<string, string[]> = {
     'PreToolUse:Edit|Write': ['hk1-append-only', 'hk2-generated-artifact', 'hk3-state-promotion'],
     'PreToolUse:Bash': ['hk5-commit-guard'],
-    'PostToolUse:Edit|Write': ['hk4-watch-reminder'],
+    'PostToolUse:Edit|Write': ['hk4-watch-reminder', 'hk7-shortcut-debt'],
   };
 
   assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort());
@@ -72,7 +72,7 @@ test('todo hook referenciado existe no repositório', () => {
     }
   }
 
-  assert.equal(vistos, 5, 'a varredura deveria ver os cinco hooks das Fases 1, 3 e 5');
+  assert.equal(vistos, 6, 'a varredura deveria ver os seis hooks das Fases 1, 3, 5 e 6');
 });
 
 /**
