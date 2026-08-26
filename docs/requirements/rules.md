@@ -149,3 +149,51 @@ verdade assinada por uma ferramenta.
 
 O que se escreve à mão é a política em volta do contrato — versionamento,
 depreciação, catálogo de erros —, nunca o contrato.
+
+## RN-0013 — Mudança visível ao consumidor viaja com a entrada de CHANGELOG
+
+- **status:** draft
+- **relates-to:** ADR-0006
+- **fora de escopo:** o formato da entrada, que é Keep a Changelog e mora no
+  template, não nesta regra
+
+Uma mudança que toca caminho declarado em `consumer-visible-paths` leva, no
+mesmo diff, a entrada em `## [Unreleased]` do doc marcado
+`consumer-visible: true` — ou uma razão escrita, no formato
+`Changelog: none — <razão>`, em alguma mensagem de commit do intervalo. Rótulo
+sem razão não é exceção: é a caixinha marcada.
+
+A entrada é voltada a quem consome o software. Teste único: se ela só faz
+sentido para quem escreveu o código, ela não pertence ao CHANGELOG — e um
+CHANGELOG derivado do `git log` é o documento que narra o código, que a spec
+§13 recusa.
+
+## RN-0014 — Atalho consciente vira dívida registrada, e o lembrete nunca bloqueia
+
+- **status:** draft
+- **relates-to:** RN-0013
+- **fora de escopo:** arquivos Markdown, onde `TODO` e `FIXME` são prosa sobre
+  o marcador e não o marcador
+
+Marcador de atalho novo — `TODO`, `FIXME`, `HACK`, `XXX`, supressão de tipo ou
+de lint, teste ignorado — sem um `TDR-nnnn` a até duas linhas de distância
+gera lembrete, com o caminho para registrar a dívida. Nunca bloqueio: um atalho
+legítimo existe, e um hook que o proíbe ensina a escondê-lo com outro nome.
+
+O que se cobra é o registro do atalho com gatilho de pagamento observável, não
+a ausência do atalho.
+
+## RN-0015 — Depreciação sem as quatro coisas não é depreciação
+
+- **status:** draft
+- **relates-to:** RN-0013
+- **fora de escopo:** o prazo entre anúncio e remoção, que é política de
+  versionamento do projeto e mora em `docs/contracts/versioning-policy.md`
+
+Uma entrada de depreciação registra quatro coisas: a data do anúncio, a versão
+ou data de remoção, o substituto, e o link para o guia de migração. Faltando
+qualquer uma, não é depreciação — é quebra de compatibilidade anunciada, e
+passa por ADR.
+
+Anunciar remoção sem lugar para o guia de migração é a depreciação que ninguém
+consegue seguir.

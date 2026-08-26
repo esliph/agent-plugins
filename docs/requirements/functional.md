@@ -90,3 +90,36 @@ idempotência e a mesma política de adoção dos demais artefatos.
 
 O estágio declara o que ainda não instala: a Fase 6 da spec §10 pertence a
 `production` e não existe nesta versão.
+
+## RF-0008 — `living-docs changelog --base <ref>` cobra a entrada de CHANGELOG
+
+- **status:** draft
+- **relates-to:** ADR-0006
+- **fora de escopo:** escrever a entrada — o comando cobra, nunca redige
+
+`living-docs changelog --base <ref>` compara `<ref>...HEAD`, e falha com código
+1 quando algum caminho alterado casa com `consumer-visible-paths` e o mesmo
+diff não traz o doc marcado `consumer-visible: true` em `watches` com ao menos
+um item sob `## [Unreleased]`, nem o rótulo de exceção com razão em alguma
+mensagem de commit do intervalo.
+
+Sem `consumer-visible-paths` declarado, ele diz isso e sai com 0. Sem `--base`,
+sai com 2 — a base do diff não se adivinha. `living-docs validate` não faz essa
+comparação; quando há `consumer-visible-paths` declarado, ele aponta o
+subcomando que a faz.
+
+## RF-0009 — `init --stage production` instala a moldura de rastro histórico
+
+- **status:** draft
+- **relates-to:** RF-0007
+- **fora de escopo:** declarar `consumer-visible-paths`, que nasce vazio com
+  exemplo comentado pela mesma razão que `watches` e `generated[]` nascem
+  vazios (`RF-0004`)
+
+No estágio `production`, `living-docs init` cria, além de tudo que já criava,
+`CHANGELOG.md`, `docs/deprecations.md`, `docs/releases/` e `docs/migrations/` a
+partir dos templates, e declara o artefato `REL` em `artifacts:` — com a mesma
+idempotência e a mesma política de adoção dos demais artefatos.
+
+A lista do que o estágio pede e não instala fica vazia: `production` cobre as
+Fases 5 e 6 da spec §10, e as duas existem.
