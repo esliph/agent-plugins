@@ -65,9 +65,9 @@ watches:
     doc: docs/requirements/rules.md
     reason: "check é regra executável — a RN vem antes, e é ela que o check verifica"
 
-  - code: "src/checks/**"
+  - code: "src/checks/catalog.ts"
     doc: docs/contracts/checks.gen.md
-    reason: "o contrato público dos checks deriva do registry — regerar faz parte da mudança, e editar à mão é bloqueado por HK-2"
+    reason: "o contrato público dos checks deriva do CHECK_CATALOG — regerar faz parte da mudança, e editar à mão é bloqueado por HK-2. Skill dona: contract-keeper"
 
   - code: "src/hooks/**"
     doc: docs/requirements/rules.md
