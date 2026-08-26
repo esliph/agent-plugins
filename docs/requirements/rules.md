@@ -137,7 +137,7 @@ termo é bug a corrigir no código, não um segundo termo no glossary.
 
 ## RN-0012 — Artefato gerado não se edita: muda-se a fonte
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0005
 - **fora de escopo:** qual é a fonte de cada artefato gerado, que é
   configuração do projeto e mora em `generated[].command`

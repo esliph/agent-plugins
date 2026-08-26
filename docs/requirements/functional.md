@@ -64,7 +64,7 @@ artefatos: não recria o que existe, não reescreve conteúdo do usuário.
 
 ## RF-0006 — `living-docs drift` compara o artefato gerado com a saída do gerador
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0005
 - **fora de escopo:** gerar o artefato — `drift` compara, nunca escreve
 
@@ -78,7 +78,7 @@ declarado, ele aponta o subcomando que a faz.
 
 ## RF-0007 — `init --stage production` instala a moldura de contratos
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RF-0005
 - **fora de escopo:** declarar o gerador — `generated[]` nasce vazio, com
   exemplo comentado, pela mesma razão que `watches` nasce vazio (`RF-0004`)
