@@ -88,8 +88,8 @@ No estágio `production`, `living-docs init` cria, além de tudo que
 `docs/contracts/versioning-policy.md` a partir dos templates, com a mesma
 idempotência e a mesma política de adoção dos demais artefatos.
 
-O estágio declara o que ainda não instala: a Fase 6 da spec §10 pertence a
-`production` e não existe nesta versão.
+A partir de `RF-0009`, `production` também instala a moldura de rastro
+histórico da Fase 6 — a lista do que o estágio pede e não instala fica vazia.
 
 ## RF-0008 — `living-docs changelog --base <ref>` cobra a entrada de CHANGELOG
 

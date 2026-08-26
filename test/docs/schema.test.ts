@@ -54,6 +54,7 @@ test('RN-0005: toda promoção que significa aceitação exige ato humano', () =
     { from: 'open', to: 'resolved' },
     { from: 'draft', to: 'active' },
     { from: 'active', to: 'revoked' },
+    { from: 'draft', to: 'published' },
   ]);
 });
 

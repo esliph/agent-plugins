@@ -28,7 +28,7 @@ artifacts:
     skill: decision-recorder
     append-only: true
     mutable-fields: [status, last-reviewed]
-{{REQUIREMENTS_BLOCK}}
+{{REQUIREMENTS_BLOCK}}{{RELEASES_BLOCK}}
 generated: []
 # Artefato gerado: HK-2 bloqueia editá-lo à mão, e CI-5 (`living-docs drift`)
 # compara o arquivo versionado com a saída do gerador.
@@ -56,4 +56,17 @@ generated: []
 #     reason: "comportamento novo exige regra com ID antes do código"
 watches: []
 
+# Gatilho de CI-6: quais caminhos, quando mudam, são visíveis a quem consome
+# este software. O init não os inventa, pela mesma razão que não inventa
+# `watches`. A regra de `watches` que aponta o CHANGELOG precisa trazer
+# `consumer-visible: true` — é ela que diz a CI-6 onde a entrada deveria estar.
+# Exemplo:
+#
+# watches:
+#   - code: "src/api/**"
+#     doc: CHANGELOG.md
+#     consumer-visible: true
+#     reason: "mudança visível ao consumidor nasce com a entrada no mesmo PR"
+#
+# consumer-visible-paths: ["src/api/**"]
 consumer-visible-paths: []

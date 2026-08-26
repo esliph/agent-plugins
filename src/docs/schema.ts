@@ -29,6 +29,7 @@ export const STATUS_MACHINE: Readonly<Record<string, readonly string[]>> = Objec
   RF: ['draft', 'active', 'revoked'],
   RNF: ['draft', 'active', 'revoked'],
   RN: ['draft', 'active', 'revoked'],
+  REL: ['draft', 'published'],
 });
 
 /** "Nenhum estado terminal permite edição do corpo" (spec §4). */
@@ -47,6 +48,7 @@ export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.
   { from: 'open', to: 'resolved' },
   { from: 'draft', to: 'active' },
   { from: 'active', to: 'revoked' },
+  { from: 'draft', to: 'published' },
 ]);
 
 export function statesFor(rule: ArtifactRule): readonly string[] | null {

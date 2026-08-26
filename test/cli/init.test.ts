@@ -347,16 +347,6 @@ test('RF-0007: small-team não instala contrato nenhum', () => {
   });
 });
 
-test('RF-0007: production diz que a Fase 6 ainda não vem junto', () => {
-  withTempRepo({}, (root) => {
-    const result = runInit(root, PRODUCTION);
-    assert.ok(
-      result.notInstalled.some((item) => /Fase 6/.test(item)),
-      `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`,
-    );
-  });
-});
-
 test('RF-0007: o init não inventa gerador — `generated[]` nasce vazio', () => {
   withTempRepo({}, (root) => {
     runInit(root, PRODUCTION);
@@ -380,5 +370,66 @@ test('RF-0007: o CODEOWNERS semeado dá dono aos contratos', () => {
   withTempRepo({}, (root) => {
     runInit(root, PRODUCTION);
     assert.match(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), /docs\/contracts\/\s+@time/);
+  });
+});
+
+test('RF-0009: production instala a moldura de rastro histórico', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, PRODUCTION);
+
+    for (const path of [
+      'CHANGELOG.md',
+      'docs/deprecations.md',
+      'docs/releases/.gitkeep',
+      'docs/migrations/.gitkeep',
+    ]) {
+      assert.ok(existsSync(join(root, path)), `${path} pertence a production`);
+    }
+
+    const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8');
+    assert.match(changelog, /^## \[Unreleased\]$/m, 'o CHANGELOG precisa abrir com Unreleased');
+    assert.doesNotMatch(changelog, /^---$/m, 'CHANGELOG é voltado ao consumidor: sem frontmatter');
+  });
+});
+
+test('RF-0009: production declara o artefato REL, para que HK-1 congele release note publicada', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, PRODUCTION);
+
+    const config = loadOwnership(root);
+    const rel = config.artifacts.find((artifact) => artifact.idPrefix === 'REL');
+    assert.ok(rel, 'sem REL em artifacts:, HK-1 não tem como congelar release note');
+    assert.equal(rel?.path, 'docs/releases/');
+    assert.equal(rel?.appendOnly, true);
+    assert.equal(rel?.skill, 'release-historian');
+  });
+});
+
+test('RF-0009: production não inventa consumer-visible-paths', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, PRODUCTION);
+    assert.deepEqual(loadOwnership(root).consumerVisiblePaths, []);
+  });
+});
+
+test('RF-0009: production não deixa nada da spec §10 de fora', () => {
+  withTempRepo({}, (root) => {
+    const result = runInit(root, PRODUCTION);
+    assert.deepEqual(result.notInstalled, [], `production deveria estar completo — ${JSON.stringify(result.notInstalled)}`);
+  });
+});
+
+test('RF-0009: subir de small-team para production declara REL no .ownership.yml existente', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    assert.equal(
+      loadOwnership(root).artifacts.some((artifact) => artifact.idPrefix === 'REL'),
+      false,
+      'small-team não instala rastro histórico',
+    );
+
+    runInit(root, PRODUCTION);
+    assert.ok(loadOwnership(root).artifacts.some((artifact) => artifact.idPrefix === 'REL'));
+    assert.equal(runValidate(root).exitCode, 0, 'o repositório recém-subido de estágio precisa passar limpo');
   });
 });
