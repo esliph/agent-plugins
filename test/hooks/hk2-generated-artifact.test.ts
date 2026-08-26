@@ -60,9 +60,20 @@ test('RN-0012: o marcador vale sozinho — arquivo não declarado, mas autodecla
   assert.match(decision.reason, /generated\[\]/, 'a mensagem precisa pedir a declaração que falta');
 });
 
-test('o marcador só conta no topo do arquivo — prosa sobre o assunto não congela um doc', () => {
+test('o marcador só conta na primeira linha do arquivo — prosa sobre o assunto não congela um doc', () => {
   const file = 'docs/requirements/rules.md';
   const corpo = `${'linha de prosa\n'.repeat(400)}o marcador \`generated: do not edit\` é da spec §2\n`;
+  const decision = decide({ [file]: corpo }, { file_path: file, content: 'outra coisa' });
+  assert.equal(decision.action, 'allow');
+});
+
+test('regressão: marcador na linha ~20 (não a primeira) é permitido — a janela deixou de ser milhares de bytes', () => {
+  // Antes da correção, MARKER_WINDOW=4096 varria dezenas de linhas e negaria
+  // isto incorretamente; o achado crítico da revisão final apontou exatamente
+  // este caso — inclusive nos próprios arquivos-fonte deste repositório.
+  const file = 'docs/requirements/rules.md';
+  const linhas = Array.from({ length: 19 }, (_, i) => `linha de prosa ${i + 1}`).join('\n');
+  const corpo = `${linhas}\n<!-- generated: do not edit -->\nresto do arquivo\n`;
   const decision = decide({ [file]: corpo }, { file_path: file, content: 'outra coisa' });
   assert.equal(decision.action, 'allow');
 });
@@ -97,14 +108,18 @@ test('aceita file_path absoluto do host', () => {
   assert.equal(decision.action, 'deny');
 });
 
-test('diretório declarado em generated[] cobre o que está dentro dele', () => {
+test('generated[] exige caminho de arquivo exato — diretório declarado não cobre o que está dentro dele', () => {
+  // Um artefato, um comando (findGeneratedRule não trata mais `path` com `/`
+  // final como prefixo de diretório): CI-5 lê `rule.path` com readFileSync, que
+  // não sabe comparar diretório com saída de gerador — as duas metades agora
+  // concordam em exigir arquivo exato.
   const config = CONFIG.replace('path: docs/contracts/openapi.gen.yaml', 'path: docs/contracts/gen/');
-  let decision: Hk2Decision = { action: 'allow' };
+  let decision: Hk2Decision = { action: 'deny', reason: 'não deveria' };
   withTempRepo({ [OWNERSHIP_PATH]: config }, (root) => {
     decision = decideHk2(
       { tool_name: 'Write', tool_input: { file_path: 'docs/contracts/gen/schema.json', content: '{}' } },
       { root, hostRoots: [root] },
     );
   });
-  assert.equal(decision.action, 'deny');
+  assert.equal(decision.action, 'allow');
 });

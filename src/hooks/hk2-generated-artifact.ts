@@ -19,25 +19,33 @@ export type Hk2Decision = { action: 'allow' } | { action: 'deny'; reason: string
 const ALLOW: Hk2Decision = { action: 'allow' };
 
 /**
- * Marcador da spec §2. Só o topo do arquivo conta: mais abaixo, a mesma frase é
- * prosa **sobre** o marcador — como esta linha aqui.
+ * Marcador da spec §2. Só a PRIMEIRA LINHA do arquivo conta: mais abaixo, a
+ * mesma frase é prosa **sobre** o marcador — como esta linha aqui. A janela é
+ * pequena de propósito (não milhares de bytes): existe só para tolerar BOM
+ * antes da quebra de linha, nunca para varrer o corpo do arquivo — do
+ * contrário o hook trava prosa que apenas *menciona* o marcador, inclusive o
+ * próprio código-fonte deste hook.
  */
 const MARKER = /generated:\s*do not edit/i;
-const MARKER_WINDOW = 4096;
+const MARKER_WINDOW = 512;
 
 function normalize(path: string): string {
   return path.replace(/\\/g, '/').replace(/^\.\//, '');
 }
 
-/** Regra de `generated[]` que cobre este caminho; diretório cobre o que está dentro. */
+/**
+ * Regra de `generated[]` que cobre este caminho. Um artefato, um comando: sem
+ * suporte a diretório — `CI-5` lê `rule.path` com `readFileSync`, que não sabe
+ * comparar um diretório com a saída de um gerador, então as duas metades
+ * precisam concordar em exigir caminho de arquivo exato.
+ */
 export function findGeneratedRule(
   rules: readonly GeneratedRule[],
   repoPath: string,
 ): GeneratedRule | null {
   const target = normalize(repoPath);
   for (const rule of rules) {
-    const declared = normalize(rule.path);
-    if (declared.endsWith('/') ? target.startsWith(declared) : target === declared) return rule;
+    if (normalize(rule.path) === target) return rule;
   }
   return null;
 }
@@ -71,13 +79,14 @@ export function decideHk2(payload: HookPayload, env: HookEnv): Hk2Decision {
     };
   }
 
-  let head: string;
+  let firstLine: string;
   try {
-    head = readFileSync(join(env.root, repoPath), 'utf8').slice(0, MARKER_WINDOW);
+    const window = readFileSync(join(env.root, repoPath), 'utf8').slice(0, MARKER_WINDOW);
+    firstLine = window.split('\n')[0] ?? '';
   } catch {
     return ALLOW; // arquivo que não existe não carrega marcador
   }
-  if (!MARKER.test(head)) return ALLOW;
+  if (!MARKER.test(firstLine)) return ALLOW;
 
   return {
     action: 'deny',
