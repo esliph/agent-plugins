@@ -26,9 +26,9 @@ estágio `small-team` cobre as Fases 2, 3 e 4 por completo nesta versão.
 
 **Estado em 2026-08-25:** a Fase 5 está **implementada** —
 `docs/superpowers/plans/2026-08-25-living-docs-toolkit-fase-5.md`, as 9 tasks
-executadas; `ADR-0005`/`RF-0006`/`RF-0007`/`RN-0012` seguem `draft`, a
-promoção por ato humano é o passo seguinte. O estágio `production` já existe
-nesta versão e instala a moldura de contratos.
+executadas; `ADR-0005` está `accepted` e `RF-0006`/`RF-0007`/`RN-0012` estão
+`active`, promovidos por ato humano. O estágio `production` já existe nesta
+versão e instala a moldura de contratos.
 
 Cada fase abaixo traz: o que entrega, de que depende, que peça de engine ainda
 não existe, e o risco que só aparece quando alguém tenta implementar. A ordem é
@@ -125,8 +125,8 @@ ou num subcomando separado.
 **Critério de aceite da spec §12 que a fase fecha:** o 6.
 
 **Plano:** `docs/superpowers/plans/2026-08-25-living-docs-toolkit-fase-5.md`
-(9 tasks, todas executadas). `ADR-0005`, `RF-0006`, `RF-0007` e `RN-0012`
-seguem `draft` — a promoção por ato humano ainda não aconteceu.
+(9 tasks, todas executadas). `ADR-0005` está `accepted`; `RF-0006`, `RF-0007`
+e `RN-0012` estão `active`, promovidos por ato humano.
 
 **O que o planejamento apurou** (vale para quem for executar de novo, e para
 a Fase 6 que herda):
@@ -258,9 +258,8 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
 2. ~~Executar o plano da Fase 4~~ — feito: 8 tasks executadas, `ADR-0004`
    aceito, `RF-0005`/`RN-0011` promovidos.
 3. ~~Executar o plano da Fase 5~~ — feito: 9 tasks executadas, o dogfooding
-   com `docs/contracts/checks.gen.md` prova o critério 6; `ADR-0005`/
-   `RF-0006`/`RF-0007`/`RN-0012` seguem `draft`, a promoção por ato humano é
-   o passo seguinte a este.
+   com `docs/contracts/checks.gen.md` prova o critério 6; `ADR-0005` aceito,
+   `RF-0006`/`RF-0007`/`RN-0012` promovidos.
 4. **Próximo passo: planejar a Fase 6** — rastro histórico (`CHANGELOG.md`,
    `SK-7`, `CI-6`, `HK-7`). Herda `src/exec/command.ts` como molde para
    `src/git/diff.ts`, com o contrato invertido (ver seção da Fase 6).
