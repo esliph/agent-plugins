@@ -1,5 +1,5 @@
 <!-- generated: do not edit -->
-<!-- fonte: src/checks/registry.ts (CHECK_CATALOG) — regerar: node /opt/living-docs/src/tools/gen-checks.ts -->
+<!-- fonte: src/checks/catalog.ts (CHECK_CATALOG) — regerar: rode este arquivo com node -->
 
 # Contrato dos checks
 

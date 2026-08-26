@@ -19,5 +19,5 @@ test('RN-0012: o artefato gerado se declara gerado, e não finge ser artefato ed
   const source = readFileSync(join(ROOT, GENERATED), 'utf8');
   assert.match(source.split('\n')[0] ?? '', /generated: do not edit/, 'o marcador abre o arquivo (spec §2)');
   assert.doesNotMatch(source, /^---$/m, 'artefato gerado não tem frontmatter editável (spec §2)');
-  assert.match(source, /src\/checks\/registry\.ts/, 'o arquivo precisa nomear a própria fonte');
+  assert.match(source, /src\/checks\/catalog\.ts/, 'o arquivo precisa nomear a própria fonte');
 });

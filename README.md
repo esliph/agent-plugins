@@ -18,6 +18,14 @@ docker compose up -d                    # dogfooding: valida este próprio repos
 ./bin/living-docs drift                 # roda CI-5: o contrato gerado ainda bate com o gerador?
 ```
 
+Para regerar `docs/contracts/checks.gen.md` deste repositório (nunca `Write`/`Edit`
+— `HK-2` bloqueia; o comando é o mesmo que `generated[].command` declara em
+`docs/.ownership.yml`, aqui rodado dentro do container):
+
+```bash
+docker compose exec -w /workspace toolkit sh -c 'node /opt/living-docs/src/tools/gen-checks.ts > docs/contracts/checks.gen.md'
+```
+
 Para validar **outro** projeto — a fonte do toolkit e o repositório validado são
 raízes distintas (`ADR-0003`):
 

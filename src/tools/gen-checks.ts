@@ -10,10 +10,10 @@
  * contagem. Um gerador que imprime "gerado em <hoje>" produz deriva a cada
  * execução e desliga `CI-5` no segundo dia.
  */
-import { CHECK_CATALOG } from '../checks/registry.ts';
+import { CHECK_CATALOG } from '../checks/catalog.ts';
 
 const HEADER = `<!-- generated: do not edit -->
-<!-- fonte: src/checks/registry.ts (CHECK_CATALOG) — regerar: node /opt/living-docs/src/tools/gen-checks.ts -->
+<!-- fonte: src/checks/catalog.ts (CHECK_CATALOG) — regerar: rode este arquivo com node -->
 
 # Contrato dos checks
 
