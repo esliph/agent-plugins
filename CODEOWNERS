@@ -9,4 +9,8 @@ CLAUDE.md    @dan
 docs/glossary.md    @dan
 docs/charter/    @dan
 docs/contracts/    @dan
+CHANGELOG.md    @dan
+docs/deprecations.md    @dan
+docs/releases/    @dan
+docs/migrations/    @dan
 docs/.ownership.yml    @dan

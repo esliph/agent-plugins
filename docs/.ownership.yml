@@ -50,6 +50,16 @@ artifacts:
     collection: sections
     cited-by: ["test/**", "src/**"]
 
+  - id-prefix: REL
+    path: docs/releases/
+    owner: "@dan"
+    skill: release-historian
+    # Release note publicada é congelada por HK-1 (spec §5, SK-7, regra 4).
+    # É por isso que REL tem família de IDs e CHANGELOG.md não: HK-1 só
+    # congela caminho que `findArtifactRule` resolve.
+    append-only: true
+    mutable-fields: [status, last-reviewed]
+
 generated:
   # O comando IMPRIME o conteúdo esperado na saída padrão e não escreve arquivo
   # nenhum: um check que reescreve o que está checando apaga a evidência no
@@ -85,4 +95,44 @@ watches:
     doc: CONTRIBUTING.md
     reason: "skill nova ou alterada muda como se trabalha aqui"
 
-consumer-visible-paths: []
+  # CI-6 (mecanismo 1 na fronteira com quem consome). Os `code` daqui e a lista
+  # `consumer-visible-paths` abaixo são o mesmo conjunto de propósito, e
+  # test/docs/release-history.test.ts impede que derivem: são dois momentos —
+  # o lembrete na edição e a barreira no PR.
+  - code: "src/cli/**"
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: "subcomando, opção e código de saída são contrato público (docs/contracts/versioning-policy.md)"
+
+  - code: "src/checks/catalog.ts"
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: "os IDs dos checks são públicos e não mudam de significado"
+
+  - code: "src/config/ownership.ts"
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: "o esquema do .ownership.yml com version 1 é contrato de quem instala"
+
+  - code: "plugin/**"
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: "IDs de skill, hook e comando são públicos"
+
+  - code: "templates/**"
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: "é o que `init` escreve no repositório de quem instala"
+
+  - code: "bin/living-docs"
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: "a ponte host→container é como o toolkit é invocado"
+
+consumer-visible-paths:
+  - "src/cli/**"
+  - "src/checks/catalog.ts"
+  - "src/config/ownership.ts"
+  - "plugin/**"
+  - "templates/**"
+  - "bin/living-docs"
