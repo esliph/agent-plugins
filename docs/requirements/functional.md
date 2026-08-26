@@ -87,3 +87,6 @@ No estágio `production`, `living-docs init` cria, além de tudo que
 `small-team` cria, `docs/contracts/errors.md` e
 `docs/contracts/versioning-policy.md` a partir dos templates, com a mesma
 idempotência e a mesma política de adoção dos demais artefatos.
+
+O estágio declara o que ainda não instala: a Fase 6 da spec §10 pertence a
+`production` e não existe nesta versão.
