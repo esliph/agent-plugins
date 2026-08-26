@@ -61,3 +61,29 @@ No estágio `small-team`, `living-docs init` cria `docs/glossary.md`,
 `docs/charter/constitution.md` e `docs/charter/vision.md` a partir dos
 templates, com a mesma idempotência e a mesma política de adoção dos demais
 artefatos: não recria o que existe, não reescreve conteúdo do usuário.
+
+## RF-0006 — `living-docs drift` compara o artefato gerado com a saída do gerador
+
+- **status:** draft
+- **relates-to:** ADR-0005
+- **fora de escopo:** gerar o artefato — `drift` compara, nunca escreve
+
+Para cada entrada de `generated[]` no `.ownership.yml`, `living-docs drift`
+executa `command`, compara a saída padrão com o arquivo em `path` e sai com
+código 1 se houver diferença, se o gerador falhar, ou se o arquivo declarado
+não existir. Sem entrada nenhuma declarada, ele diz isso e sai com 0.
+
+`living-docs validate` não roda essa comparação; quando há artefato gerado
+declarado, ele aponta o subcomando que a faz.
+
+## RF-0007 — `init --stage production` instala a moldura de contratos
+
+- **status:** draft
+- **relates-to:** RF-0005
+- **fora de escopo:** declarar o gerador — `generated[]` nasce vazio, com
+  exemplo comentado, pela mesma razão que `watches` nasce vazio (`RF-0004`)
+
+No estágio `production`, `living-docs init` cria, além de tudo que
+`small-team` cria, `docs/contracts/errors.md` e
+`docs/contracts/versioning-policy.md` a partir dos templates, com a mesma
+idempotência e a mesma política de adoção dos demais artefatos.

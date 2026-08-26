@@ -134,3 +134,18 @@ tipo `<PREFIXO>-<número>` — e cobre exatamente um significado. Duas coisas
 com o mesmo nome não são a mesma entrada: criam-se dois termos, e um deles é
 `banned`, apontando o substituto. Divergência entre o nome no código e o
 termo é bug a corrigir no código, não um segundo termo no glossary.
+
+## RN-0012 — Artefato gerado não se edita: muda-se a fonte
+
+- **status:** draft
+- **relates-to:** ADR-0005
+- **fora de escopo:** qual é a fonte de cada artefato gerado, que é
+  configuração do projeto e mora em `generated[].command`
+
+Um artefato declarado em `generated[]`, ou que carrega o marcador
+`generated: do not edit`, só muda por execução do gerador. Uma edição à mão
+sobrevive até a próxima execução e mente até lá — com o agravante de parecer
+verdade assinada por uma ferramenta.
+
+O que se escreve à mão é a política em volta do contrato — versionamento,
+depreciação, catálogo de erros —, nunca o contrato.
