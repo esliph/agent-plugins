@@ -20,8 +20,9 @@ verifica não pertence a esta lista — vira intenção, e intenção não é de
 - [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: humana.
 - [ ] O doc dono de todo caminho vigiado tocado pela mudança está no mesmo commit — verificação: `HK-4` lembra, `HK-5` pergunta.
 - [ ] Nenhum item congelado foi editado no corpo — verificação: `HK-1`.
+- [ ] Nenhum artefato gerado foi editado à mão, e o contrato regenerado está no mesmo commit — verificação: `HK-2` (bloqueia) e `CI-5` (`living-docs drift`).
 - [ ] A mensagem de commit cita o ID afetado — verificação: humana.
-- [ ] `npm test`, `npm run typecheck` e `living-docs validate` passam no container — verificação: `CI-1`, `CI-2` e `CI-3`, rodados pelo workflow do repositório.
+- [ ] `npm test`, `npm run typecheck`, `living-docs validate` e `living-docs drift` passam no container — verificação: `CI-1`, `CI-2`, `CI-3` e `CI-5`, rodados pelo workflow do repositório.
 
 ## O que esta lista não é
 

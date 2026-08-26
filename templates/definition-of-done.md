@@ -20,6 +20,7 @@ verifica não pertence a esta lista.
 - [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: humana.
 - [ ] O doc dono de todo caminho vigiado tocado está no mesmo commit — verificação: `HK-4` e `HK-5`.
 - [ ] Nenhum item congelado teve o corpo editado — verificação: `HK-1`.
+- [ ] Nenhum artefato gerado foi editado à mão — verificação: `HK-2` e `CI-5` (`living-docs drift`).
 - [ ] A mensagem de commit cita o ID afetado — verificação: humana.
 
 Acrescente aqui os passos do seu projeto (build, lint, deploy), **cada um com a

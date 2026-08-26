@@ -26,3 +26,8 @@ jobs:
         run: >
           docker compose run --rm -w /workspace toolkit
           node /opt/living-docs/src/cli/index.ts validate
+
+      - name: CI-5 — deriva de contrato gerado
+        run: >
+          docker compose run --rm -w /workspace toolkit
+          node /opt/living-docs/src/cli/index.ts drift

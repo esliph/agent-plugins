@@ -1,10 +1,11 @@
 # living-docs-toolkit
 
-Documentação viva com dono, gatilho e enforcement — Fases 0–4 da spec
+Documentação viva com dono, gatilho e enforcement — Fases 0–5 da spec
 `LIVING-DOCUMENTATION-TOOLKIT.md`: ADR, Open Decisions, Debt Register e
-requisitos com ID estável; os checks `CI-1`/`CI-2`/`CI-3`; os hooks
-`HK-1`/`HK-3`/`HK-4`/`HK-5`; os acordos de trabalho (`SK-6`); o vocabulário do
-domínio e os princípios invioláveis (`SK-2`, `SK-1`).
+requisitos com ID estável; os checks `CI-1`/`CI-2`/`CI-3`/`CI-5`; os hooks
+`HK-1`/`HK-2`/`HK-3`/`HK-4`/`HK-5`; os acordos de trabalho (`SK-6`); o
+vocabulário do domínio e os princípios invioláveis (`SK-2`, `SK-1`); e o
+contrato público, com a metade gerada que ninguém edita à mão (`SK-5`).
 
 **Nada roda no host além de Docker.**
 
@@ -14,6 +15,7 @@ domínio e os princípios invioláveis (`SK-2`, `SK-1`).
 docker compose up -d                    # dogfooding: valida este próprio repositório
 ./bin/living-docs init --stage solo     # cria a moldura (SK-0)
 ./bin/living-docs validate              # roda CI-1, CI-2 e CI-3
+./bin/living-docs drift                 # roda CI-5: o contrato gerado ainda bate com o gerador?
 ```
 
 Para validar **outro** projeto — a fonte do toolkit e o repositório validado são
@@ -30,6 +32,8 @@ Estágios de maturidade (`--stage`): `solo` instala decisões, lacunas e dívida
 de trabalho, o glossary e o charter. Nesta versão, `small-team` instala o
 conjunto inteiro do estágio — quando algo do estágio ficar de fora, o comando
 diz o que é em vez de fingir o conjunto completo.
+`production` acrescenta a moldura de contratos (catálogo de erros e política de
+versionamento) e diz que a Fase 6 ainda não vem junto.
 
 Desenvolvimento:
 
@@ -55,15 +59,19 @@ As skills `glossary-keeper` (`/term`) e `charter-keeper` completam o estágio
 agent do plugin — contexto isolado, sem `Edit`/`Write`, que tenta refutar um
 ADR, uma emenda de Constitution ou um TDR antes da aceitação humana.
 
+`contract-keeper` (`SK-5`) é dona do contrato público, e `HK-2` nega editar
+artefato gerado à mão apontando a fonte e o comando do gerador.
+
 ## O que está fora
 
-`SK-5`, `SK-7`, `AG-1`, `HK-2`, `HK-6`, `HK-7`, `CI-4`–`CI-8`, `CM-5`, `CM-7`
-— Fases 5 a 7 da spec. O que falta e em que ordem:
+`SK-7`, `AG-1`, `HK-6`, `HK-7`, `CI-4`, `CI-6`, `CI-7`, `CI-8`, `CM-5`, `CM-7`
+— Fases 6 e 7 da spec. O que falta e em que ordem:
 `docs/superpowers/plans/BACKLOG-fases-3-7.md`.
 
 Do critério de aceite 5 da spec §12, a Fase 3 entrega a metade do hook: o commit
 que leva caminho vigiado sem o doc dono é perguntado. A outra metade — "e o CI
-sinaliza pelo `watches`" — é `CI-7`, Fase 7.
+sinaliza pelo `watches`" — é `CI-7`, Fase 7. O critério 6 está fechado inteiro:
+`HK-2` nega a edição e `CI-5` (`living-docs drift`) pega quem passou por fora.
 
 Dívida conhecida: `TDR-0001` — `HK-1` congela por arquivo, não por seção, então
 um requisito `revoked` dentro de `docs/requirements/` não tem o corpo protegido

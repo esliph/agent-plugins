@@ -24,6 +24,12 @@ cada seção abaixo.
 executadas e `ADR-0004`/`RF-0005`/`RN-0011` promovidos por ato humano. O
 estágio `small-team` cobre as Fases 2, 3 e 4 por completo nesta versão.
 
+**Estado em 2026-08-25:** a Fase 5 está **implementada** —
+`docs/superpowers/plans/2026-08-25-living-docs-toolkit-fase-5.md`, as 9 tasks
+executadas; `ADR-0005`/`RF-0006`/`RF-0007`/`RN-0012` seguem `draft`, a
+promoção por ato humano é o passo seguinte. O estágio `production` já existe
+nesta versão e instala a moldura de contratos.
+
 Cada fase abaixo traz: o que entrega, de que depende, que peça de engine ainda
 não existe, e o risco que só aparece quando alguém tenta implementar. A ordem é
 a da spec §10 e importa: cada fase usa o enforcement que a anterior instalou.
@@ -103,7 +109,7 @@ são artefatos com dono e **sem família de IDs numerada**, igual a
 a Fase 3. `DA-0002` segue aberta, exatamente onde a Fase 3 a deixou — pré-
 condição de `CI-7`, Fase 7.
 
-### Fase 5 — contratos gerados — **PRÓXIMO PLANO**
+### Fase 5 — contratos gerados — **IMPLEMENTADA**
 
 `SK-5` contract-keeper, `HK-2` (bloqueia editar artefato gerado) e `CI-5`
 (regenerar produz diff ≠ 0).
@@ -117,6 +123,28 @@ dentro do container e comparar a saída — é o primeiro check que roda subproc
 e o primeiro que pode ser lento. Vale decidir por ADR se ele roda em `validate`
 ou num subcomando separado.
 **Critério de aceite da spec §12 que a fase fecha:** o 6.
+
+**Plano:** `docs/superpowers/plans/2026-08-25-living-docs-toolkit-fase-5.md`
+(9 tasks, todas executadas). `ADR-0005`, `RF-0006`, `RF-0007` e `RN-0012`
+seguem `draft` — a promoção por ato humano ainda não aconteceu.
+
+**O que o planejamento apurou** (vale para quem for executar de novo, e para
+a Fase 6 que herda):
+
+- **O alvo de dogfooding é o contrato dos checks**, `docs/contracts/checks.gen.md`,
+  gerado a partir de `src/checks/registry.ts`. Este repositório não tinha
+  contrato gerado nenhum antes desta fase — sem um alvo real, a fase não teria
+  prova, só teoria.
+- **O contrato do gerador é imprimir na saída padrão, não escrever arquivo**
+  (`ADR-0005`). Um check que reescreve o que está checando apaga a evidência
+  da deriva antes de reportá-la: `CI-5` compara a saída do comando com o
+  arquivo em disco, e é essa comparação — não uma escrita — que detecta a
+  divergência.
+- **`CI-5` fica fora de `living-docs validate`**, rodando só em
+  `living-docs drift`: é o único check que executa um comando declarado pelo
+  repositório validado, e o único que pode ser lento. `validate` imprime o
+  ponteiro para `drift` quando há artefato gerado declarado, para o mecanismo
+  não ficar em silêncio.
 
 ### Fase 6 — rastro histórico
 
@@ -138,6 +166,17 @@ falha aberta devolvendo vazio. Copie o padrão em vez de inventar outro; o teto
 de 5 s do hook é dividido entre ler o `.ownership.yml` e falar com o git.
 `consumer-visible: true` em `watches` e `consumer-visible-paths` continuam sem
 consumidor nenhum até `CI-6` — a Fase 3 deliberadamente não os tocou.
+
+**Herança da Fase 5:** `src/exec/command.ts` existe — `CommandRunner`
+injetável — e é o molde para `src/git/diff.ts` desta fase, mas com o contrato
+**invertido** em relação ao parágrafo acima: a nota herdada da Fase 3 supunha
+o mesmo contrato de `GitRunner` (falha aberta). `CommandRunner` **não** falha
+aberta, de propósito — foi desenhado para `CI-5`, um check, não um hook — e
+`CI-6` também é check, não hook. `diff.ts` copia a forma injetável de
+`command.ts`, não a falha-aberta de `staged.ts`; o custo do silêncio muda de
+lado quando quem chama é um check que precisa aparecer, não um hook cujo
+custo de falhar fechado é travar o agente. `docs/contracts/versioning-policy.md`
+já aponta o `CHANGELOG.md` que esta fase entrega e que ainda não existe.
 
 ### Fase 7 — manutenção contínua
 
@@ -199,15 +238,18 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
 - **Distribuição do toolkit.** `ADR-0003` decide as duas raízes e **não** decide
   como o toolkit chega a um projeto consumidor (clone? imagem publicada? pacote?).
   Vale abrir uma `DA` no primeiro consumidor real.
-- **`--stage production` e `--stage multi-team`** não existem porque as fases que
-  eles instalariam não existem. Acrescente cada estágio junto com a fase, não
-  antes: estágio que instala moldura vazia é a "wiki morta" nascendo de fábrica.
-  Depois da Fase 4, `small-team` cobre as Fases 2, 3 **e** 4 por completo, e
-  `notInstalled` sai vazio para os dois estágios — quem executar a Fase 5 mexe
-  nessa lista de novo. Regra que se aplica a todo estágio: **o `init` não
-  inventa `watches`.** O template traz o campo vazio com exemplo comentado,
-  porque vínculo código→doc que ninguém reconhece ensina a ignorar o lembrete
-  no primeiro dia.
+- **`--stage production`** existe desde a Fase 5: instala
+  `docs/contracts/errors.md` e `docs/contracts/versioning-policy.md`, e seu
+  `notInstalled` nomeia a Fase 6 (a moldura de `CHANGELOG.md`,
+  `docs/releases/`, `docs/deprecations.md` e `docs/migrations/` ainda não
+  existe). Quem executar a Fase 6 esvazia essa lista.
+- **`--stage multi-team`** não existe porque a fase que o instalaria (Fase 7)
+  não existe. Acrescente o estágio junto com a fase, não antes: estágio que
+  instala moldura vazia é a "wiki morta" nascendo de fábrica. Regra que se
+  aplica a todo estágio: **o `init` não inventa `watches`.** O template traz o
+  campo vazio com exemplo comentado, porque vínculo código→doc que ninguém
+  reconhece ensina a ignorar o lembrete no primeiro dia. A mesma regra vale
+  para `generated[]`, que a Fase 5 também não inventa.
 
 ### Ordem sugerida daqui
 
@@ -215,12 +257,15 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
    `RN-0010` e `RF-0004` promovidos, `DA-0002` aberta.
 2. ~~Executar o plano da Fase 4~~ — feito: 8 tasks executadas, `ADR-0004`
    aceito, `RF-0005`/`RN-0011` promovidos.
-3. **Próximo passo: planejar a Fase 5** — contratos gerados. Este repositório
-   não tem contrato gerado nenhum ainda (ver "Depende de" na seção da Fase 5):
-   o dogfooding precisa inventar um alvo real antes de escrever o plano, ou a
-   fase fica sem prova.
-4. Fases 6 e 7 na ordem da spec §10 — cada uma com plano próprio, porque cada
-   uma entrega software que funciona sozinho.
+3. ~~Executar o plano da Fase 5~~ — feito: 9 tasks executadas, o dogfooding
+   com `docs/contracts/checks.gen.md` prova o critério 6; `ADR-0005`/
+   `RF-0006`/`RF-0007`/`RN-0012` seguem `draft`, a promoção por ato humano é
+   o passo seguinte a este.
+4. **Próximo passo: planejar a Fase 6** — rastro histórico (`CHANGELOG.md`,
+   `SK-7`, `CI-6`, `HK-7`). Herda `src/exec/command.ts` como molde para
+   `src/git/diff.ts`, com o contrato invertido (ver seção da Fase 6).
+5. Fase 7 na ordem da spec §10, com plano próprio, porque entrega software que
+   funciona sozinho.
 
 Aceitar `ADR-0001` e `ADR-0002` (hoje `draft`) não depende de fase nenhuma e
 continua sendo um ato barato — com a pré-condição já anotada acima.

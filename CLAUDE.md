@@ -24,6 +24,8 @@ artefato dono e é lida de lá (`RN-0010`).
   humano — `HK-3` pergunta, e a resposta não é sua.
 - **Você não corrige item congelado.** ADR aceito ganha `superseded` e um ADR
   novo — `HK-1` bloqueia o resto.
+- **Você não edita artefato gerado.** O que está em `generated[]` (ou traz o
+  marcador) muda pela fonte e pelo gerador — `HK-2` nega e `CI-5` cobra.
 - **Documento e código viajam juntos.** Caminho vigiado em `watches` tem doc
   dono; `HK-4` lembra depois da edição e `HK-5` pergunta antes do commit.
 - **Atalho consciente vira `TDR`** (`/debt`) com gatilho de pagamento
@@ -33,8 +35,8 @@ artefato dono e é lida de lá (`RN-0010`).
 
 `/adr`, `/open-decision`, `/debt`, `/docs-setup`, `/term`. As skills
 `decision-recorder`, `requirements-keeper`, `working-agreements-keeper`,
-`glossary-keeper` e `charter-keeper` são selecionadas pela `description`; não
-é preciso invocá-las pelo nome.
+`glossary-keeper`, `charter-keeper` e `contract-keeper` são selecionadas pela
+`description`; não é preciso invocá-las pelo nome.
 
 ## O que nunca fazer
 

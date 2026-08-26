@@ -8,6 +8,8 @@ import { decideHk1 } from '../../src/hooks/hk1-append-only.ts';
 import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts';
 import { decideHk4 } from '../../src/hooks/hk4-watch-reminder.ts';
 import { decideHk5 } from '../../src/hooks/hk5-commit-guard.ts';
+import { decideHk2 } from '../../src/hooks/hk2-generated-artifact.ts';
+import { runDrift } from '../../src/cli/drift.ts';
 import type { GitRunner } from '../../src/git/staged.ts';
 import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
@@ -139,5 +141,44 @@ test('critério 5: alterar caminho vigiado sem tocar o doc dono é lembrado e pe
     const comDoc: GitRunner = () => `src/domain/reembolso.ts${NUL}docs/requirements/rules.md${NUL}`;
     const livre = decideHk5({ tool_name: 'Bash', tool_input: { command: 'git commit -m "feat: reembolso"' } }, env, comDoc);
     assert.equal(livre.action, 'allow');
+  });
+});
+
+const GENERATED_CONFIG = `
+version: 1
+artifacts:
+  - id-prefix: ADR
+    path: docs/decisions/adr/
+    owner: "@team"
+    skill: decision-recorder
+generated:
+  - path: docs/contracts/api.gen.md
+    command: "node tools/gen.js"
+`;
+
+test('critério 6: HK-2 nega editar o contrato gerado, e CI-5 falha se passar por fora', () => {
+  const GERADO = 'docs/contracts/api.gen.md';
+  const VERDADE = '<!-- generated: do not edit -->\n\n# API\n\n- GET /pedidos\n';
+
+  withTempRepo({ [OWNERSHIP_PATH]: GENERATED_CONFIG, [GERADO]: VERDADE }, (root) => {
+    const env = { root, hostRoots: [root] };
+
+    // Metade 1 — pelo agente, HK-2 nega e ensina o caminho certo.
+    const negado = decideHk2(
+      { tool_name: 'Edit', tool_input: { file_path: GERADO, old_string: 'GET', new_string: 'POST' } },
+      env,
+    );
+    assert.equal(negado.action, 'deny');
+    assert.match(negado.action === 'deny' ? negado.reason : '', /node tools\/gen\.js/);
+
+    // Metade 2 — editado por fora do agente, CI-5 falha.
+    writeFileSync(join(root, GERADO), VERDADE.replace('GET', 'POST'), 'utf8');
+    const derivou = runDrift(root, () => VERDADE);
+    assert.equal(derivou.exitCode, 1);
+    assert.equal(derivou.findings[0]?.ruleId, 'CI-5');
+
+    // E com o arquivo igual à saída do gerador, o caminho fica livre.
+    writeFileSync(join(root, GERADO), VERDADE, 'utf8');
+    assert.equal(runDrift(root, () => VERDADE).exitCode, 0);
   });
 });
