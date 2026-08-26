@@ -52,6 +52,7 @@ não o ambiente.
 | Qual é o vocabulário do domínio | `docs/glossary.md` |
 | O que é inviolável, e a visão do produto | `docs/charter/` |
 | O que é público, e o que cada erro significa | `docs/contracts/` |
+| O que mudou para quem usa | `CHANGELOG.md` e `docs/releases/` |
 | Quando está pronto | `docs/definition-of-done.md` |
 
 Nenhuma dessas respostas é copiada para outro lugar. Duplicata apodrece, e a

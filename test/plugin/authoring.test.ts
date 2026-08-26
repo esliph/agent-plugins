@@ -98,8 +98,8 @@ test('requirements-keeper não duplica o formato do requisito', () => {
   assert.doesNotMatch(source, /^- \*\*status:\*\*/m, 'a skill não deve conter o template do requisito');
 });
 
-test('os cinco comandos existem, têm description e não contêm lógica própria', () => {
-  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'term.md'];
+test('os seis comandos existem, têm description e não contêm lógica própria', () => {
+  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'term.md', 'release.md'];
   const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort();
   assert.deepEqual(encontrados, esperados.sort());
 
@@ -109,7 +109,11 @@ test('os cinco comandos existem, têm description e não contêm lógica própri
     assert.ok(frontmatter, `${nome} sem frontmatter`);
     assert.equal(typeof frontmatter.data.description, 'string');
     assert.ok(source.split('\n').length < 25, `${nome} é longo demais para um atalho fino`);
-    assert.match(source, /decision-recorder|living-docs-bootstrap|glossary-keeper/, `${nome} deve apontar a skill que aciona`);
+    assert.match(
+      source,
+      /decision-recorder|living-docs-bootstrap|glossary-keeper|release-historian/,
+      `${nome} deve apontar a skill que aciona`,
+    );
   }
 });
 
@@ -173,4 +177,19 @@ test('contract-keeper não duplica o conteúdo dos artefatos que governa', () =>
   assert.match(source, /templates\/versioning-policy\.md/, 'os dois templates, porque são dois artefatos');
   assert.doesNotMatch(source, /^\| EXIT-\d/m, 'a skill não deve conter o catálogo deste repositório');
   assert.doesNotMatch(source, /^## O que é público/m, 'nem a política deste repositório');
+});
+
+test('release-historian: a description nomeia os sintomas de mudança visível, versão e depreciação', () => {
+  const description = String(parseFrontmatter(skillSource('release-historian'))?.data.description ?? '');
+  assert.match(description, /Use quando/i);
+  for (const sintoma of ['consome', 'versão', 'migr', 'depreci']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`);
+  }
+});
+
+test('release-historian não duplica o conteúdo dos artefatos que governa', () => {
+  const source = skillSource('release-historian');
+  assert.match(source, /templates\/changelog\.md/, 'ela deve apontar para o template, não copiá-lo');
+  assert.match(source, /templates\/migration\.md/, 'os quatro templates, porque são quatro artefatos');
+  assert.doesNotMatch(source, /^## \[Unreleased\]$/m, 'a skill não deve conter o CHANGELOG deste repositório');
 });

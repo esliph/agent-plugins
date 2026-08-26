@@ -23,6 +23,8 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   artefato `REL` no `docs/.ownership.yml`.
 - Prefixo de ID `REL` para release note, com os estados `draft` e `published`.
   Publicada, ela é congelada por `HK-1`.
+- Skill `release-historian` e comando `/release [versão]`, donos do
+  `CHANGELOG.md`, das release notes, das depreciações e dos guias de migração.
 
 ### Changed
 
