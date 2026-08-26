@@ -128,6 +128,14 @@ ou num subcomando separado.
 (9 tasks, todas executadas). `ADR-0005` está `accepted`; `RF-0006`, `RF-0007`
 e `RN-0012` estão `active`, promovidos por ato humano.
 
+**Mesma categoria de `DA-0002`:** `docs/contracts/errors.md` e
+`docs/contracts/versioning-policy.md` (instalados por `--stage production`) são
+artefatos com dono e **sem família de IDs numerada**, igual a `CONTRIBUTING.md`,
+glossary e Constitution/Vision (`ADR-0004`). A Fase 5 **não** resolve `DA-0002`
+nem inventa prefixo: mantém os dois fora de `artifacts:` no `.ownership.yml`,
+mesmo tratamento que os artefatos anteriores dessa família já recebem.
+`DA-0002` segue aberta — pré-condição de `CI-7`, Fase 7.
+
 **O que o planejamento apurou** (vale para quem for executar de novo, e para
 a Fase 6 que herda):
 
@@ -222,13 +230,14 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
 - **`TDR-0001`** — `HK-1` não congela seção revogada dentro de arquivo de
   coleção. Gatilho de pagamento: o primeiro PR que revogar um requisito.
 - **`DA-0002`** — como declarar no `.ownership.yml` um artefato **sem família de
-  IDs** (`CONTRIBUTING.md`, Definition of Done, contrato do agente, e depois
-  glossary e Constitution), para que `CI-7` exija dono sem inventar prefixo.
-  Aberta pela Task 9 do plano da Fase 3 e já está em `docs/open-decisions.md`,
-  `open`. Bloqueia `CI-7` (Fase 7); a Fase 4 a herdou sem resolvê-la
-  (`ADR-0004`). Sintoma barato de reconhecer: o parser de `artifacts:` exige
-  `id-prefix` de 2 a 4 maiúsculas em toda entrada, e esses documentos não têm
-  nenhum.
+  IDs** (`CONTRIBUTING.md`, Definition of Done, contrato do agente, glossary e
+  Constitution, e depois `docs/contracts/errors.md` e
+  `docs/contracts/versioning-policy.md`), para que `CI-7` exija dono sem
+  inventar prefixo. Aberta pela Task 9 do plano da Fase 3 e já está em
+  `docs/open-decisions.md`, `open`. Bloqueia `CI-7` (Fase 7); a Fase 4 e a
+  Fase 5 a herdaram sem resolvê-la (`ADR-0004`). Sintoma barato de reconhecer:
+  o parser de `artifacts:` exige `id-prefix` de 2 a 4 maiúsculas em toda
+  entrada, e esses documentos não têm nenhum.
 - **`ADR-0001` e `ADR-0002` seguem `draft`** — só `ADR-0003` e `ADR-0004` foram
   aceitos por uma pessoa até aqui. O `relates-to` dos dois **já está
   preenchido**, o que torna a aceitação um ato barato: `accepted` congela o

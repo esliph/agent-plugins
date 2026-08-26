@@ -14,4 +14,4 @@ e **não deve ser implementado** — a saída é o ID, não o código.
 | ID | Lacuna | Status | Resolvida por | Aberta em |
 | --- | --- | --- | --- | --- |
 | DA-0001 | Separar a raiz do toolkit da raiz do repositório validado, para permitir instalação em outro projeto | resolved | ADR-0003 | 2026-08-24 |
-| DA-0002 | Como declarar no `.ownership.yml` um artefato sem família de IDs (CONTRIBUTING, Definition of Done, contrato do agente), para que `CI-7` exija dono sem inventar prefixo | open | — | 2026-08-25 |
+| DA-0002 | Como declarar no `.ownership.yml` um artefato sem família de IDs (CONTRIBUTING, Definition of Done, contrato do agente, glossary, Constitution/Vision, `docs/contracts/errors.md`, `docs/contracts/versioning-policy.md`), para que `CI-7` exija dono sem inventar prefixo | open | — | 2026-08-25 |
