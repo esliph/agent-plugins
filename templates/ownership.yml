@@ -30,6 +30,20 @@ artifacts:
     mutable-fields: [status, last-reviewed]
 {{REQUIREMENTS_BLOCK}}
 generated: []
+# Artefato gerado: HK-2 bloqueia editá-lo à mão, e CI-5 (`living-docs drift`)
+# compara o arquivo versionado com a saída do gerador.
+#
+# O `command` IMPRIME o conteúdo esperado na saída padrão e NÃO escreve arquivo
+# nenhum — um check que reescreve o que está checando apaga a evidência no mesmo
+# instante em que a reporta. Gerador que só sabe escrever arquivo ganha um
+# invólucro: gere num diretório temporário e imprima o resultado.
+#
+# O init não inventa gerador, pela mesma razão que não inventa `watches`.
+# Declare o seu. Exemplo:
+#
+# generated:
+#   - path: docs/contracts/openapi.gen.yaml
+#     command: "node tools/gen-openapi.js"
 
 # Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
 # antes do commit. Na Fase 7, CI-7 lê daqui também. Preencha com os caminhos do

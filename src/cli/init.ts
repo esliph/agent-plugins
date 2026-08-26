@@ -13,7 +13,7 @@ const TEMPLATES_DIR = templatesDir();
  * vazia é a wiki morta nascendo de fábrica, por isso `production` e `multi-team`
  * só entram junto com as fases que os preenchem.
  */
-export const STAGES = ['solo', 'small-team'] as const;
+export const STAGES = ['solo', 'small-team', 'production'] as const;
 export type Stage = (typeof STAGES)[number];
 
 type Kind = 'ADR' | 'DA' | 'TDR' | 'RF' | 'RNF' | 'RN';
@@ -54,6 +54,12 @@ const LANGUAGE_AND_INTENT: readonly { path: string; template: string }[] = Objec
   { path: 'docs/glossary.md', template: 'glossary.md' },
   { path: 'docs/charter/constitution.md', template: 'constitution.md' },
   { path: 'docs/charter/vision.md', template: 'vision.md' },
+]);
+
+/** Contratos (SK-5), instalados a partir do estágio `production` (spec §10, Fase 5). */
+const CONTRACTS: readonly { path: string; template: string }[] = Object.freeze([
+  { path: 'docs/contracts/errors.md', template: 'errors.md' },
+  { path: 'docs/contracts/versioning-policy.md', template: 'versioning-policy.md' },
 ]);
 
 /**
@@ -104,10 +110,17 @@ export interface InitResult {
   notInstalled: string[];
 }
 
-/** O que este estágio pede. Vazio: `small-team` cobre as Fases 2, 3 e 4 por completo nesta versão. */
+/**
+ * O que este estágio pede e esta versão ainda não entrega. `solo` e `small-team`
+ * saem vazios: as Fases 0–4 estão completas. `production` cobre as Fases 5 e 6
+ * na spec §10, e a 6 não existe aqui.
+ */
 const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
   solo: [],
   'small-team': [],
+  production: [
+    'Fase 6 — CHANGELOG, release notes, depreciações e guias de migração (SK-7, CI-6, HK-7)',
+  ],
 });
 
 function today(): string {
@@ -243,6 +256,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
       options.stage === 'solo'
         ? ''
         : `CONTRIBUTING.md    ${options.owner}\ndocs/definition-of-done.md    ${options.owner}\nCLAUDE.md    ${options.owner}\ndocs/glossary.md    ${options.owner}\ndocs/charter/    ${options.owner}\n`,
+    CONTRACTS_CODEOWNERS:
+      options.stage === 'production' ? `docs/contracts/    ${options.owner}\n` : '',
   };
 
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);
@@ -280,6 +295,12 @@ export function runInit(root: string, options: InitOptions): InitResult {
 
     for (const agreement of LANGUAGE_AND_INTENT) {
       writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result);
+    }
+
+    if (options.stage === 'production') {
+      for (const contract of CONTRACTS) {
+        writeIfAbsent(root, contract.path, template(contract.template, values), options, result);
+      }
     }
 
     // O contrato do agente pode já existir com outro nome. Adotar, nunca duplicar

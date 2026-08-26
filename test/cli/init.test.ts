@@ -318,3 +318,67 @@ test('RF-0005: o CODEOWNERS semeado dá dono a glossary e charter', () => {
     assert.match(codeowners, /docs\/charter\/\s+@time/);
   });
 });
+
+const PRODUCTION = { owner: '@time', dryRun: false, stage: 'production' as const };
+const CONTRACT_FILES = ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md'];
+
+test('RF-0007: production instala a moldura de contratos, e tudo que small-team instala', () => {
+  withTempRepo({}, (root) => {
+    const result = runInit(root, PRODUCTION);
+    for (const path of CONTRACT_FILES) {
+      assert.ok(existsSync(join(root, path)), `${path} deveria existir`);
+      assert.ok(result.created.includes(path), `${path} deveria constar como criado`);
+    }
+    // O estágio é cumulativo: nada do small-team pode ter sumido.
+    for (const path of ['CONTRIBUTING.md', 'docs/glossary.md', 'docs/requirements/rules.md']) {
+      assert.ok(existsSync(join(root, path)), `${path} pertence a production também`);
+    }
+    assert.match(readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'), /@time/);
+    assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2));
+  });
+});
+
+test('RF-0007: small-team não instala contrato nenhum', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, SMALL_TEAM);
+    for (const path of CONTRACT_FILES) {
+      assert.equal(existsSync(join(root, path)), false, `${path} não pertence ao estágio small-team`);
+    }
+  });
+});
+
+test('RF-0007: production diz que a Fase 6 ainda não vem junto', () => {
+  withTempRepo({}, (root) => {
+    const result = runInit(root, PRODUCTION);
+    assert.ok(
+      result.notInstalled.some((item) => /Fase 6/.test(item)),
+      `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`,
+    );
+  });
+});
+
+test('RF-0007: o init não inventa gerador — `generated[]` nasce vazio', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, PRODUCTION);
+    assert.deepEqual(loadOwnership(root).generated, []);
+    // ...e o exemplo comentado precisa estar lá, senão ninguém descobre o formato.
+    assert.match(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), /#\s+- path: docs\/contracts\/openapi\.gen\.yaml/);
+  });
+});
+
+test('RF-0007: contrato já escrito não é reescrito na segunda execução', () => {
+  withTempRepo({ 'docs/contracts/errors.md': '# do jeito deles\n' }, (root) => {
+    runInit(root, PRODUCTION);
+    const segunda = runInit(root, PRODUCTION);
+    assert.equal(readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'), '# do jeito deles\n');
+    assert.ok(segunda.skipped.includes('docs/contracts/errors.md'));
+    assert.deepEqual(segunda.created, []);
+  });
+});
+
+test('RF-0007: o CODEOWNERS semeado dá dono aos contratos', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, PRODUCTION);
+    assert.match(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), /docs\/contracts\/\s+@time/);
+  });
+});
