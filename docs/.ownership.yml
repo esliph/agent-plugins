@@ -50,7 +50,13 @@ artifacts:
     collection: sections
     cited-by: ["test/**", "src/**"]
 
-generated: []
+generated:
+  # O comando IMPRIME o conteúdo esperado na saída padrão e não escreve arquivo
+  # nenhum: um check que reescreve o que está checando apaga a evidência no
+  # mesmo instante em que a reporta (ADR-0005). HK-2 bloqueia editar `path` à
+  # mão; CI-5 (`living-docs drift`) compara.
+  - path: docs/contracts/checks.gen.md
+    command: node /opt/living-docs/src/tools/gen-checks.ts
 
 # Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
 # antes do commit. Na Fase 7, CI-7 lê daqui também.
@@ -58,6 +64,10 @@ watches:
   - code: "src/checks/**"
     doc: docs/requirements/rules.md
     reason: "check é regra executável — a RN vem antes, e é ela que o check verifica"
+
+  - code: "src/checks/**"
+    doc: docs/contracts/checks.gen.md
+    reason: "o contrato público dos checks deriva do registry — regerar faz parte da mudança, e editar à mão é bloqueado por HK-2"
 
   - code: "src/hooks/**"
     doc: docs/requirements/rules.md
