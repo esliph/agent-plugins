@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # CI-6 compara <base>...HEAD; um clone raso não tem a base (ADR-0006).
+          fetch-depth: 0
 
       - name: Construir a imagem
         run: docker compose build
@@ -31,3 +34,10 @@ jobs:
         run: >
           docker compose run --rm -w /workspace toolkit
           node /opt/living-docs/src/cli/index.ts drift
+
+      - name: CI-6 — entrada de CHANGELOG
+        if: github.event_name == 'pull_request'
+        run: >
+          docker compose run --rm -w /workspace toolkit
+          node /opt/living-docs/src/cli/index.ts changelog
+          --base ${{ github.event.pull_request.base.sha }}

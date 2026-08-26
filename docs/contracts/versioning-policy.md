@@ -16,12 +16,15 @@ gerado (`docs/contracts/checks.gen.md`) e não se escreve à mão.
 
 - Os IDs dos checks (`CI-n`), dos hooks (`HK-n`), das skills (`SK-n`) e dos
   comandos (`CM-n`), e o que cada um significa.
-- Os subcomandos do CLI (`validate`, `drift`, `init`), suas opções, e os
-  códigos de saída de `docs/contracts/errors.md`.
+- Os subcomandos do CLI (`validate`, `drift`, `changelog`, `init`), suas
+  opções, e os códigos de saída de `docs/contracts/errors.md`.
 - O esquema de `docs/.ownership.yml` com `version: 1`: os nomes das chaves e o
   que cada uma exige.
 - O contrato do gerador: `generated[].command` imprime na saída padrão e não
   escreve arquivo (`ADR-0005`).
+- O rótulo de exceção `Changelog: none — <razão>` e as chaves
+  `consumer-visible-paths` e `watches[].consumer-visible` do
+  `docs/.ownership.yml` (`ADR-0006`).
 
 O que não está nesta lista pode mudar sem aviso — a estrutura de `src/`, o
 texto das mensagens, o formato exato da saída de `validate`.
@@ -40,10 +43,9 @@ Quatro coisas, sem exceção: data do anúncio, versão ou data de remoção,
 substituto, e o link para o guia de migração. Faltando qualquer uma, não é
 depreciação — é quebra de compatibilidade, e passa por um ADR.
 
-Enquanto a Fase 6 não existir, este repositório não tem `CHANGELOG.md` nem
-`docs/migrations/`: uma depreciação de verdade aqui **bloqueia** até que a
-Fase 6 entre, e isso é deliberado — anunciar remoção sem lugar para o guia de
-migração é a depreciação que ninguém consegue seguir.
+O rastro está completo: `CHANGELOG.md` registra o anúncio, `docs/deprecations.md`
+guarda as quatro coisas exigidas, `docs/migrations/` recebe o guia, e
+`docs/releases/` a nota da versão que removeu. Skill dona: `release-historian`.
 
 ## Quem decide
 

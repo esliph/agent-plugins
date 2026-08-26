@@ -17,12 +17,13 @@ verifica não pertence a esta lista — vira intenção, e intenção não é de
 - [ ] Toda regra `active` é citada por ao menos um teste — verificação: `CI-3`.
 - [ ] Todo ID citado resolve para um item existente e não retirado — verificação: `CI-2`.
 - [ ] A decisão que não era óbvia virou ADR, e a lacuna que apareceu virou `DA-nnnn` — verificação: humana (`HK-3` intercepta a aceitação).
-- [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: humana.
+- [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: `HK-7` lembra; registrar é humana.
 - [ ] O doc dono de todo caminho vigiado tocado pela mudança está no mesmo commit — verificação: `HK-4` lembra, `HK-5` pergunta.
 - [ ] Nenhum item congelado foi editado no corpo — verificação: `HK-1`.
 - [ ] Nenhum artefato gerado foi editado à mão, e o contrato regenerado está no mesmo commit — verificação: `HK-2` (bloqueia) e `CI-5` (`living-docs drift`).
+- [ ] A mudança visível ao consumidor levou a entrada em `## [Unreleased]`, ou a razão escrita no commit — verificação: `CI-6` (`living-docs changelog --base <ref>`).
 - [ ] A mensagem de commit cita o ID afetado — verificação: humana.
-- [ ] `npm test`, `npm run typecheck`, `living-docs validate` e `living-docs drift` passam no container — verificação: `CI-1`, `CI-2`, `CI-3` e `CI-5`, rodados pelo workflow do repositório.
+- [ ] `npm test`, `npm run typecheck`, `living-docs validate`, `living-docs drift` e `living-docs changelog --base <ref>` passam no container — verificação: `CI-1`, `CI-2`, `CI-3`, `CI-5` e `CI-6`, rodados pelo workflow do repositório.
 
 ## O que esta lista não é
 

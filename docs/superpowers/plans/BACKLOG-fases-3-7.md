@@ -30,6 +30,13 @@ executadas; `ADR-0005` está `accepted` e `RF-0006`/`RF-0007`/`RN-0012` estão
 `active`, promovidos por ato humano. O estágio `production` já existe nesta
 versão e instala a moldura de contratos.
 
+**Estado em 2026-08-26:** a Fase 6 está **implementada** —
+`docs/superpowers/plans/2026-08-26-living-docs-toolkit-fase-6.md`, as 10 tasks
+executadas; `ADR-0006` segue `draft` e `RF-0008`/`RF-0009`/`RN-0013`/`RN-0014`/
+`RN-0015` seguem `draft`, aguardando promoção por ato humano (Task 10 do
+plano). O estágio `production` cobre as Fases 5 e 6 por completo nesta versão,
+e `notInstalled` fica vazio.
+
 Cada fase abaixo traz: o que entrega, de que depende, que peça de engine ainda
 não existe, e o risco que só aparece quando alguém tenta implementar. A ordem é
 a da spec §10 e importa: cada fase usa o enforcement que a anterior instalou.
@@ -154,7 +161,7 @@ a Fase 6 que herda):
   ponteiro para `drift` quando há artefato gerado declarado, para o mecanismo
   não ficar em silêncio.
 
-### Fase 6 — rastro histórico
+### Fase 6 — rastro histórico — **IMPLEMENTADA**
 
 `SK-7` release-historian (`CHANGELOG.md`, `docs/releases/`, `docs/deprecations.md`,
 `docs/migrations/`), `CI-6` (changelog required) e `HK-7` (atalho novo sem TDR).
@@ -167,6 +174,33 @@ se comporta fora de CI.
 §5 (`SK-7`, regra 2) menciona sem definir o formato — isso é uma `DA` a abrir.
 **Observação:** `HK-7` é `additionalContext`, nunca `deny` — um atalho legítimo
 não pode ser bloqueado (spec §7).
+
+**O que o planejamento apurou** (`docs/superpowers/plans/2026-08-26-living-docs-toolkit-fase-6.md`):
+
+- **O rótulo de exceção virou `ADR-0006`, não a `DA` que este backlog previa.**
+  Uma `DA` registra que ninguém sabe a regra e a implementação para; aqui a
+  regra já era decidível com o que estava escrito — o toolkit não tem rede
+  (`RNF-0001`), então label de PR estava fora, e o rótulo precisa sobreviver
+  ao merge, então precisa estar no controle de versão. Isso deixa uma
+  alternativa viável e duas descartáveis, que é a forma de um ADR, não de uma
+  `DA` aberta e fechada no mesmo commit.
+- **`changedPaths` usa três pontos (`<base>...HEAD`); `commitMessages` usa
+  dois (`<base>..HEAD`).** Três pontos parte do merge-base — "o que esta
+  branch mudou", sem culpar a branch por commits que entraram na base depois
+  que ela saiu. Dois pontos para as mensagens porque ali a pergunta é "quais
+  commits esta branch acrescentou", não "qual é a diferença de conteúdo".
+- **O gatilho vem de `consumer-visible-paths`; o alvo, de `watches` marcada
+  `consumer-visible: true`.** O toolkit não conhece o caminho `CHANGELOG.md` e
+  não passou a conhecer (spec §3). `test/docs/release-history.test.ts` cobra
+  que as duas listas sejam o mesmo conjunto neste repositório, para que `CI-6`
+  e `HK-5` não passem a cobrar coisas diferentes.
+- **`REL` ganhou família de IDs; `CHANGELOG.md` e `docs/deprecations.md`
+  não.** `HK-1` só congela caminho que `findArtifactRule` resolve, e a spec §7
+  exige que ele congele release note publicada — sem prefixo, essa metade do
+  `HK-1` não existiria. `CHANGELOG.md` e `docs/deprecations.md` seguem na
+  mesma categoria de `CONTRIBUTING.md`, da DoD e dos contratos escritos
+  (`ADR-0004`): artefato com dono e sem família de IDs, fora de `artifacts:`,
+  ainda sob `DA-0002`.
 
 **Herança da Fase 3:** executada a Fase 3, `src/git/` existirá com `staged.ts` —
 `diff.ts` nasce ao lado, com o mesmo contrato: runner injetável (`GitRunner`), timeout curto,
@@ -225,6 +259,16 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
   `src/hooks/lib/io.ts`, criada para `HK-4`. Não existe variante com
   `permissionDecision` ali de propósito.
 
+**Herança da Fase 6:** `src/git/diff.ts` existe — `changedPaths` e
+`commitMessages`, com `GitError` que sobe em vez de falhar aberta — e `CI-7`
+pode reusá-lo se precisar do diff da branch. `changelogChecks` em
+`src/checks/registry.ts` é o terceiro agrupamento de checks (depois de
+`CHECKS` e `driftChecks`); `CI-4` provavelmente entra em `living-docs
+validate`, não num subcomando próprio, porque staleness não precisa de
+estado externo como o diff — o que falta para `CI-4` é
+`CheckContext.today`, e isso continua sendo pré-requisito a resolver **antes**
+de escrever o check, não depois.
+
 ### Dívidas e decisões abertas herdadas
 
 - **`TDR-0001`** — `HK-1` não congela seção revogada dentro de arquivo de
@@ -247,11 +291,11 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
 - **Distribuição do toolkit.** `ADR-0003` decide as duas raízes e **não** decide
   como o toolkit chega a um projeto consumidor (clone? imagem publicada? pacote?).
   Vale abrir uma `DA` no primeiro consumidor real.
-- **`--stage production`** existe desde a Fase 5: instala
-  `docs/contracts/errors.md` e `docs/contracts/versioning-policy.md`, e seu
-  `notInstalled` nomeia a Fase 6 (a moldura de `CHANGELOG.md`,
-  `docs/releases/`, `docs/deprecations.md` e `docs/migrations/` ainda não
-  existe). Quem executar a Fase 6 esvazia essa lista.
+- **`--stage production`** está completo desde a Fase 6: além de
+  `docs/contracts/errors.md` e `docs/contracts/versioning-policy.md`, instala
+  `CHANGELOG.md`, `docs/releases/`, `docs/deprecations.md` e
+  `docs/migrations/`, e declara `REL` em `artifacts:`. `notInstalled` fica
+  vazio — cobre as Fases 5 e 6 da spec §10 por inteiro.
 - **`--stage multi-team`** não existe porque a fase que o instalaria (Fase 7)
   não existe. Acrescente o estágio junto com a fase, não antes: estágio que
   instala moldura vazia é a "wiki morta" nascendo de fábrica. Regra que se
@@ -269,11 +313,14 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
 3. ~~Executar o plano da Fase 5~~ — feito: 9 tasks executadas, o dogfooding
    com `docs/contracts/checks.gen.md` prova o critério 6; `ADR-0005` aceito,
    `RF-0006`/`RF-0007`/`RN-0012` promovidos.
-4. **Próximo passo: planejar a Fase 6** — rastro histórico (`CHANGELOG.md`,
-   `SK-7`, `CI-6`, `HK-7`). Herda `src/exec/command.ts` como molde para
-   `src/git/diff.ts`, com o contrato invertido (ver seção da Fase 6).
-5. Fase 7 na ordem da spec §10, com plano próprio, porque entrega software que
-   funciona sozinho.
+4. ~~Executar o plano da Fase 6~~ — feito: 10 tasks executadas, o dogfooding
+   com `CHANGELOG.md` e `consumer-visible-paths` prova o mecanismo; `ADR-0006`
+   e `RF-0008`/`RF-0009`/`RN-0013`/`RN-0014`/`RN-0015` aguardam promoção
+   humana (ver "Estado em 2026-08-26" acima).
+5. **Próximo passo: Fase 7** na ordem da spec §10, com plano próprio, porque
+   entrega software que funciona sozinho. Herda `src/git/diff.ts` e
+   `changelogChecks` (ver seção da Fase 7) e continua exigindo
+   `CheckContext.today` como pré-requisito de `CI-4`.
 
 Aceitar `ADR-0001` e `ADR-0002` (hoje `draft`) não depende de fase nenhuma e
 continua sendo um ato barato — com a pré-condição já anotada acima.

@@ -17,10 +17,11 @@ verifica não pertence a esta lista.
 - [ ] Toda regra `active` é citada por ao menos um teste — verificação: `CI-3`.
 - [ ] Todo ID citado resolve para um item existente e não retirado — verificação: `CI-2`.
 - [ ] A decisão que não era óbvia virou ADR; a lacuna virou `DA-nnnn` — verificação: humana (`HK-3` intercepta a aceitação).
-- [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: humana.
+- [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: `HK-7` lembra; registrar é humana.
 - [ ] O doc dono de todo caminho vigiado tocado está no mesmo commit — verificação: `HK-4` e `HK-5`.
 - [ ] Nenhum item congelado teve o corpo editado — verificação: `HK-1`.
 - [ ] Nenhum artefato gerado foi editado à mão — verificação: `HK-2` e `CI-5` (`living-docs drift`).
+- [ ] A mudança visível ao consumidor levou a entrada em `## [Unreleased]`, ou a razão escrita no commit — verificação: `CI-6` (`living-docs changelog --base <ref>`).
 - [ ] A mensagem de commit cita o ID afetado — verificação: humana.
 
 Acrescente aqui os passos do seu projeto (build, lint, deploy), **cada um com a

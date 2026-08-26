@@ -30,13 +30,16 @@ artefato dono e é lida de lá (`RN-0010`).
   dono; `HK-4` lembra depois da edição e `HK-5` pergunta antes do commit.
 - **Atalho consciente vira `TDR`** (`/debt`) com gatilho de pagamento
   observável — não vira `TODO` órfão.
+- **Mudança visível a quem consome viaja com a entrada de `CHANGELOG.md`** —
+  ou com a razão escrita no commit. `CI-6` cobra; o formato do rótulo está no
+  contrato.
 
 ## Comandos
 
-`/adr`, `/open-decision`, `/debt`, `/docs-setup`, `/term`. As skills
-`decision-recorder`, `requirements-keeper`, `working-agreements-keeper`,
-`glossary-keeper`, `charter-keeper` e `contract-keeper` são selecionadas pela
-`description`; não é preciso invocá-las pelo nome.
+`/adr`, `/open-decision`, `/debt`, `/docs-setup`, `/term`, `/release`. As
+skills `decision-recorder`, `requirements-keeper`, `working-agreements-keeper`,
+`glossary-keeper`, `charter-keeper`, `contract-keeper` e `release-historian`
+são selecionadas pela `description`; não é preciso invocá-las pelo nome.
 
 ## O que nunca fazer
 

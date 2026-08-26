@@ -14,6 +14,8 @@ import type { GitRunner } from '../../src/git/staged.ts';
 import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
 import { repoRoot } from '../../src/core/roots.ts';
+import { runChangelog } from '../../src/cli/changelog.ts';
+import { decideHk7 } from '../../src/hooks/hk7-shortcut-debt.ts';
 
 const ROOT = repoRoot();
 const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const };
@@ -180,5 +182,73 @@ test('critério 6: HK-2 nega editar o contrato gerado, e CI-5 falha se passar po
     // E com o arquivo igual à saída do gerador, o caminho fica livre.
     writeFileSync(join(root, GERADO), VERDADE, 'utf8');
     assert.equal(runDrift(root, () => VERDADE).exitCode, 0);
+  });
+});
+
+test('mecanismo da Fase 6: mudança visível ao consumidor é cobrada, e a razão escrita libera', () => {
+  const OWNERSHIP = [
+    'version: 1',
+    'artifacts:',
+    '  - id-prefix: ADR',
+    '    path: docs/decisions/adr/',
+    '    owner: "@time"',
+    '    skill: decision-recorder',
+    'watches:',
+    '  - code: "src/api/**"',
+    '    doc: CHANGELOG.md',
+    '    consumer-visible: true',
+    'consumer-visible-paths: ["src/api/**"]',
+    '',
+  ].join('\n');
+
+  const CHANGELOG = '# Changelog\n\n## [Unreleased]\n\n### Added\n\n- `GET /pedidos` responde em centavos.\n';
+  const NUL = String.fromCharCode(0);
+
+  const git = (changed: string[], messages: string[]) => (args: readonly string[]): string =>
+    args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n';
+
+  withTempRepo({ 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG }, (root) => {
+    // sem a entrada no diff: reprova, nomeando o arquivo e o caminho vigiado
+    const reprovado = runChangelog(root, 'base', git(['src/api/pedidos.ts'], ['feat: centavos']));
+    assert.equal(reprovado.exitCode, 1);
+    assert.equal(reprovado.findings[0]?.file, 'CHANGELOG.md');
+
+    // com a entrada no mesmo diff: aprova
+    assert.equal(
+      runChangelog(root, 'base', git(['src/api/pedidos.ts', 'CHANGELOG.md'], ['feat: centavos'])).exitCode,
+      0,
+    );
+
+    // sem entrada, mas com a razão escrita no histórico: aprova
+    assert.equal(
+      runChangelog(
+        root,
+        'base',
+        git(['src/api/pedidos.ts'], ['refactor: renomeia interno\n\nChangelog: none — nada muda para quem consome']),
+      ).exitCode,
+      0,
+    );
+  });
+});
+
+test('mecanismo da Fase 6: atalho novo sem TDR é lembrado, nunca bloqueado', () => {
+  withTempRepo({}, (root) => {
+    mkdirSync(join(root, 'src'), { recursive: true });
+    writeFileSync(join(root, 'src/cobranca.ts'), 'export const taxa = 0.05;\n', 'utf8');
+
+    const decision = decideHk7(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: 'src/cobranca.ts',
+          old_string: 'export const taxa = 0.05;',
+          new_string: '// FIXME: arredondamento errado em centavos\nexport const taxa = 0.05;',
+        },
+      },
+      { root, hostRoots: [root] },
+    );
+
+    assert.equal(decision.action, 'remind', 'HK-7 é additionalContext: lembra e devolve o controle');
+    assert.match(decision.action === 'remind' ? decision.context : '', /TDR/);
   });
 });

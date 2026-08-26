@@ -25,6 +25,8 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   Publicada, ela é congelada por `HK-1`.
 - Skill `release-historian` e comando `/release [versão]`, donos do
   `CHANGELOG.md`, das release notes, das depreciações e dos guias de migração.
+- Código de erro `BASE-UNRESOLVED`: `changelog` sem `--base`, com base que não
+  resolve, ou em clone raso.
 
 ### Changed
 
@@ -33,3 +35,6 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   de saída não muda.
 - A lista de "não instalado" de `--stage production` fica vazia: o estágio
   passa a cobrir as Fases 5 e 6 da spec por completo.
+- O workflow do repositório passa a rodar `CI-6` em pull request, e o
+  `actions/checkout` passa a exigir `fetch-depth: 0` — um clone raso não
+  contém a base do diff.
