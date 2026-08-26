@@ -158,3 +158,19 @@ test('working-agreements-keeper não duplica o conteúdo dos acordos que governa
   assert.match(source, /templates\/definition-of-done\.md/, 'ela deve apontar para o template, não copiá-lo');
   assert.doesNotMatch(source, /^- \[ \] `npm test`/m, 'a skill não deve conter a DoD');
 });
+
+test('contract-keeper: a description nomeia interface pública, erro novo e versionamento', () => {
+  const description = String(parseFrontmatter(skillSource('contract-keeper'))?.data.description ?? '');
+  assert.match(description, /Use quando/i);
+  for (const sintoma of ['contrato', 'erro', 'gerad']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`);
+  }
+});
+
+test('contract-keeper não duplica o conteúdo dos artefatos que governa', () => {
+  const source = skillSource('contract-keeper');
+  assert.match(source, /templates\/errors\.md/, 'ela deve apontar para o template, não copiá-lo');
+  assert.match(source, /templates\/versioning-policy\.md/, 'os dois templates, porque são dois artefatos');
+  assert.doesNotMatch(source, /^\| EXIT-\d/m, 'a skill não deve conter o catálogo deste repositório');
+  assert.doesNotMatch(source, /^## O que é público/m, 'nem a política deste repositório');
+});
