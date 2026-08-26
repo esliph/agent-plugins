@@ -46,4 +46,11 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     failsWhen:
       'A saída do gerador difere do artefato versionado; o gerador falha; ou o artefato declarado em `generated[]` não existe.',
   },
+  {
+    id: 'CI-6',
+    name: 'changelog required',
+    command: 'living-docs changelog --base <ref>',
+    failsWhen:
+      'O diff entre a base e `HEAD` toca `consumer-visible-paths` e o doc marcado `consumer-visible: true` não vem no mesmo diff com item em `## [Unreleased]`, nem alguma mensagem de commit traz `Changelog: none — <razão>`.',
+  },
 ]);

@@ -13,3 +13,4 @@ pela Definition of Done de quem usa o toolkit, e não mudam de significado
 | CI-2 | ID lint | ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente. | `living-docs validate` |
 | CI-3 | traceability | Par bidirecional aberto; requisito `active` sem citação nos caminhos de `cited-by`; ADR `accepted` sem `relates-to`; decisão aberta `resolved` sem o ADR que a fechou. | `living-docs validate` |
 | CI-5 | contract drift | A saída do gerador difere do artefato versionado; o gerador falha; ou o artefato declarado em `generated[]` não existe. | `living-docs drift` |
+| CI-6 | changelog required | O diff entre a base e `HEAD` toca `consumer-visible-paths` e o doc marcado `consumer-visible: true` não vem no mesmo diff com item em `## [Unreleased]`, nem alguma mensagem de commit traz `Changelog: none — <razão>`. | `living-docs changelog --base <ref>` |

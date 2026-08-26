@@ -10,6 +10,8 @@ export interface ValidateResult {
   exitCode: number;
   /** Artefatos gerados declarados — checados por `living-docs drift`, não aqui (ADR-0005). */
   generated: number;
+  /** Globs de `consumer-visible-paths` — checados por `living-docs changelog`, não aqui (ADR-0006). */
+  consumerVisible: number;
 }
 
 export function runValidate(root: string): ValidateResult {
@@ -26,5 +28,6 @@ export function runValidate(root: string): ValidateResult {
     warnings: findings.length - errors,
     exitCode: errors > 0 ? 1 : 0,
     generated: config.generated.length,
+    consumerVisible: config.consumerVisiblePaths.length,
   };
 }
