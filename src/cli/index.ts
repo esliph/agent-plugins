@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { runValidate } from './validate.ts';
+import { runDrift } from './drift.ts';
 import { runInit, STAGES } from './init.ts';
 import type { Stage } from './init.ts';
 import { formatFindings } from './report.ts';
@@ -9,11 +10,12 @@ import { repoRoot } from '../core/roots.ts';
 const USAGE = `living-docs <comando>
 
   validate    Roda os checks de documentação viva (CI-1, CI-2, CI-3)
+  drift       Compara cada artefato gerado com a saída do gerador (CI-5)
   init        Cria a moldura de documentação viva (skill dona: living-docs-bootstrap)
 
 Opções de init:
   --owner <@handle>   Dono padrão dos artefatos criados
-  --stage <estágio>   Conjunto mínimo a instalar: solo (padrão) ou small-team
+  --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team ou production
   --dry-run           Mostra o que faria, sem escrever
 `;
 
@@ -29,6 +31,25 @@ function main(argv: readonly string[]): number {
   try {
     if (command === 'validate') {
       const result = runValidate(root);
+      process.stdout.write(`${formatFindings(result.findings)}\n`);
+      // Ponteiro, não achado: validate não executa gerador nenhum (ADR-0005), e
+      // ficar calado sobre isso seria fingir cobertura que ele não tem.
+      if (result.generated > 0) {
+        process.stdout.write(
+          `living-docs: ${result.generated} artefato(s) gerado(s) declarado(s) — a deriva de contrato é verificada por \`living-docs drift\` (CI-5).\n`,
+        );
+      }
+      return result.exitCode;
+    }
+
+    if (command === 'drift') {
+      const result = runDrift(root);
+      if (result.checked === 0) {
+        process.stdout.write(
+          'living-docs: nenhum artefato gerado declarado em `generated[]` — nada a comparar.\n',
+        );
+        return 0;
+      }
       process.stdout.write(`${formatFindings(result.findings)}\n`);
       return result.exitCode;
     }

@@ -8,6 +8,8 @@ export interface ValidateResult {
   errors: number;
   warnings: number;
   exitCode: number;
+  /** Artefatos gerados declarados — checados por `living-docs drift`, não aqui (ADR-0005). */
+  generated: number;
 }
 
 export function runValidate(root: string): ValidateResult {
@@ -23,5 +25,6 @@ export function runValidate(root: string): ValidateResult {
     errors,
     warnings: findings.length - errors,
     exitCode: errors > 0 ? 1 : 0,
+    generated: config.generated.length,
   };
 }
