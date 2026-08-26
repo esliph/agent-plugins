@@ -18,7 +18,7 @@ function fake(output: string): { run: (args: readonly string[], cwd: string) => 
 
 test('ADR-0006: changedPaths usa três pontos, -z e safe.directory', () => {
   const git = fake(`src/cli/index.ts${NUL}CHANGELOG.md${NUL}`);
-  const paths = changedPaths('/workspace', 'origin/master', git.run);
+  const paths = changedPaths('/repo', 'origin/master', git.run);
 
   assert.deepEqual(paths, ['src/cli/index.ts', 'CHANGELOG.md']);
   assert.deepEqual(git.calls[0], [
@@ -33,17 +33,17 @@ test('ADR-0006: changedPaths usa três pontos, -z e safe.directory', () => {
 
 test('ADR-0006: caminho com acento volta inteiro, sem aspas nem escape', () => {
   const git = fake(`docs/decisões.md${NUL}`);
-  assert.deepEqual(changedPaths('/workspace', 'base', git.run), ['docs/decisões.md']);
+  assert.deepEqual(changedPaths('/repo', 'base', git.run), ['docs/decisões.md']);
 });
 
 test('changedPaths normaliza a barra e descarta entrada vazia', () => {
   const git = fake(`src\\cli\\index.ts${NUL}${NUL}`);
-  assert.deepEqual(changedPaths('/workspace', 'base', git.run), ['src/cli/index.ts']);
+  assert.deepEqual(changedPaths('/repo', 'base', git.run), ['src/cli/index.ts']);
 });
 
 test('ADR-0006: commitMessages usa dois pontos e separa por NUL', () => {
   const git = fake(`feat: um${NUL}\nfix: dois\n\nChangelog: none — razão${NUL}\n`);
-  const messages = commitMessages('/workspace', 'origin/master', git.run);
+  const messages = commitMessages('/repo', 'origin/master', git.run);
 
   assert.deepEqual(messages, ['feat: um', 'fix: dois\n\nChangelog: none — razão']);
   assert.deepEqual(git.calls[0], [
@@ -63,10 +63,10 @@ test('ADR-0006: erro de git vira GitError — este módulo não falha aberta', (
   };
 
   assert.throws(
-    () => changedPaths('/workspace', 'origem/nao-existe', run),
+    () => changedPaths('/repo', 'origem/nao-existe', run),
     (err: unknown) => err instanceof GitError && /bad revision/.test((err as Error).message),
   );
-  assert.throws(() => commitMessages('/workspace', 'x', run), GitError);
+  assert.throws(() => commitMessages('/repo', 'x', run), GitError);
 });
 
 test('GitError nomeia o comando que falhou, não só a causa', () => {
@@ -74,7 +74,7 @@ test('GitError nomeia o comando que falhou, não só a causa', () => {
     throw new Error('spawn git ENOENT');
   };
   assert.throws(
-    () => changedPaths('/workspace', 'base', run),
+    () => changedPaths('/repo', 'base', run),
     (err: unknown) => err instanceof GitError && /git diff base\.\.\.HEAD/.test((err as Error).message),
   );
 });
