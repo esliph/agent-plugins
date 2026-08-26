@@ -93,7 +93,7 @@ histórico da Fase 6 — a lista do que o estágio pede e não instala fica vazi
 
 ## RF-0008 — `living-docs changelog --base <ref>` cobra a entrada de CHANGELOG
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0006
 - **fora de escopo:** escrever a entrada — o comando cobra, nunca redige
 
@@ -110,7 +110,7 @@ subcomando que a faz.
 
 ## RF-0009 — `init --stage production` instala a moldura de rastro histórico
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RF-0007
 - **fora de escopo:** declarar `consumer-visible-paths`, que nasce vazio com
   exemplo comentado pela mesma razão que `watches` e `generated[]` nascem

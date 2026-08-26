@@ -32,10 +32,10 @@ versão e instala a moldura de contratos.
 
 **Estado em 2026-08-26:** a Fase 6 está **implementada** —
 `docs/superpowers/plans/2026-08-26-living-docs-toolkit-fase-6.md`, as 10 tasks
-executadas; `ADR-0006` segue `draft` e `RF-0008`/`RF-0009`/`RN-0013`/`RN-0014`/
-`RN-0015` seguem `draft`, aguardando promoção por ato humano (Task 10 do
-plano). O estágio `production` cobre as Fases 5 e 6 por completo nesta versão,
-e `notInstalled` fica vazio.
+executadas. Promoção humana (Task 10): `RF-0008`, `RF-0009`, `RN-0013`,
+`RN-0014` e `RN-0015` estão `active`; `ADR-0006` segue `draft` por decisão de
+quem revisou — não foi aceito ainda. O estágio `production` cobre as Fases 5 e
+6 por completo nesta versão, e `notInstalled` fica vazio.
 
 Cada fase abaixo traz: o que entrega, de que depende, que peça de engine ainda
 não existe, e o risco que só aparece quando alguém tenta implementar. A ordem é
@@ -314,9 +314,9 @@ de escrever o check, não depois.
    com `docs/contracts/checks.gen.md` prova o critério 6; `ADR-0005` aceito,
    `RF-0006`/`RF-0007`/`RN-0012` promovidos.
 4. ~~Executar o plano da Fase 6~~ — feito: 10 tasks executadas, o dogfooding
-   com `CHANGELOG.md` e `consumer-visible-paths` prova o mecanismo; `ADR-0006`
-   e `RF-0008`/`RF-0009`/`RN-0013`/`RN-0014`/`RN-0015` aguardam promoção
-   humana (ver "Estado em 2026-08-26" acima).
+   com `CHANGELOG.md` e `consumer-visible-paths` prova o mecanismo;
+   `RF-0008`/`RF-0009`/`RN-0013`/`RN-0014`/`RN-0015` promovidos a `active`;
+   `ADR-0006` segue `draft` (ver "Estado em 2026-08-26" acima).
 5. **Próximo passo: Fase 7** na ordem da spec §10, com plano próprio, porque
    entrega software que funciona sozinho. Herda `src/git/diff.ts` e
    `changelogChecks` (ver seção da Fase 7) e continua exigindo

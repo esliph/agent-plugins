@@ -152,7 +152,7 @@ depreciação, catálogo de erros —, nunca o contrato.
 
 ## RN-0013 — Mudança visível ao consumidor viaja com a entrada de CHANGELOG
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0006
 - **fora de escopo:** o formato da entrada, que é Keep a Changelog e mora no
   template, não nesta regra
@@ -170,7 +170,7 @@ CHANGELOG derivado do `git log` é o documento que narra o código, que a spec
 
 ## RN-0014 — Atalho consciente vira dívida registrada, e o lembrete nunca bloqueia
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0013
 - **fora de escopo:** arquivos Markdown, onde `TODO` e `FIXME` são prosa sobre
   o marcador e não o marcador
@@ -185,7 +185,7 @@ a ausência do atalho.
 
 ## RN-0015 — Depreciação sem as quatro coisas não é depreciação
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0013
 - **fora de escopo:** o prazo entre anúncio e remoção, que é política de
   versionamento do projeto e mora em `docs/contracts/versioning-policy.md`
