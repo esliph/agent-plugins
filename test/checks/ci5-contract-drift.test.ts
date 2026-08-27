@@ -25,7 +25,7 @@ function run(files: Record<string, string>, exec: CommandRunner): Finding[] {
   let findings: Finding[] = [];
   withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, (root) => {
     const config = parseOwnership(CONFIG);
-    findings = ci5ContractDrift(exec).run({ root, config, docs: [] });
+    findings = ci5ContractDrift(exec).run({ root, config, docs: [], today: '2026-08-27' });
   });
   return findings;
 }

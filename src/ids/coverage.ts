@@ -1,13 +1,5 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
-import picomatch from 'picomatch';
+import { listFiles, readTextFile } from '../core/files.ts';
 import { findCitations } from './citations.ts';
-
-/** Diretórios que nunca contêm citação escrita por gente. */
-const SKIP_DIRS = new Set(['.git', 'node_modules', 'dist', 'coverage', '.next', '.cache']);
-
-/** Acima disto, é dado, não texto — e ler custa mais do que vale. */
-const MAX_BYTES = 512 * 1024;
 
 export interface CitationSite {
   /** Caminho relativo à raiz do repositório, sempre com `/`. */
@@ -16,56 +8,20 @@ export interface CitationSite {
   line: number;
 }
 
-/** Byte NUL é o sinal barato de "isto é dado binário, não texto". */
-function isProbablyText(content: string): boolean {
-  return content.indexOf(String.fromCharCode(0)) === -1;
-}
-
-function walk(root: string, relative: string, out: string[]): void {
-  let entries: string[];
-  try {
-    entries = readdirSync(join(root, relative));
-  } catch {
-    return;
-  }
-
-  for (const entry of entries) {
-    if (SKIP_DIRS.has(entry)) continue;
-    const path = relative === '' ? entry : `${relative}/${entry}`;
-    let isDirectory: boolean;
-    try {
-      isDirectory = statSync(join(root, path)).isDirectory();
-    } catch {
-      continue;
-    }
-    if (isDirectory) walk(root, path, out);
-    else out.push(path);
-  }
-}
-
 /**
  * Onde cada ID aparece, restrito aos caminhos de `globs`.
  * Chave: o ID exatamente como escrito no texto — a canonização é de quem compara.
+ *
+ * A varredura da árvore e a leitura segura moram em `src/core/files.ts` desde a
+ * Fase 7: `CI-4`, `CI-7` e `CI-8` fazem a mesma caminhada.
  */
 export function scanCitations(root: string, globs: readonly string[]): Map<string, CitationSite[]> {
   const sites = new Map<string, CitationSite[]>();
   if (globs.length === 0) return sites;
 
-  const matches = picomatch([...globs]);
-  const files: string[] = [];
-  walk(root, '', files);
-
-  for (const file of files) {
-    if (!matches(file)) continue;
-
-    let content: string;
-    try {
-      if (statSync(join(root, file)).size > MAX_BYTES) continue;
-      content = readFileSync(join(root, file), 'utf8');
-    } catch {
-      continue;
-    }
-    if (!isProbablyText(content)) continue;
+  for (const file of listFiles(root, globs)) {
+    const content = readTextFile(root, file);
+    if (content === null) continue;
 
     for (const citation of findCitations(content)) {
       const list = sites.get(citation.id) ?? [];

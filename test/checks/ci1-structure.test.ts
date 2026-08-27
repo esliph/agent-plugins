@@ -52,7 +52,7 @@ function run(files: Record<string, string>): Finding[] {
   let findings: Finding[] = [];
   withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, (root) => {
     const config = parseOwnership(CONFIG);
-    findings = ci1Structure.run({ root, config, docs: collectArtifacts(root, config) });
+    findings = ci1Structure.run({ root, config, docs: collectArtifacts(root, config), today: '2026-08-27' });
   });
   return findings;
 }
@@ -187,7 +187,7 @@ artifacts:
     },
     (root) => {
       const parsed = parseOwnership(config);
-      findings = ci1Structure.run({ root, config: parsed, docs: collectArtifacts(root, parsed) });
+      findings = ci1Structure.run({ root, config: parsed, docs: collectArtifacts(root, parsed), today: '2026-08-27' });
     },
   );
   assert.equal(findings.length, 1);

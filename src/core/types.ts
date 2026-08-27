@@ -21,6 +21,11 @@ export interface CheckContext {
   root: string;
   config: OwnershipConfig;
   docs: ArtifactDoc[];
+  /**
+   * Hoje, em ISO. Nenhum check lê o relógio por dentro (`ADR-0007`, `RNF-0004`):
+   * a data entra por valor, e é isso que torna `CI-4` testável.
+   */
+  today: string;
 }
 
 export interface Check {

@@ -4,6 +4,7 @@ import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts';
 import type { OwnershipConfig } from '../config/ownership.ts';
 import { RETIRED_IDS_PATH } from '../ids/citations.ts';
 import { templatesDir } from '../core/roots.ts';
+import { todayIso } from '../core/dates.ts';
 
 const TEMPLATES_DIR = templatesDir();
 
@@ -131,10 +132,6 @@ const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
   // `production` cobre as Fases 5 e 6 da spec §10, e as duas existem.
   production: [],
 });
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function template(name: string, values: Record<string, string>): string {
   let source = readFileSync(join(TEMPLATES_DIR, name), 'utf8');
@@ -278,7 +275,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
 
   const values = {
     OWNER: options.owner,
-    TODAY: today(),
+    TODAY: todayIso(),
     ADR_PATH: paths.ADR,
     DA_PATH: paths.DA,
     TDR_PATH: paths.TDR,

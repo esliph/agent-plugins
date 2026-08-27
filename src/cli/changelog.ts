@@ -2,6 +2,7 @@ import { loadOwnership } from '../config/ownership.ts';
 import { changelogChecks } from '../checks/registry.ts';
 import { changedPaths, commitMessages } from '../git/diff.ts';
 import type { GitRunner } from '../git/staged.ts';
+import { todayIso } from '../core/dates.ts';
 import type { Finding } from '../core/types.ts';
 
 export interface ChangelogResult {
@@ -34,7 +35,7 @@ export function runChangelog(root: string, base: string, run?: GitRunner): Chang
 
   // `docs: []` de propósito: CI-6 não lê artefato nenhum — ele lê o diff, a
   // configuração e o doc alvo.
-  const context = { root, config, docs: [] };
+  const context = { root, config, docs: [], today: todayIso() };
   const findings = changelogChecks(diff).flatMap((check) => check.run(context));
 
   return {
