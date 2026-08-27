@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts';
-import type { OwnershipConfig } from '../config/ownership.ts';
+import type { DocumentRole, OwnershipConfig } from '../config/ownership.ts';
 import { RETIRED_IDS_PATH } from '../ids/citations.ts';
 import { templatesDir } from '../core/roots.ts';
 import { todayIso } from '../core/dates.ts';
@@ -83,7 +83,7 @@ const HISTORY_DIRS: readonly string[] = Object.freeze(['docs/migrations/']);
 interface DocumentSeed {
   path: string;
   skill: string | null;
-  role: 'agent-contract' | 'definition-of-done' | null;
+  role: DocumentRole | null;
 }
 
 /** Declarados em todo estágio: os dois nascem já no `solo`. */
