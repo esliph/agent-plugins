@@ -32,6 +32,13 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   `CHANGELOG.md`, das release notes, das depreciações e dos guias de migração.
 - Código de erro `BASE-UNRESOLVED`: `changelog` sem `--base`, com base que não
   resolve, ou em clone raso.
+- `living-docs init` declara em `documents:` todo documento que instala, com
+  dono, skill dona e — para o contrato do agente e a Definition of Done — o
+  `role` que `CI-7` usa para achá-los. Repositório que sobe de estágio recebe só
+  as entradas que faltam; sem âncora no arquivo, o comando diz o que falta em vez
+  de reescrever.
+- O template de TDR traz o gatilho de pagamento de máquina (`pay-when`) como
+  exemplo comentado.
 
 ### Changed
 
@@ -43,3 +50,4 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 - O workflow do repositório passa a rodar `CI-6` em pull request, e o
   `actions/checkout` passa a exigir `fetch-depth: 0` — um clone raso não
   contém a base do diff.
+- `CODEOWNERS` escrito pelo `init` passa a cobrir `docs/ids-retired.txt`.

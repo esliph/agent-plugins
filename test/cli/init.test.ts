@@ -4,9 +4,14 @@ import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runInit } from '../../src/cli/init.ts';
 import { runValidate } from '../../src/cli/validate.ts';
-import { loadOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts';
+import { loadOwnership, parseOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts';
 import { RETIRED_IDS_PATH } from '../../src/ids/citations.ts';
+import { toolkitRoot } from '../../src/core/roots.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
+
+function ownershipOf(root: string) {
+  return parseOwnership(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'));
+}
 
 const OPTIONS = { owner: '@team-platform', dryRun: false, stage: 'solo' as const };
 
@@ -432,4 +437,101 @@ test('RF-0009: subir de small-team para production declara REL no .ownership.yml
     assert.ok(loadOwnership(root).artifacts.some((artifact) => artifact.idPrefix === 'REL'));
     assert.equal(runValidate(root).exitCode, 0, 'o repositório recém-subido de estágio precisa passar limpo');
   });
+});
+
+test('RF-0012: solo declara o mapa e os IDs retirados em documents:', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' });
+    const documents = ownershipOf(root).documents;
+
+    assert.deepEqual(documents.map((document) => document.path).sort(), [
+      'docs/.ownership.yml',
+      'docs/ids-retired.txt',
+    ]);
+    assert.ok(documents.every((document) => document.owner === '@time'));
+
+    const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
+    assert.match(codeowners, /docs\/ids-retired\.txt\s+@time/);
+    assert.match(codeowners, /docs\/\.ownership\.yml\s+@time/);
+  });
+});
+
+test('RF-0012: small-team declara os acordos, a linguagem e os dois papéis', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    const documents = ownershipOf(root).documents;
+    const byPath = new Map(documents.map((document) => [document.path, document]));
+
+    for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md', 'docs/glossary.md', 'docs/charter/']) {
+      assert.ok(byPath.has(path), `${path} deveria estar declarado`);
+    }
+    assert.equal(byPath.get('CLAUDE.md')?.role, 'agent-contract');
+    assert.equal(byPath.get('docs/definition-of-done.md')?.role, 'definition-of-done');
+    assert.equal(byPath.get('docs/glossary.md')?.skill, 'glossary-keeper');
+    assert.equal(byPath.get('docs/charter/')?.skill, 'charter-keeper');
+  });
+});
+
+test('RF-0012: production declara contratos e rastro histórico', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'production' });
+    const paths = ownershipOf(root).documents.map((document) => document.path);
+
+    for (const path of [
+      'docs/contracts/errors.md',
+      'docs/contracts/versioning-policy.md',
+      'CHANGELOG.md',
+      'docs/deprecations.md',
+      'docs/migrations/',
+    ]) {
+      assert.ok(paths.includes(path), `${path} deveria estar declarado`);
+    }
+  });
+});
+
+test('RF-0012: o contrato do agente declarado é o adotado, não o padrão', () => {
+  withTempRepo({ 'AGENTS.md': '# contrato preexistente\n' }, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    const documents = ownershipOf(root).documents;
+
+    assert.ok(documents.some((document) => document.path === 'AGENTS.md' && document.role === 'agent-contract'));
+    assert.equal(documents.some((document) => document.path === 'CLAUDE.md'), false);
+  });
+});
+
+test('RF-0002 e RF-0012: subir de estágio acrescenta as entradas que faltam, sem duplicar', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+
+    const paths = ownershipOf(root).documents.map((document) => document.path);
+    assert.ok(paths.includes('CONTRIBUTING.md'), 'a segunda execução declarou o que criou');
+    assert.equal(new Set(paths).size, paths.length, 'nenhuma entrada duplicada');
+
+    // e uma terceira execução não muda mais nada
+    const antes = readFileSync(join(root, 'docs/.ownership.yml'), 'utf8');
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    assert.equal(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'), antes);
+  });
+});
+
+test('RF-0012: sem âncora no .ownership.yml, o init diz o que falta em vez de adivinhar', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' });
+    // arquivo reorganizado à mão: nem `documents:` nem `watches:` no começo de linha
+    writeFileSync(
+      join(root, 'docs/.ownership.yml'),
+      'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/decisions/adr/\n    owner: "@time"\n    skill: decision-recorder\n',
+      'utf8',
+    );
+
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    assert.ok(result.notInstalled.some((item) => /documents/.test(item)));
+  });
+});
+
+test('RN-0019: o template de TDR traz o `pay-when` como exemplo comentado, não inventado', () => {
+  const template = readFileSync(join(toolkitRoot(), 'templates/tdr.md'), 'utf8');
+  assert.match(template, /# pay-when:/, 'o exemplo é comentado — o init não inventa gatilho');
+  assert.doesNotMatch(template, /^pay-when:/m, 'gatilho preenchido de fábrica passaria em CI-4 sem significar nada');
 });

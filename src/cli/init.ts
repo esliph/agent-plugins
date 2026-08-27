@@ -74,6 +74,78 @@ const HISTORY: readonly { path: string; template: string }[] = Object.freeze([
 const HISTORY_DIRS: readonly string[] = Object.freeze(['docs/migrations/']);
 
 /**
+ * Documento que o `init` declara em `documents:` (`RF-0012`, `ADR-0008`).
+ *
+ * Todo documento que o `init` cria e que não tem família de IDs entra aqui: um
+ * documento criado e não declarado é um repositório que reprova no próprio
+ * `CI-7` na primeira execução.
+ */
+interface DocumentSeed {
+  path: string;
+  skill: string | null;
+  role: 'agent-contract' | 'definition-of-done' | null;
+}
+
+/** Declarados em todo estágio: os dois nascem já no `solo`. */
+const BASE_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
+  { path: OWNERSHIP_PATH, skill: 'living-docs-bootstrap', role: null },
+  { path: RETIRED_IDS_PATH, skill: 'living-docs-bootstrap', role: null },
+]);
+
+const SMALL_TEAM_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
+  { path: 'CONTRIBUTING.md', skill: 'working-agreements-keeper', role: null },
+  { path: 'docs/definition-of-done.md', skill: 'working-agreements-keeper', role: 'definition-of-done' },
+  { path: 'docs/glossary.md', skill: 'glossary-keeper', role: null },
+  { path: 'docs/charter/', skill: 'charter-keeper', role: null },
+]);
+
+const PRODUCTION_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
+  { path: 'docs/contracts/errors.md', skill: 'contract-keeper', role: null },
+  { path: 'docs/contracts/versioning-policy.md', skill: 'contract-keeper', role: null },
+  { path: 'CHANGELOG.md', skill: 'release-historian', role: null },
+  { path: 'docs/deprecations.md', skill: 'release-historian', role: null },
+  { path: 'docs/migrations/', skill: 'release-historian', role: null },
+]);
+
+/** O contrato do agente: adota `AGENTS.md` quando ele já existe (`RF-0002`). */
+function agentContractPath(root: string): string {
+  return existsSync(join(root, 'AGENTS.md')) ? 'AGENTS.md' : 'CLAUDE.md';
+}
+
+function documentSeeds(root: string, stage: Stage): DocumentSeed[] {
+  if (stage === 'solo') return [...BASE_DOCUMENTS];
+
+  const seeds: DocumentSeed[] = [
+    ...BASE_DOCUMENTS,
+    ...SMALL_TEAM_DOCUMENTS,
+    { path: agentContractPath(root), skill: 'working-agreements-keeper', role: 'agent-contract' },
+  ];
+  if (stage === 'production') seeds.push(...PRODUCTION_DOCUMENTS);
+  return seeds;
+}
+
+function documentEntry(seed: DocumentSeed, owner: string): string {
+  const lines = [`  - path: ${seed.path}`, `    owner: "${owner}"`];
+  if (seed.skill !== null) lines.push(`    skill: ${seed.skill}`);
+  if (seed.role !== null) lines.push(`    role: ${seed.role}`);
+  return lines.join('\n');
+}
+
+/** O bloco `documents:` do `.ownership.yml` (`ADR-0008`). */
+function documentsBlock(root: string, owner: string, stage: Stage): string {
+  const entries = documentSeeds(root, stage).map((seed) => documentEntry(seed, owner));
+
+  return [
+    '# Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).',
+    '# CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.',
+    '# `role` é vocabulário fechado: agent-contract, definition-of-done.',
+    'documents:',
+    ...entries,
+    '',
+  ].join('\n');
+}
+
+/**
  * Caminhos onde um artefato equivalente pode já existir sob outro nome.
  * Adotar o que existe; nunca criar um paralelo (spec §5, SK-0 passo 1).
  *
@@ -292,6 +364,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
       options.stage === 'production'
         ? `CHANGELOG.md    ${options.owner}\ndocs/deprecations.md    ${options.owner}\ndocs/releases/    ${options.owner}\ndocs/migrations/    ${options.owner}\n`
         : '',
+    DOCUMENTS_BLOCK: documentsBlock(root, options.owner, options.stage),
+    RETIRED_CODEOWNERS: `${RETIRED_IDS_PATH}    ${options.owner}`,
   };
 
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);
@@ -352,12 +426,17 @@ export function runInit(root: string, options: InitOptions): InitResult {
 
     // O contrato do agente pode já existir com outro nome. Adotar, nunca duplicar
     // (RF-0002): dois contratos é a garantia de que um deles está errado.
-    if (existsSync(join(root, 'AGENTS.md'))) {
+    const contract = agentContractPath(root);
+    if (contract === 'AGENTS.md') {
       result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' });
     } else {
-      writeIfAbsent(root, 'CLAUDE.md', template('agent-contract.md', values), options, result);
+      writeIfAbsent(root, contract, template('agent-contract.md', values), options, result);
     }
   }
+
+  // O bloco vai no template na primeira execução; aqui é o caso de quem já tinha
+  // um `.ownership.yml` — de uma versão anterior, ou de um estágio menor.
+  if (existing !== null) declareDocuments(root, options, result, existing);
 
   return result;
 }
@@ -391,4 +470,44 @@ function declareArtifacts(
   result.created.push(`${OWNERSHIP_PATH} (${what})`);
   if (options.dryRun) return;
   writeFileSync(file, source.replace(anchor, `${block}\ngenerated:`), 'utf8');
+}
+
+/**
+ * Declara em `documents:` o que ainda não está lá, num `.ownership.yml` que já
+ * existe.
+ *
+ * Duas âncoras, na ordem: a linha `documents:` (as entradas entram logo depois
+ * dela, porque ordem de lista YAML não significa nada) e `\nwatches:` (o bloco
+ * inteiro entra antes dela). Sem nenhuma das duas — arquivo reorganizado à mão —
+ * o init **não adivinha**: ele diz o que falta e deixa a edição para quem é dono
+ * do arquivo. Mesma política de `declareArtifacts`.
+ */
+function declareDocuments(root: string, options: InitOptions, result: InitResult, existing: OwnershipConfig): void {
+  const declared = new Set(existing.documents.map((document) => document.path));
+  const faltando = documentSeeds(root, options.stage).filter((seed) => !declared.has(seed.path));
+  if (faltando.length === 0) return;
+
+  const file = join(root, OWNERSHIP_PATH);
+  const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const entries = faltando.map((seed) => documentEntry(seed, options.owner)).join('\n');
+
+  result.created.push(`${OWNERSHIP_PATH} (${faltando.length} documento(s) em documents:)`);
+
+  if (source.includes('\ndocuments:')) {
+    if (options.dryRun) return;
+    writeFileSync(file, source.replace('\ndocuments:', `\ndocuments:\n${entries}`), 'utf8');
+    return;
+  }
+
+  if (source.includes('\nwatches:')) {
+    if (options.dryRun) return;
+    writeFileSync(file, source.replace('\nwatches:', `\ndocuments:\n${entries}\n\nwatches:`), 'utf8');
+    return;
+  }
+
+  result.created.pop();
+  result.notInstalled.push(
+    `documents: em ${OWNERSHIP_PATH} — âncora \`documents:\` ou \`watches:\` não encontrada; ` +
+      'declare os documentos à mão para que eles tenham dono (CI-7)',
+  );
 }
