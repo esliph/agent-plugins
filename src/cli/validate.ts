@@ -1,5 +1,5 @@
 import { loadOwnership } from '../config/ownership.ts';
-import { collectArtifacts } from '../docs/collect.ts';
+import { collectArtifacts, collectDocuments } from '../docs/collect.ts';
 import { CHECKS } from '../checks/registry.ts';
 import { todayIso } from '../core/dates.ts';
 import type { Finding } from '../core/types.ts';
@@ -18,7 +18,7 @@ export interface ValidateResult {
 export function runValidate(root: string): ValidateResult {
   const config = loadOwnership(root);
   const docs = collectArtifacts(root, config);
-  const context = { root, config, docs, today: todayIso() };
+  const context = { root, config, docs, documents: collectDocuments(root, config), today: todayIso() };
 
   const findings = CHECKS.flatMap((check) => check.run(context));
   const errors = findings.filter((finding) => finding.severity === 'error').length;

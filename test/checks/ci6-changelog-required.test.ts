@@ -46,7 +46,7 @@ const CHANGELOG_VAZIO = `# Changelog
 `;
 
 function contextFor(root: string, ownership = OWNERSHIP) {
-  return { root, config: parseOwnership(ownership), docs: [], today: '2026-08-27' };
+  return { root, config: parseOwnership(ownership), docs: [], documents: [], today: '2026-08-27' };
 }
 
 function seedChangelog(root: string, content: string): void {

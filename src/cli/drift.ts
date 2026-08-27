@@ -14,9 +14,10 @@ export interface DriftResult {
 
 export function runDrift(root: string, exec: CommandRunner = runCommand): DriftResult {
   const config = loadOwnership(root);
-  // `docs: []` de propósito: CI-5 não lê artefato nenhum — ele compara o arquivo
-  // gerado com a saída do gerador. `today` entra porque o contexto é um só.
-  const context = { root, config, docs: [], today: todayIso() };
+  // `docs: []` e `documents: []` de propósito: CI-5 não lê artefato nenhum — ele
+  // compara o arquivo gerado com a saída do gerador. `today` entra porque o
+  // contexto é um só.
+  const context = { root, config, docs: [], documents: [], today: todayIso() };
 
   const findings = driftChecks(exec).flatMap((check) => check.run(context));
 

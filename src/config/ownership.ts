@@ -35,10 +35,35 @@ export interface WatchRule {
   consumerVisible: boolean;
 }
 
+/**
+ * Papéis que o toolkit reconhece num documento (`ADR-0008`).
+ *
+ * Vocabulário fechado de propósito: é o que permite a `CI-7` achar o contrato do
+ * agente e a Definition of Done sem conhecer caminho nenhum (spec §3). Papel
+ * aberto seria configuração que o toolkit não sabe usar.
+ */
+export const DOCUMENT_ROLES = ['agent-contract', 'definition-of-done'] as const;
+export type DocumentRole = (typeof DOCUMENT_ROLES)[number];
+
+/**
+ * Documento com dono e **sem** família de IDs (`ADR-0008`, que resolve `DA-0002`).
+ *
+ * Não é artefato: não tem ciclo de vida, não é congelado por `HK-1`, e `CI-1`/
+ * `CI-2` não o leem. O que ele tem é dono — e, quando existe uma, skill dona.
+ */
+export interface DocumentRule {
+  path: string;
+  owner: string;
+  /** Skill dona, quando existe uma. `null` é informação, não erro. */
+  skill: string | null;
+  role: DocumentRole | null;
+}
+
 export interface OwnershipConfig {
   version: number;
   staleAfterMonths: number;
   artifacts: ArtifactRule[];
+  documents: DocumentRule[];
   generated: GeneratedRule[];
   watches: WatchRule[];
   consumerVisiblePaths: string[];
@@ -174,6 +199,28 @@ export function parseOwnership(source: string): OwnershipConfig {
     };
   });
 
+  const documentsRaw = Array.isArray(root.documents) ? root.documents : [];
+  const documents = documentsRaw.map(parseDocument);
+
+  const seenDocuments = new Set<string>();
+  const seenRoles = new Set<string>();
+  for (const document of documents) {
+    if (seenDocuments.has(document.path)) {
+      throw new OwnershipError(
+        `${OWNERSHIP_PATH}: documento "${document.path}" declarado duas vezes. Um documento, um dono.`,
+      );
+    }
+    seenDocuments.add(document.path);
+
+    if (document.role === null) continue;
+    if (seenRoles.has(document.role)) {
+      throw new OwnershipError(
+        `${OWNERSHIP_PATH}: papel "${document.role}" declarado em dois documentos. Um papel, um documento.`,
+      );
+    }
+    seenRoles.add(document.role);
+  }
+
   const watchesRaw = Array.isArray(root.watches) ? root.watches : [];
   const watches: WatchRule[] = watchesRaw.map((item, index) => {
     const entry = asRecord(item, `watches[${index}]`);
@@ -192,6 +239,7 @@ export function parseOwnership(source: string): OwnershipConfig {
     version: 1,
     staleAfterMonths: typeof staleAfterMonths === 'number' ? staleAfterMonths : 6,
     artifacts,
+    documents,
     generated,
     watches,
     consumerVisiblePaths: asStringList(root['consumer-visible-paths'], 'consumer-visible-paths'),
@@ -225,14 +273,62 @@ export function fieldOf(rule: ArtifactRule, item: DocItem, canonical: string): s
   return value.trim();
 }
 
+function normalizePath(repoPath: string): string {
+  return repoPath.replace(/\\/g, '/').replace(/^\.\//, '');
+}
+
+/** O caminho declarado cobre este caminho? Diretório por prefixo, arquivo por igualdade. */
+function covers(declared: string, repoPath: string): boolean {
+  const target = declared.replace(/\\/g, '/');
+  return target.endsWith('/') ? repoPath.startsWith(target) : repoPath === target;
+}
+
 /** Regra dona de um caminho relativo à raiz do repositório, ou null. */
 export function findArtifactRule(config: OwnershipConfig, repoPath: string): ArtifactRule | null {
-  const normalized = repoPath.replace(/\\/g, '/').replace(/^\.\//, '');
-  for (const artifact of config.artifacts) {
-    const target = artifact.path.replace(/\\/g, '/');
-    if (target.endsWith('/') ? normalized.startsWith(target) : normalized === target) {
-      return artifact;
-    }
+  const normalized = normalizePath(repoPath);
+  return config.artifacts.find((artifact) => covers(artifact.path, normalized)) ?? null;
+}
+
+function parseDocument(raw: unknown, index: number): DocumentRule {
+  const where = `documents[${index}]`;
+  const item = asRecord(raw, where);
+
+  const owner = requireString(item, 'owner', where);
+  if (!owner.startsWith('@')) {
+    throw new OwnershipError(
+      `${OWNERSHIP_PATH}: ${where}.owner "${owner}" precisa começar com @ e espelhar o CODEOWNERS.`,
+    );
   }
-  return null;
+
+  const skill = item.skill;
+  if (skill !== undefined && (typeof skill !== 'string' || skill.trim() === '')) {
+    throw new OwnershipError(
+      `${OWNERSHIP_PATH}: ${where}.skill precisa ser uma string não vazia, ou ficar ausente — documento pode não ter skill dona.`,
+    );
+  }
+
+  const role = item.role;
+  if (role !== undefined && !DOCUMENT_ROLES.includes(role as DocumentRole)) {
+    throw new OwnershipError(
+      `${OWNERSHIP_PATH}: ${where}.role "${String(role)}" desconhecido. Válidos: ${DOCUMENT_ROLES.join(', ')}.`,
+    );
+  }
+
+  return {
+    path: requireString(item, 'path', where),
+    owner,
+    skill: skill === undefined ? null : skill,
+    role: role === undefined ? null : (role as DocumentRole),
+  };
+}
+
+/** Documento dono de um caminho relativo, ou null. Mesma semântica de `findArtifactRule`. */
+export function findDocumentRule(config: OwnershipConfig, repoPath: string): DocumentRule | null {
+  const normalized = normalizePath(repoPath);
+  return config.documents.find((document) => covers(document.path, normalized)) ?? null;
+}
+
+/** O documento que o projeto declarou com este papel, ou null. */
+export function documentWithRole(config: OwnershipConfig, role: DocumentRole): DocumentRule | null {
+  return config.documents.find((document) => document.role === role) ?? null;
 }

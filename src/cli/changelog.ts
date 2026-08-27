@@ -33,9 +33,9 @@ export function runChangelog(root: string, base: string, run?: GitRunner): Chang
     messages: commitMessages(root, base, run),
   };
 
-  // `docs: []` de propósito: CI-6 não lê artefato nenhum — ele lê o diff, a
-  // configuração e o doc alvo.
-  const context = { root, config, docs: [], today: todayIso() };
+  // `docs: []` e `documents: []` de propósito: CI-6 não lê artefato nenhum — ele
+  // lê o diff, a configuração e o doc alvo.
+  const context = { root, config, docs: [], documents: [], today: todayIso() };
   const findings = changelogChecks(diff).flatMap((check) => check.run(context));
 
   return {

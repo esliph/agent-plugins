@@ -57,7 +57,7 @@ function run(files: Record<string, string>): Finding[] {
   let findings: Finding[] = [];
   withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, (root) => {
     const config = parseOwnership(CONFIG);
-    findings = ci2Ids.run({ root, config, docs: collectArtifacts(root, config), today: '2026-08-27' });
+    findings = ci2Ids.run({ root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-27' });
   });
   return findings;
 }

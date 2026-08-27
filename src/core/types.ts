@@ -1,5 +1,5 @@
 import type { OwnershipConfig } from '../config/ownership.ts';
-import type { ArtifactDoc } from '../docs/collect.ts';
+import type { ArtifactDoc, DocumentDoc } from '../docs/collect.ts';
 
 export type Severity = 'error' | 'warning';
 
@@ -21,6 +21,8 @@ export interface CheckContext {
   root: string;
   config: OwnershipConfig;
   docs: ArtifactDoc[];
+  /** Documentos sem família de IDs, declarados em `documents:` (`ADR-0008`). */
+  documents: DocumentDoc[];
   /**
    * Hoje, em ISO. Nenhum check lê o relógio por dentro (`ADR-0007`, `RNF-0004`):
    * a data entra por valor, e é isso que torna `CI-4` testável.

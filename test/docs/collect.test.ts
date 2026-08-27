@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectArtifacts } from '../../src/docs/collect.ts';
+import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts';
 import { parseOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
 
@@ -106,4 +106,59 @@ test('frontmatter inválido vira syntaxError, não exceção', () => {
       assert.ok(docs[0]?.syntaxError);
     },
   );
+});
+
+const OWNERSHIP_COM_DOCUMENTOS = `
+version: 1
+artifacts:
+  - id-prefix: ADR
+    path: docs/decisions/adr/
+    owner: "@time"
+    skill: decision-recorder
+documents:
+  - path: CONTRIBUTING.md
+    owner: "@time"
+    skill: working-agreements-keeper
+  - path: CHANGELOG.md
+    owner: "@time"
+    skill: release-historian
+  - path: docs/ids-retired.txt
+    owner: "@time"
+  - path: docs/superpowers/
+    owner: "@time"
+`;
+
+test('ADR-0008: collectDocuments lê só markdown, e frontmatter ausente não é erro', () => {
+  withTempRepo(
+    {
+      'CONTRIBUTING.md':
+        '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-01\n---\n\n# Como se contribui\n',
+      'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
+      'docs/ids-retired.txt': '# nenhum\n',
+      'docs/superpowers/plans/um.md': '# plano\n',
+    },
+    (root) => {
+      const documents = collectDocuments(root, parseOwnership(OWNERSHIP_COM_DOCUMENTOS));
+      assert.deepEqual(documents.map((document) => document.file).sort(), [
+        'CHANGELOG.md',
+        'CONTRIBUTING.md',
+        'docs/superpowers/plans/um.md',
+      ]);
+
+      const contributing = documents.find((document) => document.file === 'CONTRIBUTING.md');
+      assert.equal(contributing?.frontmatter?.data.owner, '@time');
+
+      const changelog = documents.find((document) => document.file === 'CHANGELOG.md');
+      assert.equal(changelog?.frontmatter, null, 'CHANGELOG não tem frontmatter, e isso é decisão da Fase 6');
+
+      const plano = documents.find((document) => document.file === 'docs/superpowers/plans/um.md');
+      assert.equal(plano?.rule.skill, null);
+    },
+  );
+});
+
+test('ADR-0008: documento declarado e ausente do repositório não vira entrada', () => {
+  withTempRepo({}, (root) => {
+    assert.deepEqual(collectDocuments(root, parseOwnership(OWNERSHIP_COM_DOCUMENTOS)), []);
+  });
 });

@@ -10,6 +10,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Added
 
+- `documents:` no `docs/.ownership.yml`: declara documento com dono e sem família
+  de IDs (`CONTRIBUTING.md`, a Definition of Done, o contrato do agente,
+  `CHANGELOG.md`) com `path`, `owner`, `skill` opcional e `role` opcional
+  (`agent-contract`, `definition-of-done`). A chave é opcional: configuração
+  escrita nas versões anteriores continua válida.
 - Subcomando `living-docs changelog --base <ref>`: falha quando o diff da
   branch toca um caminho declarado em `consumer-visible-paths` e a entrada de
   `## [Unreleased]` não viaja junto (`CI-6`).

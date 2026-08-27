@@ -4,6 +4,8 @@ import {
   parseOwnership,
   loadOwnership,
   findArtifactRule,
+  findDocumentRule,
+  documentWithRole,
   fieldOf,
   OwnershipError,
   OWNERSHIP_PATH,
@@ -209,4 +211,99 @@ artifacts:
 `),
     (err: unknown) => err instanceof OwnershipError && err.message.includes('field-map'),
   );
+});
+
+const COM_DOCUMENTOS = `
+version: 1
+artifacts:
+  - id-prefix: ADR
+    path: docs/decisions/adr/
+    owner: "@time"
+    skill: decision-recorder
+documents:
+  - path: CONTRIBUTING.md
+    owner: "@time"
+    skill: working-agreements-keeper
+  - path: CLAUDE.md
+    owner: "@time"
+    skill: working-agreements-keeper
+    role: agent-contract
+  - path: docs/definition-of-done.md
+    owner: "@time"
+    skill: working-agreements-keeper
+    role: definition-of-done
+  - path: docs/superpowers/
+    owner: "@time"
+`;
+
+test('ADR-0008: documents declara caminho, dono, e skill/role opcionais', () => {
+  const config = parseOwnership(COM_DOCUMENTOS);
+  assert.equal(config.documents.length, 4);
+
+  const contributing = config.documents[0];
+  assert.equal(contributing?.path, 'CONTRIBUTING.md');
+  assert.equal(contributing?.owner, '@time');
+  assert.equal(contributing?.skill, 'working-agreements-keeper');
+  assert.equal(contributing?.role, null);
+
+  assert.equal(config.documents[3]?.skill, null, 'documento pode ter dono e não ter skill');
+});
+
+test('ADR-0008: documents ausente é lista vazia — configuração das fases anteriores continua válida', () => {
+  const config = parseOwnership(`
+version: 1
+artifacts:
+  - id-prefix: ADR
+    path: docs/decisions/adr/
+    owner: "@time"
+    skill: decision-recorder
+`);
+  assert.deepEqual(config.documents, []);
+});
+
+test('ADR-0008: documento sem caminho, com dono sem @, ou com skill vazia é recusado', () => {
+  const semCaminho = COM_DOCUMENTOS.replace('  - path: CONTRIBUTING.md\n    owner: "@time"', '  - owner: "@time"');
+  assert.throws(() => parseOwnership(semCaminho), /documents\[0\]/);
+
+  const donoSemArroba = COM_DOCUMENTOS.replace(
+    '  - path: CONTRIBUTING.md\n    owner: "@time"',
+    '  - path: CONTRIBUTING.md\n    owner: "time"',
+  );
+  assert.throws(() => parseOwnership(donoSemArroba), /precisa começar com @/);
+
+  const skillVazia = COM_DOCUMENTOS.replace('skill: working-agreements-keeper', 'skill: ""');
+  assert.throws(() => parseOwnership(skillVazia), /skill/);
+});
+
+test('ADR-0008: role fora do vocabulário nomeia os válidos; papel repetido é recusado', () => {
+  const roleEstranho = COM_DOCUMENTOS.replace('role: agent-contract', 'role: manifesto');
+  assert.throws(() => parseOwnership(roleEstranho), /agent-contract, definition-of-done/);
+
+  const repetido = COM_DOCUMENTOS.replace('role: definition-of-done', 'role: agent-contract');
+  assert.throws(() => parseOwnership(repetido), /Um papel, um documento/);
+});
+
+test('ADR-0008: caminho declarado duas vezes em documents é recusado', () => {
+  const duplicado = COM_DOCUMENTOS.replace(
+    '  - path: docs/superpowers/\n    owner: "@time"',
+    '  - path: CONTRIBUTING.md\n    owner: "@time"',
+  );
+  assert.throws(() => parseOwnership(duplicado), /Um documento, um dono/);
+});
+
+test('findDocumentRule resolve arquivo por igualdade e diretório por prefixo', () => {
+  const config = parseOwnership(COM_DOCUMENTOS);
+  assert.equal(findDocumentRule(config, 'CONTRIBUTING.md')?.owner, '@time');
+  assert.equal(findDocumentRule(config, './CONTRIBUTING.md')?.owner, '@time');
+  assert.equal(findDocumentRule(config, 'docs/superpowers/plans/x.md')?.path, 'docs/superpowers/');
+  assert.equal(findDocumentRule(config, 'README.md'), null);
+});
+
+test('documentWithRole acha o documento pelo papel, sem conhecer caminho nenhum', () => {
+  const config = parseOwnership(COM_DOCUMENTOS);
+  assert.equal(documentWithRole(config, 'agent-contract')?.path, 'CLAUDE.md');
+  assert.equal(documentWithRole(config, 'definition-of-done')?.path, 'docs/definition-of-done.md');
+
+  const semContrato = parseOwnership(COM_DOCUMENTOS.replace('    role: agent-contract\n', ''));
+  assert.equal(documentWithRole(semContrato, 'agent-contract'), null);
 });

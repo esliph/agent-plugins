@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import type { ArtifactRule, OwnershipConfig } from '../config/ownership.ts';
+import type { ArtifactRule, DocumentRule, OwnershipConfig } from '../config/ownership.ts';
 import { parseFrontmatter, FrontmatterSyntaxError } from '../frontmatter/parse.ts';
 import type { Frontmatter } from '../frontmatter/parse.ts';
 import { parseItemTable } from './table.ts';
@@ -92,4 +92,52 @@ export function collectArtifacts(root: string, config: OwnershipConfig): Artifac
   }
 
   return docs;
+}
+
+export interface DocumentDoc {
+  /** Caminho relativo à raiz do repositório, sempre com `/`. */
+  file: string;
+  rule: DocumentRule;
+  source: string;
+  /** `null` quando o documento não tem frontmatter — o que é legítimo (`CHANGELOG.md`). */
+  frontmatter: Frontmatter | null;
+}
+
+/**
+ * Documentos declarados em `documents:` que existem no repositório (`ADR-0008`).
+ *
+ * Só markdown: `docs/.ownership.yml` e `docs/ids-retired.txt` têm dono e não têm
+ * frontmatter, e nada nesta fase pergunta a eles a data de revisão. Frontmatter
+ * com sintaxe inválida vira `null` em silêncio, porque `CI-1` não lê `documents:`
+ * e derrubar o `validate` por causa disso seria pior do que não reportar.
+ */
+export function collectDocuments(root: string, config: OwnershipConfig): DocumentDoc[] {
+  const documents: DocumentDoc[] = [];
+
+  for (const rule of config.documents) {
+    const target = rule.path.replace(/\\/g, '/');
+    const files = target.endsWith('/') ? listMarkdown(root, target) : [target];
+
+    for (const file of files) {
+      if (!file.endsWith('.md')) continue;
+
+      let source: string;
+      try {
+        source = readFileSync(join(root, file), 'utf8');
+      } catch {
+        continue; // declarado e ausente: quem cobra ausência é CI-7, não a coleta
+      }
+
+      let frontmatter: Frontmatter | null = null;
+      try {
+        frontmatter = parseFrontmatter(source);
+      } catch {
+        frontmatter = null;
+      }
+
+      documents.push({ file, rule, source, frontmatter });
+    }
+  }
+
+  return documents;
 }
