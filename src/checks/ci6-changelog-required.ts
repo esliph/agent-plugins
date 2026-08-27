@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import picomatch from 'picomatch';
 import type { Check, CheckContext, Finding } from '../core/types.ts';
 import { OWNERSHIP_PATH } from '../config/ownership.ts';
+import { exceptionReasonFor } from './exception-label.ts';
 
 const RULE = 'CI-6';
 
@@ -14,19 +15,11 @@ export interface DiffFacts {
 }
 
 /**
- * O rótulo de exceção (`ADR-0006`, decisão 4). O separador é obrigatório e a
- * razão também: `Changelog: none` sozinho é caixinha marcada, e caixinha
- * marcada desliga o mecanismo fingindo cumpri-lo.
+ * O rótulo de exceção do CHANGELOG (`ADR-0006`, decisão 4). A forma é
+ * compartilhada com `CI-7` desde a Fase 7 (`src/checks/exception-label.ts`).
  */
-const EXCEPTION_LABEL = /^[ \t]*Changelog:[ \t]*none[ \t]*[—–:-][ \t]*(\S.*)$/im;
-
 export function exceptionReason(messages: readonly string[]): string | null {
-  for (const message of messages) {
-    const match = EXCEPTION_LABEL.exec(message);
-    const reason = match?.[1]?.trim();
-    if (reason) return reason;
-  }
-  return null;
+  return exceptionReasonFor('Changelog', messages);
 }
 
 /**
