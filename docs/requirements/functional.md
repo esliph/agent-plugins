@@ -4,7 +4,7 @@ owner: "@dan"
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-08-25
+last-reviewed: 2026-08-27
 ---
 
 # Requisitos funcionais
@@ -123,3 +123,46 @@ idempotência e a mesma política de adoção dos demais artefatos.
 
 A lista do que o estágio pede e não instala fica vazia: `production` cobre as
 Fases 5 e 6 da spec §10, e as duas existem.
+
+## RF-0010 — `validate` roda os checks de estado da árvore, e aviso não reprova
+
+- **status:** draft
+- **relates-to:** ADR-0007, ADR-0008
+- **fora de escopo:** a metade de `CI-7` que depende do diff, que entra por `--base` e é `RF-0011`
+
+Uma execução de `validate` roda todos os checks que se contentam com o estado da
+árvore — hoje `CI-1`, `CI-2`, `CI-3`, `CI-4`, `CI-7` e `CI-8` — e reporta os
+achados dos seis juntos. Achado `error` leva a código de saída 1; achado
+`warning` é reportado e **não** muda o código de saída.
+
+Quando existe algo que `validate` não verifica — artefato gerado, entrada de
+CHANGELOG, o diff da branch —, ele imprime o ponteiro para o comando que
+verifica. Check que não roda e não avisa que não rodou é cobertura fingida.
+
+## RF-0011 — `validate --base <ref>` cobra o doc dono do caminho vigiado que mudou
+
+- **status:** draft
+- **relates-to:** ADR-0010, RN-0021
+- **fora de escopo:** a entrada de CHANGELOG, que é `CI-6` e tem comando próprio
+
+Com `--base <ref>`, `validate` acrescenta a `CI-7` a verificação que depende do
+diff: caminho vigiado alterado entre a base e `HEAD` sem o doc dono no mesmo
+diff reprova, salvo razão escrita no histórico. Sem `--base`, essa verificação
+não roda e o comando diz que não rodou.
+
+A base não se adivinha. Sem ela, o comando não escolhe uma por conta própria:
+escolher errado produziria achado sobre mudança que não é desta branch.
+
+## RF-0012 — `init` declara todo documento que instala
+
+- **status:** draft
+- **relates-to:** ADR-0008, RN-0016
+- **fora de escopo:** o vínculo `watches`, o gerador e `consumer-visible-paths`, que o `init` continua não inventando (`RF-0004`)
+
+Todo documento que o `init` escreve e que não tem família de IDs é declarado em
+`documents:`, com dono e — quando existe uma — a skill dona. Um `init` que cria
+documento sem declará-lo entrega, na primeira execução, um repositório que
+reprova no próprio `CI-7`.
+
+Isso vale em todos os estágios: dono não é função de maturidade. O que muda com
+o estágio é **quais** documentos existem.

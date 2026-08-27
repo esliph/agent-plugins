@@ -4,7 +4,7 @@ owner: "@dan"
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-08-25
+last-reviewed: 2026-08-27
 ---
 
 # Regras de negócio
@@ -197,3 +197,121 @@ passa por ADR.
 
 Anunciar remoção sem lugar para o guia de migração é a depreciação que ninguém
 consegue seguir.
+
+## RN-0016 — Documento sem dono declarado não passa
+
+- **status:** draft
+- **relates-to:** ADR-0008, RN-0001
+- **fora de escopo:** quem é o dono, que é do projeto e mora no `.ownership.yml` e no CODEOWNERS
+
+Todo arquivo sob a raiz da documentação, e todo caminho declarado que mora fora
+dela, tem entrada no `.ownership.yml` — em `artifacts:`, em `documents:` ou em
+`generated:` — **e** linha no CODEOWNERS. Os dois lugares, não um: o
+`.ownership.yml` diz qual skill responde, o CODEOWNERS diz quem revisa, e
+documento com dono em um lugar só é documento cujo dono desaparece na primeira
+dúvida.
+
+Artefato e documento não são a mesma coisa. Artefato tem família de IDs, ciclo
+de vida e congelamento; documento tem dono, e talvez uma skill. Os dois têm
+dono, e é isso que esta regra cobra.
+
+## RN-0017 — Item de Definition of Done sem verificação nomeada não é item
+
+- **status:** draft
+- **relates-to:** RN-0016
+- **fora de escopo:** se a verificação nomeada é boa o suficiente, que é julgamento humano
+
+Cada caixa da Definition of Done nomeia o que a verifica: um ID de check, um ID
+de hook, ou a palavra que marca verificação humana. Item sem verificação é
+intenção, e intenção não é definição de pronto.
+
+É a Definition of Done que dá autoridade ao enforcement: item que ninguém
+verifica é item que nenhum check tem como cobrar.
+
+## RN-0018 — Documento vencido avisa; dívida com gatilho cumprido reprova
+
+- **status:** draft
+- **relates-to:** ADR-0007, RN-0002
+- **fora de escopo:** o valor de `stale-after-months`, que é configuração do projeto
+
+`last-reviewed` além do limite do projeto gera **aviso** e não reprova o build:
+a correção é ler o documento, e build vermelho empurra para o bump em massa que
+desliga o mecanismo fingindo cumpri-lo.
+
+Dívida `open` cujo gatilho de pagamento já aconteceu **reprova**, e continua
+reprovando até que a dívida seja paga ou reclassificada. As duas coisas são ato
+humano.
+
+Item em estado congelado não vence. Não há o que revisar num item cujo corpo não
+se edita, e avisar sobre ele ensinaria justamente o bump que a regra recusa.
+
+## RN-0019 — Dívida `open` declara o gatilho de pagamento de forma verificável
+
+- **status:** draft
+- **relates-to:** ADR-0007, RN-0018
+- **fora de escopo:** a redação em prosa do gatilho, que continua no corpo, é para gente ler, e é ela que explica o porquê
+
+Uma dívida `open` declara `pay-when` com um padrão e os caminhos onde ele é
+procurado. Gatilho que só existe em prosa não é verificável, e gatilho não
+verificável é `TODO` órfão com número — a coisa que a dívida registrada existia
+para não ser.
+
+O padrão nomeia uma condição no repositório, não uma data. Dívida não vence no
+calendário: vence quando a condição que a tornava aceitável deixa de valer.
+
+## RN-0020 — O contrato do agente não repete texto de artefato dono, e o limiar é escrito
+
+- **status:** draft
+- **relates-to:** RN-0010, ADR-0009
+- **fora de escopo:** duplicata por paráfrase, que nenhum check detecta e cuja recusa é humana
+
+Uma frase de doze palavras ou mais do contrato do agente que reapareça, palavra
+por palavra, num artefato com skill dona é duplicata e reprova. A correção é
+apagar a frase e deixar o ponteiro para o artefato dono.
+
+Abaixo do limiar é vocabulário compartilhado, não conteúdo copiado. O contrato
+do agente fala das mesmas coisas que os artefatos donos falam — é a função dele
+— e um check que reprovasse vocabulário compartilhado seria desligado no
+primeiro dia, deixando a regra sem enforcement nenhum.
+
+## RN-0021 — Caminho vigiado sem doc dono reprova no CI, e a saída é a razão escrita
+
+- **status:** draft
+- **relates-to:** RN-0008, RN-0009, ADR-0010
+- **fora de escopo:** o momento do commit, onde o enforcement pergunta em vez de reprovar (`RN-0009`)
+
+No CI, o diff que toca caminho vigiado sem o doc dono reprova. A única saída é
+uma razão escrita em alguma mensagem de commit do intervalo, no formato
+`Docs: none — <razão>`. Rótulo sem razão não é exceção: é a caixinha marcada.
+
+Isto não afrouxa nem contradiz `RN-0009`: lá quem enforce é um hook, no momento
+em que existe uma pessoa para responder à pergunta; aqui não existe pessoa
+nenhuma, e o custo do silêncio é uma documentação desatualizada passando com a
+autoridade de um CI verde.
+
+## RN-0022 — O início de sessão entrega o inventário, e nunca bloqueia
+
+- **status:** draft
+- **relates-to:** RN-0009
+- **fora de escopo:** o que fazer com o inventário, que é julgamento de quem o recebe
+
+No início de uma sessão, o que está presente e ausente, as decisões abertas, as
+dívidas com gatilho cumprido e os documentos vencidos chegam ao contexto sem
+ninguém precisar procurar. É injeção de contexto, nunca decisão de permissão.
+
+E é curto por obrigação: inventário que ninguém lê é a wiki morta chegando pelo
+outro lado, com o agravante de custar contexto em toda sessão.
+
+## RN-0023 — Link quebrado e anexo binário sob a raiz da documentação reprovam
+
+- **status:** draft
+- **relates-to:** RN-0016
+- **fora de escopo:** âncora dentro do arquivo (`#seção`), que o enforcement não resolve — e diz que não resolve
+
+Link relativo que não resolve para arquivo ou diretório existente, `[[wikilink]]`
+sem destino, e arquivo em formato binário sob a raiz da documentação reprovam.
+Link quebrado é pior que ausência de link: afirma uma ligação que não existe.
+Anexo binário não se lê em diff nem se revisa em PR.
+
+Código não é link: o que está dentro de bloco cercado ou de marcação inline é
+exemplo, e cobrar exemplo ensina a não escrever exemplo.

@@ -4,7 +4,7 @@ owner: "@dan"
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-08-24
+last-reviewed: 2026-08-27
 ---
 
 # Requisitos não funcionais
@@ -38,3 +38,16 @@ empresta apenas o daemon.
 
 Descobrir onde o toolkit está e descobrir qual repositório validar são duas
 perguntas distintas, com respostas que podem coincidir e não podem se confundir.
+
+## RNF-0004 — O resultado de um check não depende do relógio nem da máquina
+
+- **status:** draft
+- **relates-to:** ADR-0007
+- **fora de escopo:** o valor de `stale-after-months`, que é configuração do projeto
+
+Dados a mesma árvore, a mesma configuração e a mesma data, dois checks
+produzem o mesmo resultado. A data entra por valor, de quem chama; nenhum check
+e nenhum hook lê o relógio por dentro.
+
+Sem isso, o único teste possível para o que depende de tempo é o que passa hoje
+e reprova em seis meses — e teste que reprova sozinho é teste que se apaga.
