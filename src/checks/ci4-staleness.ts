@@ -2,6 +2,7 @@ import type { Check, CheckContext, Finding } from '../core/types.ts';
 import { asIsoDate, monthsBetween } from '../core/dates.ts';
 import { listFiles, readTextFile } from '../core/files.ts';
 import { FROZEN_STATUSES, statesFor } from '../docs/schema.ts';
+import type { Frontmatter } from '../frontmatter/parse.ts';
 
 const RULE = 'CI-4';
 
@@ -67,34 +68,38 @@ interface Reviewable {
   skill: string | null;
 }
 
+/**
+ * O que um artefato (`ArtifactDoc`) e um documento (`DocumentDoc`) têm em comum
+ * para efeito de staleness: caminho, frontmatter e a skill dona da regra. As
+ * duas interfaces batem nesse formato estruturalmente — não precisa de cast.
+ */
+interface FrontmatterSource {
+  file: string;
+  frontmatter: Frontmatter | null;
+  rule: { skill: string | null };
+}
+
+/** Documento sem frontmatter não tem o que vencer — é o caso do CHANGELOG, que a Fase 6 deixou sem de propósito. */
+function reviewableOf(source: FrontmatterSource): Reviewable | null {
+  const frontmatter = source.frontmatter;
+  if (!frontmatter) return null;
+  return {
+    file: source.file,
+    line: frontmatter.lines['last-reviewed'] ?? 1,
+    status: typeof frontmatter.data.status === 'string' ? frontmatter.data.status : null,
+    lastReviewed: asIsoDate(frontmatter.data['last-reviewed']),
+    skill: source.rule.skill,
+  };
+}
+
 /** Tudo que declara data de revisão: artefato, container de coleção e documento. */
 function reviewables(context: CheckContext): Reviewable[] {
+  const sources: FrontmatterSource[] = [...context.docs, ...context.documents];
   const found: Reviewable[] = [];
 
-  for (const doc of context.docs) {
-    const frontmatter = doc.frontmatter;
-    if (!frontmatter) continue;
-    found.push({
-      file: doc.file,
-      line: frontmatter.lines['last-reviewed'] ?? 1,
-      status: typeof frontmatter.data.status === 'string' ? frontmatter.data.status : null,
-      lastReviewed: asIsoDate(frontmatter.data['last-reviewed']),
-      skill: doc.rule.skill,
-    });
-  }
-
-  for (const document of context.documents) {
-    const frontmatter = document.frontmatter;
-    // Documento sem frontmatter não tem o que vencer — é o caso do CHANGELOG,
-    // que a Fase 6 deixou sem de propósito.
-    if (!frontmatter) continue;
-    found.push({
-      file: document.file,
-      line: frontmatter.lines['last-reviewed'] ?? 1,
-      status: typeof frontmatter.data.status === 'string' ? frontmatter.data.status : null,
-      lastReviewed: asIsoDate(frontmatter.data['last-reviewed']),
-      skill: document.rule.skill,
-    });
+  for (const source of sources) {
+    const reviewable = reviewableOf(source);
+    if (reviewable) found.push(reviewable);
   }
 
   return found;

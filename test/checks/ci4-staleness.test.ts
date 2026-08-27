@@ -1,7 +1,5 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
 import {
   ci4Staleness,
   duePayments,
@@ -157,6 +155,21 @@ test('RN-0018: documento de `documents:` vence; sem frontmatter, não tem o que 
       const stale = staleDocs(contextFor(root));
       assert.deepEqual(stale.map((item) => item.file), ['CONTRIBUTING.md']);
       assert.equal(stale[0]?.skill, 'working-agreements-keeper');
+    },
+  );
+});
+
+test('RN-0018: `last-reviewed` fora do formato ISO não vence — CI-1 já cobra o formato', () => {
+  withTempRepo(
+    {
+      'docs/requirements/rules.md': RULES_ATIVA,
+      // Data velha o bastante para vencer se fosse parseada — mas não é ISO.
+      'CONTRIBUTING.md':
+        '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 1 de janeiro de 2020\n---\n\n# Como se contribui\n',
+    },
+    (root) => {
+      const stale = staleDocs(contextFor(root));
+      assert.deepEqual(stale.map((item) => item.file), []);
     },
   );
 });
