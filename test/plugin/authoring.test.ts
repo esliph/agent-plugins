@@ -98,8 +98,8 @@ test('requirements-keeper não duplica o formato do requisito', () => {
   assert.doesNotMatch(source, /^- \*\*status:\*\*/m, 'a skill não deve conter o template do requisito');
 });
 
-test('os seis comandos existem, têm description e não contêm lógica própria', () => {
-  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'term.md', 'release.md'];
+test('os sete comandos existem, têm description e não contêm lógica própria', () => {
+  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'docs-audit.md', 'term.md', 'release.md'];
   const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort();
   assert.deepEqual(encontrados, esperados.sort());
 
@@ -109,11 +109,11 @@ test('os seis comandos existem, têm description e não contêm lógica própria
     assert.ok(frontmatter, `${nome} sem frontmatter`);
     assert.equal(typeof frontmatter.data.description, 'string');
     assert.ok(source.split('\n').length < 25, `${nome} é longo demais para um atalho fino`);
-    assert.match(
-      source,
-      /decision-recorder|living-docs-bootstrap|glossary-keeper|release-historian/,
-      `${nome} deve apontar a skill que aciona`,
-    );
+    // docs-audit invoca agent, não skill; outros invocam skill
+    const pattern = nome === 'docs-audit.md'
+      ? /docs-divergence-auditor/
+      : /decision-recorder|living-docs-bootstrap|glossary-keeper|release-historian/;
+    assert.match(source, pattern, `${nome} deve apontar ao agente ou skill que aciona`);
   }
 });
 

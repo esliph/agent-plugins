@@ -148,8 +148,9 @@ test('RNF-0002: nenhum script executável carrega CR — o runtime é Linux (ADR
  */
 const AGENTS = readdirSync(join(ROOT, 'plugin/agents')).filter((name) => name.endsWith('.md'));
 
-test('AG-2: o diretório de agents existe e traz decision-adversary', () => {
+test('AG-1 e AG-2: os dois agents da spec §6 existem', () => {
   assert.ok(AGENTS.includes('decision-adversary.md'), `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`);
+  assert.ok(AGENTS.includes('docs-divergence-auditor.md'), `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`);
 });
 
 for (const file of AGENTS) {
@@ -167,11 +168,19 @@ for (const file of AGENTS) {
   });
 }
 
-test('AG-2: decision-adversary aponta e para — sem Edit nem Write', () => {
-  const source = readFileSync(join(ROOT, 'plugin/agents/decision-adversary.md'), 'utf8');
-  const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? '';
-  assert.doesNotMatch(toolsLine, /\bEdit\b/, 'AG-2 aponta e para — nunca reescreve (spec §6)');
-  assert.doesNotMatch(toolsLine, /\bWrite\b/, 'AG-2 aponta e para — nunca reescreve (spec §6)');
+test('AG-1 e AG-2 apontam e param — sem Edit nem Write (spec §6)', () => {
+  for (const file of ['decision-adversary.md', 'docs-divergence-auditor.md']) {
+    const source = readFileSync(join(ROOT, 'plugin/agents', file), 'utf8');
+    const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? '';
+    assert.doesNotMatch(toolsLine, /\bEdit\b/, `${file}: agent que aponta não reescreve`);
+    assert.doesNotMatch(toolsLine, /\bWrite\b/, `${file}: agent que aponta não reescreve`);
+  }
+});
+
+test('AG-1 lê o mapa de propriedade em vez de adivinhar caminho', () => {
+  const source = readFileSync(join(ROOT, 'plugin/agents/docs-divergence-auditor.md'), 'utf8');
+  assert.match(source, /docs\/\.ownership\.yml/);
+  assert.match(source, /DA-nnnn|open-decision/, 'comportamento sem regra vira decisão aberta, não código');
 });
 
 test('decision-recorder referencia o agent decision-adversary antes da aceitação', () => {
