@@ -2,7 +2,7 @@
 const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
 
 /**
- * O texto sem código: bloco cercado e marcação inline saem, e as linhas ficam.
+ * O texto sem bloco cercado, e **com** a marcação inline intacta.
  *
  * Preservar a contagem de linhas não é detalhe — é o que permite reportar a
  * linha do achado. E a cerca precisa fechar com uma do **mesmo tamanho ou
@@ -10,8 +10,12 @@ const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
  * primeira cerca de três que estiver dentro dele, e o resto do arquivo volta a
  * ser lido como prosa — que é exatamente como um exemplo de código vira um
  * falso positivo.
+ *
+ * É a metade que serve a quem **procura** um ID escrito entre crases: apagar
+ * código inline apagaria justamente o que se procura, mas o exemplo dentro de
+ * uma cerca continua sendo exemplo (`CI-7`, item de Definition of Done).
  */
-export function stripCode(source: string): string {
+export function stripFences(source: string): string {
   const lines = source.replace(/\r\n/g, '\n').split('\n');
   const out: string[] = [];
   let fence: string | null = null;
@@ -25,7 +29,7 @@ export function stripCode(source: string): string {
         out.push('');
         continue;
       }
-      out.push(line.replace(/`[^`\n]*`/g, ''));
+      out.push(line);
       continue;
     }
 
@@ -36,6 +40,19 @@ export function stripCode(source: string): string {
   }
 
   return out.join('\n');
+}
+
+/**
+ * O texto sem código: bloco cercado e marcação inline saem, e as linhas ficam.
+ *
+ * É `stripFences` seguido do apagamento do código inline — quem compara prosa
+ * (`duplicatedSentences`, `sentencesOf`) quer as duas coisas fora.
+ */
+export function stripCode(source: string): string {
+  return stripFences(source)
+    .split('\n')
+    .map((line) => line.replace(/`[^`\n]*`/g, ''))
+    .join('\n');
 }
 
 /** Prosa comparável: minúscula, sem marcação, sem pontuação, espaço colapsado. */

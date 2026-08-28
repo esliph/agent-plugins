@@ -102,18 +102,28 @@ test('RN-0016: CODEOWNERS ausente é uma finding, não uma por arquivo', () => {
   });
 });
 
-test('RN-0017 (config): vínculo de watches que aponta doc inexistente ou sem dono reprova', () => {
+test('RN-0008 (config): vínculo de watches que aponta doc inexistente ou sem dono reprova', () => {
   const docInexistente = OWNERSHIP.replace('doc: docs/requirements/rules.md\n    reason', 'doc: docs/nao-existe.md\n    reason');
   withTempRepo(ARVORE, (root) => {
     const findings = ci7OwnershipCoverage().run(contextFor(root, docInexistente));
-    assert.ok(findings.some((finding) => /não existe/.test(finding.message) && finding.file === 'docs/.ownership.yml'));
+    const achado = findings.find((finding) => /não existe/.test(finding.message) && finding.file === 'docs/.ownership.yml');
+
+    assert.ok(achado);
+    // A regra citada é a do vínculo código→doc, não a da Definition of Done.
+    assert.match(achado.fix, /RN-0008/);
+    assert.doesNotMatch(achado.fix, /RN-0017/);
   });
 
   // O doc existe, mas ninguém o declarou: watches aponta para documento órfão.
   const semDeclaracao = OWNERSHIP.replace('  - path: docs/requirements/rules.md\n    owner: "@time"\n    skill: requirements-keeper\n', '');
   withTempRepo(ARVORE, (root) => {
     const findings = ci7OwnershipCoverage().run(contextFor(root, semDeclaracao));
-    assert.ok(findings.some((finding) => /não tem dono declarado/.test(finding.message)));
+    const achado = findings.find((finding) => /não tem dono declarado/.test(finding.message));
+
+    assert.ok(achado);
+    assert.match(achado.fix, /RN-0016/);
+    assert.match(achado.fix, /RN-0008/);
+    assert.doesNotMatch(achado.fix, /RN-0017/);
   });
 });
 
@@ -143,6 +153,44 @@ test('dodItemsWithoutVerification aceita ID de check, de hook e a marca humana',
     dodItemsWithoutVerification(source).map((item) => item.line),
     [4],
   );
+});
+
+test('RN-0017: exemplo do formato dentro de cerca não é item — o item de fora ainda é', () => {
+  const source = [
+    '# Definition of Done',
+    '',
+    'O formato de cada caixa:',
+    '',
+    '```markdown',
+    '- [ ] <o item> — verificação: <CI-n | HK-n | humana>',
+    '```',
+    '',
+    '- [ ] Os testes passam — verificação: `CI-1`.',
+    '- [ ] O código está bonito.',
+  ].join('\n');
+
+  assert.deepEqual(
+    dodItemsWithoutVerification(source).map((item) => item.line),
+    [10],
+    'só o item de verdade, fora da cerca, é achado',
+  );
+});
+
+test('RN-0017: a cerca sai e o ID entre crases fica — no check inteiro', () => {
+  const dodComExemplo = [
+    '# Definition of Done',
+    '',
+    '```markdown',
+    '- [ ] <o item> — verificação: <CI-n | HK-n | humana>',
+    '```',
+    '',
+    '- [ ] Os testes passam — verificação: `CI-1`.',
+    '',
+  ].join('\n');
+
+  withTempRepo({ ...ARVORE, 'docs/definition-of-done.md': dodComExemplo }, (root) => {
+    assert.deepEqual(ci7OwnershipCoverage().run(contextFor(root)), []);
+  });
 });
 
 test('RN-0020: frase longa do contrato repetida num artefato dono reprova', () => {

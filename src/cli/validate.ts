@@ -4,6 +4,7 @@ import { validateChecks } from '../checks/registry.ts';
 import { changedPaths, commitMessages } from '../git/diff.ts';
 import type { GitRunner } from '../git/staged.ts';
 import { todayIso } from '../core/dates.ts';
+import { forgetTree } from '../core/files.ts';
 import type { Finding } from '../core/types.ts';
 
 export interface ValidateResult {
@@ -28,6 +29,11 @@ export interface ValidateResult {
  * `CI-5` e `CI-6`.
  */
 export function runValidate(root: string, base: string | null = null, run?: GitRunner): ValidateResult {
+  // A varredura é memoizada por raiz dentro do processo (`src/core/files.ts`).
+  // Uma execução do `validate` é uma leitura só da árvore; duas execuções são
+  // duas — senão a segunda responderia sobre o repositório de antes.
+  forgetTree(root);
+
   const config = loadOwnership(root);
   const context = {
     root,

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { listFiles, readTextFile, isProbablyText, MAX_BYTES } from '../../src/core/files.ts';
+import { listFiles, readTextFile, isProbablyText, forgetTree, MAX_BYTES } from '../../src/core/files.ts';
 import { withTempRepo } from '../helpers/tmp.ts';
 
 const ARVORE = {
@@ -36,6 +36,32 @@ test('listFiles filtra por glob; lista vazia não é ausência de filtro', () =>
 test('listFiles casa arquivo que começa com ponto — o corpus começa pelo `.ownership.yml`', () => {
   withTempRepo({ 'docs/.ownership.yml': 'version: 1\n', 'docs/sub/.gitkeep': '' }, (root) => {
     assert.deepEqual(listFiles(root, ['docs/**']).sort(), ['docs/.ownership.yml', 'docs/sub/.gitkeep']);
+  });
+});
+
+test('a varredura é memoizada por raiz, e `forgetTree` a esquece', () => {
+  withTempRepo(ARVORE, (root) => {
+    forgetTree(root);
+    assert.equal(listFiles(root, ['docs/**/*.md']).length, 2);
+
+    writeFileSync(join(root, 'docs/tres.md'), '# três\n', 'utf8');
+    assert.equal(listFiles(root, ['docs/**/*.md']).length, 2, 'dentro da mesma execução, a árvore é a de antes');
+
+    forgetTree(root);
+    assert.equal(listFiles(root, ['docs/**/*.md']).length, 3, 'execução nova, árvore nova');
+  });
+});
+
+test('o glob é aplicado a cada chamada — o cache guarda a varredura crua', () => {
+  withTempRepo(ARVORE, (root) => {
+    forgetTree(root);
+    const tudo = listFiles(root);
+    assert.deepEqual(listFiles(root, []), [], 'lista vazia segue casando nada, mesmo com a árvore em memória');
+    assert.deepEqual(listFiles(root, undefined), tudo);
+
+    // A lista devolvida é cópia: ordenar o resultado não reordena o cache.
+    listFiles(root).sort().reverse();
+    assert.deepEqual(listFiles(root), tudo);
   });
 });
 

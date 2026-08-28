@@ -44,6 +44,41 @@ function walk(root: string, relative: string, out: string[]): void {
 }
 
 /**
+ * A varredura crua, memoizada por raiz.
+ *
+ * Uma execução faz a mesma pergunta muitas vezes: `CI-4` consulta a árvore uma
+ * vez por dívida `open`, `CI-7` e `CI-8` mais uma cada, e `HK-6` chama `CI-4`
+ * no início de **toda** sessão, dentro dos 5 segundos que `RNF-0001` dá ao
+ * hook. Sem memória, isso é uma travessia de disco por pergunta.
+ *
+ * O cache guarda a lista **sem filtro**: o glob continua sendo aplicado a cada
+ * chamada, porque é ele que distingue "tudo" de "nada" — e essa distinção não
+ * pode virar acidente de cache.
+ *
+ * A memória vale por processo, e o processo do CLI e do hook roda um comando e
+ * morre. Quem muda a árvore e volta a perguntar dentro do mesmo processo chama
+ * `forgetTree` — é o que `runValidate` e `decideHk6` fazem ao começar, para que
+ * duas execuções seguidas nunca leiam a árvore de antes.
+ */
+const TREES = new Map<string, string[]>();
+
+/** Esquece a árvore memoizada: de uma raiz, ou de todas. */
+export function forgetTree(root?: string): void {
+  if (root === undefined) TREES.clear();
+  else TREES.delete(root);
+}
+
+function treeOf(root: string): string[] {
+  const known = TREES.get(root);
+  if (known !== undefined) return known;
+
+  const files: string[] = [];
+  walk(root, '', files);
+  TREES.set(root, files);
+  return files;
+}
+
+/**
  * Arquivos do repositório, relativos à raiz e sempre com `/`.
  *
  * Sem `globs`, tudo. Com lista vazia, nada — as duas perguntas são diferentes, e
@@ -58,10 +93,11 @@ function walk(root: string, relative: string, out: string[]): void {
  * lista `SKIP_DIRS`, e ela é explícita.
  */
 export function listFiles(root: string, globs?: readonly string[]): string[] {
-  const files: string[] = [];
-  walk(root, '', files);
+  const files = treeOf(root);
 
-  if (globs === undefined) return files;
+  // Cópia: a lista memoizada é de quem a guarda, e `.sort()` de um chamador não
+  // pode reordenar a árvore do processo inteiro.
+  if (globs === undefined) return [...files];
   if (globs.length === 0) return [];
 
   const matches = picomatch([...globs], { dot: true });

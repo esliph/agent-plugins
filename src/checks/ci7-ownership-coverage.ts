@@ -12,7 +12,7 @@ import {
 import { loadCodeowners, ownersOf } from '../config/codeowners.ts';
 import { pendingDocs } from '../config/watches.ts';
 import { documentationFiles } from '../docs/corpus.ts';
-import { normalizeProse, sentencesOf, stripCode } from '../docs/markdown.ts';
+import { normalizeProse, sentencesOf, stripCode, stripFences } from '../docs/markdown.ts';
 
 const RULE = 'CI-7';
 
@@ -74,12 +74,14 @@ export function duplicatedSentences(
 /**
  * Itens de Definition of Done que não nomeiam o que os verifica (`RN-0017`).
  *
- * Não usa `stripCode`: o vocabulário de verificação (`CI-n`, `HK-n`, …) é
- * normalmente escrito entre crases — `stripCode` apaga código inline, e
- * apagaria o próprio ID que este check procura.
+ * `stripFences`, não `stripCode`: o vocabulário de verificação (`CI-n`, `HK-n`,
+ * …) é normalmente escrito entre crases, e apagar código inline apagaria o
+ * próprio ID que este check procura. A cerca, essa sai — a Definition of Done
+ * que documenta o próprio formato num bloco de exemplo não pode reprovar por
+ * causa do exemplo.
  */
 export function dodItemsWithoutVerification(source: string): { text: string; line: number }[] {
-  const lines = source.replace(/\r\n/g, '\n').split('\n');
+  const lines = stripFences(source).split('\n');
   const found: { text: string; line: number }[] = [];
 
   for (let i = 0; i < lines.length; i++) {
@@ -102,8 +104,8 @@ export function dodItemsWithoutVerification(source: string): { text: string; lin
  * pela qual o diff entra por injeção: `validate` não o tem, e `validate --base`
  * tem (`ADR-0010`).
  *
- * Regras de origem: `RN-0016`, `RN-0017`, `RN-0020`, `RN-0021`, e `RN-0010`
- * para a duplicação.
+ * Regras de origem: `RN-0016`, `RN-0017`, `RN-0020`, `RN-0021`, `RN-0010` para a
+ * duplicação, e `RN-0008` para o vínculo de `watches`.
  */
 export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
   return {
@@ -169,7 +171,7 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               0,
               `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse caminho não existe no repositório.`,
               'Crie o documento, ou corrija o `doc` da regra. Vínculo que aponta para o vazio faz `HK-4` e `HK-5` ' +
-                'pedirem um documento que ninguém pode atualizar (`RN-0017`).',
+                'pedirem um documento que ninguém pode atualizar (`RN-0008`).',
             ),
           );
           continue;
@@ -181,7 +183,7 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               0,
               `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse documento não tem dono declarado.`,
               `Declare \`${doc}\` em \`artifacts:\` ou \`documents:\` — o vínculo código→doc só é cobrável se o doc ` +
-                'tiver dono (`RN-0016`, `RN-0017`).',
+                'tiver dono (`RN-0016`, `RN-0008`).',
             ),
           );
         }

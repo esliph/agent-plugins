@@ -1,6 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeProse, sentencesOf, stripCode } from '../../src/docs/markdown.ts';
+import { normalizeProse, sentencesOf, stripCode, stripFences } from '../../src/docs/markdown.ts';
+
+test('stripFences apaga só o bloco cercado — o código inline fica', () => {
+  const source = ['item — verificação: `CI-4`.', '```markdown', 'exemplo com `CI-n`', '```', 'depois'].join('\n');
+  const stripped = stripFences(source);
+
+  assert.equal(stripped.split('\n').length, source.split('\n').length, 'a linha do achado depende disto');
+  assert.ok(stripped.includes('`CI-4`'), 'o ID entre crases é o que quem procura verificação precisa ver');
+  assert.equal(stripped.includes('CI-n'), false, 'o exemplo dentro da cerca é exemplo');
+  assert.ok(stripped.includes('depois'));
+});
 
 test('stripCode apaga bloco cercado e código inline, preservando a contagem de linhas', () => {
   const source = ['prosa com `[[wikilink]]` dentro', '', '```ts', 'const x = /\\]\\(/;', '```', 'depois'].join('\n');

@@ -532,6 +532,18 @@ test('RF-0012: o contrato do agente declarado é o adotado, não o padrão', () 
 
     assert.ok(documents.some((document) => document.path === 'AGENTS.md' && document.role === 'agent-contract'));
     assert.equal(documents.some((document) => document.path === 'CLAUDE.md'), false);
+
+    // O CODEOWNERS segue o mesmo caminho adotado: a linha é de `AGENTS.md`, e
+    // nenhuma linha aponta o `CLAUDE.md` que este repositório não tem.
+    const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
+    assert.match(codeowners, /^AGENTS\.md\s+@time$/m);
+    assert.doesNotMatch(codeowners, /CLAUDE\.md/);
+
+    assert.equal(
+      runValidate(root).exitCode,
+      0,
+      JSON.stringify(runValidate(root).findings, null, 2),
+    );
   });
 });
 

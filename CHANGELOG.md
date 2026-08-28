@@ -59,6 +59,16 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   (`CI-7`). Repositório instalado por uma versão anterior precisa rodar
   `living-docs init` de novo, ou declarar os documentos à mão, para continuar
   passando.
+- `living-docs validate` passa a exigir que toda dívida `open` declare um
+  gatilho de pagamento verificável — `pay-when` com `pattern` e `paths`
+  (`CI-4`). Repositório instalado por uma versão anterior tem de declarar o
+  `pay-when` das dívidas que já estão abertas, ou reclassificá-las, para
+  continuar passando.
+- `living-docs validate` passa a exigir que todo link entre documentos resolva —
+  relativo ou wikilink — e que não haja anexo binário sob a raiz da
+  documentação (`CI-8`).
+  Repositório instalado por uma versão anterior precisa corrigir os links
+  quebrados e tirar os binários de dentro de `docs/` para continuar passando.
 - `living-docs validate` passa a apontar `living-docs changelog` quando o
   repositório declara `consumer-visible-paths` — ponteiro, não achado: o código
   de saída não muda.
@@ -72,6 +82,19 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Fixed
 
+- `living-docs init` num repositório que já tem `AGENTS.md` passa a escrever a
+  linha de CODEOWNERS do contrato adotado, e não a de um `CLAUDE.md` que não
+  existe ali. Antes, o repositório recém-instalado reprovava no próprio `CI-7`
+  na primeira execução: o contrato ficava sem quem o revise.
+- `CI-7` deixa de acusar item de Definition of Done sem verificação quando o
+  item é um **exemplo do formato** dentro de um bloco de código cercado. A
+  documentação que ensina o próprio formato não reprova por ensiná-lo.
+- As mensagens de `CI-7` sobre um vínculo de `watches` quebrado passam a citar
+  `RN-0008`, a regra que de fato governa o vínculo código→doc.
+- `living-docs validate` e o inventário de início de sessão (`HK-6`) passam a
+  varrer a árvore do repositório uma vez por execução, e não uma vez por
+  pergunta. Repositório grande com muitas dívidas `open` sentia isso no teto de
+  5 segundos do hook.
 - `living-docs init` num repositório que sobe de estágio passa a acrescentar ao
   `CODEOWNERS` que já existe as linhas do estágio novo. Antes ele o deixava
   congelado na forma do estágio anterior, e os documentos recém-instalados

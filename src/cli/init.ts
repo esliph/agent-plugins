@@ -354,10 +354,16 @@ export function runInit(root: string, options: InitOptions): InitResult {
     TDR_PATH: paths.TDR,
     REQUIREMENTS_BLOCK: requirementsBlock(options.owner, paths, options.stage),
     REQUIREMENTS_CODEOWNERS: requirementsCodeowners,
+    // O contrato do agente entra no CODEOWNERS pelo caminho **adotado**, o mesmo
+    // que `documents:` declara: um repositório com `AGENTS.md` que recebesse a
+    // linha de `CLAUDE.md` nasceria com o contrato sem dono do lado de quem
+    // revisa — e reprovaria no próprio `CI-7` na primeira execução (`RF-0012`).
     AGREEMENTS_CODEOWNERS:
       options.stage === 'solo'
         ? ''
-        : `CONTRIBUTING.md    ${options.owner}\ndocs/definition-of-done.md    ${options.owner}\nCLAUDE.md    ${options.owner}\ndocs/glossary.md    ${options.owner}\ndocs/charter/    ${options.owner}\n`,
+        : `CONTRIBUTING.md    ${options.owner}\ndocs/definition-of-done.md    ${options.owner}\n` +
+          `${agentContractPath(root)}    ${options.owner}\ndocs/glossary.md    ${options.owner}\n` +
+          `docs/charter/    ${options.owner}\n`,
     CONTRACTS_CODEOWNERS:
       options.stage === 'production' ? `docs/contracts/    ${options.owner}\n` : '',
     RELEASES_BLOCK: releasesBlock(options.owner, paths.REL ?? DEFAULT_PATHS.REL, options.stage),

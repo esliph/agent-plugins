@@ -18,6 +18,7 @@ import type { ArtifactDoc } from '../docs/collect.ts';
 import { duePayments, staleDocs } from '../checks/ci4-staleness.ts';
 import { statesFor } from '../docs/schema.ts';
 import { todayIso } from '../core/dates.ts';
+import { forgetTree } from '../core/files.ts';
 import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts';
 import type { HookEnv } from './lib/io.ts';
 
@@ -63,6 +64,10 @@ function openDecisions(docs: readonly ArtifactDoc[]): string[] {
 export function decideHk6(env: HookEnv, today: string): Hk6Decision {
   let inventory: { lines: string[] };
   try {
+    // Mesma política do `validate`: a varredura é memoizada por raiz dentro do
+    // processo, e uma decisão nova começa com a árvore de agora.
+    forgetTree(env.root);
+
     const config = loadOwnership(env.root);
     const docs = collectArtifacts(env.root, config);
     const documents = collectDocuments(env.root, config);
