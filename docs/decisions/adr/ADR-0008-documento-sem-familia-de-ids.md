@@ -1,7 +1,7 @@
 ---
 id: ADR-0008
 title: Como um documento sem família de IDs ganha dono declarado
-status: draft
+status: accepted
 owner: "@dan"
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.

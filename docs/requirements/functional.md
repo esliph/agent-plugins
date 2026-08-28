@@ -126,7 +126,7 @@ Fases 5 e 6 da spec §10, e as duas existem.
 
 ## RF-0010 — `validate` roda os checks de estado da árvore, e aviso não reprova
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0007, ADR-0008
 - **fora de escopo:** a metade de `CI-7` que depende do diff, que entra por `--base` e é `RF-0011`
 
@@ -141,7 +141,7 @@ verifica. Check que não roda e não avisa que não rodou é cobertura fingida.
 
 ## RF-0011 — `validate --base <ref>` cobra o doc dono do caminho vigiado que mudou
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0010, RN-0021
 - **fora de escopo:** a entrada de CHANGELOG, que é `CI-6` e tem comando próprio
 
@@ -155,7 +155,7 @@ escolher errado produziria achado sobre mudança que não é desta branch.
 
 ## RF-0012 — `init` declara todo documento que instala
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0008, RN-0016
 - **fora de escopo:** o vínculo `watches`, o gerador e `consumer-visible-paths`, que o `init` continua não inventando (`RF-0004`)
 

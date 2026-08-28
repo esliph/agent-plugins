@@ -200,7 +200,7 @@ consegue seguir.
 
 ## RN-0016 — Documento sem dono declarado não passa
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0008, RN-0001
 - **fora de escopo:** quem é o dono, que é do projeto e mora no `.ownership.yml` e no CODEOWNERS
 
@@ -217,7 +217,7 @@ dono, e é isso que esta regra cobra.
 
 ## RN-0017 — Item de Definition of Done sem verificação nomeada não é item
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0016
 - **fora de escopo:** se a verificação nomeada é boa o suficiente, que é julgamento humano
 
@@ -230,7 +230,7 @@ verifica é item que nenhum check tem como cobrar.
 
 ## RN-0018 — Documento vencido avisa; dívida com gatilho cumprido reprova
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0007, RN-0002
 - **fora de escopo:** o valor de `stale-after-months`, que é configuração do projeto
 
@@ -247,7 +247,7 @@ se edita, e avisar sobre ele ensinaria justamente o bump que a regra recusa.
 
 ## RN-0019 — Dívida `open` declara o gatilho de pagamento de forma verificável
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0007, RN-0018
 - **fora de escopo:** a redação em prosa do gatilho, que continua no corpo, é para gente ler, e é ela que explica o porquê
 
@@ -261,7 +261,7 @@ calendário: vence quando a condição que a tornava aceitável deixa de valer.
 
 ## RN-0020 — O contrato do agente não repete texto de artefato dono, e o limiar é escrito
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0010, ADR-0009
 - **fora de escopo:** duplicata por paráfrase, que nenhum check detecta e cuja recusa é humana
 
@@ -276,7 +276,7 @@ primeiro dia, deixando a regra sem enforcement nenhum.
 
 ## RN-0021 — Caminho vigiado sem doc dono reprova no CI, e a saída é a razão escrita
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0008, RN-0009, ADR-0010
 - **fora de escopo:** o momento do commit, onde o enforcement pergunta em vez de reprovar (`RN-0009`)
 
@@ -291,7 +291,7 @@ autoridade de um CI verde.
 
 ## RN-0022 — O início de sessão entrega o inventário, e nunca bloqueia
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0009
 - **fora de escopo:** o que fazer com o inventário, que é julgamento de quem o recebe
 
@@ -304,7 +304,7 @@ outro lado, com o agravante de custar contexto em toda sessão.
 
 ## RN-0023 — Link quebrado e anexo binário sob a raiz da documentação reprovam
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0016
 - **fora de escopo:** âncora dentro do arquivo (`#seção`), que o enforcement não resolve — e diz que não resolve
 

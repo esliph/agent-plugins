@@ -1,7 +1,7 @@
 ---
 id: ADR-0010
 title: Com que severidade o CI sinaliza o caminho vigiado sem doc dono, e qual é a saída escrita
-status: draft
+status: accepted
 owner: "@dan"
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.

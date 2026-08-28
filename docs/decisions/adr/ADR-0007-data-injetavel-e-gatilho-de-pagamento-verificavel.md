@@ -1,7 +1,7 @@
 ---
 id: ADR-0007
 title: A fonte de data do toolkit, e como um gatilho de pagamento se torna verificável
-status: draft
+status: accepted
 owner: "@dan"
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.

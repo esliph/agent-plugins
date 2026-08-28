@@ -41,7 +41,7 @@ perguntas distintas, com respostas que podem coincidir e não podem se confundir
 
 ## RNF-0004 — O resultado de um check não depende do relógio nem da máquina
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0007
 - **fora de escopo:** o valor de `stale-after-months`, que é configuração do projeto
 

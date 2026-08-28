@@ -1,7 +1,7 @@
 ---
 id: ADR-0009
 title: O limiar que distingue vocabulário compartilhado de conteúdo copiado
-status: draft
+status: accepted
 owner: "@dan"
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.
