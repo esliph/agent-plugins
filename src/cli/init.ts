@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts';
 import type { DocumentRole, OwnershipConfig } from '../config/ownership.ts';
+import { parseCodeowners } from '../config/codeowners.ts';
 import { RETIRED_IDS_PATH } from '../ids/citations.ts';
 import { templatesDir } from '../core/roots.ts';
 import { todayIso } from '../core/dates.ts';
@@ -371,7 +372,12 @@ export function runInit(root: string, options: InitOptions): InitResult {
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);
   writeIfAbsent(root, RETIRED_IDS_PATH, template('ids-retired.txt', values), options, result);
   writeIfAbsent(root, paths.DA, template('open-decisions.md', values), options, result);
-  writeIfAbsent(root, 'CODEOWNERS', template('CODEOWNERS', values), options, result);
+  const codeowners = template('CODEOWNERS', values);
+  if (existsSync(join(root, 'CODEOWNERS'))) {
+    declareCodeowners(root, options, result, codeowners);
+  } else {
+    writeIfAbsent(root, 'CODEOWNERS', codeowners, options, result);
+  }
   ensureDirectory(root, paths.ADR, options, result);
   ensureDirectory(root, paths.TDR, options, result);
 
@@ -470,6 +476,38 @@ function declareArtifacts(
   result.created.push(`${OWNERSHIP_PATH} (${what})`);
   if (options.dryRun) return;
   writeFileSync(file, source.replace(anchor, `${block}\ngenerated:`), 'utf8');
+}
+
+/**
+ * Acrescenta ao CODEOWNERS que já existe as linhas que este estágio pede e que
+ * não estão lá.
+ *
+ * O CODEOWNERS nasce inteiro na primeira execução, mas quem sobe de estágio já
+ * tem um — e `writeIfAbsent` sozinho o deixaria congelado na forma do estágio
+ * anterior, com os documentos novos nascendo sem quem os revise. `CI-7` cobra o
+ * dono nos dois lugares, então o `documents:` sem a linha correspondente é
+ * meio dono (`RN-0016`).
+ *
+ * Nada é reescrito: só se acrescenta, e a comparação é por padrão — a linha que
+ * já existe fica como o dono do arquivo a escreveu, mesmo com outro `@handle`.
+ */
+function declareCodeowners(root: string, options: InitOptions, result: InitResult, rendered: string): void {
+  const file = join(root, 'CODEOWNERS');
+  const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const known = new Set(parseCodeowners(source).map((entry) => entry.pattern));
+
+  const faltando = parseCodeowners(rendered)
+    .filter((entry) => !known.has(entry.pattern))
+    .map((entry) => `${entry.pattern}    ${entry.owners.join(' ')}`);
+
+  if (faltando.length === 0) {
+    result.skipped.push('CODEOWNERS');
+    return;
+  }
+
+  result.created.push(`CODEOWNERS (${faltando.length} linha(s))`);
+  if (options.dryRun) return;
+  writeFileSync(file, `${source.replace(/\n*$/, '\n')}${faltando.join('\n')}\n`, 'utf8');
 }
 
 /**

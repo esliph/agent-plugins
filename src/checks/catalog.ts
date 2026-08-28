@@ -40,6 +40,13 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
       'Par bidirecional aberto; requisito `active` sem citação nos caminhos de `cited-by`; ADR `accepted` sem `relates-to`; decisão aberta `resolved` sem o ADR que a fechou.',
   },
   {
+    id: 'CI-4',
+    name: 'staleness',
+    command: 'living-docs validate',
+    failsWhen:
+      'Uma dívida `open` não declara `pay-when` verificável, ou o gatilho declarado já aconteceu no repositório. `last-reviewed` além de `stale-after-months` produz aviso, não falha — e item em estado congelado não vence.',
+  },
+  {
     id: 'CI-5',
     name: 'contract drift',
     command: 'living-docs drift',
@@ -52,5 +59,19 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     command: 'living-docs changelog --base <ref>',
     failsWhen:
       'O diff entre a base e `HEAD` toca `consumer-visible-paths` e o doc marcado `consumer-visible: true` não vem no mesmo diff com item em `## [Unreleased]`, nem alguma mensagem de commit traz `Changelog: none — <razão>`.',
+  },
+  {
+    id: 'CI-7',
+    name: 'ownership coverage',
+    command: 'living-docs validate',
+    failsWhen:
+      'Documento do corpus sem entrada no `.ownership.yml` ou sem linha no CODEOWNERS; regra de `watches` cujo `doc` não existe ou não tem dono; contrato do agente repetindo frase de artefato dono; item da Definition of Done sem verificação nomeada; e, com `--base <ref>`, caminho vigiado alterado sem o doc dono e sem `Docs: none — <razão>`.',
+  },
+  {
+    id: 'CI-8',
+    name: 'links',
+    command: 'living-docs validate',
+    failsWhen:
+      'Link interno relativo que não resolve para arquivo ou diretório existente; `[[wikilink]]` sem destino no corpus; arquivo em formato binário sob a raiz da documentação. Link dentro de bloco de código ou de marcação inline não conta.',
   },
 ]);

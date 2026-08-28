@@ -315,6 +315,42 @@ test('RF-0005: glossary já escrito não é reescrito na segunda execução', ()
   });
 });
 
+test('RN-0016: subir de estágio acrescenta ao CODEOWNERS que já existe, sem reescrever o que estava lá', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' });
+    const antes = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
+
+    const segunda = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    const depois = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
+
+    assert.ok(
+      antes.split('\n').every((line) => depois.includes(line)),
+      'nenhuma linha preexistente pode ser reescrita',
+    );
+    assert.match(depois, /docs\/glossary\.md\s+@time/);
+    assert.match(depois, /CLAUDE\.md\s+@time/);
+    assert.ok(
+      segunda.created.some((entry) => entry.startsWith('CODEOWNERS (')),
+      'o que foi acrescentado ao CODEOWNERS precisa aparecer na saída',
+    );
+
+    // Sem as linhas novas, `CI-7` acusaria documento sem quem o revise.
+    assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2));
+  });
+});
+
+test('RF-0002: rodar de novo no mesmo estágio não acrescenta linha ao CODEOWNERS', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+    const antes = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
+
+    const segunda = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
+
+    assert.equal(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), antes);
+    assert.ok(segunda.skipped.includes('CODEOWNERS'));
+  });
+});
+
 test('RF-0005: o CODEOWNERS semeado dá dono a glossary e charter', () => {
   withTempRepo({}, (root) => {
     runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });

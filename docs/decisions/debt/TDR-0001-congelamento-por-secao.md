@@ -7,6 +7,10 @@ trigger: >
   Nunca. Imutável enquanto a dívida existir; o pagamento a marca como paid.
 last-reviewed: 2026-08-24
 relates-to: [RN-0006]
+# Aspas simples: em YAML, aspas simples não processam `\`, e o padrão é regex.
+pay-when:
+  pattern: '^- \*\*status:\*\* revoked'
+  paths: ["docs/requirements/**"]
 ---
 
 # TDR-0001 — HK-1 não congela seção revogada dentro de arquivo de coleção

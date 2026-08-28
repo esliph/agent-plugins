@@ -68,6 +68,61 @@ generated:
   - path: docs/contracts/checks.gen.md
     command: node /opt/living-docs/src/tools/gen-checks.ts
 
+# Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).
+# CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.
+documents:
+  - path: docs/.ownership.yml
+    owner: "@dan"
+    skill: living-docs-bootstrap
+  - path: docs/ids-retired.txt
+    owner: "@dan"
+    skill: living-docs-bootstrap
+  - path: CONTRIBUTING.md
+    owner: "@dan"
+    skill: working-agreements-keeper
+  - path: docs/definition-of-done.md
+    owner: "@dan"
+    skill: working-agreements-keeper
+    role: definition-of-done
+  - path: CLAUDE.md
+    owner: "@dan"
+    skill: working-agreements-keeper
+    role: agent-contract
+  - path: docs/glossary.md
+    owner: "@dan"
+    skill: glossary-keeper
+  - path: docs/charter/
+    owner: "@dan"
+    skill: charter-keeper
+  - path: docs/contracts/errors.md
+    owner: "@dan"
+    skill: contract-keeper
+  - path: docs/contracts/versioning-policy.md
+    owner: "@dan"
+    skill: contract-keeper
+  - path: CHANGELOG.md
+    owner: "@dan"
+    skill: release-historian
+  - path: docs/deprecations.md
+    owner: "@dan"
+    skill: release-historian
+  - path: docs/migrations/
+    owner: "@dan"
+    skill: release-historian
+
+  # Sem skill dona, e isso é informação: plano, spec e README têm dono e não têm
+  # keeper. Ficam fora do corpus de duplicação de CI-7 (ADR-0009) porque citam os
+  # artefatos por ofício — reprovar o contrato do agente por causa de um plano
+  # que o citou inverteria quem copiou de quem.
+  - path: docs/superpowers/
+    owner: "@dan"
+  - path: LIVING-DOCUMENTATION-TOOLKIT.md
+    owner: "@dan"
+  - path: LIVING-DOCUMENTATION.md
+    owner: "@dan"
+  - path: README.md
+    owner: "@dan"
+
 # Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
 # antes do commit. Na Fase 7, CI-7 lê daqui também.
 watches:

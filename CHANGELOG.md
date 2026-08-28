@@ -39,6 +39,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   de reescrever.
 - O template de TDR traz o gatilho de pagamento de máquina (`pay-when`) como
   exemplo comentado.
+- `CI-4` (staleness), `CI-7` (ownership coverage) e `CI-8` (links) passam a rodar
+  em `living-docs validate`. `CI-4` é o único que produz aviso: aviso é
+  reportado e não muda o código de saída.
+- `living-docs validate --base <ref>` liga a metade de `CI-7` que lê o diff da
+  branch: caminho vigiado alterado sem o doc dono reprova, e a saída escrita é
+  `Docs: none — <razão>` numa mensagem de commit do intervalo.
 
 ### Changed
 
@@ -51,3 +57,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   `actions/checkout` passa a exigir `fetch-depth: 0` — um clone raso não
   contém a base do diff.
 - `CODEOWNERS` escrito pelo `init` passa a cobrir `docs/ids-retired.txt`.
+- `docs/contracts/checks.gen.md` passa a listar oito checks, ordenados por ID.
+
+### Fixed
+
+- `living-docs init` num repositório que sobe de estágio passa a acrescentar ao
+  `CODEOWNERS` que já existe as linhas do estágio novo. Antes ele o deixava
+  congelado na forma do estágio anterior, e os documentos recém-instalados
+  nasciam sem quem os revise — o que `CI-7` agora reprova. Linha que já está lá
+  não é reescrita.

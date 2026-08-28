@@ -17,7 +17,14 @@ artifacts:
 const WITH_GENERATED = `${BASE}generated:
   - path: docs/contracts/checks.gen.md
     command: "node tools/gen.js"
+documents:
+  - path: docs/.ownership.yml
+    owner: "@team"
+    skill: living-docs-bootstrap
 `;
+
+/** `validate` roda `CI-7` desde a Fase 7: o mapa de propriedade também precisa de dono. */
+const CODEOWNERS = 'docs/    @team\n';
 
 test('RF-0006: sem artefato gerado declarado, drift sai com 0 e diz que não checou nada', () => {
   withTempRepo({ [OWNERSHIP_PATH]: BASE }, (root) => {
@@ -42,7 +49,7 @@ test('RF-0006: deriva leva a exit 1', () => {
 
 test('RF-0006: validate não roda o gerador, e conta o que deixou para o drift', () => {
   withTempRepo(
-    { [OWNERSHIP_PATH]: WITH_GENERATED, 'docs/contracts/checks.gen.md': 'qualquer coisa\n' },
+    { [OWNERSHIP_PATH]: WITH_GENERATED, CODEOWNERS, 'docs/contracts/checks.gen.md': 'qualquer coisa\n' },
     (root) => {
       const result = runValidate(root);
       assert.equal(result.generated, 1, 'validate precisa saber que há o que checar em outro lugar');

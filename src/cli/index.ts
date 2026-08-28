@@ -11,7 +11,7 @@ import { repoRoot } from '../core/roots.ts';
 
 const USAGE = `living-docs <comando>
 
-  validate    Roda os checks de documentação viva (CI-1, CI-2, CI-3)
+  validate    Roda os checks de estado da árvore (CI-1, CI-2, CI-3, CI-4, CI-7, CI-8)
   drift       Compara cada artefato gerado com a saída do gerador (CI-5)
   changelog   Cobra a entrada de CHANGELOG do diff da branch (CI-6)
   init        Cria a moldura de documentação viva (skill dona: living-docs-bootstrap)
@@ -20,6 +20,9 @@ Opções de init:
   --owner <@handle>   Dono padrão dos artefatos criados
   --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team ou production
   --dry-run           Mostra o que faria, sem escrever
+
+Opções de validate:
+  --base <ref>        Base do diff — liga a metade de CI-7 que lê o diff da branch
 
 Opções de changelog:
   --base <ref>        Base do diff (obrigatório) — ex.: origin/master
@@ -36,7 +39,16 @@ function main(argv: readonly string[]): number {
 
   try {
     if (command === 'validate') {
-      const result = runValidate(root);
+      const baseIndex = argv.indexOf('--base');
+      const base = baseIndex === -1 ? null : (argv[baseIndex + 1] ?? '');
+      if (base === '') {
+        process.stderr.write(
+          'living-docs: `--base` precisa de uma ref — a base do diff não se adivinha (CI-7, ADR-0010).\n',
+        );
+        return 2;
+      }
+
+      const result = runValidate(root, base);
       process.stdout.write(`${formatFindings(result.findings)}\n`);
       // Ponteiro, não achado: validate não executa gerador nenhum (ADR-0005), e
       // ficar calado sobre isso seria fingir cobertura que ele não tem.
@@ -48,6 +60,13 @@ function main(argv: readonly string[]): number {
       if (result.consumerVisible > 0) {
         process.stdout.write(
           `living-docs: ${result.consumerVisible} caminho(s) visível(is) ao consumidor declarado(s) — a entrada de CHANGELOG é verificada por \`living-docs changelog --base <ref>\` (CI-6).\n`,
+        );
+      }
+      // Ponteiro, não achado: sem base não há diff, e ficar calado sobre a metade
+      // que não rodou seria fingir a cobertura que o critério 5 pede inteira.
+      if (result.base === null && result.watched > 0) {
+        process.stdout.write(
+          `living-docs: ${result.watched} vínculo(s) código→doc declarado(s) — o caminho vigiado que mudou sem o doc dono é verificado por \`living-docs validate --base <ref>\` (CI-7).\n`,
         );
       }
       return result.exitCode;

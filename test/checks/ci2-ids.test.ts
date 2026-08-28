@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ci2Ids } from '../../src/checks/ci2-ids.ts';
-import { CHECKS } from '../../src/checks/registry.ts';
 import { collectArtifacts } from '../../src/docs/collect.ts';
 import { parseOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts';
 import { RETIRED_IDS_PATH } from '../../src/ids/citations.ts';
@@ -183,12 +182,5 @@ test('citação de prefixo não declarado é ignorada — instalação por fases
       'docs/open-decisions.md': openDecisions([]),
     }),
     [],
-  );
-});
-
-test('o registry expõe CI-1, CI-2 e CI-3 nessa ordem', () => {
-  assert.deepEqual(
-    CHECKS.map((check) => check.id),
-    ['CI-1', 'CI-2', 'CI-3'],
   );
 });
