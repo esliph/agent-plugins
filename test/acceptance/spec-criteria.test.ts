@@ -16,6 +16,7 @@ import { withTempRepo } from '../helpers/tmp.ts';
 import { repoRoot } from '../../src/core/roots.ts';
 import { runChangelog } from '../../src/cli/changelog.ts';
 import { decideHk7 } from '../../src/hooks/hk7-shortcut-debt.ts';
+import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts';
 
 const ROOT = repoRoot();
 const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const };
@@ -250,5 +251,158 @@ test('mecanismo da Fase 6: atalho novo sem TDR é lembrado, nunca bloqueado', ()
 
     assert.equal(decision.action, 'remind', 'HK-7 é additionalContext: lembra e devolve o controle');
     assert.match(decision.action === 'remind' ? decision.context : '', /TDR/);
+  });
+});
+
+const DIVIDA_CONFIG = [
+  'version: 1',
+  'stale-after-months: 6',
+  'artifacts:',
+  '  - id-prefix: TDR',
+  '    path: docs/decisions/debt/',
+  '    owner: "@team"',
+  '    skill: decision-recorder',
+  '    append-only: true',
+  '  - id-prefix: RN',
+  '    path: docs/requirements/rules.md',
+  '    owner: "@team"',
+  '    skill: requirements-keeper',
+  '    collection: sections',
+  'documents:',
+  '  - path: docs/.ownership.yml',
+  '    owner: "@team"',
+  '    skill: living-docs-bootstrap',
+  '',
+].join('\n');
+
+const DIVIDA_CODEOWNERS = 'docs/decisions/debt/    @team\ndocs/requirements/    @team\ndocs/.ownership.yml    @team\n';
+
+function divida(status: string): string {
+  return [
+    '---',
+    'id: TDR-0001',
+    'title: Atalho consciente',
+    `status: ${status}`,
+    'owner: "@team"',
+    'trigger: Quando o gatilho de pagamento abaixo se cumprir.',
+    'last-reviewed: 2026-08-20',
+    'pay-when:',
+    "  pattern: '^- \\*\\*status:\\*\\* revoked'",
+    '  paths: ["docs/requirements/**"]',
+    '---',
+    '',
+    '# TDR-0001 — Atalho consciente',
+    '',
+  ].join('\n');
+}
+
+function regras(status: string): string {
+  return [
+    '---',
+    'title: Regras',
+    'owner: "@team"',
+    'trigger: A toda regra nova ou alterada.',
+    'last-reviewed: 2026-08-20',
+    '---',
+    '',
+    '## RN-0001 — Uma regra',
+    '',
+    `- **status:** ${status}`,
+    ...(status === 'revoked'
+      ? ['- **revoked-by:** RN-0002', '', '## RN-0002 — Regra nova', '', '- **status:** active', '- **revokes:** RN-0001']
+      : []),
+    '',
+  ].join('\n');
+}
+
+test('critério 7: dívida com gatilho cumprido reprova até ser paga ou reclassificada', () => {
+  const arvore = (statusDivida: string, statusRegra: string) => ({
+    [OWNERSHIP_PATH]: DIVIDA_CONFIG,
+    CODEOWNERS: DIVIDA_CODEOWNERS,
+    'docs/decisions/debt/TDR-0001-x.md': divida(statusDivida),
+    'docs/requirements/rules.md': regras(statusRegra),
+  });
+
+  // gatilho não aconteceu: passa
+  withTempRepo(arvore('open', 'active'), (root) => {
+    assert.equal(runValidate(root).exitCode, 0);
+  });
+
+  // gatilho aconteceu e a dívida segue open: reprova, nomeando a evidência
+  withTempRepo(arvore('open', 'revoked'), (root) => {
+    const result = runValidate(root);
+    assert.equal(result.exitCode, 1);
+
+    const finding = result.findings.find((f) => f.ruleId === 'CI-4' && f.severity === 'error');
+    assert.ok(finding, JSON.stringify(result.findings, null, 2));
+    assert.match(finding.message, /TDR-0001/);
+    assert.match(finding.message, /docs\/requirements\/rules\.md/);
+  });
+
+  // reclassificada: volta a passar
+  withTempRepo(arvore('paid', 'revoked'), (root) => {
+    assert.equal(runValidate(root).exitCode, 0);
+  });
+});
+
+test('critério 8: no início da sessão, o inventário e as pendências chegam ao contexto', () => {
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: DIVIDA_CONFIG,
+      CODEOWNERS: DIVIDA_CODEOWNERS,
+      'docs/decisions/debt/TDR-0001-x.md': divida('open'),
+      'docs/requirements/rules.md': regras('revoked'),
+    },
+    (root) => {
+      const decision = decideHk6({ root, hostRoots: [root] }, '2026-08-27');
+
+      assert.equal(decision.action, 'inform', 'ninguém precisa procurar: o inventário chega');
+      const context = decision.action === 'inform' ? decision.context : '';
+      assert.match(context, /TDR-0001/);
+      assert.doesNotMatch(context, /permissionDecision/, 'é contexto, não decisão de permissão');
+    },
+  );
+});
+
+test('critério 5, metade 2: o CI sinaliza pelo `watches`, e a razão escrita libera', () => {
+  const config = `${WATCHED_CONFIG}documents:
+  - path: docs/.ownership.yml
+    owner: "@team"
+    skill: living-docs-bootstrap
+`;
+  const codeowners = 'docs/requirements/    @team\ndocs/.ownership.yml    @team\n';
+  const arvore = {
+    [OWNERSHIP_PATH]: config,
+    CODEOWNERS: codeowners,
+    'docs/requirements/rules.md': regras('draft'),
+  };
+
+  const git = (changed: string[], messages: string[]) => (args: readonly string[]): string =>
+    args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n';
+
+  withTempRepo(arvore, (root) => {
+    // sem o doc dono no diff: reprova, nomeando o caminho vigiado
+    const reprovado = runValidate(root, 'origin/master', git(['src/domain/reembolso.ts'], ['feat: reembolso']));
+    assert.equal(reprovado.exitCode, 1);
+    const finding = reprovado.findings.find((f) => f.ruleId === 'CI-7');
+    assert.ok(finding);
+    assert.match(finding.message, /src\/domain\/reembolso\.ts/);
+
+    // com o doc no mesmo diff: passa
+    const comDoc = git(['src/domain/reembolso.ts', 'docs/requirements/rules.md'], ['feat: reembolso']);
+    assert.equal(runValidate(root, 'origin/master', comDoc).exitCode, 0);
+
+    // com a razão escrita no histórico: passa
+    assert.equal(
+      runValidate(
+        root,
+        'origin/master',
+        git(['src/domain/reembolso.ts'], ['refactor: renomeia interno\n\nDocs: none — só renomeação, a regra não mudou']),
+      ).exitCode,
+      0,
+    );
+
+    // e sem base, essa metade não roda
+    assert.equal(runValidate(root).exitCode, 0);
   });
 });
