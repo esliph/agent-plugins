@@ -17,13 +17,19 @@ test('o manifesto do plugin declara nome, versão e descrição', () => {
   assert.equal(typeof manifest.description, 'string');
 });
 
-test('hooks.json registra os seis hooks nos eventos e matchers da spec §7', () => {
+test('hooks.json registra os sete hooks nos eventos e matchers da spec §7', () => {
   const config = readJson('plugin/hooks/hooks.json');
-  const hooks = config.hooks as Record<string, { matcher: string; hooks: { command: string }[] }[]>;
+  const hooks = config.hooks as Record<string, { matcher?: string; hooks: { command: string }[] }[]>;
 
   const grupos = new Map<string, string[]>(
     Object.entries(hooks).flatMap(([evento, lista]) =>
-      lista.map((grupo) => [`${evento}:${grupo.matcher}`, grupo.hooks.map((hook) => hook.command)] as const),
+      lista.map(
+        (grupo) =>
+          [
+            grupo.matcher === undefined ? evento : `${evento}:${grupo.matcher}`,
+            grupo.hooks.map((hook) => hook.command),
+          ] as const,
+      ),
     ),
   );
 
@@ -31,6 +37,8 @@ test('hooks.json registra os seis hooks nos eventos e matchers da spec §7', () 
     'PreToolUse:Edit|Write': ['hk1-append-only', 'hk2-generated-artifact', 'hk3-state-promotion'],
     'PreToolUse:Bash': ['hk5-commit-guard'],
     'PostToolUse:Edit|Write': ['hk4-watch-reminder', 'hk7-shortcut-debt'],
+    // SessionStart não tem matcher: o evento não é de ferramenta (spec §7).
+    SessionStart: ['hk6-session-inventory'],
   };
 
   assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort());
@@ -72,7 +80,7 @@ test('todo hook referenciado existe no repositório', () => {
     }
   }
 
-  assert.equal(vistos, 6, 'a varredura deveria ver os seis hooks das Fases 1, 3, 5 e 6');
+  assert.equal(vistos, 7, 'a varredura deveria ver os sete hooks das Fases 1, 3, 5, 6 e 7');
 });
 
 /**

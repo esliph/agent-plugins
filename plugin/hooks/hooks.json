@@ -54,6 +54,18 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk6-session-inventory",
+            "shell": "bash",
+            "async": false
+          }
+        ]
+      }
     ]
   }
 }

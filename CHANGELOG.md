@@ -10,6 +10,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Added
 
+- `HK-6`: no início da sessão, o inventário chega ao contexto — artefatos e
+  documentos declarados e ausentes, decisões abertas, dívidas com gatilho
+  cumprido e documentos vencidos. É injeção de contexto, nunca bloqueio.
 - `documents:` no `docs/.ownership.yml`: declara documento com dono e sem família
   de IDs (`CONTRIBUTING.md`, a Definition of Done, o contrato do agente,
   `CHANGELOG.md`) com `path`, `owner`, `skill` opcional e `role` opcional
