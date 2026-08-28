@@ -67,6 +67,13 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
    é uma afirmação factual, ela pertence ao artefato dono; aqui fica o link.
 7. **Se a mudança de processo alterou o vínculo código→doc**, atualize `watches`
    no `.ownership.yml`: é ele que `HK-4` e `HK-5` leem.
+8. **O contrato do agente não repete texto de artefato dono, e isso agora é
+   verificado.** `CI-7` compara frase por frase (piso de doze palavras,
+   `ADR-0009`) contra os artefatos com skill dona. Quando ele acusa, a correção é
+   apagar a frase e deixar o ponteiro — nunca mexer no limiar.
+9. **Documento novo é declarado nos dois lugares:** `documents:` no
+   `docs/.ownership.yml` (com a skill dona, e o `role` quando for o contrato do
+   agente ou a Definition of Done) e uma linha no CODEOWNERS.
 
 ## Fronteiras
 
@@ -86,3 +93,5 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 - [ ] O `trigger` do artefato alterado continua nomeando evento, não cadência — verificação: `CI-1`.
 - [ ] A alteração nasceu de um erro observado ou de uma mudança real de processo, não de vontade de documentar — verificação: humana.
 - [ ] `last-reviewed` foi atualizado só nos arquivos que mudaram de verdade — verificação: humana (bump em massa é anti-requisito da spec §13).
+- [ ] Nenhuma frase do contrato do agente repete artefato dono — verificação: `CI-7`.
+- [ ] Cada item novo da Definition of Done nomeia o que o verifica — verificação: `CI-7`.

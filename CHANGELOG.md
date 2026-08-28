@@ -54,6 +54,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- `living-docs validate` passa a exigir que todo documento sob a raiz da
+  documentação tenha entrada no `docs/.ownership.yml` e linha no CODEOWNERS
+  (`CI-7`). Repositório instalado por uma versão anterior precisa rodar
+  `living-docs init` de novo, ou declarar os documentos à mão, para continuar
+  passando.
 - `living-docs validate` passa a apontar `living-docs changelog` quando o
   repositório declara `consumer-visible-paths` — ponteiro, não achado: o código
   de saída não muda.

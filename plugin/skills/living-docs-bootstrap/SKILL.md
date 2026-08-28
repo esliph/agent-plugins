@@ -73,6 +73,11 @@ garantida.
    `docs/.ownership.yml` gerado: os donos precisam ser os donos reais, e os
    `watches` (código → doc dono) precisam refletir a estrutura real do código —
    o template não sabe nada disso.
+   - **`documents:`** declara o que tem dono e não tem família de IDs
+     (`CONTRIBUTING.md`, a Definition of Done, o contrato do agente, o glossary, o
+     charter, o CHANGELOG, e o que mais o projeto tiver). `artifacts:` continua
+     exigindo `id-prefix`; `CI-1`, `CI-2` e `HK-1` não leem `documents:`, e `CI-4` e
+     `CI-7` leem (`ADR-0008`).
 4. **Instale na ordem das fases.** Frontmatter + `CI-1` primeiro: sem contrato
    de máquina nada mais é enforceável. Só depois `CI-2`, os hooks e as skills
    donas.

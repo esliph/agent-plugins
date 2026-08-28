@@ -71,6 +71,12 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
 6. **No TDR, exija um gatilho de pagamento observável.** "Quando o volume passar
    de 10k eventos/dia" ou "no primeiro PR que tocar este módulo" passam. "Quando
    der tempo" não é gatilho: recuse e peça a condição.
+   - **Toda dívida nasce com o gatilho de pagamento nas duas formas:** a prosa, em
+     `## Gatilho de pagamento`, que explica o porquê; e `pay-when` no frontmatter,
+     com `pattern` (regex em aspas simples) e `paths` (onde procurá-lo), que é o
+     que `CI-4` avalia. Se você não consegue escrever a segunda, o gatilho não é
+     observável — e aí a dívida não está pronta para ser registrada. Não invente um
+     padrão que casa nada só para o check passar: isso é a caixinha marcada.
 7. **Feche os dois lados da referência.** DA resolvida aponta o ADR que a fechou;
    o ADR aponta de volta em `relates-to`. Superseder preenche `supersedes` no
    novo e `superseded-by` no antigo.
@@ -105,3 +111,4 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
 - [ ] TDR tem gatilho de pagamento observável, não uma data vaga — verificação humana
 - [ ] A implementação **não** avançou enquanto havia DA aberta sobre ela — verificação humana
 - [ ] Para decisão de peso, `decision-adversary` foi considerado antes de pedir aceitação — verificação humana
+- [ ] Toda dívida `open` declara `pay-when` verificável — verificação: `CI-4`.

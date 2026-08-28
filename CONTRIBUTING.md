@@ -4,7 +4,7 @@ owner: "@dan"
 trigger: >
   Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
   errou por falta de contexto que caberia nesta página.
-last-reviewed: 2026-08-25
+last-reviewed: 2026-08-27
 ---
 
 # Como se contribui
@@ -22,6 +22,7 @@ docker compose up -d
 docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 ./bin/living-docs validate
+./bin/living-docs validate --base origin/master
 ```
 
 Se um comando pede `node`, `npm` ou `npx` fora do container, ele está errado —
@@ -38,6 +39,10 @@ não o ambiente.
 3. **Implementação mínima.** O que não tem requisito não é escopo.
 4. **Commit citando o ID afetado** — é o que torna `git log` navegável por regra.
 5. **A Definition of Done** (`docs/definition-of-done.md`) diz quando acabou.
+6. **Quando a mudança realmente não afeta o doc dono**, escreva a razão na
+   mensagem de commit — `Docs: none — <razão>` —, e o CI aceita. Rótulo sem
+   razão não vale: é a caixinha marcada. O mesmo formato vale para o CHANGELOG,
+   com `Changelog: none — <razão>`.
 
 ## Onde a verdade mora
 
@@ -54,6 +59,7 @@ não o ambiente.
 | O que é público, e o que cada erro significa | `docs/contracts/` |
 | O que mudou para quem usa | `CHANGELOG.md` e `docs/releases/` |
 | Quando está pronto | `docs/definition-of-done.md` |
+| Quem responde por cada documento sem ID | `docs/.ownership.yml` (`documents:`) |
 
 Nenhuma dessas respostas é copiada para outro lugar. Duplicata apodrece, e a
 versão velha ganha da nova por repetição.

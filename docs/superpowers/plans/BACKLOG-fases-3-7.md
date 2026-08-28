@@ -37,6 +37,43 @@ executadas. Promoção humana (Task 10): `RF-0008`, `RF-0009`, `RN-0013`,
 quem revisou — não foi aceito ainda. O estágio `production` cobre as Fases 5 e
 6 por completo nesta versão, e `notInstalled` fica vazio.
 
+**Estado em 2026-08-27:** a Fase 7 está **implementada** —
+`docs/superpowers/plans/2026-08-27-living-docs-toolkit-fase-7.md`, as 14 tasks
+executadas. Os dez critérios de aceite da spec §12 estão cobertos: o 7 (`CI-4`),
+o 8 (`HK-6`) e a segunda metade do 5 (`CI-7` com `--base`) fecharam aqui.
+`DA-0002` está `resolved` por `ADR-0008`. Promoção humana (Task 14): registre
+aqui o que foi e o que não foi aceito — **não presuma**.
+
+O que o planejamento apurou, e que vale para quem continuar:
+
+- **Não existe `--stage multi-team`, e a razão é estrutural.** A Fase 7 não
+  instala artefato: instala enforcement, que já vem no toolkit e no plugin. O
+  estágio teria o mesmo conjunto de arquivos que `production` — um rótulo sem
+  nada atrás, que é o que o próprio backlog chamava de "wiki morta nascendo de
+  fábrica". O que `CI-7` de fato exigiu do `init` foi outra coisa e vale para
+  todos os estágios: declarar em `documents:` o que ele cria (`RF-0012`).
+- **`DA-0002` virou uma chave nova, não um prefixo novo.** Tornar `id-prefix`
+  opcional em `artifacts:` teria empurrado um `if` para dentro de `CI-1`,
+  `CI-2`, `HK-1` e `HK-3` — o custo cairia na Fase 0, que é a parte que menos
+  deveria mudar (`ADR-0008`).
+- **`role` no `documents:` é o que permite a `CI-7` achar o contrato do agente e
+  a Definition of Done sem conhecer caminho nenhum.** Isso não estava previsto e
+  é a peça sem a qual duas das cinco classes de achado de `CI-7` não existiriam.
+- **A severidade do sinal de `watches` no CI precisou de ADR.** A spec §9 ("só
+  `CI-4` avisa"), `RN-0009` ("nunca bloqueia") e o critério 5 ("o CI sinaliza")
+  não cabiam juntas. `ADR-0010` decidiu erro com rótulo de escape, e o
+  precedente já estava no repositório desde a Fase 6: `CI-6` reprova por uma
+  entrada de `watches` com `Changelog: none — <razão>` como saída.
+- **`CI-4` precisou de duas coisas, não uma.** `CheckContext.today` era a
+  prevista; a segunda foi o `pay-when`, porque "gatilho de pagamento observável"
+  em prosa não se avalia. Item congelado não vence — sem essa regra, todo ADR
+  aceito viraria aviso permanente e o caminho de calar o aviso seria o bump em
+  massa que a spec §13 recusa.
+- **O falso positivo mais provável de `CI-8` é link dentro de bloco de código**,
+  e este repositório tem um (`](?:mente)` num plano da Fase 0). `stripCode`
+  existe por causa dele, e fecha cerca por tamanho porque um plano usa cerca de
+  quatro crases.
+
 Cada fase abaixo traz: o que entrega, de que depende, que peça de engine ainda
 não existe, e o risco que só aparece quando alguém tenta implementar. A ordem é
 a da spec §10 e importa: cada fase usa o enforcement que a anterior instalou.
@@ -306,21 +343,19 @@ de escrever o check, não depois.
 
 ### Ordem sugerida daqui
 
-1. ~~Executar o plano da Fase 3~~ — feito: 9 tasks executadas, `RN-0008`–
-   `RN-0010` e `RF-0004` promovidos, `DA-0002` aberta.
-2. ~~Executar o plano da Fase 4~~ — feito: 8 tasks executadas, `ADR-0004`
-   aceito, `RF-0005`/`RN-0011` promovidos.
-3. ~~Executar o plano da Fase 5~~ — feito: 9 tasks executadas, o dogfooding
-   com `docs/contracts/checks.gen.md` prova o critério 6; `ADR-0005` aceito,
-   `RF-0006`/`RF-0007`/`RN-0012` promovidos.
-4. ~~Executar o plano da Fase 6~~ — feito: 10 tasks executadas, o dogfooding
-   com `CHANGELOG.md` e `consumer-visible-paths` prova o mecanismo;
-   `RF-0008`/`RF-0009`/`RN-0013`/`RN-0014`/`RN-0015` promovidos a `active`;
-   `ADR-0006` segue `draft` (ver "Estado em 2026-08-26" acima).
-5. **Próximo passo: Fase 7** na ordem da spec §10, com plano próprio, porque
-   entrega software que funciona sozinho. Herda `src/git/diff.ts` e
-   `changelogChecks` (ver seção da Fase 7) e continua exigindo
-   `CheckContext.today` como pré-requisito de `CI-4`.
+As sete fases da spec §10 estão implementadas. O que resta não é fase:
 
-Aceitar `ADR-0001` e `ADR-0002` (hoje `draft`) não depende de fase nenhuma e
-continua sendo um ato barato — com a pré-condição já anotada acima.
+1. **Aceitar `ADR-0001`, `ADR-0002` e `ADR-0006`** (hoje `draft`). Não depende
+   de nada e continua sendo ato barato — com a pré-condição já anotada: o
+   `relates-to` precisa estar preenchido **antes**, porque `accepted` congela o
+   arquivo.
+2. **`TDR-0001`** segue `open`, agora com gatilho verificável: `CI-4` reprova no
+   primeiro PR que revogar um requisito. Não há o que fazer antes disso.
+3. **Distribuição do toolkit.** `ADR-0003` decide as duas raízes e não decide
+   como o toolkit chega a um projeto consumidor. Vale abrir uma `DA` no primeiro
+   consumidor real — e é lá que a ruptura de `CI-7` (documento sem dono passa a
+   reprovar) será sentida primeiro.
+4. **Estender para as camadas fora do escopo** (C4, runbooks, event catalog) é o
+   teste real do ponto de extensão: uma entrada em `docs/.ownership.yml` e uma
+   skill dona, sem tocar em check nenhum. Se precisar tocar, o ponto de extensão
+   não era o que a spec dizia que era.

@@ -33,13 +33,16 @@ artefato dono e é lida de lá (`RN-0010`).
 - **Mudança visível a quem consome viaja com a entrada de `CHANGELOG.md`** —
   ou com a razão escrita no commit. `CI-6` cobra; o formato do rótulo está no
   contrato.
+- **Todo documento tem dono declarado.** `docs/.ownership.yml` diz qual skill
+  responde; o CODEOWNERS, quem revisa — `CI-7` cobra os dois.
 
 ## Comandos
 
-`/adr`, `/open-decision`, `/debt`, `/docs-setup`, `/term`, `/release`. As
-skills `decision-recorder`, `requirements-keeper`, `working-agreements-keeper`,
-`glossary-keeper`, `charter-keeper`, `contract-keeper` e `release-historian`
-são selecionadas pela `description`; não é preciso invocá-las pelo nome.
+`/adr`, `/open-decision`, `/debt`, `/docs-setup`, `/term`, `/release`,
+`/docs-audit`. As skills `decision-recorder`, `requirements-keeper`,
+`working-agreements-keeper`, `glossary-keeper`, `charter-keeper`,
+`contract-keeper` e `release-historian` são selecionadas pela `description`; não
+é preciso invocá-las pelo nome.
 
 ## O que nunca fazer
 
