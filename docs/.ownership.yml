@@ -1,5 +1,5 @@
 # O único arquivo específico deste projeto. Hooks e checks não conhecem
-# caminho nenhum — leem daqui. Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §3.
+# caminho nenhum — leem daqui. Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §3.
 version: 1
 stale-after-months: 6
 
@@ -118,9 +118,9 @@ documents:
   # que o citou inverteria quem copiou de quem.
   - path: docs/superpowers/
     owner: "@dan"
-  - path: LIVING-DOCUMENTATION-TOOLKIT.md
+  - path: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md
     owner: "@dan"
-  - path: LIVING-DOCUMENTATION.md
+  - path: docs/superpowers/research/2026-08-24-living-documentation.md
     owner: "@dan"
   - path: README.md
     owner: "@dan"

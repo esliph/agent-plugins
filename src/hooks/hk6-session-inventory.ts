@@ -2,7 +2,7 @@
 /**
  * SessionStart: injeta o inventário da documentação viva no contexto.
  *
- * Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 e `RN-0022` — "resolve 'se
+ * Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 e `RN-0022` — "resolve 'se
  * ninguém lê, não está vivo' na origem". A saída é `additionalContext`, e este
  * arquivo não conhece `deny` nem `ask`.
  *

@@ -2,7 +2,7 @@
 /**
  * PreToolUse (Edit|Write): nega alteração de item append-only congelado.
  *
- * Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §4 — "nenhum estado terminal
+ * Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §4 — "nenhum estado terminal
  * permite edição do corpo". A allowlist de campos vem de docs/.ownership.yml.
  */
 import { readFileSync } from 'node:fs';
@@ -69,7 +69,7 @@ export function decideHk1(payload: HookPayload, env: HookEnv): HookDecision {
     action: 'deny',
     reason:
       `HK-1 bloqueou: \`${basename(repoPath)}\` está em estado congelado (\`${status}\`) e você tentou alterar ${what}. ` +
-      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §4 — nenhum estado terminal permite edição do corpo; ' +
+      'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §4 — nenhum estado terminal permite edição do corpo; ' +
       'um item aceito que se revelou errado não é corrigido, a história das decisões é o ativo. ' +
       `Caminho válido: crie um item novo com \`supersedes: ${String(parseFrontmatter(current)?.data.id ?? '')}\` e ` +
       `marque este como \`status: superseded\` + \`superseded-by:\` (campos liberados aqui: ${mutable.join(', ')}). ` +

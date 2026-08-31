@@ -1,7 +1,7 @@
 # living-docs-toolkit
 
 Documentação viva com dono, gatilho e enforcement — Fases 0–7 da spec
-`LIVING-DOCUMENTATION-TOOLKIT.md`: ADR, Open Decisions, Debt Register e
+`docs/superpowers/research/2026-08-24-living-documentation-toolkit.md`: ADR, Open Decisions, Debt Register e
 requisitos com ID estável; os oito checks `CI-1` a `CI-8`; os sete hooks `HK-1`
 a `HK-7`; os acordos de trabalho (`SK-6`); o vocabulário do domínio e os
 princípios invioláveis (`SK-2`, `SK-1`); o contrato público, com a metade gerada

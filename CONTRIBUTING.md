@@ -48,7 +48,7 @@ não o ambiente.
 
 | Pergunta | Artefato |
 | --- | --- |
-| O que o toolkit deve ser | `LIVING-DOCUMENTATION-TOOLKIT.md` |
+| O que o toolkit deve ser | `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md` |
 | Qual é a regra de X | `docs/requirements/` |
 | Por que foi feito assim | `docs/decisions/adr/` |
 | O que ainda não foi decidido | `docs/open-decisions.md` |

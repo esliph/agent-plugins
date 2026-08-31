@@ -2,7 +2,7 @@
 /**
  * PreToolUse (Edit|Write): nega editar artefato gerado.
  *
- * Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §5 (SK-5, regra 1) — "se
+ * Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §5 (SK-5, regra 1) — "se
  * pode ser gerado, não escreva". O caminho vem de `generated[]` no
  * docs/.ownership.yml, ou do marcador que o próprio arquivo carrega (§2).
  */
@@ -72,7 +72,7 @@ export function decideHk2(payload: HookPayload, env: HookEnv): Hk2Decision {
       action: 'deny',
       reason:
         `HK-2 bloqueou: \`${repoPath}\` é artefato gerado, declarado em \`generated[]\` no docs/.ownership.yml. ` +
-        'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §5 (SK-5, regra 1) — se pode ser gerado, não se escreve; ' +
+        'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §5 (SK-5, regra 1) — se pode ser gerado, não se escreve; ' +
         'uma edição à mão vive até a próxima execução do gerador e mente até lá. ' +
         `Caminho válido: mude a fonte anotada e rode \`${rule.command} > ${rule.path}\`. ` +
         'Skill dona: contract-keeper; `living-docs drift` (CI-5) verifica a deriva no PR.',
@@ -92,7 +92,7 @@ export function decideHk2(payload: HookPayload, env: HookEnv): Hk2Decision {
     action: 'deny',
     reason:
       `HK-2 bloqueou: \`${repoPath}\` abre com o marcador \`generated: do not edit\` (spec §2). ` +
-      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §5 (SK-5, regra 1) — o que é gerado muda pela fonte, não pelo arquivo. ' +
+      'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §5 (SK-5, regra 1) — o que é gerado muda pela fonte, não pelo arquivo. ' +
       'Caminho válido: mude a fonte anotada e rode o gerador. ' +
       'Este arquivo não está em `generated[]` no docs/.ownership.yml — declare-o lá, com o comando do gerador, ' +
       'para que `CI-5` (`living-docs drift`) também o cubra. Skill dona: contract-keeper.',

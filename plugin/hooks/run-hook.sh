@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Ponte host -> container para os hooks de documentação viva.
 #
-# Falha aberta por contrato (LIVING-DOCUMENTATION-TOOLKIT.md §7): container fora
+# Falha aberta por contrato (docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7): container fora
 # do ar, timeout ou erro de execução resultam em saída vazia e exit 0. Um hook
 # quebrado não pode travar o trabalho.
 #

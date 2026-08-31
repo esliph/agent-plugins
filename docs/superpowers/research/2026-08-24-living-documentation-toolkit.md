@@ -1,6 +1,6 @@
 # Toolkit de documentação viva — especificação
 
-Especificação genérica das skills, agents, hooks, comandos e checks de CI necessários para **montar** e **manter** o subconjunto de artefatos de documentação viva descrito em `LIVING-DOCUMENTATION.md`. Não é específica de nenhum repositório: a única coisa que muda de projeto para projeto é o mapa de propriedade (`SK-0`, `docs/.ownership.yml`) e os caminhos declarados nele.
+Especificação genérica das skills, agents, hooks, comandos e checks de CI necessários para **montar** e **manter** o subconjunto de artefatos de documentação viva descrito em `docs/superpowers/research/2026-08-24-living-documentation.md`. Não é específica de nenhum repositório: a única coisa que muda de projeto para projeto é o mapa de propriedade (`SK-0`, `docs/.ownership.yml`) e os caminhos declarados nele.
 
 Cada peça desta spec tem ID estável e citável — `SK-n` (skill), `AG-n` (agent), `HK-n` (hook), `CI-n` (check de CI), `CM-n` (comando). O toolkit obedece a própria regra que impõe.
 
@@ -401,7 +401,7 @@ Esqueleto de referência (`HK-1`), no runtime que o projeto já usa para hooks:
 #!/usr/bin/env python3
 """PreToolUse (Edit|Write): nega alteração de item append-only congelado.
 
-Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §4 — "nenhum estado terminal
+Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §4 — "nenhum estado terminal
 permite edição do corpo". A allowlist de campos vem de docs/.ownership.yml.
 """
 import json, os, re, sys

@@ -5,7 +5,7 @@ artefato dono e é lida de lá (`RN-0010`).
 
 ## Antes de mexer em qualquer coisa
 
-- A spec do toolkit é `LIVING-DOCUMENTATION-TOOLKIT.md`. Ela manda.
+- A spec do toolkit é `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md`. Ela manda.
 - O mapa de propriedade é `docs/.ownership.yml`. Nenhum caminho de documento se
   adivinha: lê-se de lá.
 - Como se trabalha aqui: `CONTRIBUTING.md`. Quando algo está pronto:

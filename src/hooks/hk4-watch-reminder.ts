@@ -2,7 +2,7 @@
 /**
  * PostToolUse (Edit|Write): lembra o doc dono depois de editar caminho vigiado.
  *
- * Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — mecanismo 1 no momento
+ * Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 — mecanismo 1 no momento
  * em que a informação ainda é útil. Lembrete, nunca bloqueio: a saída é
  * `additionalContext`, e este arquivo não conhece a palavra `deny`.
  */
@@ -51,7 +51,7 @@ export function decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision {
     action: 'remind',
     context:
       `HK-4: \`${repoPath}\` é caminho vigiado em \`docs/.ownership.yml\` (\`watches\`). ` +
-      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — a atualização do doc dono cabe no mesmo PR; ' +
+      'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 — a atualização do doc dono cabe no mesmo PR; ' +
       'se não couber, ela não acontece.\n' +
       `Doc dono a atualizar:\n${pending.map(describe).join('\n')}\n` +
       'Isto é lembrete, não é bloqueio: se a mudança realmente não afeta o doc, siga em frente.',

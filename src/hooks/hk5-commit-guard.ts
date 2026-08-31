@@ -3,7 +3,7 @@
  * PreToolUse (Bash): pergunta quando o staged toca caminho vigiado e não traz o
  * doc dono.
  *
- * Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — o mecanismo 1 no ponto
+ * Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 — o mecanismo 1 no ponto
  * mais barato possível. Devolve `ask`, nunca `deny`: um commit sem o doc pode
  * ser legítimo, e quem decide isso é uma pessoa.
  */
@@ -65,7 +65,7 @@ export function decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): 
     action: 'ask',
     reason:
       'HK-5: este commit leva código de caminho vigiado sem o doc dono. ' +
-      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — se a atualização da documentação não cabe no ' +
+      'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 — se a atualização da documentação não cabe no ' +
       'PR que mudou o código, ela não acontece.\n' +
       `Pendente:\n${pending.map(describe).join('\n')}\n` +
       'Caminho válido: atualize o doc agora (skill dona acima) e refaça o `git add`. ' +

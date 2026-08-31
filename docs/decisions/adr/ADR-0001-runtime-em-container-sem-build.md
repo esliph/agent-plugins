@@ -18,7 +18,7 @@ superseded-by: null
 O host de desenvolvimento não tem Node instalado e não deve passar a ter: a
 premissa do projeto é que nada além de Docker seja exigido de quem clona o
 repositório. Ao mesmo tempo, os hooks rodam a cada `Edit`/`Write` do agente e
-têm teto de 5 s (LIVING-DOCUMENTATION-TOOLKIT.md §7), o que descarta qualquer
+têm teto de 5 s (docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7), o que descarta qualquer
 solução que crie um container por invocação.
 
 ## Alternativas consideradas
