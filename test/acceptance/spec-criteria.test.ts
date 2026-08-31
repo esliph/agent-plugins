@@ -20,7 +20,7 @@ import { decideHk7 } from '../../src/hooks/hk7-shortcut-debt.ts';
 import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts';
 
 const ROOT = repoRoot();
-const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' };
+const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', marketplace: 'time/living-docs' };
 
 function seedAdr(root: string, status: string): string {
   const file = 'docs/decisions/adr/ADR-0001-teste.md';

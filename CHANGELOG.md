@@ -20,6 +20,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   `.github/workflows/living-docs.yml`, com o comando de invocação vindo de
   `--invoke` (padrão `npx living-docs`). O workflow instalado não menciona
   Docker, e um workflow que já exista é mantido.
+- `.claude-plugin/marketplace.json`: o plugin `living-docs` passa a ter caminho
+  de instalação.
+- `living-docs init --marketplace <owner/repo>` registra o plugin em
+  `.claude/settings.json` do repositório, por mesclagem — hooks e plugins que já
+  estavam lá são preservados. Sem a opção, o registro não é escrito e o `init`
+  diz o que faltou.
 - `HK-6`: no início da sessão, o inventário chega ao contexto — artefatos e
   documentos declarados e ausentes, decisões abertas, dívidas com gatilho
   cumprido e documentos vencidos. É injeção de contexto, nunca bloqueio.

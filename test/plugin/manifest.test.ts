@@ -187,3 +187,17 @@ test('decision-recorder referencia o agent decision-adversary antes da aceitaç�
   const source = readFileSync(join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'), 'utf8');
   assert.match(source, /decision-adversary/);
 });
+
+test('o manifesto de marketplace aponta para o plugin deste repositório', () => {
+  const marketplace = readJson('.claude-plugin/marketplace.json');
+  const plugins = marketplace.plugins as { name: string; source: string; version: string }[];
+
+  assert.equal(marketplace.name, 'living-docs');
+  assert.equal(plugins.length, 1);
+  assert.equal(plugins[0]?.name, 'living-docs');
+  assert.equal(plugins[0]?.source, './plugin');
+  assert.ok(existsSync(join(ROOT, 'plugin/.claude-plugin/plugin.json')), 'a fonte precisa ter manifesto');
+
+  const plugin = readJson('plugin/.claude-plugin/plugin.json');
+  assert.equal(plugins[0]?.version, plugin.version, 'duas versões é a garantia de que uma está errada');
+});

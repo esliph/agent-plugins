@@ -23,6 +23,7 @@ Opções de init:
   --id-separator <s>  Separador do ID: "-" (padrão), "_", ".", ":" ou "" (vazio)
   --id-padding <n>    Dígitos do ID: 4 (padrão), entre 2 e 6
   --invoke <comando>  Como o CLI é chamado no CI de quem instala (padrão: npx living-docs)
+  --marketplace <o/r>  Repositório do marketplace do plugin; sem ele os hooks não são registrados
   --dry-run           Mostra o que faria, sem escrever
 
 Opções de validate:
@@ -147,12 +148,20 @@ function main(argv: readonly string[]): number {
         return 2;
       }
 
+      const marketplaceIndex = argv.indexOf('--marketplace');
+      const marketplace = marketplaceIndex === -1 ? null : (argv[marketplaceIndex + 1] ?? '');
+      if (marketplace !== null && !/^[\w.-]+\/[\w.-]+$/.test(marketplace)) {
+        process.stderr.write('living-docs: `--marketplace` recebe `<owner>/<repo>` — ex.: time/living-docs.\n');
+        return 2;
+      }
+
       const result = runInit(root, {
         owner,
         dryRun: argv.includes('--dry-run'),
         stage: stage as Stage,
         idFormat: { separator, padding },
         invoke,
+        marketplace,
       });
 
       for (const entry of result.adopted) {

@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts';
 import type { DocumentRole, OwnershipConfig } from '../config/ownership.ts';
 import { parseCodeowners } from '../config/codeowners.ts';
+import { SETTINGS_PATH, SettingsError, mergeSettings } from '../config/claude-settings.ts';
 import { RETIRED_IDS_PATH } from '../ids/citations.ts';
 import { detectIdFormat } from '../ids/detect.ts';
 import type { DetectedFormat } from '../ids/detect.ts';
@@ -191,6 +192,8 @@ export interface InitOptions {
   idFormat: IdFormat;
   /** Como o CLI é chamado no CI de quem instala (`DA-0003`). */
   invoke: string;
+  /** Repositório do marketplace do plugin, ou `null` para não registrar (`DA-0003`). */
+  marketplace: string | null;
 }
 
 export interface InitResult {
@@ -511,12 +514,55 @@ export function runInit(root: string, options: InitOptions): InitResult {
   // O enforcement do estágio (`RF-0013`). Mesclar, nunca sobrescrever: o
   // workflow que já existe é de quem o escreveu.
   writeIfAbsent(root, WORKFLOW_PATH, template('workflow.yml', values), options, result);
+  declarePlugin(root, options, result);
 
   // O bloco vai no template na primeira execução; aqui é o caso de quem já tinha
   // um `.ownership.yml` — de uma versão anterior, ou de um estágio menor.
   if (existing !== null) declareDocuments(root, options, result, existing);
 
   return result;
+}
+
+/**
+ * O registro que liga os hooks na sessão (`RF-0013`).
+ *
+ * Sem `--marketplace`, nada é escrito: a fonte do marketplace não se adivinha
+ * (`DA-0003`), e o init não inventa — mesma política de `watches` e
+ * `generated[]`. Settings ilegível também não é tocado: consertar configuração
+ * alheia apaga trabalho de alguém.
+ */
+function declarePlugin(root: string, options: InitOptions, result: InitResult): void {
+  if (options.marketplace === null) {
+    result.notInstalled.push(
+      `registro do plugin em ${SETTINGS_PATH} — sem \`--marketplace <owner/repo>\` a fonte não se ` +
+        'adivinha (`DA-0003`); os hooks não sobem na sessão até ele ser declarado',
+    );
+    return;
+  }
+
+  const file = join(root, SETTINGS_PATH);
+  const current = existsSync(file) ? readFileSync(file, 'utf8') : null;
+
+  let merged;
+  try {
+    merged = mergeSettings(current, options.marketplace);
+  } catch (err) {
+    result.notInstalled.push(
+      `registro do plugin em ${SETTINGS_PATH} — ${err instanceof SettingsError ? err.message : String(err)}; ` +
+        'declare-o à mão para não perder o que já está lá',
+    );
+    return;
+  }
+
+  if (merged.added.length === 0) {
+    result.skipped.push(SETTINGS_PATH);
+    return;
+  }
+
+  result.created.push(`${SETTINGS_PATH} (${merged.added.join(', ')})`);
+  if (options.dryRun) return;
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, merged.text, 'utf8');
 }
 
 /**
