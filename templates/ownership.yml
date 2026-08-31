@@ -29,6 +29,8 @@ artifacts:
     # projeto (spec §3).
     field-map:
       resolved-by: "Resolvida por"
+      blocks: "Bloqueia"
+      gap: "Lacuna"
 
   - id-prefix: TDR
     path: {{TDR_PATH}}

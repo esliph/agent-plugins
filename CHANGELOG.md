@@ -29,6 +29,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 - `living-docs init --stage multi-team`: o estágio de múltiplos times passa a
   existir e instala a Fase 7 — o passo de `validate --base <ref>` no workflow,
   além de tudo que `production` instala.
+- `HK-8`: editar um caminho reivindicado por uma decisão aberta passa a
+  perguntar, nomeando a decisão, a lacuna e a skill dona. O campo é opcional — a
+  coluna `Bloqueia` (canônico `blocks`) na lista de decisões abertas.
 - `HK-6`: no início da sessão, o inventário chega ao contexto — artefatos e
   documentos declarados e ausentes, decisões abertas, dívidas com gatilho
   cumprido e documentos vencidos. É injeção de contexto, nunca bloqueio.
