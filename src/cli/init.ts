@@ -4,6 +4,9 @@ import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts';
 import type { DocumentRole, OwnershipConfig } from '../config/ownership.ts';
 import { parseCodeowners } from '../config/codeowners.ts';
 import { RETIRED_IDS_PATH } from '../ids/citations.ts';
+import { detectIdFormat } from '../ids/detect.ts';
+import type { DetectedFormat } from '../ids/detect.ts';
+import type { IdFormat } from '../docs/schema.ts';
 import { templatesDir } from '../core/roots.ts';
 import { todayIso } from '../core/dates.ts';
 
@@ -184,6 +187,8 @@ export interface InitOptions {
   owner: string;
   dryRun: boolean;
   stage: Stage;
+  /** A forma escrita declarada por quem instala (`ADR-0011`). */
+  idFormat: IdFormat;
 }
 
 export interface InitResult {
@@ -193,6 +198,8 @@ export interface InitResult {
   stage: Stage;
   /** O que este estágio pediria e esta versão do toolkit ainda não entrega. */
   notInstalled: string[];
+  /** A forma escrita que o inventário achou, quando difere da declarada (`RF-0014`). */
+  detected: DetectedFormat | null;
 }
 
 /**
@@ -321,6 +328,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
     adopted: [],
     stage: options.stage,
     notInstalled: [...NOT_INSTALLED[options.stage]],
+    detected: null,
   };
 
   let existing: OwnershipConfig | null = null;
@@ -340,6 +348,16 @@ export function runInit(root: string, options: InitOptions): InitResult {
   const paths = Object.fromEntries(
     kinds.map((kind) => [kind, resolvePath(root, kind, existing, result, claimed)]),
   ) as Record<Kind, string>;
+
+  // Relatar, nunca adotar em silêncio (`RF-0014`): adoção silenciosa de formato
+  // é a mesma classe de erro que adoção silenciosa de caminho.
+  const detected = detectIdFormat(root, Object.values(paths));
+  result.detected =
+    detected !== null &&
+    (detected.format.separator !== options.idFormat.separator ||
+      detected.format.padding !== options.idFormat.padding)
+      ? detected
+      : null;
 
   const requirementsCodeowners =
     options.stage === 'solo'
@@ -373,6 +391,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
         : '',
     DOCUMENTS_BLOCK: documentsBlock(root, options.owner, options.stage),
     RETIRED_CODEOWNERS: `${RETIRED_IDS_PATH}    ${options.owner}`,
+    ID_SEPARATOR: options.idFormat.separator,
+    ID_PADDING: String(options.idFormat.padding),
   };
 
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);

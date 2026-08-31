@@ -13,6 +13,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 - `id-format` em `docs/.ownership.yml`: um projeto declara como seus IDs se
   escrevem (`separator`, `padding`). Ausente, a forma continua sendo
   `<PREFIXO>-<4 dígitos>`.
+- `living-docs init --id-separator <s> --id-padding <n>`: declara a forma escrita
+  dos IDs do projeto. `--dry-run` relata a forma que o repositório já usa, sem
+  alterar arquivo nenhum.
 - `HK-6`: no início da sessão, o inventário chega ao contexto — artefatos e
   documentos declarados e ausentes, decisões abertas, dívidas com gatilho
   cumprido e documentos vencidos. É injeção de contexto, nunca bloqueio.

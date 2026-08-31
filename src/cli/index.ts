@@ -6,6 +6,7 @@ import { runInit, STAGES } from './init.ts';
 import type { Stage } from './init.ts';
 import { formatFindings } from './report.ts';
 import { OwnershipError } from '../config/ownership.ts';
+import { DEFAULT_ID_FORMAT, PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts';
 import { GitError } from '../git/diff.ts';
 import { repoRoot } from '../core/roots.ts';
 
@@ -19,6 +20,8 @@ const USAGE = `living-docs <comando>
 Opções de init:
   --owner <@handle>   Dono padrão dos artefatos criados
   --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team ou production
+  --id-separator <s>  Separador do ID: "-" (padrão), "_", ".", ":" ou "" (vazio)
+  --id-padding <n>    Dígitos do ID: 4 (padrão), entre 2 e 6
   --dry-run           Mostra o que faria, sem escrever
 
 Opções de validate:
@@ -116,10 +119,41 @@ function main(argv: readonly string[]): number {
         return 2;
       }
 
-      const result = runInit(root, { owner, dryRun: argv.includes('--dry-run'), stage: stage as Stage });
+      const separatorIndex = argv.indexOf('--id-separator');
+      const separator = separatorIndex === -1 ? DEFAULT_ID_FORMAT.separator : (argv[separatorIndex + 1] ?? '');
+      const paddingIndex = argv.indexOf('--id-padding');
+      const padding =
+        paddingIndex === -1 ? DEFAULT_ID_FORMAT.padding : Number.parseInt(argv[paddingIndex + 1] ?? '', 10);
+      if (
+        !SEPARATORS_ALLOWED.includes(separator) ||
+        !Number.isInteger(padding) ||
+        padding < PADDING_RANGE.min ||
+        padding > PADDING_RANGE.max
+      ) {
+        process.stderr.write(
+          `living-docs: forma de ID inválida. --id-separator aceita ${SEPARATORS_ALLOWED.map((s) => `"${s}"`).join(', ')} ` +
+            `e --id-padding um inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).\n`,
+        );
+        return 2;
+      }
+
+      const result = runInit(root, {
+        owner,
+        dryRun: argv.includes('--dry-run'),
+        stage: stage as Stage,
+        idFormat: { separator, padding },
+      });
 
       for (const entry of result.adopted) {
         process.stdout.write(`adotado   ${entry.path}  (${entry.idPrefix} — já existia; nenhum paralelo criado)\n`);
+      }
+      if (result.detected !== null) {
+        const { format, count, sample } = result.detected;
+        process.stdout.write(
+          `formato   ${sample}  (${count} ocorrência(s) nesta forma) — o repositório escreve IDs de outro jeito.\n` +
+            `          Para adotá-la: --id-separator "${format.separator}" --id-padding ${format.padding}. ` +
+            'Nenhum arquivo foi alterado (RF-0014).\n',
+        );
       }
       for (const path of result.created) process.stdout.write(`criado    ${path}\n`);
       for (const path of result.skipped) process.stdout.write(`mantido   ${path}\n`);

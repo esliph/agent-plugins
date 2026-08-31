@@ -1,3 +1,4 @@
+import { DEFAULT_ID_FORMAT } from '../../src/docs/schema.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -19,7 +20,7 @@ import { decideHk7 } from '../../src/hooks/hk7-shortcut-debt.ts';
 import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts';
 
 const ROOT = repoRoot();
-const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const };
+const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT };
 
 function seedAdr(root: string, status: string): string {
   const file = 'docs/decisions/adr/ADR-0001-teste.md';
@@ -404,5 +405,35 @@ test('critério 5, metade 2: o CI sinaliza pelo `watches`, e a razão escrita li
 
     // e sem base, essa metade não roda
     assert.equal(runValidate(root).exitCode, 0);
+  });
+});
+
+test('critério 1 (fechamento): o inventário relata a forma detectada e não toca em arquivo nenhum', () => {
+  const preexistente = [
+    '---',
+    'title: Regras',
+    'owner: "@time"',
+    'trigger: A toda regra nova ou alterada.',
+    'last-reviewed: 2026-08-28',
+    '---',
+    '',
+    '## RN001 — Uma regra',
+    '- **status:** active',
+    '',
+    '## RN002 — Outra',
+    '- **status:** active',
+    '',
+  ].join('\n');
+
+  withTempRepo({ 'docs/business-rules.md': preexistente }, (root) => {
+    const antes = readFileSync(join(root, 'docs/business-rules.md'), 'utf8');
+
+    const result = runInit(root, { ...OPTIONS, stage: 'small-team', dryRun: true });
+
+    assert.ok(result.adopted.some((entry) => entry.path === 'docs/business-rules.md'));
+    assert.ok(result.detected, 'a forma detectada precisa ser relatada');
+    assert.deepEqual(result.detected.format, { separator: '', padding: 3 });
+    assert.ok(result.detected.count >= 2);
+    assert.equal(readFileSync(join(root, 'docs/business-rules.md'), 'utf8'), antes);
   });
 });
