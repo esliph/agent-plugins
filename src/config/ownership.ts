@@ -64,6 +64,8 @@ export interface DocumentRule {
 export interface OwnershipConfig {
   version: number;
   staleAfterMonths: number;
+  /** Quantos documentos com bump de data seco reprovam (`ADR-0013`, `RN-0027`). */
+  lastReviewedBumpLimit: number;
   /** A forma escrita dos IDs deste projeto (`ADR-0011`). Nunca a identidade. */
   idFormat: IdFormat;
   artifacts: ArtifactRule[];
@@ -192,6 +194,23 @@ function parseArtifact(raw: unknown, index: number): ArtifactRule {
   };
 }
 
+/**
+ * O limiar de bump em massa (`ADR-0013`). Piso 2, e não 1: um documento revisado
+ * de verdade atualiza a data, e limiar 1 reprovaria o mecanismo funcionando.
+ */
+export const DEFAULT_BUMP_LIMIT = 3;
+
+function parseBumpLimit(raw: unknown): number {
+  if (raw === undefined || raw === null) return DEFAULT_BUMP_LIMIT;
+  if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
+    throw new OwnershipError(
+      `${OWNERSHIP_PATH}: last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 ` +
+        '(limiar 1 reprovaria a revisão legítima de um documento só — ADR-0013).',
+    );
+  }
+  return raw;
+}
+
 export function parseOwnership(source: string): OwnershipConfig {
   let raw: unknown;
   try {
@@ -275,6 +294,7 @@ export function parseOwnership(source: string): OwnershipConfig {
   return {
     version: 1,
     staleAfterMonths: typeof staleAfterMonths === 'number' ? staleAfterMonths : 6,
+    lastReviewedBumpLimit: parseBumpLimit(root['last-reviewed-bump-limit']),
     idFormat: parseIdFormat(root['id-format']),
     artifacts,
     documents,

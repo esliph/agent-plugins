@@ -22,12 +22,12 @@ verifica não pertence a esta lista — vira intenção, e intenção não é de
 - [ ] Nenhum item congelado foi editado no corpo — verificação: `HK-1`.
 - [ ] Nenhum artefato gerado foi editado à mão, e o contrato regenerado está no mesmo commit — verificação: `HK-2` (bloqueia) e `CI-5` (`living-docs drift`).
 - [ ] A mudança visível ao consumidor levou a entrada em `## [Unreleased]`, ou a razão escrita no commit — verificação: `CI-6` (`living-docs changelog --base <ref>`).
-- [ ] A mensagem de commit cita o ID afetado — verificação: humana.
+- [ ] A mensagem de commit cita o ID afetado — verificação: `CI-9` (`living-docs validate --base <ref>`).
 - [ ] Todo documento novo foi declarado em `docs/.ownership.yml` e no CODEOWNERS — verificação: `CI-7`.
 - [ ] Nenhum link interno ficou quebrado, e nenhum anexo binário entrou sob `docs/` — verificação: `CI-8`.
 - [ ] A dívida registrada declara `pay-when`, e nenhuma dívida com gatilho cumprido continua `open` — verificação: `CI-4`.
 - [ ] O caminho vigiado que mudou levou o doc dono, ou a razão escrita no commit — verificação: `HK-5` pergunta, `CI-7` reprova (`living-docs validate --base <ref>`).
-- [ ] `npm test`, `npm run typecheck`, `living-docs validate --base <ref>`, `living-docs drift` e `living-docs changelog --base <ref>` passam no container — verificação: `CI-1` a `CI-8`, rodados pelo workflow do repositório.
+- [ ] `npm test`, `npm run typecheck`, `living-docs validate --base <ref>`, `living-docs drift` e `living-docs changelog --base <ref>` passam no container — verificação: `CI-1` a `CI-9`, rodados pelo workflow do repositório.
 
 ## O que esta lista não é
 

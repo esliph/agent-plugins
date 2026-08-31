@@ -74,4 +74,11 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     failsWhen:
       'Link interno relativo que não resolve para arquivo ou diretório existente; `[[wikilink]]` sem destino no corpus; arquivo em formato binário sob a raiz da documentação. Link dentro de bloco de código ou de marcação inline não conta.',
   },
+  {
+    id: 'CI-9',
+    name: 'commit discipline',
+    command: 'living-docs validate',
+    failsWhen:
+      'Com `--base <ref>`: o diff altera apenas a data de revisão de `last-reviewed-bump-limit` documentos ou mais, sem outra mudança no corpo de nenhum deles; ou altera um arquivo de artefato e nenhuma mensagem de commit do diff cita um dos IDs declarados nele.',
+  },
 ]);

@@ -61,6 +61,13 @@ test('normaliza kebab-case do YAML para camelCase tipado', () => {
   assert.equal(adr.states, null);
 });
 
+test('RN-0027: last-reviewed-bump-limit tem padrao 3 e piso 2', () => {
+  const base = 'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/adr/\n    owner: "@t"\n    skill: s\n';
+  assert.equal(parseOwnership(base).lastReviewedBumpLimit, 3);
+  assert.equal(parseOwnership(`${base}last-reviewed-bump-limit: 5\n`).lastReviewedBumpLimit, 5);
+  assert.throws(() => parseOwnership(`${base}last-reviewed-bump-limit: 1\n`), /maior ou igual a 2/);
+});
+
 test('aplica os defaults de collection, append-only e cited-by', () => {
   const config = parseOwnership(VALID);
   const da = config.artifacts[1];

@@ -1,7 +1,7 @@
 import { loadOwnership } from '../config/ownership.ts';
 import { collectArtifacts, collectDocuments } from '../docs/collect.ts';
 import { validateChecks } from '../checks/registry.ts';
-import { changedPaths, commitMessages } from '../git/diff.ts';
+import { changedLines, changedPaths, commitMessages } from '../git/diff.ts';
 import type { GitRunner } from '../git/staged.ts';
 import { todayIso } from '../core/dates.ts';
 import { forgetTree } from '../core/files.ts';
@@ -46,7 +46,12 @@ export function runValidate(root: string, base: string | null = null, run?: GitR
   const diff =
     base === null
       ? null
-      : { base, changed: changedPaths(root, base, run), messages: commitMessages(root, base, run) };
+      : {
+          base,
+          changed: changedPaths(root, base, run),
+          messages: commitMessages(root, base, run),
+          edits: changedLines(root, base, run),
+        };
 
   const findings = validateChecks(diff).flatMap((check) => check.run(context));
   const errors = findings.filter((finding) => finding.severity === 'error').length;

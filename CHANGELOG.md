@@ -10,6 +10,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Added
 
+- `CI-9` (`living-docs validate --base <ref>`): reprova o diff que só altera a
+  data de revisão de vários documentos, e o que altera um arquivo de artefato sem
+  que nenhuma mensagem de commit cite um ID declarado nele.
+- `last-reviewed-bump-limit` em `docs/.ownership.yml`: quantos documentos com
+  bump de data seco reprovam. Padrão 3, piso 2.
 - `id-format` em `docs/.ownership.yml`: um projeto declara como seus IDs se
   escrevem (`separator`, `padding`). Ausente, a forma continua sendo
   `<PREFIXO>-<4 dígitos>`.

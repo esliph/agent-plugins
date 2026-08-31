@@ -390,8 +390,11 @@ test('critério 5, metade 2: o CI sinaliza pelo `watches`, e a razão escrita li
     assert.ok(finding);
     assert.match(finding.message, /src\/domain\/reembolso\.ts/);
 
-    // com o doc no mesmo diff: passa
-    const comDoc = git(['src/domain/reembolso.ts', 'docs/requirements/rules.md'], ['feat: reembolso']);
+    // com o doc no mesmo diff: passa (a mensagem cita o ID do artefato tocado — CI-9)
+    const comDoc = git(
+      ['src/domain/reembolso.ts', 'docs/requirements/rules.md'],
+      ['feat(RN-0001): reembolso'],
+    );
     assert.equal(runValidate(root, 'origin/master', comDoc).exitCode, 0);
 
     // com a razão escrita no histórico: passa
@@ -507,5 +510,99 @@ test('critério 4 da spec §12: comportamento sem regra é perguntado na ediçã
 
     // Sem base, esta metade não roda.
     assert.equal(runValidate(root).exitCode, 0);
+  });
+});
+
+const fakeGit =
+  (changed: string[], messages: string[], patch = '') =>
+  (args: readonly string[]): string => {
+    if (args.includes('log')) return messages.join(`${NUL}\n`) + NUL + '\n';
+    if (args.includes('--unified=0')) return patch;
+    return changed.join(NUL) + NUL;
+  };
+
+const bumpPatch = (paths: string[]): string =>
+  paths
+    .flatMap((path) => [
+      `diff --git a/${path} b/${path}`,
+      `--- a/${path}`,
+      `+++ b/${path}`,
+      '@@ -5 +5 @@',
+      '-last-reviewed: 2026-01-01',
+      '+last-reviewed: 2026-08-31',
+    ])
+    .join('\n');
+
+const REGRAS_COM_RN_0001 = [
+  '---',
+  'title: Regras',
+  'owner: "@time"',
+  'trigger: Antes de implementar comportamento novo.',
+  'last-reviewed: 2026-08-31',
+  '---',
+  '',
+  '## RN-0001 — Centavos arredondam para cima',
+  '',
+  '- **status:** draft',
+  '',
+  'Prosa.',
+  '',
+].join('\n');
+
+const OWNERSHIP_COM_REGRAS = [
+  'version: 1',
+  'artifacts:',
+  '  - id-prefix: RN',
+  '    path: docs/requirements/rules.md',
+  '    owner: "@time"',
+  '    skill: requirements-keeper',
+  '    collection: sections',
+  'documents:',
+  '  - path: docs/.ownership.yml',
+  '    owner: "@time"',
+  '    skill: living-docs-bootstrap',
+  '',
+].join('\n');
+
+test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () => {
+  const arvore = {
+    [OWNERSHIP_PATH]: OWNERSHIP_COM_REGRAS,
+    CODEOWNERS: 'docs/    @time\n',
+    'docs/requirements/rules.md': REGRAS_COM_RN_0001,
+  };
+
+  withTempRepo(arvore, (root) => {
+    // Criterio 7 — tres documentos que so mudaram a data.
+    const bumps = ['docs/a.md', 'docs/b.md', 'docs/c.md'];
+    const massa = runValidate(
+      root,
+      'origin/master',
+      fakeGit(bumps, ['chore: revisao geral'], bumpPatch(bumps)),
+    );
+    const bumpFinding = massa.findings.find((f) => f.ruleId === 'CI-9' && /last-reviewed/.test(f.message));
+    assert.ok(bumpFinding, JSON.stringify(massa.findings, null, 2));
+    assert.equal(massa.exitCode, 1);
+
+    // Criterio 8 — artefato alterado sem o ID na mensagem.
+    const semCitacao = runValidate(
+      root,
+      'origin/master',
+      fakeGit(['docs/requirements/rules.md'], ['docs: ajusta a prosa']),
+    );
+    assert.ok(
+      semCitacao.findings.some((f) => f.ruleId === 'CI-9' && /RN-0001/.test(f.message)),
+      JSON.stringify(semCitacao.findings, null, 2),
+    );
+
+    // E citar o ID em qualquer commit do diff basta.
+    const comCitacao = runValidate(
+      root,
+      'origin/master',
+      fakeGit(['docs/requirements/rules.md'], ['docs(RN-0001): o caso do negativo']),
+    );
+    assert.deepEqual(comCitacao.findings.filter((f) => f.ruleId === 'CI-9'), []);
+
+    // Sem base, CI-9 nao roda.
+    assert.deepEqual(runValidate(root).findings.filter((f) => f.ruleId === 'CI-9'), []);
   });
 });
