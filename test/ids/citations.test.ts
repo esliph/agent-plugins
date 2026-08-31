@@ -30,3 +30,14 @@ test('ausência do registro devolve conjunto vazio', () => {
     assert.equal(loadRetiredIds(root).size, 0);
   });
 });
+
+test('RN-0024: findCitations reconhece a forma declarada pelo projeto', () => {
+  const texto = 'A RN009 diz, e a RN-0009 não é citação neste projeto.';
+  const achadas = findCitations(texto, { separator: '', padding: 3 }).map((c) => c.id);
+  assert.deepEqual(achadas, ['RN009']);
+});
+
+test('RN-0024: sem formato declarado, a varredura é a de sempre', () => {
+  const achadas = findCitations('cita ADR-0001 e DA-007').map((c) => c.id);
+  assert.deepEqual(achadas, ['ADR-0001', 'DA-007']);
+});

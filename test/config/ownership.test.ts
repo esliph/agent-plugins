@@ -307,3 +307,22 @@ test('documentWithRole acha o documento pelo papel, sem conhecer caminho nenhum'
   const semContrato = parseOwnership(COM_DOCUMENTOS.replace('    role: agent-contract\n', ''));
   assert.equal(documentWithRole(semContrato, 'agent-contract'), null);
 });
+
+/** A configuração mínima válida que este arquivo já usa (`ADR-0011`). */
+const MINIMO = VALID;
+
+test('RN-0024: id-format ausente é a forma do toolkit', () => {
+  const config = parseOwnership(MINIMO);
+  assert.deepEqual(config.idFormat, { separator: '-', padding: 4 });
+});
+
+test('RN-0024: id-format declarado é lido, e o inválido é erro e não padrão silencioso', () => {
+  const config = parseOwnership(`${MINIMO}\nid-format:\n  separator: ""\n  padding: 3\n`);
+  assert.deepEqual(config.idFormat, { separator: '', padding: 3 });
+
+  assert.throws(
+    () => parseOwnership(`${MINIMO}\nid-format:\n  separator: "~"\n`),
+    /separator "~" não é aceito/,
+  );
+  assert.throws(() => parseOwnership(`${MINIMO}\nid-format:\n  padding: 9\n`), /padding "9"/);
+});

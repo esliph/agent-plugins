@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import YAML from 'yaml';
 import { isEmptyValue, normalizeKey } from '../docs/item.ts';
 import type { DocItem } from '../docs/item.ts';
+import { DEFAULT_ID_FORMAT, PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts';
+import type { IdFormat } from '../docs/schema.ts';
 
 export const OWNERSHIP_PATH = 'docs/.ownership.yml';
 
@@ -62,6 +64,8 @@ export interface DocumentRule {
 export interface OwnershipConfig {
   version: number;
   staleAfterMonths: number;
+  /** A forma escrita dos IDs deste projeto (`ADR-0011`). Nunca a identidade. */
+  idFormat: IdFormat;
   artifacts: ArtifactRule[];
   documents: DocumentRule[];
   generated: GeneratedRule[];
@@ -77,6 +81,39 @@ export class OwnershipError extends Error {
 }
 
 const ID_PREFIX = /^[A-Z]{2,4}$/;
+
+/**
+ * A forma escrita dos IDs deste projeto (`ADR-0011`, `RN-0024`). Ausente, é a
+ * do toolkit — e o padrão existe para que nenhum repositório já instalado
+ * precise declarar nada.
+ */
+function parseIdFormat(raw: unknown): IdFormat {
+  if (raw === undefined || raw === null) return DEFAULT_ID_FORMAT;
+  const item = asRecord(raw, 'id-format');
+
+  const separator = item.separator ?? DEFAULT_ID_FORMAT.separator;
+  if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
+    throw new OwnershipError(
+      `${OWNERSHIP_PATH}: id-format.separator "${String(separator)}" não é aceito. ` +
+        `Válidos: ${SEPARATORS_ALLOWED.map((value) => `"${value}"`).join(', ')} (ADR-0011).`,
+    );
+  }
+
+  const padding = item.padding ?? DEFAULT_ID_FORMAT.padding;
+  if (
+    typeof padding !== 'number' ||
+    !Number.isInteger(padding) ||
+    padding < PADDING_RANGE.min ||
+    padding > PADDING_RANGE.max
+  ) {
+    throw new OwnershipError(
+      `${OWNERSHIP_PATH}: id-format.padding "${String(padding)}" precisa ser inteiro entre ` +
+        `${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).`,
+    );
+  }
+
+  return { separator, padding };
+}
 
 function asRecord(value: unknown, where: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
@@ -238,6 +275,7 @@ export function parseOwnership(source: string): OwnershipConfig {
   return {
     version: 1,
     staleAfterMonths: typeof staleAfterMonths === 'number' ? staleAfterMonths : 6,
+    idFormat: parseIdFormat(root['id-format']),
     artifacts,
     documents,
     generated,
