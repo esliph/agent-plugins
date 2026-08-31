@@ -26,6 +26,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   `.claude/settings.json` do repositório, por mesclagem — hooks e plugins que já
   estavam lá são preservados. Sem a opção, o registro não é escrito e o `init`
   diz o que faltou.
+- `living-docs init --stage multi-team`: o estágio de múltiplos times passa a
+  existir e instala a Fase 7 — o passo de `validate --base <ref>` no workflow,
+  além de tudo que `production` instala.
 - `HK-6`: no início da sessão, o inventário chega ao contexto — artefatos e
   documentos declarados e ausentes, decisões abertas, dívidas com gatilho
   cumprido e documentos vencidos. É injeção de contexto, nunca bloqueio.

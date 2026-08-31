@@ -14,12 +14,13 @@ import { todayIso } from '../core/dates.ts';
 const TEMPLATES_DIR = templatesDir();
 
 /**
- * Estágios de maturidade (spec §10, SK-0 passo 2). Cada estágio instala o
- * conjunto mínimo que ele pede — e nada além. Um estágio que instala moldura
- * vazia é a wiki morta nascendo de fábrica, por isso `production` e `multi-team`
- * só entram junto com as fases que os preenchem.
+ * Estágios de maturidade (spec §10, `SK-0` passo 2). Cada estágio instala o
+ * conjunto mínimo que ele pede — e nada além. `multi-team` existe desde o
+ * fechamento porque passa a ter enforcement atrás dele: é o estágio que instala
+ * a Fase 7 (`RN-0025`, `ADR-0012`). Um rótulo sem conteúdo é a wiki morta
+ * nascendo de fábrica.
  */
-export const STAGES = ['solo', 'small-team', 'production'] as const;
+export const STAGES = ['solo', 'small-team', 'production', 'multi-team'] as const;
 export type Stage = (typeof STAGES)[number];
 
 type Kind = 'ADR' | 'DA' | 'TDR' | 'RF' | 'RNF' | 'RN' | 'REL';
@@ -125,7 +126,7 @@ function documentSeeds(root: string, stage: Stage): DocumentSeed[] {
     ...SMALL_TEAM_DOCUMENTS,
     { path: agentContractPath(root), skill: 'working-agreements-keeper', role: 'agent-contract' },
   ];
-  if (stage === 'production') seeds.push(...PRODUCTION_DOCUMENTS);
+  if (reaches(stage, 5)) seeds.push(...PRODUCTION_DOCUMENTS);
   return seeds;
 }
 
@@ -218,7 +219,13 @@ const STAGE_PHASES: Readonly<Record<Stage, readonly number[]>> = Object.freeze({
   solo: [0, 1],
   'small-team': [0, 1, 2, 3, 4],
   production: [0, 1, 2, 3, 4, 5, 6],
+  'multi-team': [0, 1, 2, 3, 4, 5, 6, 7],
 });
+
+/** Este estágio chega até a fase dada? É a pergunta que substitui comparar strings. */
+function reaches(stage: Stage, phase: number): boolean {
+  return STAGE_PHASES[stage].includes(phase);
+}
 
 /**
  * Os passos que este estágio acrescenta ao `validate`, que todo estágio roda.
@@ -242,6 +249,17 @@ function workflowSteps(stage: Stage, invoke: string): string {
     );
   }
 
+  if (phases.includes(7)) {
+    steps.push(
+      [
+        '',
+        '      - name: CI-7 — vínculo código→doc no diff do PR',
+        "        if: github.event_name == 'pull_request'",
+        `        run: ${invoke} validate --base \${{ github.event.pull_request.base.sha }}`,
+      ].join('\n'),
+    );
+  }
+
   return steps.length === 0 ? '' : `${steps.join('\n')}\n`;
 }
 
@@ -254,6 +272,8 @@ const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
   'small-team': [],
   // `production` cobre as Fases 5 e 6 da spec §10, e as duas existem.
   production: [],
+  // `multi-team` cobre a Fase 7 da spec §10, e ela existe.
+  'multi-team': [],
 });
 
 function template(name: string, values: Record<string, string>): string {
@@ -347,7 +367,7 @@ function requirementsBlock(owner: string, paths: Record<Kind, string>, stage: St
 
 /** O artefato REL do `.ownership.yml`, ou vazio fora do estágio `production`. */
 function releasesBlock(owner: string, path: string, stage: Stage): string {
-  if (stage !== 'production') return '';
+  if (!reaches(stage, 6)) return '';
 
   return (
     '\n' +
@@ -385,7 +405,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
   const kinds: Kind[] =
     options.stage === 'solo'
       ? ['ADR', 'DA', 'TDR']
-      : options.stage === 'production'
+      : reaches(options.stage, 6)
         ? ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS, 'REL']
         : ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS];
   const paths = Object.fromEntries(
@@ -426,10 +446,10 @@ export function runInit(root: string, options: InitOptions): InitResult {
           `${agentContractPath(root)}    ${options.owner}\ndocs/glossary.md    ${options.owner}\n` +
           `docs/charter/    ${options.owner}\n`,
     CONTRACTS_CODEOWNERS:
-      options.stage === 'production' ? `docs/contracts/    ${options.owner}\n` : '',
+      reaches(options.stage, 5) ? `docs/contracts/    ${options.owner}\n` : '',
     RELEASES_BLOCK: releasesBlock(options.owner, paths.REL ?? DEFAULT_PATHS.REL, options.stage),
     HISTORY_CODEOWNERS:
-      options.stage === 'production'
+      reaches(options.stage, 6)
         ? `CHANGELOG.md    ${options.owner}\ndocs/deprecations.md    ${options.owner}\ndocs/releases/    ${options.owner}\ndocs/migrations/    ${options.owner}\n`
         : '',
     DOCUMENTS_BLOCK: documentsBlock(root, options.owner, options.stage),
@@ -482,7 +502,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
       writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result);
     }
 
-    if (options.stage === 'production') {
+    if (reaches(options.stage, 5)) {
       for (const contract of CONTRACTS) {
         writeIfAbsent(root, contract.path, template(contract.template, values), options, result);
       }

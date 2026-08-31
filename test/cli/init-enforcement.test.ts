@@ -109,3 +109,31 @@ test('RF-0013: sem --marketplace, o registro não é inventado — é relatado',
     assert.ok(result.notInstalled.some((linha) => linha.includes('DA-0003')));
   });
 });
+
+test('critério 5: multi-team instala o enforcement da Fase 7', () => {
+  withTempRepo({}, (root) => {
+    const result = runInit(root, { ...OPTIONS, stage: 'multi-team' });
+
+    const yaml = readFileSync(join(root, WORKFLOW), 'utf8');
+    assert.match(yaml, /npx living-docs validate --base/, 'a metade de CI-7 que lê o diff é a Fase 7');
+    assert.match(yaml, /npx living-docs drift/);
+    assert.match(yaml, /npx living-docs changelog --base/);
+    assert.deepEqual(result.notInstalled, [], 'as sete fases existem: nada fica de fora');
+  });
+});
+
+test('RN-0025: multi-team instala tudo que production instala', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { ...OPTIONS, stage: 'multi-team' });
+    for (const path of ['CHANGELOG.md', 'docs/contracts/errors.md', 'docs/deprecations.md']) {
+      assert.ok(existsSync(join(root, path)), `${path} deveria existir no estágio multi-team`);
+    }
+  });
+});
+
+test('RN-0025: production não instala o passo da Fase 7', () => {
+  withTempRepo({}, (root) => {
+    runInit(root, { ...OPTIONS, stage: 'production' });
+    assert.doesNotMatch(readFileSync(join(root, WORKFLOW), 'utf8'), /validate --base/);
+  });
+});
