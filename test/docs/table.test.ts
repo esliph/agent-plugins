@@ -61,3 +61,20 @@ test('o item traz todas as colunas, normalizadas', () => {
   assert.equal(items[0]?.fields['resolvida por'], 'ADR-0007');
   assert.equal(items[0]?.fields['lacuna'], 'X');
 });
+
+test('RN-0024: a linha da tabela é lida na forma escrita do projeto', () => {
+  const semHifen = [
+    '| ID | Lacuna | Status |',
+    '| --- | --- | --- |',
+    '| DA001 | Uma lacuna | open |',
+    '',
+  ].join('\n');
+  const format = { separator: '', padding: 3 };
+
+  const items = parseItemTable(semHifen, 1, format);
+  assert.equal(items.length, 1);
+  assert.equal(items[0]?.id, 'DA001');
+  assert.equal(items[0]?.status, 'open');
+
+  assert.deepEqual(parseItemTable(semHifen, 1), [], 'a forma padrão não reconhece a do projeto');
+});

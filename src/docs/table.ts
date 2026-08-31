@@ -1,4 +1,5 @@
-import { parseId } from './schema.ts';
+import { DEFAULT_ID_FORMAT, parseId } from './schema.ts';
+import type { IdFormat } from './schema.ts';
 import { normalizeKey } from './item.ts';
 import type { DocItem } from './item.ts';
 
@@ -25,7 +26,11 @@ function isSeparator(row: string): boolean {
  * pergunta por um campo canônico ("resolved-by") passa pelo `field-map` do
  * artefato — nome de coluna em português é do projeto, não do check.
  */
-export function parseItemTable(source: string, startLine: number): DocItem[] {
+export function parseItemTable(
+  source: string,
+  startLine: number,
+  format: IdFormat = DEFAULT_ID_FORMAT,
+): DocItem[] {
   const lines = source.replace(/\r\n/g, '\n').split('\n');
 
   for (let i = 0; i < lines.length; i++) {
@@ -40,7 +45,7 @@ export function parseItemTable(source: string, startLine: number): DocItem[] {
       const row = cells(lines[j] ?? '');
       if (row.length === 0) break;
       const id = row[idColumn] ?? '';
-      if (!parseId(id)) continue;
+      if (!parseId(id, format)) continue;
 
       const fields: Record<string, string> = {};
       for (let c = 0; c < header.length; c++) {

@@ -39,8 +39,13 @@ const SHORTCUT_MARKERS: readonly RegExp[] = Object.freeze([
   /\bskip:\s*true\b/,
 ]);
 
-/** Citação de dívida. Mesmo formato da spec §8, restrito ao prefixo TDR. */
-const DEBT = /\bTDR-\d{3,4}\b/;
+/**
+ * Citação de dívida, em qualquer forma escrita (`ADR-0011`). Este hook continua
+ * sem ler o `.ownership.yml` de propósito: marcador de atalho é sintaxe da
+ * linguagem, não caminho de projeto — e reconhecer `TDR001` e `TDR-0001` não
+ * exige configuração nenhuma.
+ */
+const DEBT = /\bTDR-?\d{2,}\b/;
 
 /** Janela de vizinhança: o comentário que registra a dívida costuma estar colado. */
 const NEAR_LINES = 2;

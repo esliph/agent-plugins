@@ -1,5 +1,6 @@
 import type { Check, CheckContext, Finding } from '../core/types.ts';
 import type { ArtifactDoc } from '../docs/collect.ts';
+import type { IdFormat } from '../docs/schema.ts';
 import {
   REQUIRED_FIELDS,
   CONTAINER_REQUIRED_FIELDS,
@@ -7,6 +8,7 @@ import {
   isIsoDate,
   parseId,
   statesFor,
+  writeId,
 } from '../docs/schema.ts';
 
 const RULE = 'CI-1';
@@ -21,7 +23,7 @@ function isFilled(value: unknown): boolean {
   return true;
 }
 
-function checkDoc(doc: ArtifactDoc): Finding[] {
+function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
   const findings: Finding[] = [];
 
   if (doc.syntaxError) {
@@ -66,14 +68,14 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
   }
 
   if (!isContainer && isFilled(data.id)) {
-    const parsed = parseId(data.id);
+    const parsed = parseId(data.id, format);
     if (!parsed) {
       findings.push(
         error(
           doc.file,
           lineOf('id'),
           `\`id\` "${String(data.id)}" fora do formato <PREFIXO>-<número>.`,
-          `Use ${doc.rule.idPrefix}-0001 (spec §8).`,
+          `Use ${writeId(doc.rule.idPrefix, 1, format)} (spec §8).`,
         ),
       );
     } else if (parsed.prefix !== doc.rule.idPrefix) {
@@ -82,7 +84,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
           doc.file,
           lineOf('id'),
           `\`id\` usa o prefixo ${parsed.prefix}, mas ${doc.rule.path} é território de ${doc.rule.idPrefix}.`,
-          `Renomeie para ${doc.rule.idPrefix}-... ou mova o arquivo para o artefato dono.`,
+          `Renomeie para o território de ${doc.rule.idPrefix} (ex.: ${writeId(doc.rule.idPrefix, 1, format)}) ` +
+            'ou mova o arquivo para o artefato dono.',
         ),
       );
     }
@@ -180,6 +183,6 @@ export const ci1Structure: Check = {
   id: RULE,
   name: 'structure lint',
   run(context: CheckContext): Finding[] {
-    return context.docs.flatMap(checkDoc);
+    return context.docs.flatMap((doc) => checkDoc(doc, context.config.idFormat));
   },
 };

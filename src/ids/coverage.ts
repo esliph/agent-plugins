@@ -1,4 +1,6 @@
 import { listFiles, readTextFile } from '../core/files.ts';
+import { DEFAULT_ID_FORMAT } from '../docs/schema.ts';
+import type { IdFormat } from '../docs/schema.ts';
 import { findCitations } from './citations.ts';
 
 export interface CitationSite {
@@ -15,7 +17,11 @@ export interface CitationSite {
  * A varredura da árvore e a leitura segura moram em `src/core/files.ts` desde a
  * Fase 7: `CI-4`, `CI-7` e `CI-8` fazem a mesma caminhada.
  */
-export function scanCitations(root: string, globs: readonly string[]): Map<string, CitationSite[]> {
+export function scanCitations(
+  root: string,
+  globs: readonly string[],
+  format: IdFormat = DEFAULT_ID_FORMAT,
+): Map<string, CitationSite[]> {
   const sites = new Map<string, CitationSite[]>();
   if (globs.length === 0) return sites;
 
@@ -23,7 +29,7 @@ export function scanCitations(root: string, globs: readonly string[]): Map<strin
     const content = readTextFile(root, file);
     if (content === null) continue;
 
-    for (const citation of findCitations(content)) {
+    for (const citation of findCitations(content, format)) {
       const list = sites.get(citation.id) ?? [];
       list.push({ file, line: citation.line });
       sites.set(citation.id, list);
