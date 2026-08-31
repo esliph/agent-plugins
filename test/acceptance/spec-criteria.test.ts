@@ -1,3 +1,4 @@
+import { DEFAULT_ID_FORMAT } from '../../src/docs/schema.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -17,9 +18,10 @@ import { repoRoot } from '../../src/core/roots.ts';
 import { runChangelog } from '../../src/cli/changelog.ts';
 import { decideHk7 } from '../../src/hooks/hk7-shortcut-debt.ts';
 import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts';
+import { decideHk8 } from '../../src/hooks/hk8-open-decision-guard.ts';
 
 const ROOT = repoRoot();
-const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const };
+const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', marketplace: 'time/living-docs' };
 
 function seedAdr(root: string, status: string): string {
   const file = 'docs/decisions/adr/ADR-0001-teste.md';
@@ -301,7 +303,7 @@ function regras(status: string): string {
     '---',
     'title: Regras',
     'owner: "@team"',
-    'trigger: A toda regra nova ou alterada.',
+    'trigger: Antes de implementar qualquer comportamento, e a toda regra nova ou alterada.',
     'last-reviewed: 2026-08-20',
     '---',
     '',
@@ -388,8 +390,11 @@ test('critério 5, metade 2: o CI sinaliza pelo `watches`, e a razão escrita li
     assert.ok(finding);
     assert.match(finding.message, /src\/domain\/reembolso\.ts/);
 
-    // com o doc no mesmo diff: passa
-    const comDoc = git(['src/domain/reembolso.ts', 'docs/requirements/rules.md'], ['feat: reembolso']);
+    // com o doc no mesmo diff: passa (a mensagem cita o ID do artefato tocado — CI-9)
+    const comDoc = git(
+      ['src/domain/reembolso.ts', 'docs/requirements/rules.md'],
+      ['feat(RN-0001): reembolso'],
+    );
     assert.equal(runValidate(root, 'origin/master', comDoc).exitCode, 0);
 
     // com a razão escrita no histórico: passa
@@ -405,4 +410,262 @@ test('critério 5, metade 2: o CI sinaliza pelo `watches`, e a razão escrita li
     // e sem base, essa metade não roda
     assert.equal(runValidate(root).exitCode, 0);
   });
+});
+
+test('critério 1 (fechamento): o inventário relata a forma detectada e não toca em arquivo nenhum', () => {
+  const preexistente = [
+    '---',
+    'title: Regras',
+    'owner: "@time"',
+    'trigger: A toda regra nova ou alterada.',
+    'last-reviewed: 2026-08-28',
+    '---',
+    '',
+    '## RN001 — Uma regra',
+    '- **status:** active',
+    '',
+    '## RN002 — Outra',
+    '- **status:** active',
+    '',
+  ].join('\n');
+
+  withTempRepo({ 'docs/business-rules.md': preexistente }, (root) => {
+    const antes = readFileSync(join(root, 'docs/business-rules.md'), 'utf8');
+
+    const result = runInit(root, { ...OPTIONS, stage: 'small-team', dryRun: true });
+
+    assert.ok(result.adopted.some((entry) => entry.path === 'docs/business-rules.md'));
+    assert.ok(result.detected, 'a forma detectada precisa ser relatada');
+    assert.deepEqual(result.detected.format, { separator: '', padding: 3 });
+    assert.ok(result.detected.count >= 2);
+    assert.equal(readFileSync(join(root, 'docs/business-rules.md'), 'utf8'), antes);
+  });
+});
+
+const DECISAO_BLOQUEANTE = [
+  'version: 1',
+  'artifacts:',
+  '  - id-prefix: DA',
+  '    path: docs/open-decisions.md',
+  '    owner: "@time"',
+  '    skill: decision-recorder',
+  '    collection: table',
+  '    field-map:',
+  '      blocks: "Bloqueia"',
+  '      gap: "Lacuna"',
+  'documents:',
+  '  - path: docs/.ownership.yml',
+  '    owner: "@time"',
+  '    skill: living-docs-bootstrap',
+  '',
+].join('\n');
+
+const DECISOES = [
+  '---',
+  'title: Open Decisions',
+  'owner: "@time"',
+  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'last-reviewed: 2026-08-28',
+  '---',
+  '',
+  '| ID | Lacuna | Status | Bloqueia | Aberta em |',
+  '| --- | --- | --- | --- | --- |',
+  '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-28 |',
+  '',
+].join('\n');
+
+test('critério 4 da spec §12: comportamento sem regra é perguntado na edição e reprovado no diff', () => {
+  const arvore = {
+    [OWNERSHIP_PATH]: DECISAO_BLOQUEANTE,
+    CODEOWNERS: 'docs/    @time\n',
+    'docs/open-decisions.md': DECISOES,
+  };
+
+  const git =
+    (changed: string[], messages: string[]) =>
+    (args: readonly string[]): string =>
+      args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n';
+
+  withTempRepo(arvore, (root) => {
+    // Metade 1 — na edição, HK-8 pergunta nomeando a decisão.
+    const pergunta = decideHk8(
+      { tool_name: 'Edit', tool_input: { file_path: 'src/cobranca/taxa.ts', old_string: 'a', new_string: 'b' } },
+      { root, hostRoots: [root] },
+    );
+    assert.equal(pergunta.action, 'ask');
+    assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /DA-0001/);
+
+    // Metade 2 — no diff, CI-7 reprova.
+    const reprovado = runValidate(root, 'origin/master', git(['src/cobranca/taxa.ts'], ['feat: centavos']));
+    const finding = reprovado.findings.find((f) => f.ruleId === 'CI-7' && /DA-0001/.test(f.message));
+    assert.ok(finding, JSON.stringify(reprovado.findings, null, 2));
+    assert.equal(reprovado.exitCode, 1);
+
+    // E a razão escrita é a única saída.
+    const comRazao = git(
+      ['src/cobranca/taxa.ts'],
+      ['refactor: renomeia interno\n\nDocs: none — não é a implementação da regra que falta'],
+    );
+    assert.equal(runValidate(root, 'origin/master', comRazao).exitCode, 0);
+
+    // Sem base, esta metade não roda.
+    assert.equal(runValidate(root).exitCode, 0);
+  });
+});
+
+const fakeGit =
+  (changed: string[], messages: string[], patch = '') =>
+  (args: readonly string[]): string => {
+    if (args.includes('log')) return messages.join(`${NUL}\n`) + NUL + '\n';
+    if (args.includes('--unified=0')) return patch;
+    return changed.join(NUL) + NUL;
+  };
+
+const bumpPatch = (paths: string[]): string =>
+  paths
+    .flatMap((path) => [
+      `diff --git a/${path} b/${path}`,
+      `--- a/${path}`,
+      `+++ b/${path}`,
+      '@@ -5 +5 @@',
+      '-last-reviewed: 2026-01-01',
+      '+last-reviewed: 2026-08-31',
+    ])
+    .join('\n');
+
+const REGRAS_COM_RN_0001 = [
+  '---',
+  'title: Regras',
+  'owner: "@time"',
+  'trigger: Antes de implementar comportamento novo.',
+  'last-reviewed: 2026-08-31',
+  '---',
+  '',
+  '## RN-0001 — Centavos arredondam para cima',
+  '',
+  '- **status:** draft',
+  '',
+  'Prosa.',
+  '',
+].join('\n');
+
+const OWNERSHIP_COM_REGRAS = [
+  'version: 1',
+  'artifacts:',
+  '  - id-prefix: RN',
+  '    path: docs/requirements/rules.md',
+  '    owner: "@time"',
+  '    skill: requirements-keeper',
+  '    collection: sections',
+  'documents:',
+  '  - path: docs/.ownership.yml',
+  '    owner: "@time"',
+  '    skill: living-docs-bootstrap',
+  '',
+].join('\n');
+
+test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () => {
+  const arvore = {
+    [OWNERSHIP_PATH]: OWNERSHIP_COM_REGRAS,
+    CODEOWNERS: 'docs/    @time\n',
+    'docs/requirements/rules.md': REGRAS_COM_RN_0001,
+  };
+
+  withTempRepo(arvore, (root) => {
+    // Criterio 7 — tres documentos que so mudaram a data.
+    const bumps = ['docs/a.md', 'docs/b.md', 'docs/c.md'];
+    const massa = runValidate(
+      root,
+      'origin/master',
+      fakeGit(bumps, ['chore: revisao geral'], bumpPatch(bumps)),
+    );
+    const bumpFinding = massa.findings.find((f) => f.ruleId === 'CI-9' && /last-reviewed/.test(f.message));
+    assert.ok(bumpFinding, JSON.stringify(massa.findings, null, 2));
+    assert.equal(massa.exitCode, 1);
+
+    // Criterio 8 — artefato alterado sem o ID na mensagem.
+    const semCitacao = runValidate(
+      root,
+      'origin/master',
+      fakeGit(['docs/requirements/rules.md'], ['docs: ajusta a prosa']),
+    );
+    assert.ok(
+      semCitacao.findings.some((f) => f.ruleId === 'CI-9' && /RN-0001/.test(f.message)),
+      JSON.stringify(semCitacao.findings, null, 2),
+    );
+
+    // E citar o ID em qualquer commit do diff basta.
+    const comCitacao = runValidate(
+      root,
+      'origin/master',
+      fakeGit(['docs/requirements/rules.md'], ['docs(RN-0001): o caso do negativo']),
+    );
+    assert.deepEqual(comCitacao.findings.filter((f) => f.ruleId === 'CI-9'), []);
+
+    // Sem base, CI-9 nao roda.
+    assert.deepEqual(runValidate(root).findings.filter((f) => f.ruleId === 'CI-9'), []);
+  });
+});
+
+test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI', () => {
+  const ownership = [
+    'version: 1',
+    'artifacts:',
+    '  - id-prefix: DA',
+    '    path: docs/open-decisions.md',
+    '    owner: "@time"',
+    '    skill: decision-recorder',
+    '    collection: table',
+    'documents:',
+    '  - path: docs/.ownership.yml',
+    '    owner: "@time"',
+    '    skill: living-docs-bootstrap',
+    '',
+  ].join('\n');
+
+  const decisoes = (trigger: string): string =>
+    [
+      '---',
+      'title: Open Decisions',
+      'owner: "@time"',
+      `trigger: ${trigger}`,
+      'last-reviewed: 2026-08-31',
+      '---',
+      '',
+      '| ID | Lacuna | Status | Aberta em |',
+      '| --- | --- | --- | --- |',
+      '',
+    ].join('\n');
+
+  // Divergente: reprova nomeando os dois.
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: ownership,
+      CODEOWNERS: 'docs/    @time\n',
+      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
+    },
+    (root) => {
+      const result = runValidate(root);
+      const finding = result.findings.find((f) => f.ruleId === 'CI-10');
+      assert.ok(finding, JSON.stringify(result.findings, null, 2));
+      assert.equal(finding?.severity, 'error');
+      assert.match(finding?.message ?? '', /decision-recorder/);
+      assert.equal(result.exitCode, 1);
+    },
+  );
+
+  // Skill que a raiz do toolkit nao tem: avisa e segue.
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: ownership.replace('skill: decision-recorder', 'skill: decisoes-do-time'),
+      CODEOWNERS: 'docs/    @time\n',
+      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
+    },
+    (root) => {
+      const result = runValidate(root);
+      const finding = result.findings.find((f) => f.ruleId === 'CI-10');
+      assert.equal(finding?.severity, 'warning');
+      assert.equal(result.exitCode, 0);
+    },
+  );
 });

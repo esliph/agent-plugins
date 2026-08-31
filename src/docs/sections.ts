@@ -1,8 +1,17 @@
-import { parseId } from './schema.ts';
+import { DEFAULT_ID_FORMAT, idPatternSource, parseId } from './schema.ts';
+import type { IdFormat } from './schema.ts';
 import { normalizeKey } from './item.ts';
 import type { DocItem } from './item.ts';
 
-const HEADING = /^#{2,4}\s+([A-Z]{2,4}-\d{3,4})\s*(?:[—–-]\s*(.*))?$/;
+/**
+ * Grupos: 1 é o ID inteiro, 2 o prefixo, 3 o número, 4 o título.
+ * O padrão do ID vem de `idPatternSource` (`ADR-0011`) — um projeto que escreve
+ * `## RN001` é lido sem que nenhum arquivo dele mude.
+ */
+function headingPattern(format: IdFormat): RegExp {
+  return new RegExp(`^#{2,4}\\s+(${idPatternSource(format)})\\s*(?:[—–-]\\s*(.*))?$`);
+}
+
 const FIELD = /^[-*]\s+\*\*([^*]+?)\*\*\s*:?\s*(.*)$/;
 const FENCE = /^(?:```|~~~)/;
 
@@ -23,7 +32,12 @@ const FENCE = /^(?:```|~~~)/;
  * um título com ID sem declarar requisito nenhum, e a semente que `init` escreve
  * é exatamente isso.
  */
-export function parseItemSections(source: string, startLine: number): DocItem[] {
+export function parseItemSections(
+  source: string,
+  startLine: number,
+  format: IdFormat = DEFAULT_ID_FORMAT,
+): DocItem[] {
+  const HEADING = headingPattern(format);
   const lines = source.replace(/\r\n/g, '\n').split('\n');
   const items: DocItem[] = [];
   let inFence = false;
@@ -36,11 +50,11 @@ export function parseItemSections(source: string, startLine: number): DocItem[] 
     if (inFence) continue;
 
     const heading = HEADING.exec((lines[i] ?? '').trim());
-    if (!heading?.[1] || !parseId(heading[1])) continue;
+    if (!heading?.[1] || !parseId(heading[1], format)) continue;
 
     const fields: Record<string, string> = {};
-    if (heading[2] !== undefined && heading[2].trim() !== '') {
-      fields.title = heading[2].trim();
+    if (heading[4] !== undefined && heading[4].trim() !== '') {
+      fields.title = heading[4].trim();
     }
 
     for (let j = i + 1; j < lines.length; j++) {

@@ -184,3 +184,31 @@ test('citação de prefixo não declarado é ignorada — instalação por fases
     [],
   );
 });
+
+test('RN-0024: a mensagem de buraco de sequência sai na forma escrita do projeto', () => {
+  const config = `${CONFIG}id-format:\n  separator: ""\n  padding: 3\n`;
+  let findings: Finding[] = [];
+
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: config,
+      'docs/decisions/adr/ADR001-a.md': adr('ADR001'),
+      'docs/decisions/adr/ADR003-c.md': adr('ADR003'),
+      'docs/open-decisions.md': openDecisions([]),
+    },
+    (root) => {
+      const parsed = parseOwnership(config);
+      findings = ci2Ids.run({
+        root,
+        config: parsed,
+        docs: collectArtifacts(root, parsed),
+        documents: [],
+        today: '2026-08-27',
+      });
+    },
+  );
+
+  assert.equal(findings.length, 1, JSON.stringify(findings, null, 2));
+  assert.match(findings[0]?.message ?? '', /ADR002/, 'o ID sugerido vem de writeId, na forma do projeto');
+  assert.doesNotMatch(findings[0]?.message ?? '', /ADR-0002/, 'nenhum check monta ID por concatenação');
+});

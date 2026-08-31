@@ -51,3 +51,13 @@ e nenhum hook lê o relógio por dentro.
 
 Sem isso, o único teste possível para o que depende de tempo é o que passa hoje
 e reprova em seis meses — e teste que reprova sozinho é teste que se apaga.
+
+## RNF-0005 — O conjunto de checks cabe num teto de tempo declarado e medido
+
+- **status:** draft
+- **fora de escopo:** o tempo de cada check isolado, e o tempo de construção da imagem
+
+A spec exige que os checks rodem "em minutos, no PR". O teto é do **conjunto**,
+não de cada check — é o conjunto que roda no PR —, está declarado no código e é
+**medido** a cada execução, nunca estimado. Um orçamento que ninguém mede é uma
+intenção, e a primeira execução lenta o descobre em produção.

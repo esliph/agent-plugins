@@ -21,6 +21,12 @@
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk3-state-promotion",
             "shell": "bash",
             "async": false
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk8-open-decision-guard",
+            "shell": "bash",
+            "async": false
           }
         ]
       },

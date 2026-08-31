@@ -37,6 +37,8 @@ test('ADR-0005, ADR-0006 e ADR-0010: cada check roda no comando que o catálogo 
     'CI-6': 'living-docs changelog --base <ref>',
     'CI-7': 'living-docs validate',
     'CI-8': 'living-docs validate',
+    'CI-9': 'living-docs validate',
+    'CI-10': 'living-docs validate',
   };
 
   for (const entry of CHECK_CATALOG) {
@@ -47,8 +49,10 @@ test('ADR-0005, ADR-0006 e ADR-0010: cada check roda no comando que o catálogo 
 
 test('RF-0011: validateChecks recebe o diff por parâmetro, e sem ele a lista é a mesma', () => {
   const semDiff = validateChecks().map((check) => check.id);
-  const comDiff = validateChecks({ base: 'origin/master', changed: [], messages: [] }).map((check) => check.id);
+  const comDiff = validateChecks({ base: 'origin/master', changed: [], messages: [], edits: [] }).map(
+    (check) => check.id,
+  );
 
   assert.deepEqual(semDiff, comDiff, 'a metade do diff é comportamento de CI-7, não um check a mais');
-  assert.deepEqual(semDiff, ['CI-1', 'CI-2', 'CI-3', 'CI-4', 'CI-7', 'CI-8']);
+  assert.deepEqual(semDiff, ['CI-1', 'CI-2', 'CI-3', 'CI-4', 'CI-7', 'CI-8', 'CI-9', 'CI-10']);
 });

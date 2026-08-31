@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { changedPaths, commitMessages, GitError } from '../../src/git/diff.ts';
+import { changedLines, changedPaths, commitMessages, GitError } from '../../src/git/diff.ts';
 
 const NUL = String.fromCharCode(0);
 
@@ -77,4 +77,49 @@ test('GitError nomeia o comando que falhou, não só a causa', () => {
     () => changedPaths('/repo', 'base', run),
     (err: unknown) => err instanceof GitError && /git diff base\.\.\.HEAD/.test((err as Error).message),
   );
+});
+
+const PATCH = [
+  'diff --git a/docs/glossary.md b/docs/glossary.md',
+  'index 1111111..2222222 100644',
+  '--- a/docs/glossary.md',
+  '+++ b/docs/glossary.md',
+  '@@ -6 +6 @@',
+  '-last-reviewed: 2026-01-01',
+  '+last-reviewed: 2026-08-31',
+  'diff --git a/docs/apagado.md b/docs/apagado.md',
+  'deleted file mode 100644',
+  '--- a/docs/apagado.md',
+  '+++ /dev/null',
+  '@@ -1,2 +0,0 @@',
+  '-titulo',
+  '--- isto e conteudo removido, nao cabecalho',
+  '',
+].join('\n');
+
+test('RN-0027: changedLines separa por arquivo e nao confunde conteudo com cabecalho', () => {
+  const git = fake(PATCH);
+  const edits = changedLines('/repo', 'origin/master', git.run);
+
+  // O arquivo apagado nao vira edicao: `+++ /dev/null` nao abre secao, e as
+  // linhas removidas dele nao vazam para o arquivo anterior.
+  assert.deepEqual(edits, [
+    {
+      path: 'docs/glossary.md',
+      added: ['last-reviewed: 2026-08-31'],
+      removed: ['last-reviewed: 2026-01-01'],
+    },
+  ]);
+
+  assert.deepEqual(git.calls[0], [
+    '-c',
+    'safe.directory=*',
+    '-c',
+    'core.quotePath=false',
+    'diff',
+    '--unified=0',
+    '--no-color',
+    '--no-renames',
+    'origin/master...HEAD',
+  ]);
 });

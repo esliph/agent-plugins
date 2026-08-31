@@ -5,6 +5,7 @@ import { parseFrontmatter, FrontmatterSyntaxError } from '../frontmatter/parse.t
 import type { Frontmatter } from '../frontmatter/parse.ts';
 import { parseItemTable } from './table.ts';
 import { parseItemSections } from './sections.ts';
+import type { IdFormat } from './schema.ts';
 import type { DocItem } from './item.ts';
 
 export interface ArtifactDoc {
@@ -44,15 +45,21 @@ function listMarkdown(root: string, relativeDir: string): string[] {
  * check: `per-file` não tem itens, `table` os lê em linhas e `sections` em
  * títulos com ID (spec §3).
  */
-function parseItems(rule: ArtifactRule, source: string, body: string | null, bodyStart: number): DocItem[] {
+function parseItems(
+  rule: ArtifactRule,
+  source: string,
+  body: string | null,
+  bodyStart: number,
+  format: IdFormat,
+): DocItem[] {
   const text = body ?? source;
   const start = body === null ? 1 : bodyStart;
-  if (rule.collection === 'table') return parseItemTable(text, start);
-  if (rule.collection === 'sections') return parseItemSections(text, start);
+  if (rule.collection === 'table') return parseItemTable(text, start, format);
+  if (rule.collection === 'sections') return parseItemSections(text, start, format);
   return [];
 }
 
-function readDoc(root: string, file: string, rule: ArtifactRule): ArtifactDoc | null {
+function readDoc(root: string, file: string, rule: ArtifactRule, format: IdFormat): ArtifactDoc | null {
   let source: string;
   try {
     source = readFileSync(join(root, file), 'utf8');
@@ -74,6 +81,7 @@ function readDoc(root: string, file: string, rule: ArtifactRule): ArtifactDoc | 
     source,
     frontmatter ? frontmatter.body : null,
     frontmatter ? frontmatter.bodyStartLine : 1,
+    format,
   );
 
   return { file, rule, source, frontmatter, syntaxError, items };
@@ -86,7 +94,7 @@ export function collectArtifacts(root: string, config: OwnershipConfig): Artifac
     const target = rule.path.replace(/\\/g, '/');
     const files = target.endsWith('/') ? listMarkdown(root, target) : [target];
     for (const file of files) {
-      const doc = readDoc(root, file, rule);
+      const doc = readDoc(root, file, rule, config.idFormat);
       if (doc) docs.push(doc);
     }
   }

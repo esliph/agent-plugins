@@ -39,7 +39,7 @@ uma nova varredura.
 | A estrutura de diretórios | Onde cada artefato mora | Diretórios + `.gitkeep` |
 | `docs/ids-retired.txt` | Registro de IDs retirados, que nunca voltam | Arquivo único, append-only |
 | `CODEOWNERS` | O dono de cada caminho de doc, espelhando `owner:` | Arquivo único |
-| Instalação de `HK-*` e `CI-*` | O enforcement das fases do estágio | Plugin + workflow de CI |
+| Instalação de `HK-*` e `CI-*` | O enforcement das fases do estágio | Workflow em `.github/workflows/` + registro do plugin em `.claude/settings.json` |
 
 ## Quando usar / quando não
 
@@ -64,10 +64,17 @@ garantida.
    e leia as linhas `adotado` — se algo que você viu no repositório não aparece
    lá, é você que decide adotá-lo, registrando o caminho real em
    `docs/.ownership.yml`. **Nunca** crie um paralelo.
-2. **Determine o estágio** — solo/protótipo, time pequeno, produção com
-   usuários, múltiplos times — e derive o conjunto **mínimo** de fases (spec
-   §10). Não instale o que o estágio não pede, e diga em voz alta qual estágio
-   você concluiu e por quê.
+
+   Leia também a linha `formato`: quando o repositório escreve IDs de outro
+   jeito (`RN001` em vez de `RN-0009`), o inventário diz qual forma achou e
+   quantas ocorrências leu nela. **Confirme com quem é dono do repositório** e
+   declare com `--id-separator` e `--id-padding` — nunca renumere o que já
+   existe para caber no padrão do toolkit (`ADR-0011`, `RF-0014`).
+2. **Determine o estágio** — `solo` (protótipo), `small-team` (time pequeno),
+   `production` (produção com usuários) ou `multi-team` (múltiplos times) — e
+   derive o conjunto **mínimo** de fases (spec §10). Os quatro nomes são os que
+   `living-docs init --stage` aceita. Não instale o que o estágio não pede, e
+   diga em voz alta qual estágio você concluiu e por quê.
 3. **Rode `living-docs init --owner <@handle>`** para escrever a moldura. Ele
    cria só o que falta e mantém o que existe. Depois **revise à mão** o
    `docs/.ownership.yml` gerado: os donos precisam ser os donos reais, e os
@@ -112,6 +119,7 @@ garantida.
 - [ ] Os donos declarados espelham o `CODEOWNERS` — verificação humana
 - [ ] Todo `trigger` nomeia um evento observável, nunca uma cadência — `CI-1`
 - [ ] `docs/ids-retired.txt` existe e nenhum ID foi reciclado ou renumerado — `CI-2`
+- [ ] A forma escrita dos IDs foi confirmada com quem é dono do repositório, e nenhum ID preexistente foi reescrito — verificação humana
 - [ ] Os hooks instalados são os das fases do estágio, e falham abertos — `HK-1`, `HK-3`
 - [ ] `living-docs init` rodado duas vezes não criou, reescreveu nem readotou nada — verificação humana
 - [ ] `living-docs validate` passa sem finding — `CI-1`, `CI-2`

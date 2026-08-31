@@ -62,3 +62,16 @@ test('exemplo dentro de bloco de código não declara requisito', () => {
   assert.equal(items.length, 1, 'o exemplo cercado por ``` não pode virar um segundo RN-0001');
   assert.equal(items[0]?.line, 11);
 });
+
+test('RN-0024: o título com ID é lido na forma escrita do projeto', () => {
+  const semHifen = ['## RN001 — Uma regra', '', '- **status:** active', ''].join('\n');
+  const format = { separator: '', padding: 3 };
+
+  const items = parseItemSections(semHifen, 1, format);
+  assert.equal(items.length, 1);
+  assert.equal(items[0]?.id, 'RN001');
+  assert.equal(items[0]?.status, 'active');
+  assert.equal(items[0]?.fields.title, 'Uma regra');
+
+  assert.deepEqual(parseItemSections(semHifen, 1), [], 'a forma padrão não reconhece a do projeto');
+});

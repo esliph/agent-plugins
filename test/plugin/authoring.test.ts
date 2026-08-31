@@ -193,3 +193,10 @@ test('release-historian não duplica o conteúdo dos artefatos que governa', () 
   assert.match(source, /templates\/migration\.md/, 'os quatro templates, porque são quatro artefatos');
   assert.doesNotMatch(source, /^## \[Unreleased\]$/m, 'a skill não deve conter o CHANGELOG deste repositório');
 });
+
+test('a SK-0 não manda escolher estágio que o CLI rejeita', () => {
+  const source = skillSource('living-docs-bootstrap');
+  for (const stage of ['solo', 'small-team', 'production', 'multi-team']) {
+    assert.ok(source.includes(stage), `a SK-0 precisa nomear o estágio \`${stage}\` como o CLI o chama`);
+  }
+});

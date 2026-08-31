@@ -11,7 +11,8 @@ import { join } from 'node:path';
 import { findArtifactRule, loadOwnership } from '../config/ownership.ts';
 import type { ArtifactRule } from '../config/ownership.ts';
 import { parseFrontmatter } from '../frontmatter/parse.ts';
-import { HUMAN_PROMOTIONS } from '../docs/schema.ts';
+import { DEFAULT_ID_FORMAT, HUMAN_PROMOTIONS } from '../docs/schema.ts';
+import type { IdFormat } from '../docs/schema.ts';
 import { parseItemTable } from '../docs/table.ts';
 import { parseItemSections } from '../docs/sections.ts';
 import type { DocItem } from '../docs/item.ts';
@@ -46,10 +47,17 @@ function statusOf(source: string): { id: string; status: string } | null {
   }
 }
 
-function findPromotion(before: string, after: string, rule: ArtifactRule): Promotion | null {
+function findPromotion(
+  before: string,
+  after: string,
+  rule: ArtifactRule,
+  format: IdFormat = DEFAULT_ID_FORMAT,
+): Promotion | null {
   if (rule.collection !== 'per-file') {
     const parse = (source: string): DocItem[] =>
-      rule.collection === 'table' ? parseItemTable(source, 1) : parseItemSections(source, 1);
+      rule.collection === 'table'
+        ? parseItemTable(source, 1, format)
+        : parseItemSections(source, 1, format);
     const previous = new Map(parse(before).map((item) => [item.id, item.status]));
     for (const item of parse(after)) {
       const from = previous.get(item.id);
@@ -78,12 +86,13 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
   const repoPath = toRepoPath(filePath, env.hostRoots);
   if (repoPath === null) return ALLOW;
 
-  let rule;
+  let config;
   try {
-    rule = findArtifactRule(loadOwnership(env.root), repoPath);
+    config = loadOwnership(env.root);
   } catch {
     return ALLOW; // falha aberta
   }
+  const rule = findArtifactRule(config, repoPath);
   if (!rule) return ALLOW;
 
   let current: string;
@@ -96,7 +105,7 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
   const next = applyToolInput(current, toolInput);
   if (next === null) return ALLOW;
 
-  const promotion = findPromotion(current, next, rule);
+  const promotion = findPromotion(current, next, rule, config.idFormat);
   if (!promotion) return ALLOW;
 
   return {

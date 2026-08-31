@@ -21,6 +21,8 @@ artifacts:
     # projeto (spec §3).
     field-map:
       resolved-by: "Resolvida por"
+      blocks: "Bloqueia"
+      gap: "Lacuna"
 
   - id-prefix: TDR
     path: docs/decisions/debt/
@@ -150,6 +152,15 @@ watches:
     doc: CONTRIBUTING.md
     reason: "skill nova ou alterada muda como se trabalha aqui"
 
+  - code: ".github/workflows/**"
+    doc: docs/definition-of-done.md
+    reason: "a última linha da Definition of Done nomeia o que o workflow roda — mudar o workflow muda o que 'pronto' significa"
+
+  - code: ".github/workflows/**"
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: "o enforcement é literalmente o que o consumidor instala"
+
   # CI-6 (mecanismo 1 na fronteira com quem consome). Os `code` daqui e a lista
   # `consumer-visible-paths` abaixo são o mesmo conjunto de propósito, e
   # test/docs/release-history.test.ts impede que derivem: são dois momentos —
@@ -191,3 +202,4 @@ consumer-visible-paths:
   - "plugin/**"
   - "templates/**"
   - "bin/living-docs"
+  - ".github/workflows/**"

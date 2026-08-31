@@ -1,0 +1,27 @@
+# Enforcement de documentação viva, instalado por `living-docs init`.
+#
+# O modo de invocação é parâmetro de quem instala (`--invoke`): o toolkit roda em
+# container no repositório dele, e impor isso a quem o instala seria transformar
+# regra do toolkit em regra do consumidor. Como o toolkit chega a este CI é
+# decisão aberta — `DA-0003` no repositório do toolkit.
+#
+# Este arquivo é seu: o `init` só o cria quando ele não existe, e nunca o
+# reescreve.
+name: living-docs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  living-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # O diff do PR compara <base>...HEAD, e um clone raso não tem a base.
+          fetch-depth: 0
+
+      - name: CI-1 a CI-4, CI-7 e CI-8 — estado da árvore
+        run: {{INVOKE}} validate
+{{WORKFLOW_STEPS}}

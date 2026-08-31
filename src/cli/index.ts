@@ -5,7 +5,9 @@ import { runChangelog } from './changelog.ts';
 import { runInit, STAGES } from './init.ts';
 import type { Stage } from './init.ts';
 import { formatFindings } from './report.ts';
+import { CHECK_BUDGET_MS, formatElapsed } from '../checks/budget.ts';
 import { OwnershipError } from '../config/ownership.ts';
+import { DEFAULT_ID_FORMAT, PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts';
 import { GitError } from '../git/diff.ts';
 import { repoRoot } from '../core/roots.ts';
 
@@ -18,7 +20,11 @@ const USAGE = `living-docs <comando>
 
 Opções de init:
   --owner <@handle>   Dono padrão dos artefatos criados
-  --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team ou production
+  --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team, production ou multi-team
+  --id-separator <s>  Separador do ID: "-" (padrão), "_", ".", ":" ou "" (vazio)
+  --id-padding <n>    Dígitos do ID: 4 (padrão), entre 2 e 6
+  --invoke <comando>  Como o CLI é chamado no CI de quem instala (padrão: npx living-docs)
+  --marketplace <o/r>  Repositório do marketplace do plugin; sem ele os hooks não são registrados
   --dry-run           Mostra o que faria, sem escrever
 
 Opções de validate:
@@ -27,6 +33,27 @@ Opções de validate:
 Opções de changelog:
   --base <ref>        Base do diff (obrigatório) — ex.: origin/master
 `;
+
+/**
+ * O relato da medida (`RNF-0005`). Sai a cada execução: um orçamento que só
+ * aparece quando estoura é um orçamento que ninguém sabe que existe.
+ *
+ * Não muda o código de saída. Quem reprova por lentidão é o teste do orçamento,
+ * contra o corpus deste repositório — um `validate` que saísse com 1 porque a
+ * máquina estava carregada trocaria um enforcement por um teste instável.
+ */
+function reportElapsed(elapsedMs: number): void {
+  process.stdout.write(
+    `living-docs: conjunto de checks em ${formatElapsed(elapsedMs)} ` +
+      `(teto declarado: ${formatElapsed(CHECK_BUDGET_MS)} — RNF-0005).\n`,
+  );
+  if (elapsedMs > CHECK_BUDGET_MS) {
+    process.stderr.write(
+      'living-docs: o conjunto passou do teto declarado. Meça o que ficou lento antes de subir o número ' +
+        '(RNF-0005).\n',
+    );
+  }
+}
 
 function main(argv: readonly string[]): number {
   const root = repoRoot();
@@ -69,6 +96,7 @@ function main(argv: readonly string[]): number {
           `living-docs: ${result.watched} vínculo(s) código→doc declarado(s) — o caminho vigiado que mudou sem o doc dono é verificado por \`living-docs validate --base <ref>\` (CI-7).\n`,
         );
       }
+      reportElapsed(result.elapsedMs);
       return result.exitCode;
     }
 
@@ -78,9 +106,11 @@ function main(argv: readonly string[]): number {
         process.stdout.write(
           'living-docs: nenhum artefato gerado declarado em `generated[]` — nada a comparar.\n',
         );
+        reportElapsed(result.elapsedMs);
         return 0;
       }
       process.stdout.write(`${formatFindings(result.findings)}\n`);
+      reportElapsed(result.elapsedMs);
       return result.exitCode;
     }
 
@@ -99,9 +129,11 @@ function main(argv: readonly string[]): number {
         process.stdout.write(
           'living-docs: `consumer-visible-paths` vazio em docs/.ownership.yml — nada a checar (CI-6).\n',
         );
+        reportElapsed(result.elapsedMs);
         return 0;
       }
       process.stdout.write(`${formatFindings(result.findings)}\n`);
+      reportElapsed(result.elapsedMs);
       return result.exitCode;
     }
 
@@ -116,10 +148,59 @@ function main(argv: readonly string[]): number {
         return 2;
       }
 
-      const result = runInit(root, { owner, dryRun: argv.includes('--dry-run'), stage: stage as Stage });
+      const separatorIndex = argv.indexOf('--id-separator');
+      const separator = separatorIndex === -1 ? DEFAULT_ID_FORMAT.separator : (argv[separatorIndex + 1] ?? '');
+      const paddingIndex = argv.indexOf('--id-padding');
+      const padding =
+        paddingIndex === -1 ? DEFAULT_ID_FORMAT.padding : Number.parseInt(argv[paddingIndex + 1] ?? '', 10);
+      if (
+        !SEPARATORS_ALLOWED.includes(separator) ||
+        !Number.isInteger(padding) ||
+        padding < PADDING_RANGE.min ||
+        padding > PADDING_RANGE.max
+      ) {
+        process.stderr.write(
+          `living-docs: forma de ID inválida. --id-separator aceita ${SEPARATORS_ALLOWED.map((s) => `"${s}"`).join(', ')} ` +
+            `e --id-padding um inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).\n`,
+        );
+        return 2;
+      }
+
+      const invokeIndex = argv.indexOf('--invoke');
+      const invoke = invokeIndex === -1 ? 'npx living-docs' : (argv[invokeIndex + 1] ?? '');
+      if (invoke.trim() === '') {
+        process.stderr.write(
+          'living-docs: `--invoke` precisa do comando que roda o CLI no seu CI — ele não se adivinha (DA-0003).\n',
+        );
+        return 2;
+      }
+
+      const marketplaceIndex = argv.indexOf('--marketplace');
+      const marketplace = marketplaceIndex === -1 ? null : (argv[marketplaceIndex + 1] ?? '');
+      if (marketplace !== null && !/^[\w.-]+\/[\w.-]+$/.test(marketplace)) {
+        process.stderr.write('living-docs: `--marketplace` recebe `<owner>/<repo>` — ex.: time/living-docs.\n');
+        return 2;
+      }
+
+      const result = runInit(root, {
+        owner,
+        dryRun: argv.includes('--dry-run'),
+        stage: stage as Stage,
+        idFormat: { separator, padding },
+        invoke,
+        marketplace,
+      });
 
       for (const entry of result.adopted) {
         process.stdout.write(`adotado   ${entry.path}  (${entry.idPrefix} — já existia; nenhum paralelo criado)\n`);
+      }
+      if (result.detected !== null) {
+        const { format, count, sample } = result.detected;
+        process.stdout.write(
+          `formato   ${sample}  (${count} ocorrência(s) nesta forma) — o repositório escreve IDs de outro jeito.\n` +
+            `          Para adotá-la: --id-separator "${format.separator}" --id-padding ${format.padding}. ` +
+            'Nenhum arquivo foi alterado (RF-0014).\n',
+        );
       }
       for (const path of result.created) process.stdout.write(`criado    ${path}\n`);
       for (const path of result.skipped) process.stdout.write(`mantido   ${path}\n`);

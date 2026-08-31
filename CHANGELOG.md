@@ -10,6 +10,39 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Added
 
+- `validate`, `drift` e `changelog` passam a relatar quanto o conjunto de checks
+  levou e qual é o teto declarado (`RNF-0005`). A medida não altera o código de
+  saída.
+- `CI-9` (`living-docs validate --base <ref>`): reprova o diff que só altera a
+  data de revisão de vários documentos, e o que altera um arquivo de artefato sem
+  que nenhuma mensagem de commit cite um ID declarado nele.
+- `CI-10` (`living-docs validate`): o `trigger` de um documento e a
+  `description` da skill declarada como dona dele precisam falar do mesmo
+  evento. Skill dona que não existe na raiz do toolkit produz aviso, não falha.
+- `last-reviewed-bump-limit` em `docs/.ownership.yml`: quantos documentos com
+  bump de data seco reprovam. Padrão 3, piso 2.
+- `id-format` em `docs/.ownership.yml`: um projeto declara como seus IDs se
+  escrevem (`separator`, `padding`). Ausente, a forma continua sendo
+  `<PREFIXO>-<4 dígitos>`.
+- `living-docs init --id-separator <s> --id-padding <n>`: declara a forma escrita
+  dos IDs do projeto. `--dry-run` relata a forma que o repositório já usa, sem
+  alterar arquivo nenhum.
+- `living-docs init` passa a instalar o workflow de CI do estágio em
+  `.github/workflows/living-docs.yml`, com o comando de invocação vindo de
+  `--invoke` (padrão `npx living-docs`). O workflow instalado não menciona
+  Docker, e um workflow que já exista é mantido.
+- `.claude-plugin/marketplace.json`: o plugin `living-docs` passa a ter caminho
+  de instalação.
+- `living-docs init --marketplace <owner/repo>` registra o plugin em
+  `.claude/settings.json` do repositório, por mesclagem — hooks e plugins que já
+  estavam lá são preservados. Sem a opção, o registro não é escrito e o `init`
+  diz o que faltou.
+- `living-docs init --stage multi-team`: o estágio de múltiplos times passa a
+  existir e instala a Fase 7 — o passo de `validate --base <ref>` no workflow,
+  além de tudo que `production` instala.
+- `HK-8`: editar um caminho reivindicado por uma decisão aberta passa a
+  perguntar, nomeando a decisão, a lacuna e a skill dona. O campo é opcional — a
+  coluna `Bloqueia` (canônico `blocks`) na lista de decisões abertas.
 - `HK-6`: no início da sessão, o inventário chega ao contexto — artefatos e
   documentos declarados e ausentes, decisões abertas, dívidas com gatilho
   cumprido e documentos vencidos. É injeção de contexto, nunca bloqueio.
@@ -54,6 +87,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- `CI-7` ganha uma sexta classe de achado: com `--base <ref>`, o diff que toca
+  caminho reivindicado por uma decisão aberta reprova. A saída continua sendo
+  `Docs: none — <razão>`.
 - `living-docs validate` passa a exigir que todo documento sob a raiz da
   documentação tenha entrada no `docs/.ownership.yml` e linha no CODEOWNERS
   (`CI-7`). Repositório instalado por uma versão anterior precisa rodar
@@ -82,6 +118,10 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Fixed
 
+- `living-docs --help` passa a listar `multi-team` entre os estágios de
+  `--stage`; o CLI já o aceitava.
+- `living-docs init` passa a reconhecer `docs/decisoes-em-aberto.md` entre os
+  caminhos que adota para a família `DA` quando já existem.
 - `living-docs init` num repositório que já tem `AGENTS.md` passa a escrever a
   linha de CODEOWNERS do contrato adotado, e não a de um `CLAUDE.md` que não
   existe ali. Antes, o repositório recém-instalado reprovava no próprio `CI-7`

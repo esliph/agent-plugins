@@ -2,6 +2,7 @@ import type { Check, CheckContext, Finding } from '../core/types.ts';
 import type { ArtifactRule } from '../config/ownership.ts';
 import { fieldOf } from '../config/ownership.ts';
 import { canonicalId, parseId } from '../docs/schema.ts';
+import type { IdFormat } from '../docs/schema.ts';
 import { findCitations } from '../ids/citations.ts';
 import { scanCitations } from '../ids/coverage.ts';
 import type { CitationSite } from '../ids/coverage.ts';
@@ -29,10 +30,10 @@ function error(file: string, line: number, message: string, fix: string): Findin
 }
 
 /** IDs canônicos citados dentro de um valor, qualquer que seja a forma dele. */
-function idsIn(value: string | null): string[] {
+function idsIn(value: string | null, format: IdFormat): string[] {
   if (value === null) return [];
-  return findCitations(value)
-    .map((citation) => parseId(citation.id))
+  return findCitations(value, format)
+    .map((citation) => parseId(citation.id, format))
     .filter((parsed): parsed is { prefix: string; number: number } => parsed !== null)
     .map(canonicalId);
 }
@@ -42,14 +43,14 @@ function idsIn(value: string | null): string[] {
  * Frontmatter de arquivo e item de coleção respondem à mesma pergunta canônica,
  * e é isso que permite a `CI-3` não conhecer nome de campo nenhum.
  */
-function entriesOf(context: CheckContext): Entry[] {
+function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
   const entries: Entry[] = [];
 
   for (const doc of context.docs) {
     if (doc.rule.collection === 'per-file') {
       const data = doc.frontmatter?.data;
       const id = data?.id;
-      if (typeof id !== 'string' || !parseId(id)) continue;
+      if (typeof id !== 'string' || !parseId(id, format)) continue;
       entries.push({
         id,
         file: doc.file,
@@ -86,16 +87,17 @@ export const ci3Traceability: Check = {
   name: 'traceability',
   run(context: CheckContext): Finding[] {
     const findings: Finding[] = [];
-    const entries = entriesOf(context);
-    const byId = new Map(entries.map((entry) => [canonicalId(parseId(entry.id)!), entry]));
+    const format = context.config.idFormat;
+    const entries = entriesOf(context, format);
+    const byId = new Map(entries.map((entry) => [canonicalId(parseId(entry.id, format)!), entry]));
 
     for (const entry of entries) {
-      const self = canonicalId(parseId(entry.id)!);
+      const self = canonicalId(parseId(entry.id, format)!);
 
       // 1 e 2 — pares bidirecionais.
       for (const pair of PAIRS) {
         for (const side of [pair, { from: pair.to, to: pair.from }]) {
-          for (const targetId of idsIn(entry.read(side.from))) {
+          for (const targetId of idsIn(entry.read(side.from), format)) {
             const target = byId.get(targetId);
             if (!target) {
               findings.push(
@@ -108,7 +110,7 @@ export const ci3Traceability: Check = {
               );
               continue;
             }
-            if (!idsIn(target.read(side.to)).includes(self)) {
+            if (!idsIn(target.read(side.to), format).includes(self)) {
               findings.push(
                 error(
                   target.file,
@@ -136,7 +138,7 @@ export const ci3Traceability: Check = {
 
       // 4 e 5 — DA resolvida aponta o ADR, e o ADR aponta de volta.
       if (entry.status === 'resolved') {
-        const resolvers = idsIn(entry.read('resolved-by'));
+        const resolvers = idsIn(entry.read('resolved-by'), format);
         if (resolvers.length === 0) {
           findings.push(
             error(
@@ -160,7 +162,7 @@ export const ci3Traceability: Check = {
             );
             continue;
           }
-          if (!idsIn(resolver.read('relates-to')).includes(self)) {
+          if (!idsIn(resolver.read('relates-to'), format).includes(self)) {
             findings.push(
               error(
                 resolver.file,
@@ -174,7 +176,7 @@ export const ci3Traceability: Check = {
       }
 
       // 6 — ADR aceito sem ligação.
-      if (entry.status === 'accepted' && idsIn(entry.read('relates-to')).length === 0) {
+      if (entry.status === 'accepted' && idsIn(entry.read('relates-to'), format).length === 0) {
         findings.push(
           error(
             entry.file,
@@ -194,13 +196,13 @@ export const ci3Traceability: Check = {
       const key = JSON.stringify(entry.rule.citedBy);
       let sites = scans.get(key);
       if (!sites) {
-        sites = scanCitations(context.root, entry.rule.citedBy);
+        sites = scanCitations(context.root, entry.rule.citedBy, format);
         scans.set(key, sites);
       }
 
-      const canonical = canonicalId(parseId(entry.id)!);
+      const canonical = canonicalId(parseId(entry.id, format)!);
       const found = [...sites.entries()].some(([id, places]) => {
-        const parsed = parseId(id);
+        const parsed = parseId(id, format);
         // Citação dentro do próprio arquivo do artefato não cobre nada: a regra
         // precisa ser citada de fora para que o grafo feche (spec §8).
         return (

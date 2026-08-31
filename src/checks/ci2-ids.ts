@@ -1,5 +1,6 @@
 import type { Check, CheckContext, Finding } from '../core/types.ts';
-import { canonicalId, parseId } from '../docs/schema.ts';
+import { canonicalId, parseId, writeId } from '../docs/schema.ts';
+import type { IdFormat } from '../docs/schema.ts';
 import { findCitations, loadRetiredIds, RETIRED_IDS_PATH } from '../ids/citations.ts';
 
 const RULE = 'CI-2';
@@ -14,7 +15,7 @@ function error(file: string, line: number, message: string, fix: string): Findin
   return { ruleId: RULE, file, line, severity: 'error', message, fix };
 }
 
-function collectDeclarations(context: CheckContext): Declaration[] {
+function collectDeclarations(context: CheckContext, format: IdFormat): Declaration[] {
   const declarations: Declaration[] = [];
 
   for (const doc of context.docs) {
@@ -25,7 +26,7 @@ function collectDeclarations(context: CheckContext): Declaration[] {
       continue;
     }
     const id = doc.frontmatter?.data.id;
-    if (typeof id === 'string' && parseId(id)) {
+    if (typeof id === 'string' && parseId(id, format)) {
       declarations.push({ id, file: doc.file, line: doc.frontmatter?.lines.id ?? 1 });
     }
   }
@@ -40,8 +41,8 @@ function collectDeclarations(context: CheckContext): Declaration[] {
  * Linha que não é ID válido (comentário solto em `ids-retired.txt`) volta crua:
  * ela nunca casa com uma declaração, que sempre passou por `parseId`.
  */
-function key(id: string): string {
-  const parsed = parseId(id);
+function key(id: string, format: IdFormat): string {
+  const parsed = parseId(id, format);
   return parsed ? canonicalId(parsed) : id;
 }
 
@@ -50,12 +51,13 @@ export const ci2Ids: Check = {
   name: 'ID lint',
   run(context: CheckContext): Finding[] {
     const findings: Finding[] = [];
-    const retired = new Set([...loadRetiredIds(context.root)].map(key));
-    const declarations = collectDeclarations(context);
+    const format = context.config.idFormat;
+    const retired = new Set([...loadRetiredIds(context.root)].map((id) => key(id, format)));
+    const declarations = collectDeclarations(context, format);
 
     const byId = new Map<string, Declaration>();
     for (const declaration of declarations) {
-      const id = key(declaration.id);
+      const id = key(declaration.id, format);
       const previous = byId.get(id);
       if (previous) {
         findings.push(
@@ -86,6 +88,7 @@ export const ci2Ids: Check = {
     const known = new Set(context.config.artifacts.map((artifact) => artifact.idPrefix));
     const numbersByPrefix = new Map<string, Set<number>>();
     for (const id of [...byId.keys(), ...retired]) {
+      // As chaves são canônicas — `parseId` sem formato é o leitor certo aqui.
       const parsed = parseId(id);
       if (!parsed || !known.has(parsed.prefix)) continue;
       const numbers = numbersByPrefix.get(parsed.prefix) ?? new Set<number>();
@@ -97,7 +100,7 @@ export const ci2Ids: Check = {
       const highest = Math.max(...numbers);
       for (let n = 1; n <= highest; n++) {
         if (numbers.has(n)) continue;
-        const missing = `${prefix}-${String(n).padStart(4, '0')}`;
+        const missing = writeId(prefix, n, format);
         findings.push(
           error(
             RETIRED_IDS_PATH,
@@ -112,10 +115,10 @@ export const ci2Ids: Check = {
     // Citações precisam resolver para um ID existente e não retirado.
     for (const doc of context.docs) {
       const declaredHere = new Set(
-        declarations.filter((declaration) => declaration.file === doc.file).map((d) => key(d.id)),
+        declarations.filter((declaration) => declaration.file === doc.file).map((d) => key(d.id, format)),
       );
-      for (const citation of findCitations(doc.source)) {
-        const parsed = parseId(citation.id);
+      for (const citation of findCitations(doc.source, format)) {
+        const parsed = parseId(citation.id, format);
         if (!parsed || !known.has(parsed.prefix)) continue;
         const cited = canonicalId(parsed);
         if (declaredHere.has(cited)) continue;

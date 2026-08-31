@@ -3149,3 +3149,2189 @@ git add src/checks/ci7-ownership-coverage.ts src/checks/catalog.ts docs/contract
         test/checks/ci7-ownership-coverage.test.ts test/acceptance/spec-criteria.test.ts CHANGELOG.md
 git commit -m "feat(RN-0026): o diff que toca caminho de decisao aberta reprova no CI-7"
 ```
+
+---
+
+### Task 11: `CI-9` — a disciplina do commit vira check
+
+**Objetivo:** `L-5` e a primeira metade de `L-8`. Duas regras que a spec
+original escreveu e não alocou a peça nenhuma passam a ter enforcement: o bump
+em massa de `last-reviewed` (§2 regra 3, §13) e o commit que altera artefato sem
+citar o ID afetado (§11). Fecha os critérios de aceite 7 e 8.
+
+**Files:**
+- Modify: `src/git/diff.ts` (`FileEdit`, `changedLines`)
+- Modify: `src/config/ownership.ts` (`last-reviewed-bump-limit`)
+- Create: `src/checks/ci9-commit-discipline.ts`
+- Modify: `src/checks/registry.ts` (`CommitFacts`, `ci9` na lista de `validate`)
+- Modify: `src/cli/validate.ts` (o terceiro fato do diff)
+- Modify: `src/checks/catalog.ts` (entrada de `CI-9`)
+- Modify: `docs/contracts/checks.gen.md` (**regerado**, nunca editado)
+- Modify: `docs/definition-of-done.md` (a linha da citação deixa de ser humana)
+- Create: `test/checks/ci9-commit-discipline.test.ts`
+- Modify: `test/git/diff.test.ts`, `test/config/ownership.test.ts`,
+  `test/checks/registry.test.ts`
+- Modify: `test/acceptance/spec-criteria.test.ts` (critérios 7 e 8)
+- Modify: `CHANGELOG.md`
+
+**Interfaces:**
+- Consome: `DiffFacts` (`src/checks/ci6-changelog-required.ts`), `git()` e
+  `runGitDiff` (`src/git/diff.ts`), `findArtifactRule`, `parseId`,
+  `canonicalId`, `findCitations`.
+- Produz:
+  - `interface FileEdit { path: string; added: string[]; removed: string[] }`
+  - `changedLines(root: string, base: string, run?: GitRunner): FileEdit[]`
+  - `interface CommitFacts extends DiffFacts { edits: readonly FileEdit[] }`
+  - `isPureDateBump(edit: FileEdit): boolean`
+  - `declaredIds(doc: ArtifactDoc, format: IdFormat): string[]` — canônicos
+  - `ci9CommitDiscipline(facts: CommitFacts | null): Check`
+  - `OwnershipConfig.lastReviewedBumpLimit: number` e `DEFAULT_BUMP_LIMIT`
+  - `validateChecks(diff: CommitFacts | null)` — a assinatura estreita
+
+**Requisitos:**
+- **O check só existe com diff.** Sem `--base` não há commit para ler, e
+  inventar um produziria achado sobre mudança que não é desta branch — a mesma
+  regra das duas metades do diff no `CI-7` (`ADR-0010`).
+- **A unidade é o diff da branch, não o commit** (`ADR-0013`). Dividir o bump em
+  três commits não o torna revisão de verdade.
+- **A metade do bump não tem rótulo de exceção** (`ADR-0013`, `RN-0027`). Um
+  rótulo aqui seria a caixinha marcada que o anti-requisito da §13 descreve.
+- **Nenhum ID é montado por concatenação** (`RN-0024`): a citação se compara por
+  `canonicalId`, e quem lê a forma escrita é `findCitations(source, idFormat)`.
+- O limiar entra em `docs/.ownership.yml` como `last-reviewed-bump-limit`,
+  inteiro **maior ou igual a 2**, padrão 3. Limiar 1 reprovaria a revisão
+  legítima de um documento só, que é o mecanismo funcionando.
+- `CI-9` entra no catálogo, e o catálogo é contrato gerado: **regere**
+  `docs/contracts/checks.gen.md` pelo gerador. `HK-2` nega a edição à mão.
+
+**`HK-5`:** `src/checks/**` e `src/git/**` pedem `docs/requirements/rules.md`
+(`RN-0027` e `RN-0028` viajaram na Task 2); `src/checks/catalog.ts` pede
+`docs/contracts/checks.gen.md` e `CHANGELOG.md`; `src/cli/**` e
+`src/config/ownership.ts` pedem `docs/requirements/functional.md` e
+`CHANGELOG.md`. O contrato é regerado no Step 9 e o CHANGELOG entra no Step 13.
+
+- [x] **Step 1: Escrever o teste do parser de linhas (falha)**
+
+Acrescente a `test/git/diff.test.ts`, e ao import do topo acrescente
+`changedLines`:
+
+```typescript
+const PATCH = [
+  'diff --git a/docs/glossary.md b/docs/glossary.md',
+  'index 1111111..2222222 100644',
+  '--- a/docs/glossary.md',
+  '+++ b/docs/glossary.md',
+  '@@ -6 +6 @@',
+  '-last-reviewed: 2026-01-01',
+  '+last-reviewed: 2026-08-31',
+  'diff --git a/docs/apagado.md b/docs/apagado.md',
+  'deleted file mode 100644',
+  '--- a/docs/apagado.md',
+  '+++ /dev/null',
+  '@@ -1,2 +0,0 @@',
+  '-titulo',
+  '--- isto e conteudo removido, nao cabecalho',
+  '',
+].join('\n');
+
+test('RN-0027: changedLines separa por arquivo e nao confunde conteudo com cabecalho', () => {
+  const git = fake(PATCH);
+  const edits = changedLines('/repo', 'origin/master', git.run);
+
+  // O arquivo apagado nao vira edicao: `+++ /dev/null` nao abre secao, e as
+  // linhas removidas dele nao vazam para o arquivo anterior.
+  assert.deepEqual(edits, [
+    {
+      path: 'docs/glossary.md',
+      added: ['last-reviewed: 2026-08-31'],
+      removed: ['last-reviewed: 2026-01-01'],
+    },
+  ]);
+
+  assert.deepEqual(git.calls[0], [
+    '-c',
+    'safe.directory=*',
+    '-c',
+    'core.quotePath=false',
+    'diff',
+    '--unified=0',
+    '--no-color',
+    '--no-renames',
+    'origin/master...HEAD',
+  ]);
+});
+```
+
+- [x] **Step 2: Rodar e ver falhar**
+
+```bash
+docker compose exec toolkit npm test -- --test-name-pattern="changedLines"
+```
+
+Esperado: FALHA — `changedLines` não é exportado.
+
+- [x] **Step 3: Implementar `changedLines`**
+
+Ao fim de `src/git/diff.ts`:
+
+```typescript
+/** O que um arquivo ganhou e perdeu neste diff. Ordem de leitura, sem contexto. */
+export interface FileEdit {
+  /** Caminho relativo à raiz, sempre com `/`. */
+  path: string;
+  added: string[];
+  removed: string[];
+}
+
+/** Só o cabeçalho de destino abre seção — `+++ /dev/null` (remoção) não abre. */
+const FILE_HEADER = /^\+\+\+ b\/(.+)$/;
+
+/**
+ * O diff linha a linha, por arquivo (`RN-0027`).
+ *
+ * `--unified=0` porque a pergunta é "o que mudou", e não "em volta de quê":
+ * linha de contexto aqui só aumentaria o texto a percorrer no PR (`RNF-0005`).
+ * `--no-renames` para que renomear não vire um par de arquivos fantasma, e
+ * `core.quotePath=false` pela mesma razão do `-z` de `changedPaths` — caminho
+ * com acento escapado não casa com caminho nenhum.
+ *
+ * O estado `inHunk` não é zelo: uma linha **removida** cujo conteúdo começa com
+ * `--` é escrita como `--- ...`, idêntica a um cabeçalho de origem. Só depois de
+ * um `@@` uma linha é conteúdo.
+ */
+export function changedLines(root: string, base: string, run: GitRunner = runGitDiff): FileEdit[] {
+  const output = git(
+    ['-c', 'core.quotePath=false', 'diff', '--unified=0', '--no-color', '--no-renames', `${base}...HEAD`],
+    root,
+    run,
+    `git diff --unified=0 ${base}...HEAD`,
+  );
+
+  const edits: FileEdit[] = [];
+  let current: FileEdit | null = null;
+  let inHunk = false;
+
+  for (const line of output.split('\n')) {
+    if (line.startsWith('diff --git ')) {
+      current = null;
+      inHunk = false;
+      continue;
+    }
+    if (line.startsWith('@@')) {
+      inHunk = true;
+      continue;
+    }
+    if (!inHunk) {
+      const path = FILE_HEADER.exec(line)?.[1];
+      if (path !== undefined) {
+        current = { path: path.replace(/\\/g, '/'), added: [], removed: [] };
+        edits.push(current);
+      }
+      continue;
+    }
+    if (current === null) continue;
+    if (line.startsWith('+')) current.added.push(line.slice(1));
+    else if (line.startsWith('-')) current.removed.push(line.slice(1));
+  }
+
+  return edits;
+}
+```
+
+- [x] **Step 4: Rodar e ver passar**
+
+```bash
+docker compose exec toolkit npm test -- --test-name-pattern="changedLines"
+```
+
+Esperado: PASSA.
+
+- [x] **Step 5: Escrever o teste do `CI-9` (falha)**
+
+Crie `test/checks/ci9-commit-discipline.test.ts`:
+
+```typescript
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { ci9CommitDiscipline, isPureDateBump } from '../../src/checks/ci9-commit-discipline.ts';
+import { parseOwnership } from '../../src/config/ownership.ts';
+import { collectArtifacts } from '../../src/docs/collect.ts';
+import { withTempRepo } from '../helpers/tmp.ts';
+
+const OWNERSHIP = `
+version: 1
+artifacts:
+  - id-prefix: RN
+    path: docs/requirements/rules.md
+    owner: "@time"
+    skill: requirements-keeper
+    collection: sections
+  - id-prefix: ADR
+    path: docs/decisions/adr/
+    owner: "@time"
+    skill: decision-recorder
+`;
+
+const REGRAS = [
+  '---',
+  'title: Regras',
+  'owner: "@time"',
+  'trigger: Antes de implementar comportamento novo.',
+  'last-reviewed: 2026-08-31',
+  '---',
+  '',
+  '## RN-0001 — Centavos arredondam para cima',
+  '',
+  '- **status:** active',
+  '',
+  'Prosa.',
+  '',
+].join('\n');
+
+const ARVORE = { 'docs/requirements/rules.md': REGRAS };
+
+function contextFor(root: string, ownership = OWNERSHIP) {
+  const config = parseOwnership(ownership);
+  return { root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-31' };
+}
+
+/** Uma edição que só mexeu na data de revisão. */
+function bump(path: string) {
+  return { path, added: ['last-reviewed: 2026-08-31'], removed: ['last-reviewed: 2026-01-01'] };
+}
+
+test('RN-0027: tres documentos que so mudaram a data reprovam, nomeando o anti-requisito', () => {
+  withTempRepo(ARVORE, (root) => {
+    const findings = ci9CommitDiscipline({
+      base: 'origin/master',
+      changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
+      messages: ['chore: revisao da documentacao'],
+      edits: [bump('docs/a.md'), bump('docs/b.md'), bump('docs/c.md')],
+    }).run(contextFor(root));
+
+    const bumpFinding = findings.find((f) => /last-reviewed/.test(f.message));
+    assert.ok(bumpFinding, JSON.stringify(findings, null, 2));
+    assert.equal(bumpFinding?.ruleId, 'CI-9');
+    assert.equal(bumpFinding?.severity, 'error');
+    assert.match(bumpFinding?.message ?? '', /docs\/a\.md/);
+    assert.match(bumpFinding?.message ?? '', /docs\/c\.md/);
+  });
+});
+
+test('RN-0027: dois bumps passam, e documento que mudou de verdade nunca conta', () => {
+  withTempRepo(ARVORE, (root) => {
+    const doisBumps = ci9CommitDiscipline({
+      base: 'origin/master',
+      changed: ['docs/a.md', 'docs/b.md'],
+      messages: ['docs: revisao'],
+      edits: [bump('docs/a.md'), bump('docs/b.md')],
+    }).run(contextFor(root));
+    assert.deepEqual(doisBumps.filter((f) => /last-reviewed/.test(f.message)), []);
+
+    // Tres documentos tocados, mas um deles mudou no corpo: revisao de verdade.
+    const comCorpo = ci9CommitDiscipline({
+      base: 'origin/master',
+      changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
+      messages: ['docs: revisao'],
+      edits: [
+        bump('docs/a.md'),
+        bump('docs/b.md'),
+        {
+          path: 'docs/c.md',
+          added: ['last-reviewed: 2026-08-31', 'paragrafo novo'],
+          removed: ['last-reviewed: 2026-01-01'],
+        },
+      ],
+    }).run(contextFor(root));
+    assert.deepEqual(comCorpo.filter((f) => /last-reviewed/.test(f.message)), []);
+  });
+});
+
+test('RN-0027: o limiar e configuravel, e o padrao e tres', () => {
+  withTempRepo(ARVORE, (root) => {
+    const facts = {
+      base: 'origin/master',
+      changed: ['docs/a.md', 'docs/b.md'],
+      messages: ['docs: revisao'],
+      edits: [bump('docs/a.md'), bump('docs/b.md')],
+    };
+    const comLimiar2 = ci9CommitDiscipline(facts).run(
+      contextFor(root, `${OWNERSHIP}last-reviewed-bump-limit: 2\n`),
+    );
+    assert.ok(comLimiar2.some((f) => /last-reviewed/.test(f.message)));
+  });
+});
+
+test('RN-0028: commit que altera artefato sem citar o ID declarado nele reprova', () => {
+  withTempRepo(ARVORE, (root) => {
+    const findings = ci9CommitDiscipline({
+      base: 'origin/master',
+      changed: ['docs/requirements/rules.md'],
+      messages: ['docs: ajusta a prosa da regra'],
+      edits: [],
+    }).run(contextFor(root));
+
+    assert.equal(findings.length, 1);
+    assert.equal(findings[0]?.file, 'docs/requirements/rules.md');
+    assert.match(findings[0]?.message ?? '', /RN-0001/);
+    assert.match(findings[0]?.fix ?? '', /mensagem de commit/);
+  });
+});
+
+test('RN-0028: basta uma mensagem do diff citar um dos IDs do arquivo', () => {
+  withTempRepo(ARVORE, (root) => {
+    const findings = ci9CommitDiscipline({
+      base: 'origin/master',
+      changed: ['docs/requirements/rules.md'],
+      messages: ['chore: mexe em outra coisa', 'docs(RN-0001): a regra ganha o caso do negativo'],
+      edits: [],
+    }).run(contextFor(root));
+
+    assert.deepEqual(findings, []);
+  });
+});
+
+test('RN-0028: arquivo que nao e artefato, e artefato ausente, nao sao cobrados', () => {
+  withTempRepo(ARVORE, (root) => {
+    const findings = ci9CommitDiscipline({
+      base: 'origin/master',
+      changed: ['src/cli/index.ts', 'docs/decisions/adr/ADR-0001-apagado.md'],
+      messages: ['refactor: renomeia interno'],
+      edits: [],
+    }).run(contextFor(root));
+
+    assert.deepEqual(findings, []);
+  });
+});
+
+test('RN-0024: a citacao e comparada por identidade, nao pela forma escrita', () => {
+  withTempRepo(
+    { 'docs/requirements/rules.md': REGRAS.replace('## RN-0001', '## RN001') },
+    (root) => {
+      // O projeto escreve `RN001`; o commit cita `RN001`. Mesma identidade que
+      // `RN-0001` teria — e quem compara e `canonicalId`, nao a forma escrita.
+      const findings = ci9CommitDiscipline({
+        base: 'origin/master',
+        changed: ['docs/requirements/rules.md'],
+        messages: ['docs(RN001): a regra ganha o caso do negativo'],
+        edits: [],
+      }).run(contextFor(root, `${OWNERSHIP}id-format:\n  separator: ""\n  padding: 3\n`));
+
+      assert.deepEqual(findings, []);
+    },
+  );
+});
+
+test('ADR-0010: sem diff, CI-9 nao tem o que dizer', () => {
+  withTempRepo(ARVORE, (root) => {
+    assert.deepEqual(ci9CommitDiscipline(null).run(contextFor(root)), []);
+  });
+});
+
+test('RN-0027: isPureDateBump e so a data, e nada mais', () => {
+  assert.equal(isPureDateBump(bump('docs/a.md')), true);
+  assert.equal(
+    isPureDateBump({ path: 'docs/a.md', added: ['last-reviewed: x', 'outra'], removed: ['last-reviewed: y'] }),
+    false,
+  );
+  assert.equal(isPureDateBump({ path: 'docs/a.md', added: ['titulo'], removed: ['titulo antigo'] }), false);
+});
+```
+
+- [x] **Step 6: Rodar e ver falhar**
+
+```bash
+docker compose exec toolkit npm test -- --test-name-pattern="RN-0027|RN-0028"
+```
+
+Esperado: FALHA — `src/checks/ci9-commit-discipline.ts` não existe.
+
+- [x] **Step 7: Acrescentar o limiar ao `.ownership.yml`**
+
+Em `src/config/ownership.ts`, no `OwnershipConfig`, logo abaixo de
+`staleAfterMonths`:
+
+```typescript
+  /** Quantos documentos com bump de data seco reprovam (`ADR-0013`, `RN-0027`). */
+  lastReviewedBumpLimit: number;
+```
+
+Antes de `parseOwnership`:
+
+```typescript
+/**
+ * O limiar de bump em massa (`ADR-0013`). Piso 2, e não 1: um documento revisado
+ * de verdade atualiza a data, e limiar 1 reprovaria o mecanismo funcionando.
+ */
+export const DEFAULT_BUMP_LIMIT = 3;
+
+function parseBumpLimit(raw: unknown): number {
+  if (raw === undefined || raw === null) return DEFAULT_BUMP_LIMIT;
+  if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
+    throw new OwnershipError(
+      `${OWNERSHIP_PATH}: last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 ` +
+        '(limiar 1 reprovaria a revisão legítima de um documento só — ADR-0013).',
+    );
+  }
+  return raw;
+}
+```
+
+E no `return` de `parseOwnership`, junto de `staleAfterMonths`:
+
+```typescript
+    lastReviewedBumpLimit: parseBumpLimit(root['last-reviewed-bump-limit']),
+```
+
+Acrescente a `test/config/ownership.test.ts`:
+
+```typescript
+test('RN-0027: last-reviewed-bump-limit tem padrao 3 e piso 2', () => {
+  const base = 'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/adr/\n    owner: "@t"\n    skill: s\n';
+  assert.equal(parseOwnership(base).lastReviewedBumpLimit, 3);
+  assert.equal(parseOwnership(`${base}last-reviewed-bump-limit: 5\n`).lastReviewedBumpLimit, 5);
+  assert.throws(() => parseOwnership(`${base}last-reviewed-bump-limit: 1\n`), /maior ou igual a 2/);
+});
+```
+
+- [x] **Step 8: Implementar `CI-9`**
+
+Crie `src/checks/ci9-commit-discipline.ts`:
+
+```typescript
+import type { Check, CheckContext, Finding } from '../core/types.ts';
+import type { DiffFacts } from './ci6-changelog-required.ts';
+import type { FileEdit } from '../git/diff.ts';
+import type { ArtifactDoc } from '../docs/collect.ts';
+import { findArtifactRule } from '../config/ownership.ts';
+import { canonicalId, parseId } from '../docs/schema.ts';
+import type { IdFormat } from '../docs/schema.ts';
+import { findCitations } from '../ids/citations.ts';
+
+const RULE = 'CI-9';
+
+/**
+ * O diff com as linhas, e não só os caminhos. É o fato a mais que `CI-9` pede e
+ * que `CI-6` e `CI-7` não precisam — por isso um tipo próprio, e não um campo
+ * opcional em `DiffFacts`: campo opcional que alguém esquece de preencher vira
+ * check que se cala sem dizer que se calou.
+ */
+export interface CommitFacts extends DiffFacts {
+  edits: readonly FileEdit[];
+}
+
+const LAST_REVIEWED = /^\s*last-reviewed\s*:/i;
+
+/** A edição mexeu na data de revisão e em mais nada (`RN-0027`). */
+export function isPureDateBump(edit: FileEdit): boolean {
+  return (
+    edit.added.length === 1 &&
+    edit.removed.length === 1 &&
+    LAST_REVIEWED.test(edit.added[0] ?? '') &&
+    LAST_REVIEWED.test(edit.removed[0] ?? '')
+  );
+}
+
+/**
+ * Os IDs que este arquivo declara, em forma canônica (`RN-0024`). Artefato
+ * individual declara um no frontmatter; coleção declara um por item.
+ */
+export function declaredIds(doc: ArtifactDoc, format: IdFormat): string[] {
+  const raw: unknown[] =
+    doc.rule.collection === 'per-file' ? [doc.frontmatter?.data?.id] : doc.items.map((item) => item.id);
+
+  const ids: string[] = [];
+  for (const value of raw) {
+    const parsed = parseId(value, format);
+    if (parsed !== null) ids.push(canonicalId(parsed));
+  }
+  return ids;
+}
+
+function normalizePath(path: string): string {
+  return path.replace(/\\/g, '/').replace(/^\.\//, '');
+}
+
+function error(file: string, message: string, fix: string): Finding {
+  return { ruleId: RULE, file, line: 0, severity: 'error', message, fix };
+}
+
+/**
+ * `CI-9` — commit discipline. Duas metades, as duas lidas do diff da branch: o
+ * bump em massa de `last-reviewed` (`RN-0027`, anti-requisito da spec §13) e o
+ * commit que altera artefato sem citar o ID afetado (`RN-0028`, spec §11).
+ *
+ * Roda no grupo que já recebe o diff por injeção, pela mesma razão de `CI-6` e
+ * da metade do diff de `CI-7`: sem base não há commit para ler, e inventar um
+ * produziria achado sobre mudança que não é desta branch (`ADR-0010`).
+ *
+ * A unidade das duas metades é o **diff da branch**, não o commit: é a unidade
+ * que o CI tem, e partir um bump em três commits não o torna revisão de verdade
+ * (`ADR-0013`).
+ */
+export function ci9CommitDiscipline(facts: CommitFacts | null): Check {
+  return {
+    id: RULE,
+    name: 'commit discipline',
+    run(context: CheckContext): Finding[] {
+      if (facts === null) return [];
+      const findings: Finding[] = [];
+      const { config } = context;
+
+      // 1 — bump em massa de `last-reviewed` (`RN-0027`).
+      // Sem rótulo de exceção, de propósito: o rótulo seria a caixinha marcada
+      // que o anti-requisito da spec §13 descreve (`ADR-0013`).
+      const bumps = facts.edits.filter(isPureDateBump).map((edit) => normalizePath(edit.path));
+      if (bumps.length >= config.lastReviewedBumpLimit) {
+        const lista = bumps.slice(0, 5).join(', ') + (bumps.length > 5 ? `, … (+${bumps.length - 5})` : '');
+        findings.push(
+          error(
+            bumps[0] ?? '',
+            `O diff \`${facts.base}...HEAD\` altera a data de revisão de ${bumps.length} documentos e nada mais ` +
+              `no corpo de nenhum deles (limiar: ${config.lastReviewedBumpLimit}): ${lista}.`,
+            'Um documento revisado de verdade muda em mais do que a data — bump em massa é o mecanismo de revisão ' +
+              'sendo desligado enquanto se finge cumpri-lo. Reverta a data dos que não foram revisados, ou revise-os ' +
+              '(`RN-0027`, `ADR-0013`; o limiar é `last-reviewed-bump-limit` no `.ownership.yml`).',
+          ),
+        );
+      }
+
+      // 2 — commit que altera artefato sem citar o ID afetado (`RN-0028`).
+      const citados = new Set<string>();
+      for (const message of facts.messages) {
+        for (const citation of findCitations(message, config.idFormat)) {
+          const parsed = parseId(citation.id, config.idFormat);
+          if (parsed !== null) citados.add(canonicalId(parsed));
+        }
+      }
+
+      for (const path of facts.changed.map(normalizePath)) {
+        if (findArtifactRule(config, path) === null) continue;
+        const doc = context.docs.find((candidate) => candidate.file === path);
+        if (doc === undefined) continue; // apagado no diff: não há ID a citar
+
+        const ids = declaredIds(doc, config.idFormat);
+        if (ids.length === 0) continue; // arquivo de artefato sem item: nada a citar
+        if (ids.some((id) => citados.has(id))) continue;
+
+        const lista = ids.slice(0, 5).join(', ') + (ids.length > 5 ? `, … (+${ids.length - 5})` : '');
+        findings.push(
+          error(
+            path,
+            `O diff \`${facts.base}...HEAD\` altera \`${path}\` e nenhuma mensagem de commit cita um dos IDs ` +
+              `declarados nele (${lista}).`,
+            'Cite o ID afetado na mensagem de commit — o formato deste projeto está em `CONTRIBUTING.md`. É a ' +
+              'citação que torna o `git log` navegável por regra: sem ela o histórico responde "o que mudou" e ' +
+              `nunca "por causa de qual regra" (\`RN-0028\`; skill dona: ${doc.rule.skill}).`,
+          ),
+        );
+      }
+
+      return findings;
+    },
+  };
+}
+```
+
+- [x] **Step 9: Ligar no `validate`, no catálogo e regerar o contrato**
+
+Em `src/checks/registry.ts`, importe `ci9CommitDiscipline` e o tipo
+`CommitFacts`, troque o tipo do parâmetro e acrescente o check:
+
+```typescript
+export function validateChecks(diff: CommitFacts | null = null): readonly Check[] {
+  return [
+    ci1Structure,
+    ci2Ids,
+    ci3Traceability,
+    ci4Staleness,
+    ci7OwnershipCoverage(diff),
+    ci8Links,
+    ci9CommitDiscipline(diff),
+  ];
+}
+```
+
+E reexporte o tipo junto de `CatalogEntry`:
+
+```typescript
+export type { CatalogEntry, CommitFacts };
+```
+
+Em `src/cli/validate.ts`, importe `changedLines` e acrescente o terceiro fato:
+
+```typescript
+  const diff =
+    base === null
+      ? null
+      : {
+          base,
+          changed: changedPaths(root, base, run),
+          messages: commitMessages(root, base, run),
+          edits: changedLines(root, base, run),
+        };
+```
+
+Em `src/checks/catalog.ts`, ao fim do array:
+
+```typescript
+  {
+    id: 'CI-9',
+    name: 'commit discipline',
+    command: 'living-docs validate',
+    failsWhen:
+      'Com `--base <ref>`: o diff altera apenas a data de revisão de `last-reviewed-bump-limit` documentos ou mais, sem outra mudança no corpo de nenhum deles; ou altera um arquivo de artefato e nenhuma mensagem de commit do diff cita um dos IDs declarados nele.',
+  },
+```
+
+Atualize os três testes de `test/checks/registry.test.ts` que enumeram os
+checks: o mapa `esperado` ganha `'CI-9': 'living-docs validate'`, as duas
+`assert.deepEqual` de IDs passam a esperar
+`['CI-1', 'CI-2', 'CI-3', 'CI-4', 'CI-7', 'CI-8', 'CI-9']`, e no teste
+`RF-0011` o diff de exemplo ganha `edits: []`.
+
+Regere o contrato (nunca o edite à mão — `HK-2` nega):
+
+```bash
+docker compose exec toolkit node /opt/living-docs/src/tools/gen-checks.ts > docs/contracts/checks.gen.md
+./bin/living-docs drift
+```
+
+Esperado: `drift` sem finding.
+
+- [x] **Step 10: O teste de aceite dos critérios 7 e 8**
+
+Acrescente a `test/acceptance/spec-criteria.test.ts`. Note a forma do git falso:
+ele agora despacha **três** comandos, porque `validate --base` faz três
+perguntas ao git — caminhos, mensagens e linhas.
+
+```typescript
+const fakeGit =
+  (changed: string[], messages: string[], patch = '') =>
+  (args: readonly string[]): string => {
+    if (args.includes('log')) return messages.join(`${NUL}\n`) + NUL + '\n';
+    if (args.includes('--unified=0')) return patch;
+    return changed.join(NUL) + NUL;
+  };
+
+const bumpPatch = (paths: string[]): string =>
+  paths
+    .flatMap((path) => [
+      `diff --git a/${path} b/${path}`,
+      `--- a/${path}`,
+      `+++ b/${path}`,
+      '@@ -5 +5 @@',
+      '-last-reviewed: 2026-01-01',
+      '+last-reviewed: 2026-08-31',
+    ])
+    .join('\n');
+
+const REGRAS_COM_RN_0001 = [
+  '---',
+  'title: Regras',
+  'owner: "@time"',
+  'trigger: Antes de implementar comportamento novo.',
+  'last-reviewed: 2026-08-31',
+  '---',
+  '',
+  '## RN-0001 — Centavos arredondam para cima',
+  '',
+  '- **status:** draft',
+  '',
+  'Prosa.',
+  '',
+].join('\n');
+
+const OWNERSHIP_COM_REGRAS = [
+  'version: 1',
+  'artifacts:',
+  '  - id-prefix: RN',
+  '    path: docs/requirements/rules.md',
+  '    owner: "@time"',
+  '    skill: requirements-keeper',
+  '    collection: sections',
+  'documents:',
+  '  - path: docs/.ownership.yml',
+  '    owner: "@time"',
+  '    skill: living-docs-bootstrap',
+  '',
+].join('\n');
+
+test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () => {
+  const arvore = {
+    [OWNERSHIP_PATH]: OWNERSHIP_COM_REGRAS,
+    CODEOWNERS: 'docs/    @time\n',
+    'docs/requirements/rules.md': REGRAS_COM_RN_0001,
+  };
+
+  withTempRepo(arvore, (root) => {
+    // Criterio 7 — tres documentos que so mudaram a data.
+    const bumps = ['docs/a.md', 'docs/b.md', 'docs/c.md'];
+    const massa = runValidate(
+      root,
+      'origin/master',
+      fakeGit(bumps, ['chore: revisao geral'], bumpPatch(bumps)),
+    );
+    const bumpFinding = massa.findings.find((f) => f.ruleId === 'CI-9' && /last-reviewed/.test(f.message));
+    assert.ok(bumpFinding, JSON.stringify(massa.findings, null, 2));
+    assert.equal(massa.exitCode, 1);
+
+    // Criterio 8 — artefato alterado sem o ID na mensagem.
+    const semCitacao = runValidate(
+      root,
+      'origin/master',
+      fakeGit(['docs/requirements/rules.md'], ['docs: ajusta a prosa']),
+    );
+    assert.ok(
+      semCitacao.findings.some((f) => f.ruleId === 'CI-9' && /RN-0001/.test(f.message)),
+      JSON.stringify(semCitacao.findings, null, 2),
+    );
+
+    // E citar o ID em qualquer commit do diff basta.
+    const comCitacao = runValidate(
+      root,
+      'origin/master',
+      fakeGit(['docs/requirements/rules.md'], ['docs(RN-0001): o caso do negativo']),
+    );
+    assert.deepEqual(comCitacao.findings.filter((f) => f.ruleId === 'CI-9'), []);
+
+    // Sem base, CI-9 nao roda.
+    assert.deepEqual(runValidate(root).findings.filter((f) => f.ruleId === 'CI-9'), []);
+  });
+});
+```
+
+Se `OWNERSHIP_PATH`, `NUL` ou `withTempRepo` já estiverem importados no arquivo,
+não os duplique.
+
+- [x] **Step 11: Rodar tudo e consertar o que a mudança revelou**
+
+```bash
+docker compose exec toolkit npm test
+docker compose exec toolkit npm run typecheck
+./bin/living-docs validate --base origin/master
+```
+
+Dois efeitos esperados, e os dois são o check funcionando:
+
+1. Todo teste que chamava `runValidate(root, base, fake)` com um runner de saída
+   única passa a receber essa mesma saída na pergunta `--unified=0`. Troque-os
+   pela forma de `fakeGit` do Step 10 — despachar por argumento, não por
+   posição.
+2. Se `validate --base origin/master` acusar `CI-9` num artefato desta branch,
+   **não** afrouxe o check nem baixe o limiar: a mensagem daquele commit é que
+   não citou o ID, e o caminho é citá-lo no commit seguinte.
+
+- [x] **Step 12: A Definition of Done deixa de chamar isto de humano**
+
+Em `docs/definition-of-done.md`, troque a linha da citação:
+
+```markdown
+- [ ] A mensagem de commit cita o ID afetado — verificação: `CI-9` (`living-docs validate --base <ref>`).
+```
+
+E na última linha da lista, troque o conjunto nomeado para
+``verificação: `CI-1` a `CI-9`, rodados pelo workflow do repositório.``
+
+- [x] **Step 13: CHANGELOG e commit**
+
+Sob `### Added` de `CHANGELOG.md`:
+
+```markdown
+- `CI-9` (`living-docs validate --base <ref>`): reprova o diff que só altera a
+  data de revisão de vários documentos, e o que altera um arquivo de artefato sem
+  que nenhuma mensagem de commit cite um ID declarado nele.
+- `last-reviewed-bump-limit` em `docs/.ownership.yml`: quantos documentos com
+  bump de data seco reprovam. Padrão 3, piso 2.
+```
+
+```bash
+git add src/git/diff.ts src/config/ownership.ts src/checks/ci9-commit-discipline.ts \
+        src/checks/registry.ts src/checks/catalog.ts src/cli/validate.ts \
+        docs/contracts/checks.gen.md docs/definition-of-done.md \
+        test/checks/ci9-commit-discipline.test.ts test/checks/registry.test.ts \
+        test/git/diff.test.ts test/config/ownership.test.ts \
+        test/acceptance/spec-criteria.test.ts CHANGELOG.md
+git commit -m "feat(RN-0027, RN-0028): CI-9 cobra bump em massa e ID na mensagem de commit"
+```
+
+---
+
+### Task 12: `CI-10` — o gatilho do artefato e a `description` da skill dona dizem a mesma coisa
+
+**Objetivo:** `L-6`. A §11 da spec original diz que os dois "dizem a mesma
+coisa" e nada compara: `test/plugin/authoring.test.ts` valida a `description`,
+`CI-1` valida o `trigger`, e nada cruza os dois. Fecha o critério de aceite 9.
+
+**Files:**
+- Create: `src/checks/ci10-trigger-routing.ts`
+- Modify: `src/checks/registry.ts` (`ci10` na lista de `validate`)
+- Modify: `src/checks/catalog.ts` (entrada de `CI-10`)
+- Modify: `docs/contracts/checks.gen.md` (**regerado**, nunca editado)
+- Modify: `docs/decisions/adr/ADR-0013-os-dois-limiares-do-fechamento.md`
+  (a calibração, agora medida)
+- Modify: `docs/definition-of-done.md` (o conjunto nomeado na última linha)
+- Create: `test/checks/ci10-trigger-routing.test.ts`
+- Modify: `test/checks/registry.test.ts`
+- Modify: `test/acceptance/spec-criteria.test.ts` (critério 9)
+- Modify: `CHANGELOG.md`
+
+**Interfaces:**
+- Consome: `normalizeProse` (`src/docs/markdown.ts`), `parseFrontmatter`,
+  `toolkitRoot`, `ArtifactDoc`/`DocumentDoc`.
+- Produz:
+  - `SHARED_ROOTS_FLOOR`, `ROOT_FLOOR`, `ROOT_LENGTH` — os três números de
+    `ADR-0013`, exportados para o teste os citar em vez de repetir
+  - `rootsOf(text: string): Set<string>`
+  - `sharedRoots(trigger: string, description: string): string[]`
+  - `loadSkillDescriptions(root?: string): Map<string, string>`
+  - `routedDocs(context: CheckContext): RoutedDoc[]`
+  - `ci10TriggerRouting(descriptions?: ReadonlyMap<string, string>): Check`
+
+**Requisitos:**
+- **Só o gatilho do documento entra** (`ADR-0013`). Artefato `per-file` fica de
+  fora: cada arquivo dele é um **item**, e o `trigger` de um ADR é "Nunca.
+  Imutável após aceito", que é do item e não do artefato. Entram os containers
+  de coleção (`table`, `sections`) e as entradas de `documents:` que declaram
+  skill.
+- **Documento sem `trigger` não é achado.** `CI-1` não lê `documents:`, e
+  `CHANGELOG.md` e `CLAUDE.md` legitimamente não têm frontmatter com gatilho.
+- **Skill dona ausente da raiz do toolkit avisa e segue** (`RN-0029`). É a única
+  exceção ao "só `CI-4` avisa" da spec §9, e existe porque um projeto pode
+  declarar skill própria: reprovar por isso seria o check exigindo que todo dono
+  fosse do plugin.
+- **Nenhuma contagem de volume.** O check conta **divergência entre duas coisas
+  que deveriam concordar**, não documentos, linhas nem cobertura (spec §13).
+- O limiar mora no código, exportado e citando `ADR-0013` — é o precedente do
+  `WORD_FLOOR` de `CI-7`.
+- O leitor de `SKILL.md` mora **dentro** de `src/checks/ci10-trigger-routing.ts`,
+  e não num diretório novo: `src/checks/**` já é caminho vigiado com doc dono
+  (`docs/requirements/rules.md`), e criar `src/plugin/` inauguraria código de
+  produção que nenhuma regra de `watches` cobre.
+
+**`HK-5`:** `src/checks/**` pede `docs/requirements/rules.md` (`RN-0029` viajou
+na Task 2); `src/checks/catalog.ts` pede `docs/contracts/checks.gen.md` e
+`CHANGELOG.md`. O contrato é regerado no Step 5 e o CHANGELOG entra no Step 8.
+
+- [x] **Step 1: Escrever o teste (falha)**
+
+Crie `test/checks/ci10-trigger-routing.test.ts`:
+
+```typescript
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  ci10TriggerRouting,
+  loadSkillDescriptions,
+  rootsOf,
+  sharedRoots,
+  SHARED_ROOTS_FLOOR,
+} from '../../src/checks/ci10-trigger-routing.ts';
+import { parseOwnership } from '../../src/config/ownership.ts';
+import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts';
+import { runValidate } from '../../src/cli/validate.ts';
+import { toolkitRoot } from '../../src/core/roots.ts';
+import { withTempRepo } from '../helpers/tmp.ts';
+
+const OWNERSHIP = `
+version: 1
+artifacts:
+  - id-prefix: DA
+    path: docs/open-decisions.md
+    owner: "@time"
+    skill: decision-recorder
+    collection: table
+  - id-prefix: ADR
+    path: docs/decisions/adr/
+    owner: "@time"
+    skill: decision-recorder
+documents:
+  - path: docs/glossary.md
+    owner: "@time"
+    skill: glossary-keeper
+  - path: CHANGELOG.md
+    owner: "@time"
+    skill: release-historian
+`;
+
+const container = (trigger: string): string =>
+  [
+    '---',
+    'title: Open Decisions',
+    'owner: "@time"',
+    `trigger: ${trigger}`,
+    'last-reviewed: 2026-08-31',
+    '---',
+    '',
+    '| ID | Lacuna | Status | Aberta em |',
+    '| --- | --- | --- | --- |',
+    '',
+  ].join('\n');
+
+const ADR_CONGELADO = [
+  '---',
+  'id: ADR-0001',
+  'title: X',
+  'status: draft',
+  'owner: "@time"',
+  'trigger: Nunca. Imutavel apos aceito; uma decisao nova o supersede.',
+  'last-reviewed: 2026-08-31',
+  '---',
+  '',
+  'corpo',
+  '',
+].join('\n');
+
+const DESCRICOES = new Map([
+  [
+    'decision-recorder',
+    'Use quando alguem trombar numa lacuna — comportamento sem regra escrita — ou quando tomar decisao custosa de reverter.',
+  ],
+  ['glossary-keeper', 'Use quando um termo de dominio novo aparecer em codigo, spec ou conversa.'],
+]);
+
+function contextFor(root: string) {
+  const config = parseOwnership(OWNERSHIP);
+  return {
+    root,
+    config,
+    docs: collectArtifacts(root, config),
+    documents: collectDocuments(root, config),
+    today: '2026-08-31',
+  };
+}
+
+test('RN-0029: gatilho e description que falam do mesmo evento passam', () => {
+  const arvore = {
+    'docs/open-decisions.md': container('Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'),
+    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
+  };
+
+  withTempRepo(arvore, (root) => {
+    assert.deepEqual(ci10TriggerRouting(DESCRICOES).run(contextFor(root)), []);
+  });
+});
+
+test('RN-0029: gatilho que fala de outro evento reprova, nomeando os dois', () => {
+  const arvore = {
+    'docs/open-decisions.md': container('Quando o deploy quebrar em producao.'),
+    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
+  };
+
+  withTempRepo(arvore, (root) => {
+    const findings = ci10TriggerRouting(DESCRICOES).run(contextFor(root));
+
+    assert.equal(findings.length, 1);
+    assert.equal(findings[0]?.ruleId, 'CI-10');
+    assert.equal(findings[0]?.severity, 'error');
+    assert.equal(findings[0]?.file, 'docs/open-decisions.md');
+    assert.match(findings[0]?.message ?? '', /decision-recorder/);
+    assert.match(findings[0]?.message ?? '', /deploy quebrar/);
+  });
+});
+
+test('ADR-0013: o trigger de um item nunca entra — artefato per-file fica fora', () => {
+  const arvore = {
+    'docs/open-decisions.md': container('Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'),
+    // "Nunca. Imutavel apos aceito" nao compartilha raiz nenhuma com a
+    // description da decision-recorder, e ainda assim nao e achado.
+    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
+  };
+
+  withTempRepo(arvore, (root) => {
+    const findings = ci10TriggerRouting(DESCRICOES).run(contextFor(root));
+    assert.deepEqual(findings.filter((f) => f.file.startsWith('docs/decisions/')), []);
+  });
+});
+
+test('RN-0029: skill dona ausente da raiz do toolkit avisa e segue', () => {
+  const arvore = {
+    'docs/open-decisions.md': container('Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'),
+    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
+    'docs/glossary.md': [
+      '---',
+      'title: Glossario',
+      'owner: "@time"',
+      'trigger: Termo de dominio novo em codigo, spec ou conversa.',
+      'last-reviewed: 2026-08-31',
+      '---',
+      '',
+      'corpo',
+      '',
+    ].join('\n'),
+  };
+
+  // A description da glossary-keeper sai do mapa: e o repositorio que declarou
+  // uma skill que a raiz do toolkit nao tem.
+  const semGlossario = new Map([...DESCRICOES].filter(([name]) => name !== 'glossary-keeper'));
+
+  withTempRepo(arvore, (root) => {
+    const findings = ci10TriggerRouting(semGlossario).run(contextFor(root));
+
+    assert.equal(findings.length, 1);
+    assert.equal(findings[0]?.severity, 'warning');
+    assert.equal(findings[0]?.file, 'docs/glossary.md');
+    assert.match(findings[0]?.message ?? '', /glossary-keeper/);
+  });
+});
+
+test('RN-0029: documento sem trigger no frontmatter nao e achado', () => {
+  const arvore = {
+    'docs/open-decisions.md': container('Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'),
+    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
+    // CHANGELOG.md tem dono e skill e nao tem frontmatter. E legitimo.
+    'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
+  };
+
+  withTempRepo(arvore, (root) => {
+    assert.deepEqual(ci10TriggerRouting(DESCRICOES).run(contextFor(root)), []);
+  });
+});
+
+test('ADR-0013: a raiz e a palavra de cinco letras ou mais, truncada em seis', () => {
+  const raizes = rootsOf('Toda alterada de **regra**, com pontuacao!');
+  assert.ok(raizes.has('altera'), [...raizes].join(', '));
+  assert.ok(raizes.has('regra'));
+  // "Toda" e "com" tem menos de cinco letras: nao sao raiz.
+  assert.ok(!raizes.has('toda'));
+  assert.ok(!raizes.has('com'));
+  // O truncamento e o que faz "alterada" encontrar "alterar".
+  assert.deepEqual(sharedRoots('regra alterada', 'a regra vai alterar'), ['regra', 'altera']);
+});
+
+test('ADR-0013: a raiz do toolkit e legivel, e os pares dela cabem no piso', () => {
+  // Dogfooding, e e a calibracao do ADR-0013: se um par do proprio toolkit
+  // ficar abaixo do piso, o numero esta errado — nao o documento.
+  const descricoes = loadSkillDescriptions(toolkitRoot());
+  assert.ok(descricoes.size >= 8, `so ${descricoes.size} skills lidas da raiz do toolkit`);
+  assert.ok((descricoes.get('release-historian') ?? '').length > 0, 'description da release-historian nao foi lida');
+  assert.ok(SHARED_ROOTS_FLOOR >= 2, 'o piso e escrito, e esta abaixo do que o ADR-0013 fixou');
+
+  // Os doze pares deste repositorio, medidos pelo check e nao repetidos aqui:
+  // repetir o `trigger` num teste seria a copia que RN-0010 recusa.
+  const findings = runValidate(toolkitRoot()).findings.filter((f) => f.ruleId === 'CI-10');
+  assert.deepEqual(
+    findings.filter((f) => f.severity === 'error'),
+    [],
+    JSON.stringify(findings, null, 2),
+  );
+});
+```
+
+- [x] **Step 2: Rodar e ver falhar**
+
+```bash
+docker compose exec toolkit npm test -- --test-name-pattern="RN-0029"
+```
+
+Esperado: FALHA — `src/checks/ci10-trigger-routing.ts` não existe.
+
+- [x] **Step 3: Implementar `CI-10`**
+
+Crie `src/checks/ci10-trigger-routing.ts`:
+
+```typescript
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import type { Check, CheckContext, Finding } from '../core/types.ts';
+import { normalizeProse } from '../docs/markdown.ts';
+import { parseFrontmatter } from '../frontmatter/parse.ts';
+import { toolkitRoot } from '../core/roots.ts';
+
+const RULE = 'CI-10';
+
+/** Palavra curta não é raiz: "toda", "com" e "que" casariam com tudo (`ADR-0009`). */
+export const ROOT_FLOOR = 5;
+
+/**
+ * O truncamento é o que faz "alterada" encontrar "alterar" sem que o toolkit
+ * aprenda português (`ADR-0013`).
+ */
+export const ROOT_LENGTH = 6;
+
+/**
+ * Quantas raízes o `trigger` e a `description` precisam compartilhar
+ * (`ADR-0013`). Escrito aqui, e não escondido numa comparação, porque é número
+ * calibrado: a correção de um falso positivo é um ADR novo, nunca uma exceção
+ * local.
+ */
+export const SHARED_ROOTS_FLOOR = 2;
+
+export function rootsOf(text: string): Set<string> {
+  return new Set(
+    normalizeProse(text)
+      .split(' ')
+      .filter((word) => word.length >= ROOT_FLOOR)
+      .map((word) => word.slice(0, ROOT_LENGTH)),
+  );
+}
+
+/** As raízes que os dois textos têm em comum, na ordem do primeiro. */
+export function sharedRoots(trigger: string, description: string): string[] {
+  const other = rootsOf(description);
+  return [...rootsOf(trigger)].filter((root) => other.has(root));
+}
+
+/**
+ * A `description` de cada skill da raiz do **toolkit** (`ADR-0003`).
+ *
+ * É o único check que atravessa as duas raízes: o artefato mora no repositório
+ * validado e a skill mora no toolkit. Diretório ausente devolve mapa vazio, e
+ * mapa vazio vira aviso — nunca falha.
+ */
+export function loadSkillDescriptions(root: string = toolkitRoot()): Map<string, string> {
+  const dir = join(root, 'plugin', 'skills');
+  const found = new Map<string, string>();
+
+  let names: string[];
+  try {
+    names = readdirSync(dir);
+  } catch {
+    return found;
+  }
+
+  for (const name of names) {
+    let source: string;
+    try {
+      source = readFileSync(join(dir, name, 'SKILL.md'), 'utf8');
+    } catch {
+      continue;
+    }
+
+    let description: unknown;
+    try {
+      description = parseFrontmatter(source)?.data.description;
+    } catch {
+      continue; // SKILL.md com frontmatter quebrado é achado de `authoring`, não daqui
+    }
+    if (typeof description === 'string') found.set(name, description);
+  }
+
+  return found;
+}
+
+export interface RoutedDoc {
+  file: string;
+  line: number;
+  skill: string;
+  trigger: string;
+}
+
+function triggerOf(frontmatter: { data: Record<string, unknown>; lines: Record<string, number> } | null): {
+  trigger: string;
+  line: number;
+} | null {
+  const value = frontmatter?.data.trigger;
+  if (typeof value !== 'string' || value.trim() === '') return null;
+  return { trigger: value, line: frontmatter?.lines.trigger ?? 1 };
+}
+
+/**
+ * Os pares (documento, skill dona) que este check compara.
+ *
+ * Artefato `per-file` fica de fora de propósito: cada arquivo dele é um **item**,
+ * e o `trigger` de um ADR — "Nunca. Imutável após aceito" — é do item, não do
+ * artefato (`ADR-0013`). Entram os containers de coleção e as entradas de
+ * `documents:` que declaram skill.
+ */
+export function routedDocs(context: CheckContext): RoutedDoc[] {
+  const routed: RoutedDoc[] = [];
+
+  for (const doc of context.docs) {
+    if (doc.rule.collection === 'per-file') continue;
+    const found = triggerOf(doc.frontmatter);
+    if (found === null) continue;
+    routed.push({ file: doc.file, line: found.line, skill: doc.rule.skill, trigger: found.trigger });
+  }
+
+  for (const document of context.documents) {
+    if (document.rule.skill === null) continue;
+    const found = triggerOf(document.frontmatter);
+    if (found === null) continue;
+    routed.push({ file: document.file, line: found.line, skill: document.rule.skill, trigger: found.trigger });
+  }
+
+  return routed;
+}
+
+/**
+ * `CI-10` — trigger routing. O `trigger:` de um documento e a `description:` da
+ * skill declarada como dona dele descrevem o mesmo evento (`RN-0029`). Se
+ * divergirem, o documento declara um gatilho que nada dispara: o mecanismo de
+ * gatilho e o roteamento de skill deixam de se encontrar (spec §11).
+ *
+ * Não conta documento, linha nem cobertura: conta **divergência entre duas
+ * coisas que deveriam concordar** (spec §13).
+ *
+ * As descrições entram por injeção, como o executor em `CI-5` e o diff em
+ * `CI-7`: o padrão lê a raiz do toolkit, e o teste passa um mapa.
+ */
+export function ci10TriggerRouting(
+  descriptions: ReadonlyMap<string, string> = loadSkillDescriptions(),
+): Check {
+  return {
+    id: RULE,
+    name: 'trigger routing',
+    run(context: CheckContext): Finding[] {
+      const findings: Finding[] = [];
+
+      for (const routed of routedDocs(context)) {
+        const description = descriptions.get(routed.skill);
+
+        // Aviso, não falha: um projeto pode declarar skill própria, e reprovar
+        // por isso seria exigir que todo dono fosse do plugin (`RN-0029`).
+        if (description === undefined) {
+          findings.push({
+            ruleId: RULE,
+            file: routed.file,
+            line: routed.line,
+            severity: 'warning',
+            message:
+              `\`${routed.file}\` declara \`${routed.skill}\` como skill dona, e a raiz do toolkit não tem uma ` +
+              'skill com esse nome — o gatilho deste documento não pôde ser cruzado com o roteamento.',
+            fix:
+              `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
+              'confira o nome em `plugin/skills/` (`RN-0029`).',
+          });
+          continue;
+        }
+
+        const shared = sharedRoots(routed.trigger, description);
+        if (shared.length >= SHARED_ROOTS_FLOOR) continue;
+
+        findings.push({
+          ruleId: RULE,
+          file: routed.file,
+          line: routed.line,
+          severity: 'error',
+          message:
+            `O \`trigger\` de \`${routed.file}\` ("${routed.trigger.trim().replace(/\s+/g, ' ').slice(0, 120)}") e a ` +
+            `\`description\` de \`${routed.skill}\` falam de eventos diferentes: ` +
+            `${shared.length} raiz(es) em comum, mínimo ${SHARED_ROOTS_FLOOR}.`,
+          fix:
+            'Reescreva um dos dois para nomear o mesmo evento — quem mantém o documento e quem roteia a skill ' +
+            'precisam estar falando da mesma coisa, senão o documento declara um gatilho que nada dispara ' +
+            `(\`RN-0029\`, \`ADR-0013\`; skill dona: ${routed.skill}).`,
+        });
+      }
+
+      return findings;
+    },
+  };
+}
+```
+
+- [x] **Step 4: Rodar e ver passar**
+
+```bash
+docker compose exec toolkit npm test -- --test-name-pattern="RN-0029|ADR-0013"
+```
+
+Esperado: PASSA.
+
+- [x] **Step 5: Ligar no `validate`, no catálogo e regerar o contrato**
+
+Em `src/checks/registry.ts`, importe `ci10TriggerRouting` e acrescente-o ao fim
+da lista de `validateChecks`:
+
+```typescript
+    ci9CommitDiscipline(diff),
+    ci10TriggerRouting(),
+```
+
+Em `src/checks/catalog.ts`, ao fim do array:
+
+```typescript
+  {
+    id: 'CI-10',
+    name: 'trigger routing',
+    command: 'living-docs validate',
+    failsWhen:
+      'O `trigger` de um documento e a `description` da skill declarada como dona dele compartilham menos raízes de palavra do que o piso declarado. Skill dona ausente da raiz do toolkit produz aviso, não falha; e o `trigger` de um item de coleção não é comparado.',
+  },
+```
+
+Atualize `test/checks/registry.test.ts`: o mapa `esperado` ganha
+`'CI-10': 'living-docs validate'`, e as duas `assert.deepEqual` de IDs passam a
+esperar `['CI-1', 'CI-2', 'CI-3', 'CI-4', 'CI-7', 'CI-8', 'CI-9', 'CI-10']`.
+
+O teste "o catálogo é lido por gente: fica ordenado por ID" continua valendo:
+`CI-10` vem depois de `CI-9` porque a ordenação é numérica, não textual.
+
+Regere o contrato:
+
+```bash
+docker compose exec toolkit node /opt/living-docs/src/tools/gen-checks.ts > docs/contracts/checks.gen.md
+./bin/living-docs drift
+```
+
+- [x] **Step 6: Rodar contra este repositório e corrigir a calibração do `ADR-0013`**
+
+```bash
+./bin/living-docs validate
+```
+
+Esperado: nenhum achado de `CI-10`. Os doze pares deste repositório foram
+medidos e o mais apertado é `docs/contracts/errors.md` × `contract-keeper`, com
+**três** raízes (`código`, `saída`, `signif`).
+
+O `ADR-0013` está `draft` — a promoção é a Task 16 —, e a calibração escrita
+nele nomeia o par errado. Corrija o bloco de calibração da decisão de
+semelhança para o que foi medido:
+
+```markdown
+- **Calibração:** contra os doze pares deste repositório. O par mais apertado é
+  `docs/contracts/errors.md` × `contract-keeper`, com três raízes (`código`,
+  `saída`, `signif`); o mais folgado é `CONTRIBUTING.md` ×
+  `working-agreements-keeper`, com sete. O piso é dois, e a margem de um é
+  deliberada: um par que já nasce no piso é um par que qualquer reescrita
+  quebra.
+```
+
+Isto **não** é editar item congelado: `HK-1` congela `accepted`, e este ADR é
+`draft`. Se ele já tiver sido promovido, pare — o caminho é `superseded` e um
+ADR novo, e o número não está na lista desta Task.
+
+- [x] **Step 7: O teste de aceite do critério 9**
+
+Acrescente a `test/acceptance/spec-criteria.test.ts`:
+
+```typescript
+test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI', () => {
+  const ownership = [
+    'version: 1',
+    'artifacts:',
+    '  - id-prefix: DA',
+    '    path: docs/open-decisions.md',
+    '    owner: "@time"',
+    '    skill: decision-recorder',
+    '    collection: table',
+    'documents:',
+    '  - path: docs/.ownership.yml',
+    '    owner: "@time"',
+    '    skill: living-docs-bootstrap',
+    '',
+  ].join('\n');
+
+  const decisoes = (trigger: string): string =>
+    [
+      '---',
+      'title: Open Decisions',
+      'owner: "@time"',
+      `trigger: ${trigger}`,
+      'last-reviewed: 2026-08-31',
+      '---',
+      '',
+      '| ID | Lacuna | Status | Aberta em |',
+      '| --- | --- | --- | --- |',
+      '',
+    ].join('\n');
+
+  // Divergente: reprova nomeando os dois.
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: ownership,
+      CODEOWNERS: 'docs/    @time\n',
+      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
+    },
+    (root) => {
+      const result = runValidate(root);
+      const finding = result.findings.find((f) => f.ruleId === 'CI-10');
+      assert.ok(finding, JSON.stringify(result.findings, null, 2));
+      assert.equal(finding?.severity, 'error');
+      assert.match(finding?.message ?? '', /decision-recorder/);
+      assert.equal(result.exitCode, 1);
+    },
+  );
+
+  // Skill que a raiz do toolkit nao tem: avisa e segue.
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: ownership.replace('skill: decision-recorder', 'skill: decisoes-do-time'),
+      CODEOWNERS: 'docs/    @time\n',
+      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
+    },
+    (root) => {
+      const result = runValidate(root);
+      const finding = result.findings.find((f) => f.ruleId === 'CI-10');
+      assert.equal(finding?.severity, 'warning');
+      assert.equal(result.exitCode, 0);
+    },
+  );
+});
+```
+
+- [x] **Step 8: Rodar tudo, CHANGELOG e commit**
+
+```bash
+docker compose exec toolkit npm test
+docker compose exec toolkit npm run typecheck
+./bin/living-docs validate --base origin/master
+./bin/living-docs drift
+```
+
+Em `docs/definition-of-done.md`, a última linha passa a nomear
+``verificação: `CI-1` a `CI-10`, rodados pelo workflow do repositório.``
+
+Sob `### Added` de `CHANGELOG.md`:
+
+```markdown
+- `CI-10` (`living-docs validate`): o `trigger` de um documento e a
+  `description` da skill declarada como dona dele precisam falar do mesmo
+  evento. Skill dona que não existe na raiz do toolkit produz aviso, não falha.
+```
+
+```bash
+git add src/checks/ci10-trigger-routing.ts src/checks/registry.ts src/checks/catalog.ts \
+        docs/contracts/checks.gen.md docs/definition-of-done.md \
+        docs/decisions/adr/ADR-0013-os-dois-limiares-do-fechamento.md \
+        test/checks/ci10-trigger-routing.test.ts test/checks/registry.test.ts \
+        test/acceptance/spec-criteria.test.ts CHANGELOG.md
+git commit -m "feat(RN-0029, ADR-0013): CI-10 cruza o gatilho do artefato com a description da skill dona"
+```
+
+---
+
+### Task 13: O conjunto de checks cabe num teto declarado — e medido
+
+**Objetivo:** A segunda metade de `L-8`. A §9 da spec exige que os checks rodem
+"em minutos, no PR" e nada mede. `RNF-0001` cobre o teto de 5 s do hook e não
+diz nada do check. Fecha o critério de aceite 10.
+
+**Files:**
+- Create: `src/checks/budget.ts`
+- Modify: `src/cli/validate.ts`, `src/cli/drift.ts`, `src/cli/changelog.ts`
+  (cada resultado passa a trazer o que mediu)
+- Modify: `src/cli/index.ts` (o relato, e o texto de `--stage`)
+- Create: `test/checks/budget.test.ts` — é ele o teste de aceite do critério 10:
+  a medida é do conjunto, contra o corpus real, e é o que cobra o teto
+- Modify: `test/cli/validate.test.ts` (o campo novo no resultado)
+- Modify: `CHANGELOG.md`
+
+**Interfaces:**
+- Consome: `runValidate`, `runDrift`, `runChangelog`.
+- Produz:
+  - `CHECK_BUDGET_MS` (`src/checks/budget.ts`)
+  - `formatElapsed(ms: number): string`
+  - `ValidateResult.elapsedMs`, `DriftResult.elapsedMs`,
+    `ChangelogResult.elapsedMs`
+
+**Requisitos:**
+- **O teto é do conjunto, não de cada check** (`RNF-0005`): é o conjunto que
+  roda no PR. Um teto por check aprovaria oito checks lentos.
+- **Medido, nunca estimado.** O CLI mede a execução real e imprime o que mediu,
+  a cada execução. Um orçamento que ninguém mede é uma intenção.
+- **Quem reprova é o teste, não o `validate`.** Um `validate` que saísse com 1
+  por lentidão trocaria um enforcement por um teste instável: o runner do
+  consumidor não é o do toolkit, e reprovar um PR correto porque a máquina
+  estava carregada é pior do que não medir. O CLI **relata** — e diz alto quando
+  passou do teto; o teste é que **cobra**, contra o corpus real deste
+  repositório.
+- **O teto não conta volume** (spec §13): mede tempo de execução, que é
+  propriedade do sistema, não tamanho de documentação.
+- O teto declarado é **120 000 ms** para o conjunto. É "minutos, no PR" com uma
+  ordem de grandeza de folga sobre a medida real — e é isso que ele precisa
+  pegar: regressão de ordem de grandeza, não ruído de máquina.
+
+**`HK-5`:** `src/checks/**` pede `docs/requirements/rules.md`; `src/cli/**` pede
+`docs/requirements/functional.md` e `CHANGELOG.md`. `RNF-0005` viajou na Task 2
+e o CHANGELOG entra no Step 6.
+
+- [x] **Step 1: Escrever o teste do orçamento (falha)**
+
+Crie `test/checks/budget.test.ts`:
+
+```typescript
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { CHECK_BUDGET_MS, formatElapsed } from '../../src/checks/budget.ts';
+import { runValidate } from '../../src/cli/validate.ts';
+import { runDrift } from '../../src/cli/drift.ts';
+import { runChangelog } from '../../src/cli/changelog.ts';
+import { toolkitRoot } from '../../src/core/roots.ts';
+
+const NUL = String.fromCharCode(0);
+
+/** O git falso deste teste: o custo medido e o dos checks, nao o do git. */
+const git = (args: readonly string[]): string => {
+  if (args.includes('log')) return `docs(RN-0001): x${NUL}\n`;
+  if (args.includes('--unified=0')) return '';
+  return `src/cli/index.ts${NUL}CHANGELOG.md${NUL}`;
+};
+
+test('RNF-0005: o conjunto completo de checks cabe no teto declarado, medido', () => {
+  const root = toolkitRoot();
+  const inicio = process.hrtime.bigint();
+
+  // O conjunto e o que roda no PR: as duas execucoes de `validate`, o `drift`
+  // com o gerador de verdade, e o `changelog`. Nao e o tempo de um check.
+  runValidate(root);
+  runValidate(root, 'origin/master', git);
+  runDrift(root);
+  runChangelog(root, 'origin/master', git);
+
+  const decorrido = Number(process.hrtime.bigint() - inicio) / 1e6;
+
+  assert.ok(
+    decorrido < CHECK_BUDGET_MS,
+    `o conjunto levou ${formatElapsed(decorrido)}, e o teto declarado e ${formatElapsed(CHECK_BUDGET_MS)} ` +
+      '(RNF-0005) — meça antes de subir o teto',
+  );
+});
+
+test('RNF-0005: cada comando devolve o que mediu, e a medida nao e estimada', () => {
+  const root = toolkitRoot();
+
+  const validado = runValidate(root);
+  assert.equal(typeof validado.elapsedMs, 'number');
+  assert.ok(validado.elapsedMs >= 0);
+  // Uma varredura da arvore inteira nao custa zero: medida zerada e medida
+  // que ninguem tomou.
+  assert.ok(validado.elapsedMs > 0, 'elapsedMs veio zerado — o relogio nao foi lido');
+
+  assert.equal(typeof runDrift(root).elapsedMs, 'number');
+});
+
+test('RNF-0005: formatElapsed e legivel por quem le o log do PR', () => {
+  assert.equal(formatElapsed(842), '842 ms');
+  assert.equal(formatElapsed(1500), '1.5 s');
+  assert.equal(formatElapsed(120_000), '120.0 s');
+});
+```
+
+- [x] **Step 2: Rodar e ver falhar**
+
+```bash
+docker compose exec toolkit npm test -- --test-name-pattern="RNF-0005"
+```
+
+Esperado: FALHA — `src/checks/budget.ts` não existe.
+
+- [x] **Step 3: Declarar o teto**
+
+Crie `src/checks/budget.ts`:
+
+```typescript
+/**
+ * O teto de tempo do **conjunto** de checks (`RNF-0005`, spec §9).
+ *
+ * Do conjunto, e não de cada check: é o conjunto que roda no PR, e um teto por
+ * check aprovaria oito checks lentos. Os três candidatos conhecidos a estourá-lo
+ * são `CI-5` (executa subprocesso), `CI-7` (compara frase com frase) e `CI-8`
+ * (varre o corpus inteiro).
+ *
+ * Dois minutos é "minutos, no PR" com uma ordem de grandeza de folga sobre a
+ * medida real deste repositório — e é isso que um orçamento precisa pegar:
+ * regressão de ordem de grandeza, não ruído de máquina carregada. Subir este
+ * número sem uma medida nova ao lado é transformá-lo de volta em intenção.
+ */
+export const CHECK_BUDGET_MS = 120_000;
+
+/** Milissegundos como quem lê o log do PR os lê. */
+export function formatElapsed(ms: number): string {
+  return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`;
+}
+```
+
+- [x] **Step 4: Medir em cada comando**
+
+Nos três CLIs, o padrão é o mesmo — marque o início, meça o fim, devolva.
+
+Em `src/cli/validate.ts`: acrescente `elapsedMs: number;` a `ValidateResult`
+(com o comentário `/** Quanto o conjunto de checks levou, medido (RNF-0005). */`),
+e dentro de `runValidate`:
+
+```typescript
+  const inicio = process.hrtime.bigint();
+```
+
+logo antes de `forgetTree(root);`, e no `return`:
+
+```typescript
+    elapsedMs: Number(process.hrtime.bigint() - inicio) / 1e6,
+```
+
+Repita em `src/cli/drift.ts` (`DriftResult`) e em `src/cli/changelog.ts`
+(`ChangelogResult`) — inclusive no retorno curto de `changelog` quando
+`consumerVisiblePaths` está vazio, senão o campo mente quando o comando não
+faz nada.
+
+- [x] **Step 5: Relatar a medida, e consertar o texto de `--stage`**
+
+Em `src/cli/index.ts`, importe `CHECK_BUDGET_MS` e `formatElapsed`, e escreva
+uma função só, usada pelos três comandos:
+
+```typescript
+/**
+ * O relato da medida (`RNF-0005`). Sai a cada execução: um orçamento que só
+ * aparece quando estoura é um orçamento que ninguém sabe que existe.
+ *
+ * Não muda o código de saída. Quem reprova por lentidão é o teste do orçamento,
+ * contra o corpus deste repositório — um `validate` que saísse com 1 porque a
+ * máquina estava carregada trocaria um enforcement por um teste instável.
+ */
+function reportElapsed(elapsedMs: number): void {
+  process.stdout.write(
+    `living-docs: conjunto de checks em ${formatElapsed(elapsedMs)} ` +
+      `(teto declarado: ${formatElapsed(CHECK_BUDGET_MS)} — RNF-0005).\n`,
+  );
+  if (elapsedMs > CHECK_BUDGET_MS) {
+    process.stderr.write(
+      'living-docs: o conjunto passou do teto declarado. Meça o que ficou lento antes de subir o número ' +
+        '(RNF-0005).\n',
+    );
+  }
+}
+```
+
+Chame `reportElapsed(result.elapsedMs)` logo antes de cada `return
+result.exitCode;` de `validate`, `drift` e `changelog` — inclusive nos retornos
+curtos, que também mediram.
+
+E, no `USAGE`, a linha de `--stage` ainda lista três estágios enquanto o CLI
+aceita quatro desde a Task 8. Troque-a por:
+
+```
+  --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team, production ou multi-team
+```
+
+- [x] **Step 6: Rodar tudo, CHANGELOG e commit**
+
+```bash
+docker compose exec toolkit npm test
+docker compose exec toolkit npm run typecheck
+./bin/living-docs validate
+```
+
+Esperado: a última linha do `validate` traz a medida. Anote o número no corpo do
+commit — é a primeira medida registrada, e é contra ela que a próxima se compara.
+
+Se algum teste de `test/cli/` comparar `ValidateResult` inteiro com
+`assert.deepEqual`, ele quebra por causa do campo novo: compare campo a campo,
+nunca fixe o valor medido.
+
+Sob `### Added` de `CHANGELOG.md`:
+
+```markdown
+- `validate`, `drift` e `changelog` passam a relatar quanto o conjunto de checks
+  levou e qual é o teto declarado (`RNF-0005`). A medida não altera o código de
+  saída.
+```
+
+Sob `### Fixed`:
+
+```markdown
+- `living-docs --help` passa a listar `multi-team` entre os estágios de
+  `--stage`; o CLI já o aceitava.
+```
+
+```bash
+git add src/checks/budget.ts src/cli/validate.ts src/cli/drift.ts src/cli/changelog.ts \
+        src/cli/index.ts test/checks/budget.test.ts test/cli/validate.test.ts CHANGELOG.md
+git commit -m "feat(RNF-0005): o conjunto de checks ganha teto declarado e medida a cada execucao"
+```
+
+---
+
+### Task 14: A Definition of Done recebe o que só gente verifica
+
+**Objetivo:** Os critérios de aceite 9 e 10 da spec **original** — os dois que a
+§2 desta spec deixou **fora** de escopo por serem verificação humana por
+natureza. Eles não ganham check: ganham linha marcada humana, dita como tal. Um
+check que fingisse medi-los seria pior que a ausência dele (§11,
+anti-requisitos).
+
+**Files:**
+- Modify: `docs/definition-of-done.md`
+- Modify: `test/docs/maintenance.test.ts`
+
+**Interfaces:**
+- Consome: nada. É documento e o teste que o lê.
+- Produz: nenhuma assinatura.
+
+**Requisitos:**
+- Cada item da Definition of Done **nomeia o que o verifica** — é `RN-0017`, e
+  `CI-7` reprova item que não nomeia. "verificação: humana" satisfaz a regra: o
+  vocabulário aceito inclui a palavra, e é deliberado.
+- **Não inventar `CI-11`.** "Um agente errou por falta de contexto" não é
+  observável por máquina, e "nenhuma métrica de volume documental" é a ausência
+  de uma coisa. Contar qualquer um dos dois seria o check que a spec recusa.
+- O teste garante que os dois itens continuam **marcados como humanos** — se
+  alguém os trocar por um ID de check no futuro, o teste conta o que aconteceu.
+
+**`HK-5`:** nenhum caminho vigiado é tocado.
+
+- [x] **Step 1: Escrever o teste (falha)**
+
+Acrescente a `test/docs/maintenance.test.ts`, que já tem `ROOT`, `CONFIG` e
+`documentWithRole` no topo. O caminho vem do **papel**, nunca adivinhado — é a
+mesma regra que o resto do arquivo já pratica:
+
+```typescript
+test('spec §12 criterios 9 e 10: o que so gente verifica entra como linha humana', () => {
+  const documento = documentWithRole(CONFIG, 'definition-of-done');
+  assert.ok(documento);
+  const dod = readFileSync(join(ROOT, documento.path), 'utf8');
+
+  const humanos = [/falta de contexto/i, /volume documental/i];
+  for (const padrao of humanos) {
+    const linha = dod.split('\n').find((l) => padrao.test(l));
+    assert.ok(linha, `a Definition of Done nao tem a linha de ${padrao}`);
+    assert.match(linha ?? '', /^- \[ \] /, 'precisa ser item de checklist');
+    assert.match(
+      linha ?? '',
+      /verificacao: humana|verificação: humana/,
+      'estes dois sao verificacao humana por natureza — um check que fingisse medi-los seria pior que a ausencia dele',
+    );
+    assert.doesNotMatch(linha ?? '', /\bCI-\d+\b/, 'nenhum check mede estes dois');
+  }
+});
+```
+
+- [x] **Step 2: Rodar e ver falhar**
+
+```bash
+docker compose exec toolkit npm test -- --test-name-pattern="criterios 9 e 10"
+```
+
+Esperado: FALHA — as linhas não existem.
+
+- [x] **Step 3: Escrever as duas linhas**
+
+Em `docs/definition-of-done.md`, ao fim da lista de itens, antes da seção
+`## O que esta lista não é`:
+
+```markdown
+- [ ] Nenhum agente e nenhuma pessoa errou por falta de contexto que caberia num artefato existente — e, quando errou, o artefato dono ganhou a linha que faltava — verificação: humana (spec §12, critério 9).
+- [ ] Nenhuma métrica de volume documental foi usada como sinal de qualidade: nem contagem de páginas, nem cobertura, nem "documentar o que foi feito" — verificação: humana (spec §12, critério 10).
+```
+
+Os dois nomeiam o que os verifica, como `RN-0017` exige, e o que os verifica é
+gente. Não é lacuna de enforcement: é o único enforcement honesto que estes dois
+admitem, e a §11 da spec original já admite item de checklist verificável só por
+gente, dito explicitamente.
+
+- [x] **Step 4: Rodar tudo**
+
+```bash
+docker compose exec toolkit npm test
+./bin/living-docs validate
+```
+
+Esperado: sem finding. Se `CI-7` acusar item sem verificação nomeada, a palavra
+"verificação" saiu da linha — recoloque-a; não invente um ID de check.
+
+- [x] **Step 5: Commit**
+
+```bash
+git add docs/definition-of-done.md test/docs/maintenance.test.ts
+git commit -m "docs(RN-0017): os criterios 9 e 10 da spec entram como linha humana na Definition of Done
+
+Docs: none — a Definition of Done e o doc dono desta mudanca"
+```
+
+---
+
+### Task 15: A adoção do consumidor real — a prova, não o experimento
+
+**Objetivo:** O critério de aceite 12, que é o único item cujo resultado pode
+**invalidar** uma decisão desta spec. O consumidor tem 97 regras com IDs sem
+hífen já citadas nos testes dele, duas decisões abertas em prosa, `docs/adr/`
+vazio, hooks próprios registrados, CI por diretório e sem Docker,
+`docs/architecture/` e `docs/domains/` (camada 4), e nenhum CODEOWNERS. A
+instalação atravessa tudo isso **sem reescrever um arquivo dele**.
+
+E o teste da camada 4 é binário: **se adotá-la exigir tocar em algum check, o
+ponto de extensão não era o que a spec dizia que era**. Esse resultado é
+entregável, seja qual for.
+
+**Files:**
+- Modify: `test/acceptance/consumer-repo.test.ts`
+- Modify: `CHANGELOG.md` (só se algo mudar de público — veja o Step 6)
+
+**Interfaces:**
+- Consome: `runInit`, `runValidate`, `mergeSettings`, `WORKFLOW_PATH`,
+  `SETTINGS_PATH`, `DetectedFormat`.
+- Produz: nenhuma assinatura. Produz uma **prova**.
+
+**Requisitos:**
+- **Nenhum arquivo preexistente é reescrito.** O teste tira uma impressão
+  (conteúdo byte a byte) de tudo que existia antes do `init` e compara depois.
+  Qualquer diferença reprova — é o critério 1 da spec original.
+- **Nenhum check muda nesta task.** O commit desta task não pode tocar
+  `src/checks/**`. Se para a camada 4 passar for preciso mudar um check, **pare
+  e escreva o achado**: é o resultado que invalida a §8 da spec de fechamento, e
+  vale mais que o teste verde.
+- **A camada 4 entra com dono e sem skill** — a categoria que este repositório
+  já usa para planos, spec e README. Ganha dono, link verificado e cobrança de
+  revisão; não ganha keeper, máquina de estados nem família de IDs.
+- **A situação em prosa das decisões abertas não é convertida automaticamente.**
+  Virar estado da máquina é ato humano. O teste fixa que o `init` **não** a
+  reescreve.
+- O consumidor não roda Docker: o workflow instalado recebe `--invoke` e não
+  menciona Docker (`RNF-0002` é regra deste toolkit, não de quem o instala).
+
+**`HK-5`:** nenhum caminho vigiado é tocado, e é assim que tem de ser — esta
+task só escreve teste.
+
+- [x] **Step 1: Montar o consumidor, com tudo que ele tem hoje**
+
+O arquivo já importa `runInit`, `runValidate`, `toolkitRoot`, `withTempRepo`,
+`DEFAULT_ID_FORMAT` e os utilitários de `node:fs`. Acrescente ao bloco de
+imports o que falta:
+
+```typescript
+import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
+import { SETTINGS_PATH } from '../../src/config/claude-settings.ts';
+import { WORKFLOW_PATH } from '../../src/cli/init.ts';
+```
+
+E, ao topo do arquivo:
+
+```typescript
+/** As 97 regras do consumidor, escritas como ele as escreve: `RN001`. */
+const REGRAS_DO_CONSUMIDOR = [
+  '---',
+  'title: Regras de negocio',
+  'owner: "@consumidor"',
+  'trigger: >',
+  '  Antes de implementar qualquer comportamento, e a toda regra nova ou alterada.',
+  'last-reviewed: 2026-08-31',
+  '---',
+  '',
+  '# Regras de negocio',
+  '',
+  ...Array.from({ length: 97 }, (_, i) => {
+    const id = `RN${String(i + 1).padStart(3, '0')}`;
+    return [`## ${id} — Regra numero ${i + 1}`, '', '- **status:** active', '', 'Prosa da regra.', ''].join('\n');
+  }),
+].join('\n');
+
+const DECISOES_EM_PROSA = [
+  '---',
+  'title: Decisoes em aberto',
+  'owner: "@consumidor"',
+  'trigger: >',
+  '  Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.',
+  'last-reviewed: 2026-08-31',
+  '---',
+  '',
+  '## DA001 — Como arredondar centavos',
+  '',
+  '- **status:** open',
+  '',
+  '**Contexto:** a cobranca arredonda hoje de tres jeitos.',
+  '**Alternativas:** para cima, bancario, truncar.',
+  '**Recomendacao:** bancario.',
+  '**Situacao:** ainda em discussao com o financeiro.',
+  '',
+  '## DA002 — Fuso do fechamento',
+  '',
+  '- **status:** open',
+  '',
+  '**Contexto:** o fechamento roda em UTC e o relatorio sai em BRT.',
+  '**Situacao:** aguardando o time de dados.',
+  '',
+].join('\n');
+
+/** O `.claude/settings.json` que o consumidor ja tem, com hooks proprios. */
+const SETTINGS_DO_CONSUMIDOR = JSON.stringify(
+  {
+    hooks: {
+      PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: './scripts/audita.sh' }] }],
+    },
+    extraKnownMarketplaces: { 'time-interno': { source: { source: 'github', repo: 'time/plugins' } } },
+  },
+  null,
+  2,
+);
+
+const WORKFLOW_DO_CONSUMIDOR = [
+  'name: api',
+  'on:',
+  '  pull_request:',
+  '    paths: ["services/api/**"]',
+  'jobs:',
+  '  test:',
+  '    runs-on: ubuntu-latest',
+  '    steps:',
+  '      - uses: actions/checkout@v4',
+  '      - run: npm ci && npm test',
+  '',
+].join('\n');
+
+const CONSUMIDOR = {
+  'docs/regras-de-negocio.md': REGRAS_DO_CONSUMIDOR,
+  'docs/decisoes-em-aberto.md': DECISOES_EM_PROSA,
+  'docs/adr/.gitkeep': '',
+  'docs/architecture/contexto.md': '# Contexto\n\nDesenho C4 nivel 1.\n',
+  'docs/domains/cobranca.md': '# Cobranca\n\nInvariantes do dominio.\n',
+  'test/cobranca.test.ts': "test('RN001: arredonda para cima', () => {});\n",
+  '.claude/settings.json': SETTINGS_DO_CONSUMIDOR,
+  '.github/workflows/api.yml': WORKFLOW_DO_CONSUMIDOR,
+  'README.md': '# consumidor\n',
+};
+
+/** Impressao byte a byte da arvore, para provar que nada preexistente mudou. */
+function impressao(root: string, arquivos: readonly string[]): Record<string, string> {
+  const registro: Record<string, string> = {};
+  for (const arquivo of arquivos) registro[arquivo] = readFileSync(join(root, arquivo), 'utf8');
+  return registro;
+}
+
+const OPCOES_DO_CONSUMIDOR = {
+  owner: '@consumidor',
+  dryRun: false,
+  stage: 'production' as const,
+  idFormat: { separator: '', padding: 3 },
+  // O consumidor nao roda Docker: e assim que ele chama o CLI.
+  invoke: 'npx living-docs',
+  marketplace: 'time/living-docs',
+};
+```
+
+- [x] **Step 2: Escrever o teste do critério 12 (falha)**
+
+Ainda em `test/acceptance/consumer-repo.test.ts`:
+
+```typescript
+test('criterio 12: o consumidor real e adotado, e nenhum arquivo dele e reescrito', () => {
+  withTempRepo(CONSUMIDOR, (root) => {
+    const preexistentes = Object.keys(CONSUMIDOR).filter((p) => p !== 'docs/adr/.gitkeep');
+    const antes = impressao(root, preexistentes);
+
+    // --dry-run primeiro: o inventario relata a forma que ele achou, e nao a
+    // adota em silencio (RF-0014).
+    const seco = runInit(root, { ...OPCOES_DO_CONSUMIDOR, idFormat: DEFAULT_ID_FORMAT, dryRun: true });
+    assert.ok(seco.detected, 'o inventario nao relatou a forma escrita do consumidor');
+    assert.equal(seco.detected?.format.separator, '');
+    assert.equal(seco.detected?.format.padding, 3);
+    assert.ok((seco.detected?.count ?? 0) >= 97, `so ${seco.detected?.count} ocorrencias lidas`);
+    assert.deepEqual(impressao(root, preexistentes), antes, '--dry-run escreveu no repositorio');
+
+    // Agora a instalacao, com a forma declarada.
+    const result = runInit(root, OPCOES_DO_CONSUMIDOR);
+
+    // 1 — nada preexistente foi reescrito.
+    assert.deepEqual(impressao(root, preexistentes), antes, 'o init reescreveu arquivo preexistente');
+
+    // 2 — as regras e as decisoes foram ADOTADAS, nao recriadas.
+    const adotados = result.adopted.map((e) => e.path);
+    assert.ok(adotados.includes('docs/regras-de-negocio.md'), JSON.stringify(result.adopted));
+    assert.ok(adotados.includes('docs/decisoes-em-aberto.md'), JSON.stringify(result.adopted));
+    assert.ok(!existsSync(join(root, 'docs/requirements/rules.md')), 'o init criou um paralelo');
+    assert.ok(!existsSync(join(root, 'docs/open-decisions.md')), 'o init criou um paralelo');
+
+    // 3 — o diretorio de ADRs vazio nasce adotado.
+    assert.ok(adotados.includes('docs/adr/'), JSON.stringify(result.adopted));
+
+    // 4 — os hooks e o workflow do consumidor continuam la, e o do toolkit entrou.
+    const settings = JSON.parse(readFileSync(join(root, SETTINGS_PATH), 'utf8'));
+    assert.ok(settings.hooks.PreToolUse.some((e: { matcher: string }) => e.matcher === 'Bash'));
+    assert.ok(settings.extraKnownMarketplaces['time-interno']);
+    assert.ok(settings.extraKnownMarketplaces['living-docs']);
+    assert.ok(existsSync(join(root, '.github/workflows/api.yml')));
+    assert.ok(existsSync(join(root, WORKFLOW_PATH)));
+
+    // 5 — o workflow instalado nao impoe Docker a quem instala.
+    const workflow = readFileSync(join(root, WORKFLOW_PATH), 'utf8');
+    assert.doesNotMatch(workflow, /docker/i);
+    assert.match(workflow, /npx living-docs validate/);
+
+    // 6 — o CODEOWNERS, que ele nao tinha, foi escrito.
+    assert.ok(existsSync(join(root, 'CODEOWNERS')));
+
+    // 7 — a situacao em prosa continua prosa: virar estado e ato humano.
+    assert.match(readFileSync(join(root, 'docs/decisoes-em-aberto.md'), 'utf8'), /ainda em discussao/);
+
+    // 8 — rodar de novo nao duplica nada.
+    const segunda = runInit(root, OPCOES_DO_CONSUMIDOR);
+    assert.deepEqual(segunda.created, [], JSON.stringify(segunda.created));
+    const settingsDepois = readFileSync(join(root, SETTINGS_PATH), 'utf8');
+    assert.equal(settingsDepois.match(/living-docs@living-docs/g)?.length ?? 0, 1);
+  });
+});
+```
+
+- [x] **Step 3: Rodar e ver o que falha**
+
+```bash
+docker compose exec toolkit npm test -- --test-name-pattern="criterio 12"
+```
+
+Espere falhas de **adoção de caminho**: o `init` procura os caminhos conhecidos
+de cada família, e `docs/regras-de-negocio.md` já está na lista de `RN`
+(`src/cli/init.ts`), mas `docs/decisoes-em-aberto.md` e `docs/adr/` podem não
+estar nas de `DA` e `ADR`.
+
+Se faltar, acrescente o caminho à lista de adoção daquela família em
+`src/cli/init.ts` — **isso é dado de adoção, não check**, e é exatamente o que a
+`SK-0` passo 1 manda fazer. Se para passar for preciso mudar um **check**, pare:
+veja o Step 6.
+
+- [x] **Step 4: A camada 4 entra com dono e sem skill**
+
+Ainda no mesmo arquivo, o segundo teste — o binário:
+
+```typescript
+test('criterio 12: a camada 4 entra com dono e sem skill, sem que nenhum check mude', () => {
+  withTempRepo(CONSUMIDOR, (root) => {
+    runInit(root, OPCOES_DO_CONSUMIDOR);
+
+    // Antes de declarar: os documentos de arquitetura caem no corpus de CI-7 e
+    // reprovam por falta de dono. E o comportamento correto — o corpus e tudo
+    // que vive sob a raiz da documentacao, e nao uma lista de tipos conhecidos.
+    const semDono = runValidate(root);
+    assert.ok(
+      semDono.findings.some((f) => f.ruleId === 'CI-7' && f.file.startsWith('docs/architecture/')),
+      JSON.stringify(semDono.findings, null, 2),
+    );
+
+    // A declaracao: dono, sem skill. Nada alem disso.
+    const ownership = readFileSync(join(root, OWNERSHIP_PATH), 'utf8');
+    writeFileSync(
+      join(root, OWNERSHIP_PATH),
+      `${ownership}\n  - path: docs/architecture/\n    owner: "@consumidor"\n  - path: docs/domains/\n    owner: "@consumidor"\n`,
+      'utf8',
+    );
+    // E o CODEOWNERS, que CI-7 tambem cobra.
+    const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
+    writeFileSync(
+      join(root, 'CODEOWNERS'),
+      `${codeowners}docs/architecture/    @consumidor\ndocs/domains/    @consumidor\n`,
+      'utf8',
+    );
+
+    const result = runValidate(root);
+    assert.deepEqual(
+      result.findings.filter((f) => f.file.startsWith('docs/architecture/') || f.file.startsWith('docs/domains/')),
+      [],
+      'a camada 4 exigiu mais do que dono e linha no CODEOWNERS',
+    );
+    assert.equal(result.exitCode, 0, JSON.stringify(result.findings, null, 2));
+
+    // Sem skill dona, CI-10 nao tem par a cruzar: documento sem skill nao e achado.
+    assert.deepEqual(result.findings.filter((f) => f.ruleId === 'CI-10'), []);
+  });
+});
+```
+
+Note a ordem em que o `.ownership.yml` recebe as duas entradas: elas precisam
+cair **dentro** do bloco `documents:` que o `init` escreveu. Se o bloco não for o
+último do arquivo, insira as linhas no lugar certo em vez de concatenar ao fim —
+YAML mal colocado vira `OwnershipError`, e o achado seria sobre o teste, não
+sobre o toolkit.
+
+- [x] **Step 5: Rodar tudo**
+
+```bash
+docker compose exec toolkit npm test
+docker compose exec toolkit npm run typecheck
+./bin/living-docs validate --base origin/master
+```
+
+E a prova de que nenhum check mudou:
+
+```bash
+git status --porcelain src/checks/
+```
+
+Esperado: **saída vazia**. Se houver qualquer arquivo aí, vá para o Step 6.
+
+- [x] **Step 6: Se algum check precisou mudar, o achado é o entregável**
+
+Não conserte em silêncio. Abra a decisão e pare:
+
+```bash
+./bin/living-docs validate    # confirme o achado que forcou a mudanca
+```
+
+Escreva o caso concreto — qual check, qual documento, o que ele exigiu — e abra
+uma `DA` pela `decision-recorder` (`/open-decision`), citando a §8 da spec de
+fechamento: *"se adotar a camada 4 exigir tocar em algum check, o ponto de
+extensão não era o que a spec dizia que era"*. O número sai da skill, não deste
+plano. Esse resultado invalida uma decisão da spec, e é mais valioso que um
+teste verde.
+
+- [x] **Step 7: Commit**
+
+Só toque `CHANGELOG.md` se o Step 3 tiver acrescentado caminho de adoção em
+`src/cli/init.ts` — aí a mudança é visível a quem instala:
+
+```markdown
+- `living-docs init` passa a reconhecer `docs/decisoes-em-aberto.md` e `docs/adr/`
+  entre os caminhos que adota quando já existem.
+```
+
+```bash
+git add test/acceptance/consumer-repo.test.ts
+git commit -m "test(RF-0001, RN-0024): o consumidor real e adotado sem reescrever arquivo nenhum"
+```
+
+---
+
+### Task 16: A promoção — e ela não é sua
+
+**Objetivo:** Tudo que este plano escreveu nasceu `draft`/`open`. Promover é ato
+humano: `HK-3` intercepta, e a resposta não é do agente (spec §4, `CLAUDE.md`).
+Esta task **não promove nada**. Ela entrega a lista, com o que sustenta cada
+item, para que uma pessoa decida.
+
+**Files:**
+- Nenhum, pelo agente. Os arquivos que a **pessoa** pode promover:
+  `docs/decisions/adr/ADR-0011-*.md`, `ADR-0012-*.md`, `ADR-0013-*.md`,
+  `docs/requirements/functional.md`, `docs/requirements/rules.md`,
+  `docs/requirements/non-functional.md`.
+
+**Interfaces:**
+- Consome: tudo. É a última task.
+- Produz: uma decisão humana, ou o registro de que ela ainda não foi tomada.
+
+**Requisitos:**
+- **Nenhum agente promove estado** (spec §4). Se você é o agente executando este
+  plano, o Step 3 é onde você para.
+- `DA-0003` continua `open` — ela é uma lacuna de verdade, não um resto de
+  processo: como o toolkit chega ao CI e à sessão de quem o instala não foi
+  decidido, e o `--invoke` e o `--marketplace` são a consequência disso.
+
+- [x] **Step 1: Confirmar que tudo está em pé**
+
+```bash
+docker compose exec toolkit npm test
+docker compose exec toolkit npm run typecheck
+./bin/living-docs validate --base origin/master
+./bin/living-docs drift
+./bin/living-docs changelog --base origin/master
+```
+
+Esperado: os cinco sem finding. Não entregue com finding aberto.
+
+- [x] **Step 2: Montar a lista para quem decide**
+
+```bash
+./bin/living-docs validate | tail -5
+git log --oneline origin/master..HEAD
+```
+
+Escreva, na descrição do PR:
+
+- **`ADR-0011`** — identidade e forma escrita do ID. Sustentado pela Task 15: um
+  repositório com 97 regras em `RN001` foi adotado sem um arquivo reescrito.
+- **`ADR-0012`** — o que o estágio parametriza. Sustentado pela Task 8:
+  `multi-team` instala a Fase 7, e nada mais.
+- **`ADR-0013`** — os dois limiares. Sustentado pela medida da Task 12: doze
+  pares, o mais apertado com três raízes sobre um piso de duas.
+- **`RF-0013`, `RF-0014`, `RN-0024` a `RN-0029`, `RNF-0005`** — cada um com o
+  teste que o cita, encontrável por `CI-3`.
+- **`DA-0003`** — continua `open`, e é para continuar.
+
+- [x] **Step 3: Parar**
+
+A promoção de `draft` para `accepted`/`active` é do humano. `HK-3` intercepta a
+edição do campo `status` e pergunta; a resposta não é sua.
+
+Se você é uma pessoa lendo isto: promova o que você aceita, um item por vez, e
+deixe `draft` o que ainda não decidiu. Um ADR promovido fica congelado — `HK-1`
+bloqueia o corpo dele a partir daí, e o conserto passa a ser `superseded` mais um
+ADR novo. É esse custo que torna a promoção uma decisão, e não um passo de
+processo.

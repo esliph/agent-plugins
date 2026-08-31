@@ -61,6 +61,13 @@ test('normaliza kebab-case do YAML para camelCase tipado', () => {
   assert.equal(adr.states, null);
 });
 
+test('RN-0027: last-reviewed-bump-limit tem padrao 3 e piso 2', () => {
+  const base = 'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/adr/\n    owner: "@t"\n    skill: s\n';
+  assert.equal(parseOwnership(base).lastReviewedBumpLimit, 3);
+  assert.equal(parseOwnership(`${base}last-reviewed-bump-limit: 5\n`).lastReviewedBumpLimit, 5);
+  assert.throws(() => parseOwnership(`${base}last-reviewed-bump-limit: 1\n`), /maior ou igual a 2/);
+});
+
 test('aplica os defaults de collection, append-only e cited-by', () => {
   const config = parseOwnership(VALID);
   const da = config.artifacts[1];
@@ -306,4 +313,23 @@ test('documentWithRole acha o documento pelo papel, sem conhecer caminho nenhum'
 
   const semContrato = parseOwnership(COM_DOCUMENTOS.replace('    role: agent-contract\n', ''));
   assert.equal(documentWithRole(semContrato, 'agent-contract'), null);
+});
+
+/** A configuração mínima válida que este arquivo já usa (`ADR-0011`). */
+const MINIMO = VALID;
+
+test('RN-0024: id-format ausente é a forma do toolkit', () => {
+  const config = parseOwnership(MINIMO);
+  assert.deepEqual(config.idFormat, { separator: '-', padding: 4 });
+});
+
+test('RN-0024: id-format declarado é lido, e o inválido é erro e não padrão silencioso', () => {
+  const config = parseOwnership(`${MINIMO}\nid-format:\n  separator: ""\n  padding: 3\n`);
+  assert.deepEqual(config.idFormat, { separator: '', padding: 3 });
+
+  assert.throws(
+    () => parseOwnership(`${MINIMO}\nid-format:\n  separator: "~"\n`),
+    /separator "~" não é aceito/,
+  );
+  assert.throws(() => parseOwnership(`${MINIMO}\nid-format:\n  padding: 9\n`), /padding "9"/);
 });

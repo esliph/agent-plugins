@@ -17,7 +17,7 @@ test('o manifesto do plugin declara nome, versão e descrição', () => {
   assert.equal(typeof manifest.description, 'string');
 });
 
-test('hooks.json registra os sete hooks nos eventos e matchers da spec §7', () => {
+test('hooks.json registra os oito hooks nos eventos e matchers da spec §7', () => {
   const config = readJson('plugin/hooks/hooks.json');
   const hooks = config.hooks as Record<string, { matcher?: string; hooks: { command: string }[] }[]>;
 
@@ -34,7 +34,7 @@ test('hooks.json registra os sete hooks nos eventos e matchers da spec §7', () 
   );
 
   const esperado: Record<string, string[]> = {
-    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk2-generated-artifact', 'hk3-state-promotion'],
+    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk2-generated-artifact', 'hk3-state-promotion', 'hk8-open-decision-guard'],
     'PreToolUse:Bash': ['hk5-commit-guard'],
     'PostToolUse:Edit|Write': ['hk4-watch-reminder', 'hk7-shortcut-debt'],
     // SessionStart não tem matcher: o evento não é de ferramenta (spec §7).
@@ -80,7 +80,7 @@ test('todo hook referenciado existe no repositório', () => {
     }
   }
 
-  assert.equal(vistos, 7, 'a varredura deveria ver os sete hooks das Fases 1, 3, 5, 6 e 7');
+  assert.equal(vistos, 8, 'a varredura deveria ver os oito hooks');
 });
 
 /**
@@ -186,4 +186,18 @@ test('AG-1 lê o mapa de propriedade em vez de adivinhar caminho', () => {
 test('decision-recorder referencia o agent decision-adversary antes da aceitação', () => {
   const source = readFileSync(join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'), 'utf8');
   assert.match(source, /decision-adversary/);
+});
+
+test('o manifesto de marketplace aponta para o plugin deste repositório', () => {
+  const marketplace = readJson('.claude-plugin/marketplace.json');
+  const plugins = marketplace.plugins as { name: string; source: string; version: string }[];
+
+  assert.equal(marketplace.name, 'living-docs');
+  assert.equal(plugins.length, 1);
+  assert.equal(plugins[0]?.name, 'living-docs');
+  assert.equal(plugins[0]?.source, './plugin');
+  assert.ok(existsSync(join(ROOT, 'plugin/.claude-plugin/plugin.json')), 'a fonte precisa ter manifesto');
+
+  const plugin = readJson('plugin/.claude-plugin/plugin.json');
+  assert.equal(plugins[0]?.version, plugin.version, 'duas versões é a garantia de que uma está errada');
 });

@@ -65,7 +65,7 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     name: 'ownership coverage',
     command: 'living-docs validate',
     failsWhen:
-      'Documento do corpus sem entrada no `.ownership.yml` ou sem linha no CODEOWNERS; regra de `watches` cujo `doc` não existe ou não tem dono; contrato do agente repetindo frase de artefato dono; item da Definition of Done sem verificação nomeada; e, com `--base <ref>`, caminho vigiado alterado sem o doc dono e sem `Docs: none — <razão>`.',
+      'Documento do corpus sem entrada no `.ownership.yml` ou sem linha no CODEOWNERS; regra de `watches` cujo `doc` não existe ou não tem dono; contrato do agente repetindo frase de artefato dono; item da Definition of Done sem verificação nomeada; e, com `--base <ref>`, caminho vigiado alterado sem o doc dono, ou caminho reivindicado por decisão aberta — os dois liberados por `Docs: none — <razão>`.',
   },
   {
     id: 'CI-8',
@@ -73,5 +73,19 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     command: 'living-docs validate',
     failsWhen:
       'Link interno relativo que não resolve para arquivo ou diretório existente; `[[wikilink]]` sem destino no corpus; arquivo em formato binário sob a raiz da documentação. Link dentro de bloco de código ou de marcação inline não conta.',
+  },
+  {
+    id: 'CI-9',
+    name: 'commit discipline',
+    command: 'living-docs validate',
+    failsWhen:
+      'Com `--base <ref>`: o diff altera apenas a data de revisão de `last-reviewed-bump-limit` documentos ou mais, sem outra mudança no corpo de nenhum deles; ou altera um arquivo de artefato e nenhuma mensagem de commit do diff cita um dos IDs declarados nele.',
+  },
+  {
+    id: 'CI-10',
+    name: 'trigger routing',
+    command: 'living-docs validate',
+    failsWhen:
+      'O `trigger` de um documento e a `description` da skill declarada como dona dele compartilham menos raízes de palavra do que o piso declarado. Skill dona ausente da raiz do toolkit produz aviso, não falha; e o `trigger` de um item de coleção não é comparado.',
   },
 ]);

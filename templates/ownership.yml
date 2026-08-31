@@ -3,6 +3,14 @@
 version: 1
 stale-after-months: 6
 
+# A forma escrita de um ID neste projeto (ADR-0011). A identidade NÃO depende
+# dela: `RN009` e `RN-0009` são o mesmo item. Mude isto para adotar um
+# repositório cujos IDs já se escrevem de outro jeito — nunca renumere o
+# repositório para caber no padrão.
+id-format:
+  separator: "{{ID_SEPARATOR}}"
+  padding: {{ID_PADDING}}
+
 artifacts:
   - id-prefix: ADR
     path: {{ADR_PATH}}
@@ -21,6 +29,8 @@ artifacts:
     # projeto (spec §3).
     field-map:
       resolved-by: "Resolvida por"
+      blocks: "Bloqueia"
+      gap: "Lacuna"
 
   - id-prefix: TDR
     path: {{TDR_PATH}}

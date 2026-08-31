@@ -1,7 +1,7 @@
 import { loadOwnership } from '../config/ownership.ts';
 import { collectArtifacts, collectDocuments } from '../docs/collect.ts';
 import { validateChecks } from '../checks/registry.ts';
-import { changedPaths, commitMessages } from '../git/diff.ts';
+import { changedLines, changedPaths, commitMessages } from '../git/diff.ts';
 import type { GitRunner } from '../git/staged.ts';
 import { todayIso } from '../core/dates.ts';
 import { forgetTree } from '../core/files.ts';
@@ -19,6 +19,8 @@ export interface ValidateResult {
   /** Vínculos código→doc declarados — a metade do diff exige `--base` (ADR-0010). */
   watched: number;
   base: string | null;
+  /** Quanto o conjunto de checks levou, medido (RNF-0005). */
+  elapsedMs: number;
 }
 
 /**
@@ -29,6 +31,7 @@ export interface ValidateResult {
  * `CI-5` e `CI-6`.
  */
 export function runValidate(root: string, base: string | null = null, run?: GitRunner): ValidateResult {
+  const inicio = process.hrtime.bigint();
   // A varredura é memoizada por raiz dentro do processo (`src/core/files.ts`).
   // Uma execução do `validate` é uma leitura só da árvore; duas execuções são
   // duas — senão a segunda responderia sobre o repositório de antes.
@@ -46,7 +49,12 @@ export function runValidate(root: string, base: string | null = null, run?: GitR
   const diff =
     base === null
       ? null
-      : { base, changed: changedPaths(root, base, run), messages: commitMessages(root, base, run) };
+      : {
+          base,
+          changed: changedPaths(root, base, run),
+          messages: commitMessages(root, base, run),
+          edits: changedLines(root, base, run),
+        };
 
   const findings = validateChecks(diff).flatMap((check) => check.run(context));
   const errors = findings.filter((finding) => finding.severity === 'error').length;
@@ -60,5 +68,6 @@ export function runValidate(root: string, base: string | null = null, run?: GitR
     consumerVisible: config.consumerVisiblePaths.length,
     watched: config.watches.length,
     base,
+    elapsedMs: Number(process.hrtime.bigint() - inicio) / 1e6,
   };
 }

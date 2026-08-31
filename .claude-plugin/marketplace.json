@@ -1,0 +1,16 @@
+{
+  "name": "living-docs",
+  "description": "Toolkit de documentação viva: ADR, decisões abertas, dívida registrada, requisitos com ID estável, contrato gerado e o enforcement que os mantém vivos.",
+  "owner": {
+    "name": "Dan Ruan",
+    "email": "danrsaquetti@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "living-docs",
+      "description": "Sete skills donas de artefato, dois agents, oito hooks e sete comandos — o lado de sessão do toolkit de documentação viva.",
+      "version": "0.1.0",
+      "source": "./plugin"
+    }
+  ]
+}

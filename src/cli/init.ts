@@ -3,19 +3,24 @@ import { dirname, join } from 'node:path';
 import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts';
 import type { DocumentRole, OwnershipConfig } from '../config/ownership.ts';
 import { parseCodeowners } from '../config/codeowners.ts';
+import { SETTINGS_PATH, SettingsError, mergeSettings } from '../config/claude-settings.ts';
 import { RETIRED_IDS_PATH } from '../ids/citations.ts';
+import { detectIdFormat } from '../ids/detect.ts';
+import type { DetectedFormat } from '../ids/detect.ts';
+import type { IdFormat } from '../docs/schema.ts';
 import { templatesDir } from '../core/roots.ts';
 import { todayIso } from '../core/dates.ts';
 
 const TEMPLATES_DIR = templatesDir();
 
 /**
- * Estágios de maturidade (spec §10, SK-0 passo 2). Cada estágio instala o
- * conjunto mínimo que ele pede — e nada além. Um estágio que instala moldura
- * vazia é a wiki morta nascendo de fábrica, por isso `production` e `multi-team`
- * só entram junto com as fases que os preenchem.
+ * Estágios de maturidade (spec §10, `SK-0` passo 2). Cada estágio instala o
+ * conjunto mínimo que ele pede — e nada além. `multi-team` existe desde o
+ * fechamento porque passa a ter enforcement atrás dele: é o estágio que instala
+ * a Fase 7 (`RN-0025`, `ADR-0012`). Um rótulo sem conteúdo é a wiki morta
+ * nascendo de fábrica.
  */
-export const STAGES = ['solo', 'small-team', 'production'] as const;
+export const STAGES = ['solo', 'small-team', 'production', 'multi-team'] as const;
 export type Stage = (typeof STAGES)[number];
 
 type Kind = 'ADR' | 'DA' | 'TDR' | 'RF' | 'RNF' | 'RN' | 'REL';
@@ -121,7 +126,7 @@ function documentSeeds(root: string, stage: Stage): DocumentSeed[] {
     ...SMALL_TEAM_DOCUMENTS,
     { path: agentContractPath(root), skill: 'working-agreements-keeper', role: 'agent-contract' },
   ];
-  if (stage === 'production') seeds.push(...PRODUCTION_DOCUMENTS);
+  if (reaches(stage, 5)) seeds.push(...PRODUCTION_DOCUMENTS);
   return seeds;
 }
 
@@ -155,7 +160,7 @@ function documentsBlock(root: string, owner: string, stage: Stage): string {
  */
 const ADOPTION_CANDIDATES: Readonly<Record<Kind, readonly string[]>> = Object.freeze({
   ADR: ['docs/adr/', 'adr/', 'doc/adr/', 'docs/architecture/decisions/'],
-  DA: ['docs/decisoes-abertas.md', 'docs/open-questions.md', 'docs/decision-backlog.md'],
+  DA: ['docs/decisoes-abertas.md', 'docs/decisoes-em-aberto.md', 'docs/open-questions.md', 'docs/decision-backlog.md'],
   TDR: ['docs/debt/', 'docs/tech-debt/', 'docs/divida/'],
   RF: [
     'docs/requisitos-funcionais.md',
@@ -184,6 +189,12 @@ export interface InitOptions {
   owner: string;
   dryRun: boolean;
   stage: Stage;
+  /** A forma escrita declarada por quem instala (`ADR-0011`). */
+  idFormat: IdFormat;
+  /** Como o CLI é chamado no CI de quem instala (`DA-0003`). */
+  invoke: string;
+  /** Repositório do marketplace do plugin, ou `null` para não registrar (`DA-0003`). */
+  marketplace: string | null;
 }
 
 export interface InitResult {
@@ -193,6 +204,63 @@ export interface InitResult {
   stage: Stage;
   /** O que este estágio pediria e esta versão do toolkit ainda não entrega. */
   notInstalled: string[];
+  /** A forma escrita que o inventário achou, quando difere da declarada (`RF-0014`). */
+  detected: DetectedFormat | null;
+}
+
+/** Onde o workflow instalado mora no repositório de quem instala. */
+export const WORKFLOW_PATH = '.github/workflows/living-docs.yml';
+
+/**
+ * As fases da spec §10 que cada estágio instala. É daqui que sai o conjunto de
+ * enforcement do estágio — nem mais, nem menos (`RN-0025`, `ADR-0012`).
+ */
+const STAGE_PHASES: Readonly<Record<Stage, readonly number[]>> = Object.freeze({
+  solo: [0, 1],
+  'small-team': [0, 1, 2, 3, 4],
+  production: [0, 1, 2, 3, 4, 5, 6],
+  'multi-team': [0, 1, 2, 3, 4, 5, 6, 7],
+});
+
+/** Este estágio chega até a fase dada? É a pergunta que substitui comparar strings. */
+function reaches(stage: Stage, phase: number): boolean {
+  return STAGE_PHASES[stage].includes(phase);
+}
+
+/**
+ * Os passos que este estágio acrescenta ao `validate`, que todo estágio roda.
+ * Cada passo existe porque uma fase do estágio instalou o check que ele chama.
+ */
+function workflowSteps(stage: Stage, invoke: string): string {
+  const phases = STAGE_PHASES[stage];
+  const steps: string[] = [];
+
+  if (phases.includes(5)) {
+    steps.push(['', '      - name: CI-5 — deriva de contrato gerado', `        run: ${invoke} drift`].join('\n'));
+  }
+  if (phases.includes(6)) {
+    steps.push(
+      [
+        '',
+        '      - name: CI-6 — entrada de CHANGELOG',
+        "        if: github.event_name == 'pull_request'",
+        `        run: ${invoke} changelog --base \${{ github.event.pull_request.base.sha }}`,
+      ].join('\n'),
+    );
+  }
+
+  if (phases.includes(7)) {
+    steps.push(
+      [
+        '',
+        '      - name: CI-7 — vínculo código→doc no diff do PR',
+        "        if: github.event_name == 'pull_request'",
+        `        run: ${invoke} validate --base \${{ github.event.pull_request.base.sha }}`,
+      ].join('\n'),
+    );
+  }
+
+  return steps.length === 0 ? '' : `${steps.join('\n')}\n`;
 }
 
 /**
@@ -204,6 +272,8 @@ const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
   'small-team': [],
   // `production` cobre as Fases 5 e 6 da spec §10, e as duas existem.
   production: [],
+  // `multi-team` cobre a Fase 7 da spec §10, e ela existe.
+  'multi-team': [],
 });
 
 function template(name: string, values: Record<string, string>): string {
@@ -297,7 +367,7 @@ function requirementsBlock(owner: string, paths: Record<Kind, string>, stage: St
 
 /** O artefato REL do `.ownership.yml`, ou vazio fora do estágio `production`. */
 function releasesBlock(owner: string, path: string, stage: Stage): string {
-  if (stage !== 'production') return '';
+  if (!reaches(stage, 6)) return '';
 
   return (
     '\n' +
@@ -321,6 +391,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
     adopted: [],
     stage: options.stage,
     notInstalled: [...NOT_INSTALLED[options.stage]],
+    detected: null,
   };
 
   let existing: OwnershipConfig | null = null;
@@ -334,12 +405,22 @@ export function runInit(root: string, options: InitOptions): InitResult {
   const kinds: Kind[] =
     options.stage === 'solo'
       ? ['ADR', 'DA', 'TDR']
-      : options.stage === 'production'
+      : reaches(options.stage, 6)
         ? ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS, 'REL']
         : ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS];
   const paths = Object.fromEntries(
     kinds.map((kind) => [kind, resolvePath(root, kind, existing, result, claimed)]),
   ) as Record<Kind, string>;
+
+  // Relatar, nunca adotar em silêncio (`RF-0014`): adoção silenciosa de formato
+  // é a mesma classe de erro que adoção silenciosa de caminho.
+  const detected = detectIdFormat(root, Object.values(paths));
+  result.detected =
+    detected !== null &&
+    (detected.format.separator !== options.idFormat.separator ||
+      detected.format.padding !== options.idFormat.padding)
+      ? detected
+      : null;
 
   const requirementsCodeowners =
     options.stage === 'solo'
@@ -365,14 +446,18 @@ export function runInit(root: string, options: InitOptions): InitResult {
           `${agentContractPath(root)}    ${options.owner}\ndocs/glossary.md    ${options.owner}\n` +
           `docs/charter/    ${options.owner}\n`,
     CONTRACTS_CODEOWNERS:
-      options.stage === 'production' ? `docs/contracts/    ${options.owner}\n` : '',
+      reaches(options.stage, 5) ? `docs/contracts/    ${options.owner}\n` : '',
     RELEASES_BLOCK: releasesBlock(options.owner, paths.REL ?? DEFAULT_PATHS.REL, options.stage),
     HISTORY_CODEOWNERS:
-      options.stage === 'production'
+      reaches(options.stage, 6)
         ? `CHANGELOG.md    ${options.owner}\ndocs/deprecations.md    ${options.owner}\ndocs/releases/    ${options.owner}\ndocs/migrations/    ${options.owner}\n`
         : '',
     DOCUMENTS_BLOCK: documentsBlock(root, options.owner, options.stage),
     RETIRED_CODEOWNERS: `${RETIRED_IDS_PATH}    ${options.owner}`,
+    ID_SEPARATOR: options.idFormat.separator,
+    ID_PADDING: String(options.idFormat.padding),
+    INVOKE: options.invoke,
+    WORKFLOW_STEPS: workflowSteps(options.stage, options.invoke),
   };
 
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);
@@ -417,7 +502,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
       writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result);
     }
 
-    if (options.stage === 'production') {
+    if (reaches(options.stage, 5)) {
       for (const contract of CONTRACTS) {
         writeIfAbsent(root, contract.path, template(contract.template, values), options, result);
       }
@@ -446,11 +531,58 @@ export function runInit(root: string, options: InitOptions): InitResult {
     }
   }
 
+  // O enforcement do estágio (`RF-0013`). Mesclar, nunca sobrescrever: o
+  // workflow que já existe é de quem o escreveu.
+  writeIfAbsent(root, WORKFLOW_PATH, template('workflow.yml', values), options, result);
+  declarePlugin(root, options, result);
+
   // O bloco vai no template na primeira execução; aqui é o caso de quem já tinha
   // um `.ownership.yml` — de uma versão anterior, ou de um estágio menor.
   if (existing !== null) declareDocuments(root, options, result, existing);
 
   return result;
+}
+
+/**
+ * O registro que liga os hooks na sessão (`RF-0013`).
+ *
+ * Sem `--marketplace`, nada é escrito: a fonte do marketplace não se adivinha
+ * (`DA-0003`), e o init não inventa — mesma política de `watches` e
+ * `generated[]`. Settings ilegível também não é tocado: consertar configuração
+ * alheia apaga trabalho de alguém.
+ */
+function declarePlugin(root: string, options: InitOptions, result: InitResult): void {
+  if (options.marketplace === null) {
+    result.notInstalled.push(
+      `registro do plugin em ${SETTINGS_PATH} — sem \`--marketplace <owner/repo>\` a fonte não se ` +
+        'adivinha (`DA-0003`); os hooks não sobem na sessão até ele ser declarado',
+    );
+    return;
+  }
+
+  const file = join(root, SETTINGS_PATH);
+  const current = existsSync(file) ? readFileSync(file, 'utf8') : null;
+
+  let merged;
+  try {
+    merged = mergeSettings(current, options.marketplace);
+  } catch (err) {
+    result.notInstalled.push(
+      `registro do plugin em ${SETTINGS_PATH} — ${err instanceof SettingsError ? err.message : String(err)}; ` +
+        'declare-o à mão para não perder o que já está lá',
+    );
+    return;
+  }
+
+  if (merged.added.length === 0) {
+    result.skipped.push(SETTINGS_PATH);
+    return;
+  }
+
+  result.created.push(`${SETTINGS_PATH} (${merged.added.join(', ')})`);
+  if (options.dryRun) return;
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, merged.text, 'utf8');
 }
 
 /**

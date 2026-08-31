@@ -95,3 +95,65 @@ export function commitMessages(root: string, base: string, run: GitRunner = runG
     .map((message) => message.trim())
     .filter((message) => message !== '');
 }
+
+/** O que um arquivo ganhou e perdeu neste diff. Ordem de leitura, sem contexto. */
+export interface FileEdit {
+  /** Caminho relativo à raiz, sempre com `/`. */
+  path: string;
+  added: string[];
+  removed: string[];
+}
+
+/** Só o cabeçalho de destino abre seção — `+++ /dev/null` (remoção) não abre. */
+const FILE_HEADER = /^\+\+\+ b\/(.+)$/;
+
+/**
+ * O diff linha a linha, por arquivo (`RN-0027`).
+ *
+ * `--unified=0` porque a pergunta é "o que mudou", e não "em volta de quê":
+ * linha de contexto aqui só aumentaria o texto a percorrer no PR (`RNF-0005`).
+ * `--no-renames` para que renomear não vire um par de arquivos fantasma, e
+ * `core.quotePath=false` pela mesma razão do `-z` de `changedPaths` — caminho
+ * com acento escapado não casa com caminho nenhum.
+ *
+ * O estado `inHunk` não é zelo: uma linha **removida** cujo conteúdo começa com
+ * `--` é escrita como `--- ...`, idêntica a um cabeçalho de origem. Só depois de
+ * um `@@` uma linha é conteúdo.
+ */
+export function changedLines(root: string, base: string, run: GitRunner = runGitDiff): FileEdit[] {
+  const output = git(
+    ['-c', 'core.quotePath=false', 'diff', '--unified=0', '--no-color', '--no-renames', `${base}...HEAD`],
+    root,
+    run,
+    `git diff --unified=0 ${base}...HEAD`,
+  );
+
+  const edits: FileEdit[] = [];
+  let current: FileEdit | null = null;
+  let inHunk = false;
+
+  for (const line of output.split('\n')) {
+    if (line.startsWith('diff --git ')) {
+      current = null;
+      inHunk = false;
+      continue;
+    }
+    if (line.startsWith('@@')) {
+      inHunk = true;
+      continue;
+    }
+    if (!inHunk) {
+      const path = FILE_HEADER.exec(line)?.[1];
+      if (path !== undefined) {
+        current = { path: path.replace(/\\/g, '/'), added: [], removed: [] };
+        edits.push(current);
+      }
+      continue;
+    }
+    if (current === null) continue;
+    if (line.startsWith('+')) current.added.push(line.slice(1));
+    else if (line.startsWith('-')) current.removed.push(line.slice(1));
+  }
+
+  return edits;
+}

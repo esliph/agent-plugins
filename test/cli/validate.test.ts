@@ -38,6 +38,8 @@ test('RF-0001: repositório conforme sai com 0', () => {
     const result = runValidate(root);
     assert.deepEqual(result.findings, []);
     assert.equal(result.exitCode, 0);
+    // RNF-0005: o resultado traz o que mediu, e a medida não é estimada.
+    assert.ok(result.elapsedMs > 0, 'elapsedMs veio zerado — o relógio não foi lido');
   });
 });
 

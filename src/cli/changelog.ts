@@ -10,6 +10,8 @@ export interface ChangelogResult {
   /** Globs de `consumer-visible-paths` declarados. Zero significa "sem gatilho". */
   declared: number;
   exitCode: number;
+  /** Quanto o conjunto de checks levou, medido (RNF-0005). */
+  elapsedMs: number;
 }
 
 /**
@@ -19,12 +21,13 @@ export interface ChangelogResult {
  * função pura de (fatos, configuração, arquivo) → achados.
  */
 export function runChangelog(root: string, base: string, run?: GitRunner): ChangelogResult {
+  const inicio = process.hrtime.bigint();
   const config = loadOwnership(root);
 
   // Sem gatilho declarado não se toca no git: falar com o repositório para
   // depois descobrir que não havia o que checar é custo sem resposta.
   if (config.consumerVisiblePaths.length === 0) {
-    return { findings: [], declared: 0, exitCode: 0 };
+    return { findings: [], declared: 0, exitCode: 0, elapsedMs: Number(process.hrtime.bigint() - inicio) / 1e6 };
   }
 
   const diff = {
@@ -42,5 +45,6 @@ export function runChangelog(root: string, base: string, run?: GitRunner): Chang
     findings,
     declared: config.consumerVisiblePaths.length,
     exitCode: findings.some((finding) => finding.severity === 'error') ? 1 : 0,
+    elapsedMs: Number(process.hrtime.bigint() - inicio) / 1e6,
   };
 }
