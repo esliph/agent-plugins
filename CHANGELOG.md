@@ -120,6 +120,8 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 - `living-docs --help` passa a listar `multi-team` entre os estágios de
   `--stage`; o CLI já o aceitava.
+- `living-docs init` passa a reconhecer `docs/decisoes-em-aberto.md` entre os
+  caminhos que adota para a família `DA` quando já existem.
 - `living-docs init` num repositório que já tem `AGENTS.md` passa a escrever a
   linha de CODEOWNERS do contrato adotado, e não a de um `CLAUDE.md` que não
   existe ali. Antes, o repositório recém-instalado reprovava no próprio `CI-7`

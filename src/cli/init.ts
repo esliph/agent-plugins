@@ -160,7 +160,7 @@ function documentsBlock(root: string, owner: string, stage: Stage): string {
  */
 const ADOPTION_CANDIDATES: Readonly<Record<Kind, readonly string[]>> = Object.freeze({
   ADR: ['docs/adr/', 'adr/', 'doc/adr/', 'docs/architecture/decisions/'],
-  DA: ['docs/decisoes-abertas.md', 'docs/open-questions.md', 'docs/decision-backlog.md'],
+  DA: ['docs/decisoes-abertas.md', 'docs/decisoes-em-aberto.md', 'docs/open-questions.md', 'docs/decision-backlog.md'],
   TDR: ['docs/debt/', 'docs/tech-debt/', 'docs/divida/'],
   RF: [
     'docs/requisitos-funcionais.md',
