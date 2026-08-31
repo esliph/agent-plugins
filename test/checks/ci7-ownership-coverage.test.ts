@@ -281,3 +281,77 @@ test('sem diff, a metade do diff não roda', () => {
     assert.deepEqual(ci7OwnershipCoverage(null).run(contextFor(root)), []);
   });
 });
+
+/** O mesmo mapa de propriedade, com o artefato DA acrescentado a `artifacts:`. */
+const COM_DECISAO = OWNERSHIP.replace(
+  '    skill: decision-recorder\nwatches:',
+  [
+    '    skill: decision-recorder',
+    '  - id-prefix: DA',
+    '    path: docs/open-decisions.md',
+    '    owner: "@time"',
+    '    skill: decision-recorder',
+    '    collection: table',
+    '    field-map:',
+    '      blocks: "Bloqueia"',
+    '      gap: "Lacuna"',
+    'watches:',
+  ].join('\n'),
+);
+
+const DECISOES = [
+  '---',
+  'title: Open Decisions',
+  'owner: "@time"',
+  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'last-reviewed: 2026-08-27',
+  '---',
+  '',
+  '| ID | Lacuna | Status | Bloqueia | Aberta em |',
+  '| --- | --- | --- | --- | --- |',
+  '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-27 |',
+  '',
+].join('\n');
+
+const ARVORE_COM_DECISAO = {
+  ...ARVORE,
+  CODEOWNERS: `${CODEOWNERS}docs/open-decisions.md    @time\n`,
+  'docs/open-decisions.md': DECISOES,
+};
+
+test('RN-0026: o diff que toca caminho reivindicado por decisão aberta reprova', () => {
+  withTempRepo(ARVORE_COM_DECISAO, (root) => {
+    const diff = { base: 'origin/master', changed: ['src/cobranca/taxa.ts'], messages: ['feat: centavos'] };
+    const findings = ci7OwnershipCoverage(diff).run(contextFor(root, COM_DECISAO));
+    const achado = findings.find((finding) => /DA-0001/.test(finding.message));
+
+    assert.ok(achado, JSON.stringify(findings, null, 2));
+    assert.equal(achado.severity, 'error');
+    assert.equal(achado.file, 'docs/open-decisions.md');
+    assert.match(achado.message, /src\/cobranca\/taxa\.ts/);
+    assert.match(achado.message, /centavos/, 'a lacuna precisa ser nomeada');
+    assert.match(achado.fix, /decision-recorder/);
+    assert.match(achado.fix, /Docs: none/);
+  });
+});
+
+test('RN-0026: sem diff, a sexta classe não roda — inventar diff seria achado sobre outra branch', () => {
+  withTempRepo(ARVORE_COM_DECISAO, (root) => {
+    const findings = ci7OwnershipCoverage().run(contextFor(root, COM_DECISAO));
+    assert.deepEqual(
+      findings.filter((finding) => /DA-0001/.test(finding.message)),
+      [],
+    );
+  });
+});
+
+test('RN-0026: a razão escrita libera a sexta classe junto com a quinta', () => {
+  withTempRepo(ARVORE_COM_DECISAO, (root) => {
+    const comRazao = {
+      base: 'origin/master',
+      changed: ['src/cobranca/taxa.ts'],
+      messages: ['refactor: renomeia interno\n\nDocs: none — não é a implementação da regra que falta'],
+    };
+    assert.deepEqual(ci7OwnershipCoverage(comRazao).run(contextFor(root, COM_DECISAO)), []);
+  });
+});

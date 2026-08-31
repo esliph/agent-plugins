@@ -11,6 +11,7 @@ import {
 } from '../config/ownership.ts';
 import { loadCodeowners, ownersOf } from '../config/codeowners.ts';
 import { pendingDocs } from '../config/watches.ts';
+import { blockedClaims, claimsFor } from '../docs/blocked.ts';
 import { documentationFiles } from '../docs/corpus.ts';
 import { normalizeProse, sentencesOf, stripCode, stripFences } from '../docs/markdown.ts';
 
@@ -95,17 +96,19 @@ export function dodItemsWithoutVerification(source: string): { text: string; lin
 }
 
 /**
- * `CI-7` — ownership coverage. Cinco classes de achado, todas lidas do
+ * `CI-7` — ownership coverage. Seis classes de achado, todas lidas do
  * `.ownership.yml`: documento sem dono, vínculo de `watches` que não resolve,
  * contrato do agente repetindo artefato dono, item de DoD sem verificação
- * nomeada, e — quando o diff é dado — caminho vigiado que viajou sem o doc dono.
+ * nomeada, e — quando o diff é dado — caminho vigiado que viajou sem o doc dono
+ * e caminho reivindicado por decisão aberta (`RN-0026`).
  *
- * A última é a segunda metade do critério de aceite 5 da spec §12, e é a razão
- * pela qual o diff entra por injeção: `validate` não o tem, e `validate --base`
- * tem (`ADR-0010`).
+ * As duas últimas são as metades que leem o diff, e é a razão pela qual ele
+ * entra por injeção: `validate` não o tem, e `validate --base` tem (`ADR-0010`).
+ * A quinta é a segunda metade do critério de aceite 5 da spec §12; a sexta é a
+ * metade determinística do critério 4.
  *
- * Regras de origem: `RN-0016`, `RN-0017`, `RN-0020`, `RN-0021`, `RN-0010` para a
- * duplicação, e `RN-0008` para o vínculo de `watches`.
+ * Regras de origem: `RN-0016`, `RN-0017`, `RN-0020`, `RN-0021`, `RN-0026`,
+ * `RN-0010` para a duplicação, e `RN-0008` para o vínculo de `watches`.
  */
 export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
   return {
@@ -263,6 +266,25 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
                 pending.skill === null ? '' : ` (skill dona: ${pending.skill})`
               } no mesmo PR — ou escreva a razão numa mensagem de commit, no formato \`Docs: none — <razão>\` ` +
                 '(`RN-0021`, `ADR-0010`).',
+            ),
+          );
+        }
+
+        // 6 — caminho reivindicado por decisão aberta (`RN-0026`).
+        for (const { claim, matched } of claimsFor(blockedClaims(context.docs), diff.changed)) {
+          const levados =
+            matched.slice(0, 5).join(', ') + (matched.length > 5 ? `, … (+${matched.length - 5})` : '');
+
+          findings.push(
+            error(
+              claim.doc,
+              claim.line,
+              `O diff \`${diff.base}...HEAD\` toca caminho reivindicado por ${claim.id}, que está \`open\`` +
+                `${claim.gap === null ? '' : ` — "${claim.gap}"`}: ${levados}.`,
+              `Resolva ${claim.id} antes de implementar (skill dona: ${claim.skill}) — enquanto a decisão está ` +
+                'aberta não há regra, e a saída é o ID, não o código. Se esta mudança não é a implementação da ' +
+                'regra que falta, escreva a razão numa mensagem de commit, no formato `Docs: none — <razão>` ' +
+                '(`RN-0026`, `ADR-0010`).',
             ),
           );
         }

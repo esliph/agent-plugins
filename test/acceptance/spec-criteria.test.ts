@@ -18,6 +18,7 @@ import { repoRoot } from '../../src/core/roots.ts';
 import { runChangelog } from '../../src/cli/changelog.ts';
 import { decideHk7 } from '../../src/hooks/hk7-shortcut-debt.ts';
 import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts';
+import { decideHk8 } from '../../src/hooks/hk8-open-decision-guard.ts';
 
 const ROOT = repoRoot();
 const OPTIONS = { owner: '@team', dryRun: false, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', marketplace: 'time/living-docs' };
@@ -435,5 +436,76 @@ test('critério 1 (fechamento): o inventário relata a forma detectada e não to
     assert.deepEqual(result.detected.format, { separator: '', padding: 3 });
     assert.ok(result.detected.count >= 2);
     assert.equal(readFileSync(join(root, 'docs/business-rules.md'), 'utf8'), antes);
+  });
+});
+
+const DECISAO_BLOQUEANTE = [
+  'version: 1',
+  'artifacts:',
+  '  - id-prefix: DA',
+  '    path: docs/open-decisions.md',
+  '    owner: "@time"',
+  '    skill: decision-recorder',
+  '    collection: table',
+  '    field-map:',
+  '      blocks: "Bloqueia"',
+  '      gap: "Lacuna"',
+  'documents:',
+  '  - path: docs/.ownership.yml',
+  '    owner: "@time"',
+  '    skill: living-docs-bootstrap',
+  '',
+].join('\n');
+
+const DECISOES = [
+  '---',
+  'title: Open Decisions',
+  'owner: "@time"',
+  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'last-reviewed: 2026-08-28',
+  '---',
+  '',
+  '| ID | Lacuna | Status | Bloqueia | Aberta em |',
+  '| --- | --- | --- | --- | --- |',
+  '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-28 |',
+  '',
+].join('\n');
+
+test('critério 4 da spec §12: comportamento sem regra é perguntado na edição e reprovado no diff', () => {
+  const arvore = {
+    [OWNERSHIP_PATH]: DECISAO_BLOQUEANTE,
+    CODEOWNERS: 'docs/    @time\n',
+    'docs/open-decisions.md': DECISOES,
+  };
+
+  const git =
+    (changed: string[], messages: string[]) =>
+    (args: readonly string[]): string =>
+      args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n';
+
+  withTempRepo(arvore, (root) => {
+    // Metade 1 — na edição, HK-8 pergunta nomeando a decisão.
+    const pergunta = decideHk8(
+      { tool_name: 'Edit', tool_input: { file_path: 'src/cobranca/taxa.ts', old_string: 'a', new_string: 'b' } },
+      { root, hostRoots: [root] },
+    );
+    assert.equal(pergunta.action, 'ask');
+    assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /DA-0001/);
+
+    // Metade 2 — no diff, CI-7 reprova.
+    const reprovado = runValidate(root, 'origin/master', git(['src/cobranca/taxa.ts'], ['feat: centavos']));
+    const finding = reprovado.findings.find((f) => f.ruleId === 'CI-7' && /DA-0001/.test(f.message));
+    assert.ok(finding, JSON.stringify(reprovado.findings, null, 2));
+    assert.equal(reprovado.exitCode, 1);
+
+    // E a razão escrita é a única saída.
+    const comRazao = git(
+      ['src/cobranca/taxa.ts'],
+      ['refactor: renomeia interno\n\nDocs: none — não é a implementação da regra que falta'],
+    );
+    assert.equal(runValidate(root, 'origin/master', comRazao).exitCode, 0);
+
+    // Sem base, esta metade não roda.
+    assert.equal(runValidate(root).exitCode, 0);
   });
 });
