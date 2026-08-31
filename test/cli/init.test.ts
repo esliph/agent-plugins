@@ -14,7 +14,7 @@ function ownershipOf(root: string) {
   return parseOwnership(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'));
 }
 
-const OPTIONS = { owner: '@team-platform', dryRun: false, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT };
+const OPTIONS = { owner: '@team-platform', dryRun: false, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' };
 
 test('cria a moldura das fases 0–1 num repositório vazio — critério de aceite 1', () => {
   withTempRepo({ 'README.md': '# projeto\n' }, (root) => {
@@ -93,13 +93,13 @@ test('RF-0002: adota arquivo de open decisions preexistente sob outro nome', () 
 
 test('dry-run não escreve nada mas relata o que faria', () => {
   withTempRepo({ 'README.md': '' }, (root) => {
-    const result = runInit(root, { owner: '@team', dryRun: true, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT });
+    const result = runInit(root, { owner: '@team', dryRun: true, stage: 'solo' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     assert.ok(result.created.includes(OWNERSHIP_PATH));
     assert.equal(existsSync(join(root, OWNERSHIP_PATH)), false);
   });
 });
 
-const SMALL_TEAM = { owner: '@time', dryRun: false, stage: 'small-team' as const, idFormat: DEFAULT_ID_FORMAT };
+const SMALL_TEAM = { owner: '@time', dryRun: false, stage: 'small-team' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' };
 const REQUIREMENT_FILES = [
   'docs/requirements/functional.md',
   'docs/requirements/non-functional.md',
@@ -240,7 +240,7 @@ test('a semente de requisitos não declara requisito nenhum — o exemplo é lit
 
 test('RF-0004: small-team instala os acordos de trabalho', () => {
   withTempRepo({}, (root) => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
       assert.ok(existsSync(join(root, path)), `${path} deveria existir`);
       assert.ok(result.created.includes(path), `${path} deveria constar como criado`);
@@ -251,7 +251,7 @@ test('RF-0004: small-team instala os acordos de trabalho', () => {
 
 test('RF-0004: solo não instala acordo de trabalho nenhum', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
       assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`);
     }
@@ -260,7 +260,7 @@ test('RF-0004: solo não instala acordo de trabalho nenhum', () => {
 
 test('RF-0004: AGENTS.md existente é adotado; nenhum CLAUDE.md paralelo nasce', () => {
   withTempRepo({ 'AGENTS.md': '# contrato antigo\n' }, (root) => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     assert.equal(existsSync(join(root, 'CLAUDE.md')), false);
     assert.equal(readFileSync(join(root, 'AGENTS.md'), 'utf8'), '# contrato antigo\n');
     assert.ok(result.adopted.some((entry) => entry.path === 'AGENTS.md'));
@@ -269,7 +269,7 @@ test('RF-0004: AGENTS.md existente é adotado; nenhum CLAUDE.md paralelo nasce',
 
 test('RF-0004: acordo já escrito não é reescrito na segunda execução', () => {
   withTempRepo({ 'CONTRIBUTING.md': '# do jeito deles\n' }, (root) => {
-    const options = { owner: '@time', dryRun: false, stage: 'small-team' as const, idFormat: DEFAULT_ID_FORMAT };
+    const options = { owner: '@time', dryRun: false, stage: 'small-team' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' };
     runInit(root, options);
     const segunda = runInit(root, options);
     assert.equal(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), '# do jeito deles\n');
@@ -280,7 +280,7 @@ test('RF-0004: acordo já escrito não é reescrito na segunda execução', () =
 
 test('o init não inventa `watches` — o vínculo código→doc é ato humano', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const config = loadOwnership(root);
     assert.deepEqual(config.watches, []);
   });
@@ -288,7 +288,7 @@ test('o init não inventa `watches` — o vínculo código→doc é ato humano',
 
 test('RF-0005: small-team instala glossary e charter', () => {
   withTempRepo({}, (root) => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
       assert.ok(existsSync(join(root, path)), `${path} deveria existir`);
       assert.ok(result.created.includes(path), `${path} deveria constar como criado`);
@@ -299,7 +299,7 @@ test('RF-0005: small-team instala glossary e charter', () => {
 
 test('RF-0005: solo não instala glossary nem charter', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
       assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`);
     }
@@ -308,7 +308,7 @@ test('RF-0005: solo não instala glossary nem charter', () => {
 
 test('RF-0005: glossary já escrito não é reescrito na segunda execução', () => {
   withTempRepo({ 'docs/glossary.md': '# do jeito deles\n' }, (root) => {
-    const options = { owner: '@time', dryRun: false, stage: 'small-team' as const, idFormat: DEFAULT_ID_FORMAT };
+    const options = { owner: '@time', dryRun: false, stage: 'small-team' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' };
     runInit(root, options);
     const segunda = runInit(root, options);
     assert.equal(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), '# do jeito deles\n');
@@ -318,10 +318,10 @@ test('RF-0005: glossary já escrito não é reescrito na segunda execução', ()
 
 test('RN-0016: subir de estágio acrescenta ao CODEOWNERS que já existe, sem reescrever o que estava lá', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const antes = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
 
-    const segunda = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    const segunda = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const depois = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
 
     assert.ok(
@@ -342,10 +342,10 @@ test('RN-0016: subir de estágio acrescenta ao CODEOWNERS que já existe, sem re
 
 test('RF-0002: rodar de novo no mesmo estágio não acrescenta linha ao CODEOWNERS', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const antes = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
 
-    const segunda = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    const segunda = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
 
     assert.equal(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), antes);
     assert.ok(segunda.skipped.includes('CODEOWNERS'));
@@ -354,14 +354,14 @@ test('RF-0002: rodar de novo no mesmo estágio não acrescenta linha ao CODEOWNE
 
 test('RF-0005: o CODEOWNERS semeado dá dono a glossary e charter', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
     assert.match(codeowners, /docs\/glossary\.md\s+@time/);
     assert.match(codeowners, /docs\/charter\/\s+@time/);
   });
 });
 
-const PRODUCTION = { owner: '@time', dryRun: false, stage: 'production' as const, idFormat: DEFAULT_ID_FORMAT };
+const PRODUCTION = { owner: '@time', dryRun: false, stage: 'production' as const, idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' };
 const CONTRACT_FILES = ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md'];
 
 test('RF-0007: production instala a moldura de contratos, e tudo que small-team instala', () => {
@@ -463,7 +463,7 @@ test('RF-0009: production não deixa nada da spec §10 de fora', () => {
 
 test('RF-0009: subir de small-team para production declara REL no .ownership.yml existente', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     assert.equal(
       loadOwnership(root).artifacts.some((artifact) => artifact.idPrefix === 'REL'),
       false,
@@ -478,7 +478,7 @@ test('RF-0009: subir de small-team para production declara REL no .ownership.yml
 
 test('RF-0012: solo declara o mapa e os IDs retirados em documents:', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const documents = ownershipOf(root).documents;
 
     assert.deepEqual(documents.map((document) => document.path).sort(), [
@@ -495,7 +495,7 @@ test('RF-0012: solo declara o mapa e os IDs retirados em documents:', () => {
 
 test('RF-0012: small-team declara os acordos, a linguagem e os dois papéis', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const documents = ownershipOf(root).documents;
     const byPath = new Map(documents.map((document) => [document.path, document]));
 
@@ -511,7 +511,7 @@ test('RF-0012: small-team declara os acordos, a linguagem e os dois papéis', ()
 
 test('RF-0012: production declara contratos e rastro histórico', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'production', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'production', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const paths = ownershipOf(root).documents.map((document) => document.path);
 
     for (const path of [
@@ -528,7 +528,7 @@ test('RF-0012: production declara contratos e rastro histórico', () => {
 
 test('RF-0012: o contrato do agente declarado é o adotado, não o padrão', () => {
   withTempRepo({ 'AGENTS.md': '# contrato preexistente\n' }, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     const documents = ownershipOf(root).documents;
 
     assert.ok(documents.some((document) => document.path === 'AGENTS.md' && document.role === 'agent-contract'));
@@ -550,8 +550,8 @@ test('RF-0012: o contrato do agente declarado é o adotado, não o padrão', () 
 
 test('RF-0002 e RF-0012: subir de estágio acrescenta as entradas que faltam, sem duplicar', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT });
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
 
     const paths = ownershipOf(root).documents.map((document) => document.path);
     assert.ok(paths.includes('CONTRIBUTING.md'), 'a segunda execução declarou o que criou');
@@ -559,14 +559,14 @@ test('RF-0002 e RF-0012: subir de estágio acrescenta as entradas que faltam, se
 
     // e uma terceira execução não muda mais nada
     const antes = readFileSync(join(root, 'docs/.ownership.yml'), 'utf8');
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     assert.equal(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'), antes);
   });
 });
 
 test('RF-0012: sem âncora no .ownership.yml, o init diz o que falta em vez de adivinhar', () => {
   withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT });
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     // arquivo reorganizado à mão: nem `documents:` nem `watches:` no começo de linha
     writeFileSync(
       join(root, 'docs/.ownership.yml'),
@@ -574,7 +574,7 @@ test('RF-0012: sem âncora no .ownership.yml, o init diz o que falta em vez de a
       'utf8',
     );
 
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT });
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs' });
     assert.ok(result.notInstalled.some((item) => /documents/.test(item)));
   });
 });

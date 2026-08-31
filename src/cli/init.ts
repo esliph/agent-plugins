@@ -189,6 +189,8 @@ export interface InitOptions {
   stage: Stage;
   /** A forma escrita declarada por quem instala (`ADR-0011`). */
   idFormat: IdFormat;
+  /** Como o CLI é chamado no CI de quem instala (`DA-0003`). */
+  invoke: string;
 }
 
 export interface InitResult {
@@ -200,6 +202,44 @@ export interface InitResult {
   notInstalled: string[];
   /** A forma escrita que o inventário achou, quando difere da declarada (`RF-0014`). */
   detected: DetectedFormat | null;
+}
+
+/** Onde o workflow instalado mora no repositório de quem instala. */
+export const WORKFLOW_PATH = '.github/workflows/living-docs.yml';
+
+/**
+ * As fases da spec §10 que cada estágio instala. É daqui que sai o conjunto de
+ * enforcement do estágio — nem mais, nem menos (`RN-0025`, `ADR-0012`).
+ */
+const STAGE_PHASES: Readonly<Record<Stage, readonly number[]>> = Object.freeze({
+  solo: [0, 1],
+  'small-team': [0, 1, 2, 3, 4],
+  production: [0, 1, 2, 3, 4, 5, 6],
+});
+
+/**
+ * Os passos que este estágio acrescenta ao `validate`, que todo estágio roda.
+ * Cada passo existe porque uma fase do estágio instalou o check que ele chama.
+ */
+function workflowSteps(stage: Stage, invoke: string): string {
+  const phases = STAGE_PHASES[stage];
+  const steps: string[] = [];
+
+  if (phases.includes(5)) {
+    steps.push(['', '      - name: CI-5 — deriva de contrato gerado', `        run: ${invoke} drift`].join('\n'));
+  }
+  if (phases.includes(6)) {
+    steps.push(
+      [
+        '',
+        '      - name: CI-6 — entrada de CHANGELOG',
+        "        if: github.event_name == 'pull_request'",
+        `        run: ${invoke} changelog --base \${{ github.event.pull_request.base.sha }}`,
+      ].join('\n'),
+    );
+  }
+
+  return steps.length === 0 ? '' : `${steps.join('\n')}\n`;
 }
 
 /**
@@ -393,6 +433,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
     RETIRED_CODEOWNERS: `${RETIRED_IDS_PATH}    ${options.owner}`,
     ID_SEPARATOR: options.idFormat.separator,
     ID_PADDING: String(options.idFormat.padding),
+    INVOKE: options.invoke,
+    WORKFLOW_STEPS: workflowSteps(options.stage, options.invoke),
   };
 
   writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result);
@@ -465,6 +507,10 @@ export function runInit(root: string, options: InitOptions): InitResult {
       writeIfAbsent(root, contract, template('agent-contract.md', values), options, result);
     }
   }
+
+  // O enforcement do estágio (`RF-0013`). Mesclar, nunca sobrescrever: o
+  // workflow que já existe é de quem o escreveu.
+  writeIfAbsent(root, WORKFLOW_PATH, template('workflow.yml', values), options, result);
 
   // O bloco vai no template na primeira execução; aqui é o caso de quem já tinha
   // um `.ownership.yml` — de uma versão anterior, ou de um estágio menor.

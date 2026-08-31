@@ -22,6 +22,7 @@ Opções de init:
   --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team ou production
   --id-separator <s>  Separador do ID: "-" (padrão), "_", ".", ":" ou "" (vazio)
   --id-padding <n>    Dígitos do ID: 4 (padrão), entre 2 e 6
+  --invoke <comando>  Como o CLI é chamado no CI de quem instala (padrão: npx living-docs)
   --dry-run           Mostra o que faria, sem escrever
 
 Opções de validate:
@@ -137,11 +138,21 @@ function main(argv: readonly string[]): number {
         return 2;
       }
 
+      const invokeIndex = argv.indexOf('--invoke');
+      const invoke = invokeIndex === -1 ? 'npx living-docs' : (argv[invokeIndex + 1] ?? '');
+      if (invoke.trim() === '') {
+        process.stderr.write(
+          'living-docs: `--invoke` precisa do comando que roda o CLI no seu CI — ele não se adivinha (DA-0003).\n',
+        );
+        return 2;
+      }
+
       const result = runInit(root, {
         owner,
         dryRun: argv.includes('--dry-run'),
         stage: stage as Stage,
         idFormat: { separator, padding },
+        invoke,
       });
 
       for (const entry of result.adopted) {
