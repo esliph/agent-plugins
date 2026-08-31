@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { documentWithRole, loadOwnership } from '../../src/config/ownership.ts';
 import { loadCodeowners, ownersOf } from '../../src/config/codeowners.ts';
@@ -80,4 +80,23 @@ test('RN-0020: o contrato do agente continua sendo índice — sem frase copiada
   const context = contextFor();
   const source = context.documents.find((document) => document.file === contract.path)?.source;
   assert.ok(source, `${contract.path} deveria estar coletado`);
+});
+
+test('spec §12 criterios 9 e 10: o que so gente verifica entra como linha humana', () => {
+  const documento = documentWithRole(CONFIG, 'definition-of-done');
+  assert.ok(documento);
+  const dod = readFileSync(join(ROOT, documento.path), 'utf8');
+
+  const humanos = [/falta de contexto/i, /volume documental/i];
+  for (const padrao of humanos) {
+    const linha = dod.split('\n').find((l) => padrao.test(l));
+    assert.ok(linha, `a Definition of Done nao tem a linha de ${padrao}`);
+    assert.match(linha ?? '', /^- \[ \] /, 'precisa ser item de checklist');
+    assert.match(
+      linha ?? '',
+      /verificacao: humana|verificação: humana/,
+      'estes dois sao verificacao humana por natureza — um check que fingisse medi-los seria pior que a ausencia dele',
+    );
+    assert.doesNotMatch(linha ?? '', /\bCI-\d+\b/, 'nenhum check mede estes dois');
+  }
 });

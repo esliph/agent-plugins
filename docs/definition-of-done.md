@@ -28,6 +28,8 @@ verifica não pertence a esta lista — vira intenção, e intenção não é de
 - [ ] A dívida registrada declara `pay-when`, e nenhuma dívida com gatilho cumprido continua `open` — verificação: `CI-4`.
 - [ ] O caminho vigiado que mudou levou o doc dono, ou a razão escrita no commit — verificação: `HK-5` pergunta, `CI-7` reprova (`living-docs validate --base <ref>`).
 - [ ] `npm test`, `npm run typecheck`, `living-docs validate --base <ref>`, `living-docs drift` e `living-docs changelog --base <ref>` passam no container — verificação: `CI-1` a `CI-10`, rodados pelo workflow do repositório.
+- [ ] Nenhum agente e nenhuma pessoa errou por falta de contexto que caberia num artefato existente — e, quando errou, o artefato dono ganhou a linha que faltava — verificação: humana (spec §12, critério 9).
+- [ ] Nenhuma métrica de volume documental foi usada como sinal de qualidade: nem contagem de páginas, nem cobertura, nem "documentar o que foi feito" — verificação: humana (spec §12, critério 10).
 
 ## O que esta lista não é
 
