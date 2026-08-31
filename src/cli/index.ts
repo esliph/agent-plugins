@@ -5,6 +5,7 @@ import { runChangelog } from './changelog.ts';
 import { runInit, STAGES } from './init.ts';
 import type { Stage } from './init.ts';
 import { formatFindings } from './report.ts';
+import { CHECK_BUDGET_MS, formatElapsed } from '../checks/budget.ts';
 import { OwnershipError } from '../config/ownership.ts';
 import { DEFAULT_ID_FORMAT, PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts';
 import { GitError } from '../git/diff.ts';
@@ -19,7 +20,7 @@ const USAGE = `living-docs <comando>
 
 Opções de init:
   --owner <@handle>   Dono padrão dos artefatos criados
-  --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team ou production
+  --stage <estágio>   Conjunto mínimo a instalar: solo (padrão), small-team, production ou multi-team
   --id-separator <s>  Separador do ID: "-" (padrão), "_", ".", ":" ou "" (vazio)
   --id-padding <n>    Dígitos do ID: 4 (padrão), entre 2 e 6
   --invoke <comando>  Como o CLI é chamado no CI de quem instala (padrão: npx living-docs)
@@ -32,6 +33,27 @@ Opções de validate:
 Opções de changelog:
   --base <ref>        Base do diff (obrigatório) — ex.: origin/master
 `;
+
+/**
+ * O relato da medida (`RNF-0005`). Sai a cada execução: um orçamento que só
+ * aparece quando estoura é um orçamento que ninguém sabe que existe.
+ *
+ * Não muda o código de saída. Quem reprova por lentidão é o teste do orçamento,
+ * contra o corpus deste repositório — um `validate` que saísse com 1 porque a
+ * máquina estava carregada trocaria um enforcement por um teste instável.
+ */
+function reportElapsed(elapsedMs: number): void {
+  process.stdout.write(
+    `living-docs: conjunto de checks em ${formatElapsed(elapsedMs)} ` +
+      `(teto declarado: ${formatElapsed(CHECK_BUDGET_MS)} — RNF-0005).\n`,
+  );
+  if (elapsedMs > CHECK_BUDGET_MS) {
+    process.stderr.write(
+      'living-docs: o conjunto passou do teto declarado. Meça o que ficou lento antes de subir o número ' +
+        '(RNF-0005).\n',
+    );
+  }
+}
 
 function main(argv: readonly string[]): number {
   const root = repoRoot();
@@ -74,6 +96,7 @@ function main(argv: readonly string[]): number {
           `living-docs: ${result.watched} vínculo(s) código→doc declarado(s) — o caminho vigiado que mudou sem o doc dono é verificado por \`living-docs validate --base <ref>\` (CI-7).\n`,
         );
       }
+      reportElapsed(result.elapsedMs);
       return result.exitCode;
     }
 
@@ -83,9 +106,11 @@ function main(argv: readonly string[]): number {
         process.stdout.write(
           'living-docs: nenhum artefato gerado declarado em `generated[]` — nada a comparar.\n',
         );
+        reportElapsed(result.elapsedMs);
         return 0;
       }
       process.stdout.write(`${formatFindings(result.findings)}\n`);
+      reportElapsed(result.elapsedMs);
       return result.exitCode;
     }
 
@@ -104,9 +129,11 @@ function main(argv: readonly string[]): number {
         process.stdout.write(
           'living-docs: `consumer-visible-paths` vazio em docs/.ownership.yml — nada a checar (CI-6).\n',
         );
+        reportElapsed(result.elapsedMs);
         return 0;
       }
       process.stdout.write(`${formatFindings(result.findings)}\n`);
+      reportElapsed(result.elapsedMs);
       return result.exitCode;
     }
 

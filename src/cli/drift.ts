@@ -10,9 +10,12 @@ export interface DriftResult {
   /** Quantos artefatos gerados foram comparados. Zero significa "nada declarado". */
   checked: number;
   exitCode: number;
+  /** Quanto o conjunto de checks levou, medido (RNF-0005). */
+  elapsedMs: number;
 }
 
 export function runDrift(root: string, exec: CommandRunner = runCommand): DriftResult {
+  const inicio = process.hrtime.bigint();
   const config = loadOwnership(root);
   // `docs: []` e `documents: []` de propósito: CI-5 não lê artefato nenhum — ele
   // compara o arquivo gerado com a saída do gerador. `today` entra porque o
@@ -25,5 +28,6 @@ export function runDrift(root: string, exec: CommandRunner = runCommand): DriftR
     findings,
     checked: config.generated.length,
     exitCode: findings.some((finding) => finding.severity === 'error') ? 1 : 0,
+    elapsedMs: Number(process.hrtime.bigint() - inicio) / 1e6,
   };
 }

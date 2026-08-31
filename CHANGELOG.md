@@ -10,6 +10,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Added
 
+- `validate`, `drift` e `changelog` passam a relatar quanto o conjunto de checks
+  levou e qual é o teto declarado (`RNF-0005`). A medida não altera o código de
+  saída.
 - `CI-9` (`living-docs validate --base <ref>`): reprova o diff que só altera a
   data de revisão de vários documentos, e o que altera um arquivo de artefato sem
   que nenhuma mensagem de commit cite um ID declarado nele.
@@ -115,6 +118,8 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Fixed
 
+- `living-docs --help` passa a listar `multi-team` entre os estágios de
+  `--stage`; o CLI já o aceitava.
 - `living-docs init` num repositório que já tem `AGENTS.md` passa a escrever a
   linha de CODEOWNERS do contrato adotado, e não a de um `CLAUDE.md` que não
   existe ali. Antes, o repositório recém-instalado reprovava no próprio `CI-7`
