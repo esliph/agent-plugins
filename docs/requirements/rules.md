@@ -315,3 +315,84 @@ Anexo binário não se lê em diff nem se revisa em PR.
 
 Código não é link: o que está dentro de bloco cercado ou de marcação inline é
 exemplo, e cobrar exemplo ensina a não escrever exemplo.
+
+## RN-0024 — A forma escrita de um ID é do projeto; a identidade não depende dela
+
+- **status:** draft
+- **relates-to:** ADR-0011, RN-0003
+- **fora de escopo:** qual forma um projeto deve escolher, que é decisão dele
+
+Um projeto declara como seus IDs se escrevem — separador e número de dígitos — e
+é essa forma que o toolkit reconhece ao ler e imprime ao sugerir um ID novo. A
+identidade do item não depende da forma: `RN009` e `RN-0009` são o mesmo item,
+pela mesma razão que `ADR-001` e `ADR-0001` sempre foram.
+
+Quem escreve um ID é uma função só. Nenhum check monta ID por concatenação —
+formato montado à mão em dois lugares é a garantia de que um deles vai divergir.
+
+## RN-0025 — O enforcement instalado é o das fases do estágio
+
+- **status:** draft
+- **relates-to:** ADR-0012, RF-0013
+- **fora de escopo:** quais fases cada estágio pede, que é a spec §10
+
+O conjunto de checks que o workflow instalado roda é o das fases do estágio, nem
+mais nem menos. Estágio que instala moldura vazia é a wiki morta nascendo de
+fábrica; estágio que instala check de fase que o projeto não tem é enforcement
+que reprova por algo que ninguém pediu.
+
+Os hooks são peça única, e o que os estagia é a configuração que eles leem: hook
+sem a configuração dele fica em silêncio.
+
+## RN-0026 — Caminho reivindicado por decisão aberta é lembrado na edição e cobrado no diff
+
+- **status:** draft
+- **relates-to:** ADR-0010, RN-0009
+- **fora de escopo:** julgar se uma edição é a implementação da regra que falta — hook que julga está no lugar errado
+
+Uma decisão aberta pode nomear os caminhos que ela bloqueia. Quando nomeia,
+editar um deles **pergunta**, nomeando a decisão, o que ela bloqueia e a skill
+dona; e o diff que os leva **reprova**, com a razão escrita como única saída.
+
+O campo é opcional: decisão aberta sem caminho declarado continua válida e não
+bloqueia nada. O que não se aceita é o contrário — declarar o caminho e não ser
+lembrado.
+
+## RN-0027 — Bump em massa de `last-reviewed` reprova
+
+- **status:** draft
+- **relates-to:** ADR-0013
+- **fora de escopo:** atualizar a data de um documento que mudou de verdade, que é o mecanismo funcionando
+
+Um diff em que vários documentos alteram a data de revisão e nada mais no corpo
+reprova, nomeando o anti-requisito. Um documento revisado de verdade muda em mais
+do que a data; vinte documentos que só mudaram a data são o mecanismo de revisão
+sendo desligado enquanto se finge cumpri-lo.
+
+O limiar é escrito e configurável, e não existe rótulo de exceção: o rótulo seria
+a caixinha marcada que o anti-requisito descreve.
+
+## RN-0028 — Commit que altera artefato cita o ID afetado
+
+- **status:** draft
+- **fora de escopo:** o formato da mensagem de commit, que é acordo de trabalho e não regra do toolkit
+
+Quando o diff altera um arquivo de artefato, alguma mensagem de commit do mesmo
+diff cita ao menos um dos IDs declarados naquele arquivo. É o que torna o
+`git log` navegável por regra: sem a citação, o histórico responde "o que mudou"
+e nunca "por causa de qual regra".
+
+## RN-0029 — O gatilho do artefato e a `description` da skill dona falam do mesmo evento
+
+- **status:** draft
+- **relates-to:** ADR-0013, RN-0010
+- **fora de escopo:** o `trigger` de um item dentro de uma coleção, que é do item e não do artefato
+
+O campo `trigger` de um documento e a `description` da skill declarada como dona
+dele descrevem o mesmo evento. Se divergirem, o documento declara um gatilho que
+nada dispara: o mecanismo de gatilho e o roteamento de skill deixam de se
+encontrar, e o documento passa a depender de alguém lembrar dele.
+
+Quando a skill dona declarada não existe na raiz do toolkit, o resultado é aviso
+e não falha — um projeto pode declarar skill própria, e reprovar por isso seria
+exigir que todo dono fosse do plugin.

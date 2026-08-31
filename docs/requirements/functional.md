@@ -166,3 +166,30 @@ reprova no próprio `CI-7`.
 
 Isso vale em todos os estágios: dono não é função de maturidade. O que muda com
 o estágio é **quais** documentos existem.
+
+## RF-0013 — `init` instala o enforcement do estágio, mesclando com o que já existe
+
+- **status:** draft
+- **relates-to:** ADR-0012
+- **fora de escopo:** o modo de invocação do CLI dentro do workflow, que é parâmetro de quem instala (`DA-0003`); e `.claude/settings.json` e o workflow instalado, que não são documentação e por isso não entram em `documents:`
+
+Além da moldura, `living-docs init` escreve as duas peças de enforcement: o
+workflow de CI do estágio e o registro do plugin que liga os hooks na sessão. As
+duas entram por **mesclagem**: um repositório com workflows próprios e hooks já
+registrados mantém tudo o que tem, e o toolkit acrescenta o que falta e nada
+mais. Rodar duas vezes não duplica entrada — a idempotência vale para o
+enforcement igual vale para o documento.
+
+Um repositório com documento e nenhum check rodando é a promessa que este toolkit
+recusa: o enforcement é o que faz a regra valer.
+
+## RF-0014 — O inventário relata a forma escrita dos IDs, e não a adota em silêncio
+
+- **status:** draft
+- **relates-to:** ADR-0011, RN-0024
+- **fora de escopo:** converter IDs de uma forma para outra, que é reescrever preexistente
+
+`living-docs init --dry-run` num repositório cujos IDs não estão na forma padrão
+relata qual forma encontrou e quantos itens leu naquela forma. Declarar a forma é
+ato de quem instala, não do inventário: adoção silenciosa de formato é a mesma
+classe de erro que adoção silenciosa de caminho, e a `SK-0` já recusa a segunda.
