@@ -303,7 +303,7 @@ function regras(status: string): string {
     '---',
     'title: Regras',
     'owner: "@team"',
-    'trigger: A toda regra nova ou alterada.',
+    'trigger: Antes de implementar qualquer comportamento, e a toda regra nova ou alterada.',
     'last-reviewed: 2026-08-20',
     '---',
     '',
@@ -605,4 +605,67 @@ test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () 
     // Sem base, CI-9 nao roda.
     assert.deepEqual(runValidate(root).findings.filter((f) => f.ruleId === 'CI-9'), []);
   });
+});
+
+test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI', () => {
+  const ownership = [
+    'version: 1',
+    'artifacts:',
+    '  - id-prefix: DA',
+    '    path: docs/open-decisions.md',
+    '    owner: "@time"',
+    '    skill: decision-recorder',
+    '    collection: table',
+    'documents:',
+    '  - path: docs/.ownership.yml',
+    '    owner: "@time"',
+    '    skill: living-docs-bootstrap',
+    '',
+  ].join('\n');
+
+  const decisoes = (trigger: string): string =>
+    [
+      '---',
+      'title: Open Decisions',
+      'owner: "@time"',
+      `trigger: ${trigger}`,
+      'last-reviewed: 2026-08-31',
+      '---',
+      '',
+      '| ID | Lacuna | Status | Aberta em |',
+      '| --- | --- | --- | --- |',
+      '',
+    ].join('\n');
+
+  // Divergente: reprova nomeando os dois.
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: ownership,
+      CODEOWNERS: 'docs/    @time\n',
+      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
+    },
+    (root) => {
+      const result = runValidate(root);
+      const finding = result.findings.find((f) => f.ruleId === 'CI-10');
+      assert.ok(finding, JSON.stringify(result.findings, null, 2));
+      assert.equal(finding?.severity, 'error');
+      assert.match(finding?.message ?? '', /decision-recorder/);
+      assert.equal(result.exitCode, 1);
+    },
+  );
+
+  // Skill que a raiz do toolkit nao tem: avisa e segue.
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: ownership.replace('skill: decision-recorder', 'skill: decisoes-do-time'),
+      CODEOWNERS: 'docs/    @time\n',
+      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
+    },
+    (root) => {
+      const result = runValidate(root);
+      const finding = result.findings.find((f) => f.ruleId === 'CI-10');
+      assert.equal(finding?.severity, 'warning');
+      assert.equal(result.exitCode, 0);
+    },
+  );
 });

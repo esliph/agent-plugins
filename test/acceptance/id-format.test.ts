@@ -32,7 +32,7 @@ function regras(ids: readonly string[]): string {
     '---',
     'title: Regras',
     'owner: "@time"',
-    'trigger: A toda regra nova ou alterada.',
+    'trigger: Antes de implementar qualquer comportamento, e a toda regra nova ou alterada.',
     'last-reviewed: 2026-08-28',
     '---',
     '',

@@ -52,10 +52,12 @@ palavra. Raiz é a palavra de cinco letras ou mais, normalizada como em
 caracteres — o truncamento é o que faz "alterada" encontrar "alterar" sem que o
 toolkit aprenda português.
 
-- **Calibração:** contra os onze pares deste repositório. O par mais apertado é
-  `docs/deprecations.md` × `release-historian`, com exatamente duas raízes
-  (`anunci`, `deprec`); o mais folgado é `docs/requirements/*.md` ×
-  `requirements-keeper`, com quatro.
+- **Calibração:** contra os doze pares deste repositório. O par mais apertado é
+  `docs/contracts/errors.md` × `contract-keeper`, com três raízes (`código`,
+  `saída`, `signif`); o mais folgado é `CONTRIBUTING.md` ×
+  `working-agreements-keeper`, com sete. O piso é dois, e a margem de um é
+  deliberada: um par que já nasce no piso é um par que qualquer reescrita
+  quebra.
 - **Item de coleção não entra.** Só o gatilho do **documento** é comparado: o
   `trigger` de um ADR é "Nunca. Imutável após aceito", que é do item e não do
   artefato.

@@ -10,6 +10,7 @@ import { ci7OwnershipCoverage } from './ci7-ownership-coverage.ts';
 import { ci8Links } from './ci8-links.ts';
 import { ci9CommitDiscipline } from './ci9-commit-discipline.ts';
 import type { CommitFacts } from './ci9-commit-discipline.ts';
+import { ci10TriggerRouting } from './ci10-trigger-routing.ts';
 import { runCommand } from '../exec/command.ts';
 import type { CommandRunner } from '../exec/command.ts';
 import { CHECK_CATALOG } from './catalog.ts';
@@ -31,6 +32,7 @@ export function validateChecks(diff: CommitFacts | null = null): readonly Check[
     ci7OwnershipCoverage(diff),
     ci8Links,
     ci9CommitDiscipline(diff),
+    ci10TriggerRouting(),
   ];
 }
 
