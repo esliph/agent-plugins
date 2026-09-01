@@ -60,7 +60,7 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
    existente mal colocada, não linha faltando.
 4. **Escreva uma linha, não um parágrafo.** Forma: *onde está a verdade* ("a
    regra de X mora em `docs/requirements/rules.md`") ou *o que nunca fazer*
-   ("nunca rode `npm` fora do container").
+   ("nunca promova uma decisão sem revisão humana").
 5. **Item novo na DoD nomeia sua verificação**: um `CI-n`, um `HK-n`, ou
    explicitamente "humana". Item sem verificação não entra.
 6. **No contrato do agente, linke — não copie.** Se a frase que você ia escrever

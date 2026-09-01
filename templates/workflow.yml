@@ -1,9 +1,9 @@
 # Enforcement de documentação viva, instalado por `living-docs init`.
 #
-# O modo de invocação é parâmetro de quem instala (`--invoke`): o toolkit roda em
-# container no repositório dele, e impor isso a quem o instala seria transformar
-# regra do toolkit em regra do consumidor. Como o toolkit chega a este CI é
-# decisão aberta — `DA-0003` no repositório do toolkit.
+# O modo de invocação é parâmetro de quem instala (`--invoke`): como o toolkit
+# chega a este CI é decisão aberta — `DA-0003` no repositório do toolkit —, e
+# fixar aqui uma resposta transformaria a escolha do toolkit em regra do
+# consumidor.
 #
 # Este arquivo é seu: o `init` só o cria quando ele não existe, e nunca o
 # reescreve.
