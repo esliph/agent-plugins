@@ -6,12 +6,17 @@ import { toolkitRoot } from '../../src/core/roots.ts';
 
 const ROOT = toolkitRoot();
 
-/** Linhas de uma tabela markdown, sem cabeçalho nem separador. */
-function rows(source: string, header: string): string[][] {
-  const start = source.indexOf(header);
-  assert.ok(start !== -1, `tabela não encontrada — esperava o cabeçalho ${header}`);
+/**
+ * Linhas de uma tabela markdown, sem cabeçalho nem separador. Localiza a tabela
+ * pela primeira coluna, tolerando o alinhamento por padding de um formatador
+ * (`| Código | ` vira `| Código            | `); o `^` amarra a uma linha de
+ * tabela de verdade.
+ */
+function rows(source: string, column: string): string[][] {
+  const match = source.match(new RegExp(`^\\|\\s*${column}\\s*\\|`, 'm'));
+  assert.ok(match, `tabela não encontrada — esperava o cabeçalho | ${column} |`);
   return source
-    .slice(start)
+    .slice(match.index!)
     .split('\n')
     .filter((line) => line.trim().startsWith('|'))
     .slice(2)
@@ -23,7 +28,7 @@ function rows(source: string, header: string): string[][] {
 const errors = (): string => readFileSync(join(ROOT, 'docs/contracts/errors.md'), 'utf8');
 
 test('o catálogo de erros lista códigos reais, cada um com significado, gatilho e status', () => {
-  const entries = rows(errors(), '| Código |');
+  const entries = rows(errors(), 'Código');
   assert.ok(entries.length >= 4, `esperava ao menos 4 códigos, achei ${entries.length}`);
 
   const codigos = entries.map((row) => row[0]);

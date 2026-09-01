@@ -7,14 +7,24 @@ import { toolkitRoot } from '../../src/core/roots.ts';
 const ROOT = toolkitRoot();
 
 /**
+ * Índice da linha de cabeçalho de uma tabela markdown cuja primeira coluna se
+ * chama `column`. Tolera o alinhamento por padding que um formatador insere
+ * (`| Termo | ` vira `| Termo                | `); o `^` amarra a uma linha de
+ * tabela de verdade, não a prosa que cite o nome da coluna.
+ */
+function headerIndex(source: string, column: string): number {
+  const match = source.match(new RegExp(`^\\|\\s*${column}\\s*\\|`, 'm'));
+  assert.ok(match, `tabela não encontrada — esperava o cabeçalho | ${column} |`);
+  return match.index!;
+}
+
+/**
  * Linhas de uma tabela markdown, sem cabeçalho nem separador. Só o que começa
  * com `|` entra: prosa depois da tabela não pode virar um termo fantasma.
  */
-function rows(source: string, header: string): string[][] {
-  const start = source.indexOf(header);
-  assert.ok(start !== -1, `tabela não encontrada — esperava o cabeçalho ${header}`);
+function rows(source: string, column: string): string[][] {
   return source
-    .slice(start)
+    .slice(headerIndex(source, column))
     .split('\n')
     .filter((line) => line.trim().startsWith('|'))
     .slice(2) // cabeçalho + separador
@@ -23,7 +33,7 @@ function rows(source: string, header: string): string[][] {
     );
 }
 
-const GLOSSARY_HEADER = '| Termo |';
+const GLOSSARY_HEADER = 'Termo';
 const glossary = (): string => readFileSync(join(ROOT, 'docs/glossary.md'), 'utf8');
 
 test('RN-0011: todo termo do glossary tem um nome único, e nenhum tem ID numerado', () => {
@@ -34,7 +44,7 @@ test('RN-0011: todo termo do glossary tem um nome único, e nenhum tem ID numera
   assert.ok(nomes.length >= 5, `esperava ao menos 5 termos, achei ${nomes.length}`);
   assert.equal(new Set(nomes).size, nomes.length, 'há termo com nome duplicado');
 
-  const start = source.indexOf(GLOSSARY_HEADER);
+  const start = headerIndex(source, GLOSSARY_HEADER);
   const header = source.slice(start, source.indexOf('\n', start));
   assert.doesNotMatch(
     header,
