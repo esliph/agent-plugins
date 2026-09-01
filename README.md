@@ -124,3 +124,19 @@ npm run typecheck
 ```
 
 Para contribuir, veja `CONTRIBUTING.md`.
+
+### Opcional: sem Node no host
+
+Há um segundo caminho de execução, para quem prefere um ambiente previsível a
+instalar Node (`RNF-0006`). `bin/dev` recebe um comando e o roda dentro do
+container, subindo-o quando preciso:
+
+```bash
+bin/dev npm test
+bin/dev node src/cli/index.ts validate
+bin/living-docs validate     # o mesmo, pelo wrapper do CLI
+```
+
+O padrão continua sendo o host: o bind mount é sensivelmente mais lento, e os
+ganchos do plugin rodam sempre no `node` da máquina — numa máquina sem Node, o
+plugin não bloqueia nada.

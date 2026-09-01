@@ -28,6 +28,29 @@ node src/cli/index.ts validate --base origin/master
 Comando que falha com `ERR_MODULE_NOT_FOUND` é comando rodado antes do
 `npm ci` — não é o ambiente que está errado.
 
+### Opcional: rodar pelo container
+
+Quem não quiser instalar Node na máquina tem um segundo caminho (`RNF-0006`,
+`ADR-0016`). `bin/dev` roda qualquer comando de manutenção dentro do container, e
+sobe o container sozinho quando ele não está de pé:
+
+```bash
+bin/dev npm test
+bin/dev npm run typecheck
+bin/dev node src/cli/index.ts validate
+bin/living-docs validate     # o mesmo, pelo wrapper do CLI
+bin/dev                      # um shell dentro do container
+```
+
+Exige o daemon do Docker, e a primeira invocação constrói a imagem. No Windows,
+invoque pelo Git Bash, pelo WSL, ou com `bash bin/dev …` a partir do PowerShell.
+
+Duas coisas que este caminho **não** é. Ele não é a execução de registro: o que
+o CI reproduz em todo PR e o que a Definition of Done mede continua sendo o host.
+E ele não cobre os hooks, que rodam sempre no host (`RNF-0001`) — numa máquina
+sem Node, o enforcement local não existe, e essa é a mesma perda que `ADR-0015`
+já declarou.
+
 ## O ciclo
 
 1. **A regra antes do código.** Comportamento novo começa por um requisito com

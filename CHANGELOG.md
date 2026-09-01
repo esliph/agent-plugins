@@ -84,6 +84,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 - `living-docs validate --base <ref>` liga a metade de `CI-7` que lê o diff da
   branch: caminho vigiado alterado sem o doc dono reprova, e a saída escrita é
   `Docs: none — <razão>` numa mensagem de commit do intervalo.
+- `bin/dev`: ponto de entrada opcional que roda qualquer comando de manutenção
+  dentro do container do repositório, subindo-o e instalando as dependências
+  quando preciso — `bin/dev npm test`, `bin/dev node src/cli/index.ts validate`,
+  ou `bin/dev` sozinho para um shell. Exige o daemon do Docker; o caminho de
+  registro continua sendo o Node do host (`RNF-0006`, `ADR-0016`).
 
 ### Changed
 
@@ -92,8 +97,8 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   construir uma imagem. Quem clona precisa de Node 24 ou maior e de um `npm ci`
   antes do primeiro comando; em troca, os ganchos param de calar quando o
   container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
-  continuam no repositório, mas nada mais os invoca — registrado em `ADR-0015` e
-  `TDR-0002`.
+  continuam no repositório, agora como o caminho de execução opcional descrito
+  acima — registrado em `ADR-0015` e `ADR-0016`.
 - O nome do pacote passa a ser `@esliph/claude-plugins` e o container Docker do
   repositório passa a se chamar `esliph-claude-plugins` (era `living-docs-toolkit`
   nos dois). Quem sobe o ambiente com `docker compose` ou invoca `./bin/living-docs`
@@ -127,6 +132,10 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   contém a base do diff.
 - `CODEOWNERS` escrito pelo `init` passa a cobrir `docs/ids-retired.txt`.
 - `docs/contracts/checks.gen.md` passa a listar oito checks, ordenados por ID.
+- `bin/living-docs` deixa de exigir que o container já esteja de pé e deixa de
+  sair com código 2 quando ele não está: agora delega a `bin/dev`, que sobe o
+  container antes de executar. O que se invoca não mudou; o que acontece com o
+  ambiente parado, sim.
 
 ### Fixed
 
