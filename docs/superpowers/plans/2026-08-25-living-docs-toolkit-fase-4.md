@@ -127,7 +127,7 @@ Crie `docs/decisions/adr/ADR-0004-termo-do-glossary-identificado-pelo-nome.md`:
 id: ADR-0004
 title: Termo do glossary é identificado pelo nome, não por ID numerado
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25
@@ -658,7 +658,7 @@ Implementa `RN-0011` com um teste de dogfooding.
 - [ ] **Step 1: Rodar `init --stage small-team` contra este repositório (dry-run primeiro)**
 
 ```bash
-docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @Danrley-Ruan-Saquetti --stage small-team --dry-run
+docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @esliph/engineering --stage small-team --dry-run
 ```
 
 Esperado: `criado docs/glossary.md`, `criado docs/charter/constitution.md`,
@@ -669,11 +669,11 @@ sai como `mantido`, `CODEOWNERS` inclusive — daí o Step 6).
 - [ ] **Step 2: Rodar de verdade**
 
 ```bash
-docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @Danrley-Ruan-Saquetti --stage small-team
+docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @esliph/engineering --stage small-team
 ```
 
 Confirme que os três arquivos nasceram com o conteúdo da semente (Task 2,
-Steps 3–5) e `@Danrley-Ruan-Saquetti` no lugar de `{{OWNER}}`.
+Steps 3–5) e `@esliph/engineering` no lugar de `{{OWNER}}`.
 
 - [ ] **Step 3: Escrever `test/docs/language-and-intent.test.ts`**
 
@@ -831,7 +831,7 @@ e é assim que se quer — eles guardam o formato, não o conteúdo.
 ```markdown
 ---
 title: Glossary
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Termo de domínio novo em código, spec ou conversa; termo com dois
     significados; renomeação de conceito.
@@ -860,7 +860,7 @@ repositório.
 ```markdown
 ---
 title: Constitution
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Emenda deliberada — nunca como efeito colateral de outra tarefa.
 last-reviewed: 2026-08-25
@@ -891,7 +891,7 @@ sem enforcement nomeado é slogan — nenhum entra aqui sem ele.
 ```markdown
 ---
 title: Product Vision
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Mudança de estratégia de produto — nunca como efeito colateral de outra
     tarefa.
@@ -921,8 +921,8 @@ pula o que existe. Acrescente as duas linhas depois de `CLAUDE.md`, seguindo o
 espaçamento que o arquivo já usa (quatro espaços):
 
 ```
-docs/glossary.md    @Danrley-Ruan-Saquetti
-docs/charter/    @Danrley-Ruan-Saquetti
+docs/glossary.md    @esliph/engineering
+docs/charter/    @esliph/engineering
 ```
 
 O `docs/charter/` é declarado como diretório, do mesmo jeito que

@@ -2,7 +2,7 @@
 id: ADR-0011
 title: Identidade de um ID e a forma escrita dele são coisas diferentes
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28

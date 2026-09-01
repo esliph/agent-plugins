@@ -2,7 +2,7 @@
 id: TDR-0001
 title: HK-1 não congela seção revogada dentro de arquivo de coleção
 status: open
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável enquanto a dívida existir; o pagamento a marca como paid.
 last-reviewed: 2026-08-24

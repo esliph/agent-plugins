@@ -1,6 +1,6 @@
 ---
 title: Política de versionamento
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Mudança na interface pública do CLI, dos checks ou do `.ownership.yml`;
     decisão de depreciar algo publicado; mudança na própria política.

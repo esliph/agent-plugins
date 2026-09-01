@@ -1,6 +1,6 @@
 ---
 title: Depreciações
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Quando algo publicado é anunciado para remoção, e quando uma depreciação
     anunciada é de fato removida.

@@ -158,7 +158,7 @@ Crie `docs/decisions/adr/ADR-0005-contrato-do-gerador-e-onde-ci5-roda.md`:
 id: ADR-0005
 title: O gerador imprime na saída padrão, e CI-5 roda num subcomando próprio
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25
@@ -1971,7 +1971,7 @@ catálogo de erros e pela política de versionamento **reais** do toolkit.
 - [ ] **Step 1: Rodar `init --stage production` contra este repositório (dry-run primeiro)**
 
 ```bash
-docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @Danrley-Ruan-Saquetti --stage production --dry-run
+docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @esliph/engineering --stage production --dry-run
 ```
 
 Esperado: `criado docs/contracts/errors.md` e
@@ -1982,10 +1982,10 @@ Esperado: `criado docs/contracts/errors.md` e
 - [ ] **Step 2: Rodar de verdade**
 
 ```bash
-docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @Danrley-Ruan-Saquetti --stage production
+docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @esliph/engineering --stage production
 ```
 
-Confirme que os dois arquivos nasceram com o conteúdo da semente e `@Danrley-Ruan-Saquetti` no
+Confirme que os dois arquivos nasceram com o conteúdo da semente e `@esliph/engineering` no
 lugar de `{{OWNER}}`.
 
 - [ ] **Step 3: Escrever `test/docs/contracts.test.ts`**
@@ -2112,7 +2112,7 @@ formato, não o conteúdo.
 ```markdown
 ---
 title: Catálogo de erros
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Código de saída novo ou com significado alterado; classe de falha nova na
     linha de comando; mudança no que um código significa para quem consome o CLI.
@@ -2150,7 +2150,7 @@ consertar o lugar errado.
 ```markdown
 ---
 title: Política de versionamento
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Mudança na interface pública do CLI, dos checks ou do `.ownership.yml`;
     decisão de depreciar algo publicado; mudança na própria política.
@@ -2209,7 +2209,7 @@ Acrescente a linha depois de `docs/charter/`, seguindo o espaçamento que o
 arquivo já usa (quatro espaços):
 
 ```
-docs/contracts/    @Danrley-Ruan-Saquetti
+docs/contracts/    @esliph/engineering
 ```
 
 Um dono para o diretório inteiro, como `docs/requirements/` e `docs/charter/`

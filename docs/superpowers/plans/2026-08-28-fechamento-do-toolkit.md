@@ -127,7 +127,7 @@ resolve. Cada uma nasce `draft`/`open`: promover é ato humano (Task 16).
 
 **Requisitos:**
 
-- Frontmatter completo: `id`, `title`, `status: draft`, `owner: "@Danrley-Ruan-Saquetti"`,
+- Frontmatter completo: `id`, `title`, `status: draft`, `owner: "@esliph/engineering"`,
   `trigger`, `last-reviewed`, `relates-to`, `supersedes`, `superseded-by`. O
   `trigger` de ADR é sempre "Nunca. Imutável após aceito; uma decisão nova o
   supersede." — cadência reprova em `CI-1`.
@@ -150,7 +150,7 @@ Crie `docs/decisions/adr/ADR-0011-identidade-e-forma-escrita-do-id.md`:
 id: ADR-0011
 title: Identidade de um ID e a forma escrita dele são coisas diferentes
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28
@@ -239,7 +239,7 @@ Crie `docs/decisions/adr/ADR-0012-o-que-o-estagio-parametriza.md`:
 id: ADR-0012
 title: O estágio parametriza os checks do workflow; os hooks entram como peça única
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28
@@ -314,7 +314,7 @@ Crie `docs/decisions/adr/ADR-0013-os-dois-limiares-do-fechamento.md`:
 id: ADR-0013
 title: Os dois limiares do fechamento — bump em massa e semelhança de gatilho
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28

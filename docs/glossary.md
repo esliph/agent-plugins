@@ -1,6 +1,6 @@
 ---
 title: Glossary
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Termo de domínio novo em código, spec ou conversa; termo com dois
     significados; renomeação de conceito.

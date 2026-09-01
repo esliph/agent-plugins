@@ -2,7 +2,7 @@
 id: ADR-0001
 title: Runtime em container Docker, TypeScript sem build step
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24

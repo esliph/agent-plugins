@@ -1,6 +1,6 @@
 ---
 title: Constitution
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Emenda deliberada — nunca como efeito colateral de outra tarefa.
 last-reviewed: 2026-08-25

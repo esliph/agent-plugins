@@ -213,7 +213,7 @@ Crie `docs/decisions/adr/ADR-0007-data-injetavel-e-gatilho-de-pagamento-verifica
 id: ADR-0007
 title: A fonte de data do toolkit, e como um gatilho de pagamento se torna verificável
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
@@ -343,7 +343,7 @@ Crie `docs/decisions/adr/ADR-0008-documento-sem-familia-de-ids.md`:
 id: ADR-0008
 title: Como um documento sem família de IDs ganha dono declarado
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
@@ -401,14 +401,14 @@ conhecer (spec §3).
 ```yaml
 documents:
     - path: CONTRIBUTING.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: working-agreements-keeper
     - path: CLAUDE.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: working-agreements-keeper
       role: agent-contract
     - path: docs/superpowers/
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
 ```
 
 - `path` e `owner` são obrigatórios; `owner` começa com `@` e espelha o
@@ -461,7 +461,7 @@ Crie `docs/decisions/adr/ADR-0009-limiar-de-duplicacao-textual.md`:
 id: ADR-0009
 title: O limiar que distingue vocabulário compartilhado de conteúdo copiado
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
@@ -552,7 +552,7 @@ Crie `docs/decisions/adr/ADR-0010-severidade-do-sinal-de-watches-no-ci.md`:
 id: ADR-0010
 title: Com que severidade o CI sinaliza o caminho vigiado sem doc dono, e qual é a saída escrita
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
@@ -5568,42 +5568,42 @@ Em `docs/.ownership.yml`, acrescente depois do bloco `generated:` e antes de
 # CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.
 documents:
     - path: docs/.ownership.yml
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: living-docs-bootstrap
     - path: docs/ids-retired.txt
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: living-docs-bootstrap
     - path: CONTRIBUTING.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: working-agreements-keeper
     - path: docs/definition-of-done.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: working-agreements-keeper
       role: definition-of-done
     - path: CLAUDE.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: working-agreements-keeper
       role: agent-contract
     - path: docs/glossary.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: glossary-keeper
     - path: docs/charter/
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: charter-keeper
     - path: docs/contracts/errors.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: contract-keeper
     - path: docs/contracts/versioning-policy.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: contract-keeper
     - path: CHANGELOG.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: release-historian
     - path: docs/deprecations.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: release-historian
     - path: docs/migrations/
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: release-historian
 
     # Sem skill dona, e isso é informação: plano, spec e README têm dono e não têm
@@ -5611,23 +5611,23 @@ documents:
     # artefatos por ofício — reprovar o contrato do agente por causa de um plano
     # que o citou inverteria quem copiou de quem.
     - path: docs/superpowers/
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
     - path: LIVING-DOCUMENTATION-TOOLKIT.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
     - path: LIVING-DOCUMENTATION.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
     - path: README.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
 ```
 
 Em `CODEOWNERS`, acrescente as linhas que faltam:
 
 ```
-docs/ids-retired.txt    @Danrley-Ruan-Saquetti
-docs/superpowers/    @Danrley-Ruan-Saquetti
-LIVING-DOCUMENTATION-TOOLKIT.md    @Danrley-Ruan-Saquetti
-LIVING-DOCUMENTATION.md    @Danrley-Ruan-Saquetti
-README.md    @Danrley-Ruan-Saquetti
+docs/ids-retired.txt    @esliph/engineering
+docs/superpowers/    @esliph/engineering
+LIVING-DOCUMENTATION-TOOLKIT.md    @esliph/engineering
+LIVING-DOCUMENTATION.md    @esliph/engineering
+README.md    @esliph/engineering
 ```
 
 Em `docs/decisions/debt/TDR-0001-congelamento-por-secao.md`, acrescente ao

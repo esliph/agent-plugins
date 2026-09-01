@@ -1,6 +1,6 @@
 ---
 title: Catálogo de erros
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Código de saída novo ou com significado alterado; classe de falha nova na
     linha de comando; mudança no que um código significa para quem consome o CLI.

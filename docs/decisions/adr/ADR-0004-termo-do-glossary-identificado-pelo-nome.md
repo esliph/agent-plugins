@@ -2,7 +2,7 @@
 id: ADR-0004
 title: Termo do glossary é identificado pelo nome, não por ID numerado
 status: accepted
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25

@@ -1,6 +1,6 @@
 ---
 title: Definition of Done
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
     de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.

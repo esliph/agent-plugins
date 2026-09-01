@@ -196,7 +196,7 @@ Crie `docs/decisions/adr/ADR-0006-diff-do-pr-e-rotulo-de-excecao.md`:
 id: ADR-0006
 title: De onde CI-6 tira o diff, o que conta como rótulo de exceção, e onde ele roda
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-26
@@ -2811,7 +2811,7 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 ```markdown
 ---
 title: Depreciações
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Quando algo publicado é anunciado para remoção, e quando uma depreciação
     anunciada é de fato removida.
@@ -2848,7 +2848,7 @@ Em `docs/.ownership.yml`, acrescente o artefato `REL` depois do bloco de `RN`:
 ```yaml
 - id-prefix: REL
   path: docs/releases/
-  owner: '@Danrley-Ruan-Saquetti'
+  owner: '@esliph/engineering'
   skill: release-historian
   # Release note publicada é congelada por HK-1 (spec §5, SK-7, regra 4).
   # É por isso que REL tem família de IDs e CHANGELOG.md não: HK-1 só
@@ -2910,10 +2910,10 @@ consumer-visible-paths:
 Em `CODEOWNERS`, acrescente:
 
 ```
-CHANGELOG.md    @Danrley-Ruan-Saquetti
-docs/deprecations.md    @Danrley-Ruan-Saquetti
-docs/releases/    @Danrley-Ruan-Saquetti
-docs/migrations/    @Danrley-Ruan-Saquetti
+CHANGELOG.md    @esliph/engineering
+docs/deprecations.md    @esliph/engineering
+docs/releases/    @esliph/engineering
+docs/migrations/    @esliph/engineering
 ```
 
 - [ ] **Step 6: Rodar e ver passar**

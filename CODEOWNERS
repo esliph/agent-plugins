@@ -1,23 +1,23 @@
 # Espelha o campo `owner` de docs/.ownership.yml. Um artefato, um dono.
 
-docs/decisions/adr/ @Danrley-Ruan-Saquetti
-docs/open-decisions.md @Danrley-Ruan-Saquetti
-docs/decisions/debt/ @Danrley-Ruan-Saquetti
-docs/requirements/ @Danrley-Ruan-Saquetti
-CONTRIBUTING.md @Danrley-Ruan-Saquetti
-docs/definition-of-done.md @Danrley-Ruan-Saquetti
-CLAUDE.md @Danrley-Ruan-Saquetti
-docs/glossary.md @Danrley-Ruan-Saquetti
-docs/charter/ @Danrley-Ruan-Saquetti
-docs/contracts/ @Danrley-Ruan-Saquetti
-CHANGELOG.md @Danrley-Ruan-Saquetti
-docs/deprecations.md @Danrley-Ruan-Saquetti
-docs/releases/ @Danrley-Ruan-Saquetti
-docs/migrations/ @Danrley-Ruan-Saquetti
-docs/.ownership.yml @Danrley-Ruan-Saquetti
-docs/ids-retired.txt @Danrley-Ruan-Saquetti
-docs/superpowers/ @Danrley-Ruan-Saquetti
-docs/superpowers/research/2026-08-24-living-documentation-toolkit.md @Danrley-Ruan-Saquetti
-docs/superpowers/research/2026-08-24-living-documentation.md @Danrley-Ruan-Saquetti
-README.md @Danrley-Ruan-Saquetti
+docs/decisions/adr/ @esliph/engineering
+docs/open-decisions.md @esliph/engineering
+docs/decisions/debt/ @esliph/engineering
+docs/requirements/ @esliph/engineering
+CONTRIBUTING.md @esliph/engineering
+docs/definition-of-done.md @esliph/engineering
+CLAUDE.md @esliph/engineering
+docs/glossary.md @esliph/engineering
+docs/charter/ @esliph/engineering
+docs/contracts/ @esliph/engineering
+CHANGELOG.md @esliph/engineering
+docs/deprecations.md @esliph/engineering
+docs/releases/ @esliph/engineering
+docs/migrations/ @esliph/engineering
+docs/.ownership.yml @esliph/engineering
+docs/ids-retired.txt @esliph/engineering
+docs/superpowers/ @esliph/engineering
+docs/superpowers/research/2026-08-24-living-documentation-toolkit.md @esliph/engineering
+docs/superpowers/research/2026-08-24-living-documentation.md @esliph/engineering
+README.md @esliph/engineering
 

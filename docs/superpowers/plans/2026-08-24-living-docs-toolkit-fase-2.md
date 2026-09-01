@@ -99,7 +99,7 @@ Novo (`+`) e alterado (`~`). O que não aparece aqui não muda.
 id: ADR-0003
 title: Raiz do toolkit e raiz do repositório validado são distintas
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24
@@ -1143,7 +1143,7 @@ Em `test/hooks/hk3-state-promotion.test.ts`, acrescente um caso com um artefato 
 id: TDR-0001
 title: HK-1 não congela seção revogada dentro de arquivo de coleção
 status: open
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável enquanto a dívida existir; o pagamento a marca como paid.
 last-reviewed: 2026-08-24
@@ -1968,21 +1968,21 @@ e `ADR-0003` passa a citar também `RNF-0003`. Registre isso no procedimento de 
 ```yaml
 - id-prefix: RF
   path: docs/requirements/functional.md
-  owner: '@Danrley-Ruan-Saquetti'
+  owner: '@esliph/engineering'
   skill: requirements-keeper
   collection: sections
   cited-by: ['test/**']
 
 - id-prefix: RNF
   path: docs/requirements/non-functional.md
-  owner: '@Danrley-Ruan-Saquetti'
+  owner: '@esliph/engineering'
   skill: requirements-keeper
   collection: sections
   cited-by: ['test/**']
 
 - id-prefix: RN
   path: docs/requirements/rules.md
-  owner: '@Danrley-Ruan-Saquetti'
+  owner: '@esliph/engineering'
   skill: requirements-keeper
   collection: sections
   cited-by: ['test/**', 'src/**']
@@ -1993,7 +1993,7 @@ E o `field-map` de `DA` (Task 5, Step 4), se ainda não tiver entrado.
 - [ ] **Step 3: `CODEOWNERS`**
 
 ```
-docs/requirements/    @Danrley-Ruan-Saquetti
+docs/requirements/    @esliph/engineering
 ```
 
 - [ ] **Step 4: `docs/requirements/rules.md` — as regras de negócio do toolkit**

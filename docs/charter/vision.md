@@ -1,6 +1,6 @@
 ---
 title: Product Vision
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Mudança de estratégia de produto — nunca como efeito colateral de outra
     tarefa.

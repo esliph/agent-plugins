@@ -3439,7 +3439,7 @@ import { runInit } from './init.ts'
 ```bash
 docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
-./bin/living-docs init --dry-run --owner "@Danrley-Ruan-Saquetti"
+./bin/living-docs init --dry-run --owner "@esliph/engineering"
 ```
 
 Esperado: testes passando; `--dry-run` listando os arquivos que criaria, sem escrever nenhum.
@@ -5227,7 +5227,7 @@ Esperado: FAIL — `docs/.ownership.yml` ainda não existe neste repositório.
 - [ ] **Step 3: Inicializar a documentação viva deste repositório**
 
 ```bash
-./bin/living-docs init --owner "@Danrley-Ruan-Saquetti"
+./bin/living-docs init --owner "@esliph/engineering"
 ./bin/living-docs validate
 ```
 
@@ -5244,7 +5244,7 @@ O plano tomou duas decisões caras de reverter. Elas precisam existir como ADR �
 id: ADR-0001
 title: Runtime em container Docker, TypeScript sem build step
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24
@@ -5307,7 +5307,7 @@ sem `namespace`, sem decorators.
 id: ADR-0002
 title: Uma engine de validação para CLI e hooks
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24

@@ -2,7 +2,7 @@
 id: ADR-0006
 title: De onde CI-6 tira o diff, o que conta como rótulo de exceção, e onde ele roda
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-26

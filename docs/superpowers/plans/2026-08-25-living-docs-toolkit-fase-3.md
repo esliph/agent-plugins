@@ -1520,7 +1520,7 @@ Esperado: FAIL — `ENOENT` em `CLAUDE.md`.
 ```markdown
 ---
 title: Definition of Done
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
     de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
@@ -1555,7 +1555,7 @@ alguém as encontre depois.
 ````markdown
 ---
 title: Como se contribui aqui
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
     errou por falta de contexto que caberia nesta página.
@@ -1807,14 +1807,14 @@ test('working-agreements-keeper não duplica o conteúdo dos acordos que governa
 
 ```
 # Espelha o campo `owner` de docs/.ownership.yml. Um artefato, um dono.
-docs/decisions/adr/    @Danrley-Ruan-Saquetti
-docs/open-decisions.md    @Danrley-Ruan-Saquetti
-docs/decisions/debt/    @Danrley-Ruan-Saquetti
-docs/requirements/    @Danrley-Ruan-Saquetti
-CONTRIBUTING.md    @Danrley-Ruan-Saquetti
-docs/definition-of-done.md    @Danrley-Ruan-Saquetti
-CLAUDE.md    @Danrley-Ruan-Saquetti
-docs/.ownership.yml    @Danrley-Ruan-Saquetti
+docs/decisions/adr/    @esliph/engineering
+docs/open-decisions.md    @esliph/engineering
+docs/decisions/debt/    @esliph/engineering
+docs/requirements/    @esliph/engineering
+CONTRIBUTING.md    @esliph/engineering
+docs/definition-of-done.md    @esliph/engineering
+CLAUDE.md    @esliph/engineering
+docs/.ownership.yml    @esliph/engineering
 ```
 
 - [ ] **Step 9: Rodar tudo**

@@ -1,6 +1,6 @@
 ---
 title: Como se contribui aqui
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
     errou por falta de contexto que caberia nesta página.

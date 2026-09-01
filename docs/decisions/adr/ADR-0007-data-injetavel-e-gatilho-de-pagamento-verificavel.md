@@ -2,7 +2,7 @@
 id: ADR-0007
 title: A fonte de data do toolkit, e como um gatilho de pagamento se torna verificável
 status: accepted
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27

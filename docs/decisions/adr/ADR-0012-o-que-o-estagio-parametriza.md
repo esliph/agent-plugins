@@ -2,7 +2,7 @@
 id: ADR-0012
 title: O estágio parametriza os checks do workflow; os hooks entram como peça única
 status: draft
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28

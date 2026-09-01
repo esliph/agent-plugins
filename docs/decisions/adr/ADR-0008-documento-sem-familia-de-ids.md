@@ -2,7 +2,7 @@
 id: ADR-0008
 title: Como um documento sem família de IDs ganha dono declarado
 status: accepted
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
@@ -60,14 +60,14 @@ conhecer (spec §3).
 ```yaml
 documents:
     - path: CONTRIBUTING.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: working-agreements-keeper
     - path: CLAUDE.md
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
       skill: working-agreements-keeper
       role: agent-contract
     - path: docs/superpowers/
-      owner: '@Danrley-Ruan-Saquetti'
+      owner: '@esliph/engineering'
 ```
 
 - `path` e `owner` são obrigatórios; `owner` começa com `@` e espelha o

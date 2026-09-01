@@ -1,6 +1,6 @@
 ---
 title: Open Decisions
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Toda vez que alguém trombou numa lacuna — comportamento sem regra escrita.
 last-reviewed: 2026-08-24

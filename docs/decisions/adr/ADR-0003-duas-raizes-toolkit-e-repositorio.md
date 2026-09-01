@@ -2,7 +2,7 @@
 id: ADR-0003
 title: Raiz do toolkit e raiz do repositório validado são distintas
 status: accepted
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24

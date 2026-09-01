@@ -2,7 +2,7 @@
 id: ADR-0005
 title: O gerador imprime na saída padrão, e CI-5 roda num subcomando próprio
 status: accepted
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25

@@ -1,6 +1,6 @@
 ---
 title: Requisitos funcionais
-owner: '@Danrley-Ruan-Saquetti'
+owner: '@esliph/engineering'
 trigger: >
     Antes de implementar qualquer comportamento desta família, e a toda regra nova
     ou alterada.
