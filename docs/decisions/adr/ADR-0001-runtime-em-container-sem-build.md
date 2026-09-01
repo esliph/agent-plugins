@@ -1,14 +1,14 @@
 ---
 id: ADR-0001
 title: Runtime em container Docker, TypeScript sem build step
-status: draft
+status: superseded
 owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24
 relates-to: [RNF-0002, RNF-0003]
 supersedes: null
-superseded-by: null
+superseded-by: ADR-0015
 ---
 
 # ADR-0001 — Runtime em container Docker, TypeScript sem build step
