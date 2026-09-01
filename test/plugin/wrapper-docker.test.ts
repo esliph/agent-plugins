@@ -54,3 +54,25 @@ test('RNF-0006: bin/dev deriva a raiz do próprio caminho e respeita LIVING_DOCS
     'a raiz do repositório sai do caminho do próprio script (ADR-0003), nunca do diretório de trabalho',
   );
 });
+
+test('RNF-0006: bin/living-docs delega a bin/dev, sem lógica de container própria', () => {
+  assert.equal(gitMode('bin/living-docs'), '100755', 'bin/living-docs precisa continuar executável');
+
+  const wrapper = source('bin/living-docs');
+
+  assert.match(wrapper, /\/dev\b/, 'o wrapper do CLI invoca bin/dev');
+  assert.match(wrapper, /node\s+src\/cli\/index\.ts/, 'e é ele, não bin/dev, que conhece o CLI');
+
+  // O teste que impede a duplicação de lógica voltar: toda conversa com o
+  // daemon mora em bin/dev, e um segundo lugar que a tenha é um segundo lugar
+  // para divergir.
+  assert.doesNotMatch(
+    wrapper,
+    /docker\s+(exec|inspect|compose)/,
+    'lógica de container duplicada — ela pertence a bin/dev (ADR-0016)',
+  );
+
+  // O modo de falha que TDR-0002 descreveu: sair 2 porque o container não está
+  // de pé. bin/dev sobe o container; ninguém mais precisa recusar-se a rodar.
+  assert.doesNotMatch(wrapper, /exit\s+2\b/, 'o container ausente deixou de ser modo de falha (E-2)');
+});
