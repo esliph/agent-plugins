@@ -1,7 +1,7 @@
 ---
 id: TDR-0002
 title: bin/living-docs continua exigindo Docker sem ninguém que o invoque
-status: open
+status: paid
 owner: '@esliph/engineering'
 trigger: >
     Quando o gatilho de pagamento abaixo se cumprir.
