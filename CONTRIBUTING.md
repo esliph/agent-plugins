@@ -14,19 +14,19 @@ consumidor dele. Tudo que ele exige de um projeto, ele cumpre.
 
 ## O ambiente
 
-Nada roda no host além de Docker (`RNF-0002`). O container é a única forma
-suportada de executar qualquer coisa:
+Node 24 ou maior e o npm que vem com ele — nada além disso (`RNF-0002`). As
+dependências entram com `npm ci`, e ele vem antes de qualquer outro comando:
 
 ```bash
-docker compose up -d
-docker compose exec toolkit npm test
-docker compose exec toolkit npm run typecheck
-./bin/living-docs validate
-./bin/living-docs validate --base origin/master
+npm ci
+npm test
+npm run typecheck
+node src/cli/index.ts validate
+node src/cli/index.ts validate --base origin/master
 ```
 
-Se um comando pede `node`, `npm` ou `npx` fora do container, ele está errado —
-não o ambiente.
+Comando que falha com `ERR_MODULE_NOT_FOUND` é comando rodado antes do
+`npm ci` — não é o ambiente que está errado.
 
 ## O ciclo
 

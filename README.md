@@ -17,34 +17,34 @@ o que dispara sua atualização. Em cima disso, duas camadas de verificação:
 - **Checagens de CI**: rodam no pipeline em segundos e continuam valendo mesmo
   para edições feitas direto pelo navegador, sem ninguém por perto.
 
-Todo o trabalho acontece dentro de um container. O host não executa Node —
-`./bin/living-docs` é só uma ponte para o container.
+O toolkit roda no Node do host: `npm ci` uma vez, e `node src/cli/index.ts` a
+partir daí. Não há passo de build entre editar e executar.
 
 ## Pré-requisitos
 
-- Docker e Docker Compose.
+- Node 24 ou maior, com npm.
 - Claude Code, para usar a parte de plugin (skills, comandos e ganchos).
 
 ## Instalação e primeiro uso
 
 ```bash
-docker compose up -d                     # sobe o container
-./bin/living-docs init --stage solo      # cria a estrutura inicial de pastas e arquivos
-./bin/living-docs validate               # verifica a documentação do repositório
+npm ci                                          # instala as dependências
+node src/cli/index.ts init --stage solo         # cria a estrutura inicial de pastas e arquivos
+node src/cli/index.ts validate                  # verifica a documentação do repositório
 ```
 
-Sem a variável `LIVING_DOCS_TARGET`, o container valida **este próprio
-checkout** — o toolkit usa a si mesmo como teste.
+Sem `LIVING_DOCS_REPO_ROOT`, o CLI valida o **diretório de trabalho** — rodando
+da raiz deste checkout, ele valida a si mesmo: o toolkit usa-se como teste.
 
 Comandos disponíveis:
 
 | Comando | O que faz |
 | --- | --- |
-| `./bin/living-docs init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou. |
-| `./bin/living-docs validate` | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono. |
-| `./bin/living-docs validate --base <ref>` | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
-| `./bin/living-docs drift` | Confere se cada documento gerado ainda bate com o comando que o gera. |
-| `./bin/living-docs changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit. |
+| `node src/cli/index.ts init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou. |
+| `node src/cli/index.ts validate` | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono. |
+| `node src/cli/index.ts validate --base <ref>` | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
+| `node src/cli/index.ts drift` | Confere se cada documento gerado ainda bate com o comando que o gera. |
+| `node src/cli/index.ts changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit. |
 
 Opções de `init`: `--owner <@time>` define o dono declarado nos documentos
 criados; `--dry-run` mostra o que seria criado sem escrever; `--id-separator` e
@@ -68,13 +68,13 @@ reprovado na verificação.
 
 ## Validar outro projeto
 
-A fonte do toolkit e o repositório validado são pastas separadas dentro do
-container:
+A fonte do toolkit e o repositório validado são raízes independentes
+(`ADR-0003`): a primeira sai do caminho do próprio código, a segunda do
+diretório de trabalho ou de `LIVING_DOCS_REPO_ROOT`.
 
 ```bash
-LIVING_DOCS_TARGET=/caminho/do/projeto docker compose up -d
-./bin/living-docs init --stage small-team --owner @time
-./bin/living-docs validate
+LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node src/cli/index.ts init --stage small-team --owner @time
+LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node src/cli/index.ts validate
 ```
 
 ## O plugin do Claude Code
@@ -99,8 +99,8 @@ sem o documento dono, perguntam; lembram quando um atalho novo (`TODO`, `FIXME`,
 supressão de tipo ou de lint, teste ignorado) fica sem registro de dívida por
 perto; e, no início da sessão, injetam um inventário do que está declarado e
 ausente, das decisões em aberto, das dívidas com gatilho cumprido e dos
-documentos vencidos. Os ganchos que lembram e perguntam nunca bloqueiam; com o
-container parado, nenhum gancho bloqueia nada — a camada que sobrevive a isso é
+documentos vencidos. Os ganchos que lembram e perguntam nunca bloqueiam; quando o toolkit não
+consegue executar, nenhum gancho bloqueia nada — a camada que sobrevive a isso é
 o CI.
 
 **Agentes** (contexto isolado, sem permissão de editar): um tenta refutar um
@@ -118,8 +118,9 @@ caminho para adicioná-las é o mesmo ponto de extensão: uma entrada em
 ## Desenvolvimento
 
 ```bash
-docker compose exec toolkit npm test
-docker compose exec toolkit npm run typecheck
+npm ci
+npm test
+npm run typecheck
 ```
 
 Para contribuir, veja `CONTRIBUTING.md`.

@@ -1,5 +1,5 @@
-# O runtime é Linux dentro do container (ADR-0001). Um CR no shebang quebra o
-# wrapper com "bad interpreter", e quem clona no Windows não vê o motivo.
+# O wrapper de hooks roda em bash (RNF-0002). Um CR no shebang o quebra com
+# "bad interpreter", e quem clona no Windows não vê o motivo.
 * text=auto eol=lf
 *.png binary
 *.jpg binary

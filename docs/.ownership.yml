@@ -193,7 +193,7 @@ watches:
   - code: "bin/living-docs"
     doc: CHANGELOG.md
     consumer-visible: true
-    reason: "a ponte host→container é como o toolkit é invocado"
+    reason: "o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa"
 
 consumer-visible-paths:
   - "src/cli/**"

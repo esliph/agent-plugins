@@ -214,7 +214,7 @@ test('RN-0020: frase longa do contrato repetida num artefato dono reprova', () =
 });
 
 test('ADR-0009: frase curta é vocabulário compartilhado, não duplicata', () => {
-  const curta = 'Nada roda no host além de Docker.';
+  const curta = 'O teste vem antes da implementação.';
   withTempRepo(
     {
       ...ARVORE,

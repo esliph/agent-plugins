@@ -33,7 +33,7 @@ test('RF-0013: o workflow instalado não impõe Docker a quem instala', () => {
   withTempRepo({}, (root) => {
     runInit(root, OPTIONS);
     const yaml = readFileSync(join(root, WORKFLOW), 'utf8');
-    assert.doesNotMatch(yaml, /docker/i, 'RNF-0002 é regra deste toolkit, não do consumidor');
+    assert.doesNotMatch(yaml, /docker/i, 'como o toolkit chega ao CI de quem instala é DA-0003, não uma imposição nossa');
   });
 });
 
