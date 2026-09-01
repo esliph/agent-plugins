@@ -2,9 +2,9 @@
 id: ADR-0004
 title: Termo do glossary é identificado pelo nome, não por ID numerado
 status: accepted
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25
 relates-to: [DA-0002, RN-0011]
 supersedes: null
@@ -90,3 +90,4 @@ aberta, sem ser resolvida por este ADR.
   nomeado" não tem check de CI genérico: fica inteiramente com a skill
   (`glossary-keeper`, `charter-keeper`) e, neste repositório, com um teste de
   dogfooding — não é um mecanismo que um projeto consumidor herda de graça.
+

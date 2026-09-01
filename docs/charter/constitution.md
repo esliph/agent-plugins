@@ -1,8 +1,8 @@
 ---
 title: Constitution
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Emenda deliberada — nunca como efeito colateral de outra tarefa.
+    Emenda deliberada — nunca como efeito colateral de outra tarefa.
 last-reviewed: 2026-08-25
 version: 1
 ---
@@ -24,3 +24,4 @@ sem enforcement nomeado é slogan — nenhum entra aqui sem ele.
 ## Log de emendas
 
 - 2026-08-25 — v1 — Criação inicial, seis princípios refletindo `RN-0001`–`RN-0010` e `RNF-0002` — humana, dogfooding da Fase 4.
+

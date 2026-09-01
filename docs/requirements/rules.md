@@ -1,9 +1,9 @@
 ---
 title: Regras de negócio
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Antes de implementar qualquer comportamento desta família, e a toda regra nova
-  ou alterada.
+    Antes de implementar qualquer comportamento desta família, e a toda regra nova
+    ou alterada.
 last-reviewed: 2026-08-27
 ---
 
@@ -396,3 +396,4 @@ encontrar, e o documento passa a depender de alguém lembrar dele.
 Quando a skill dona declarada não existe na raiz do toolkit, o resultado é aviso
 e não falha — um projeto pode declarar skill própria, e reprovar por isso seria
 exigir que todo dono fosse do plugin.
+

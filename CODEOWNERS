@@ -1,21 +1,23 @@
 # Espelha o campo `owner` de docs/.ownership.yml. Um artefato, um dono.
-docs/decisions/adr/    @dan
-docs/open-decisions.md    @dan
-docs/decisions/debt/    @dan
-docs/requirements/    @dan
-CONTRIBUTING.md    @dan
-docs/definition-of-done.md    @dan
-CLAUDE.md    @dan
-docs/glossary.md    @dan
-docs/charter/    @dan
-docs/contracts/    @dan
-CHANGELOG.md    @dan
-docs/deprecations.md    @dan
-docs/releases/    @dan
-docs/migrations/    @dan
-docs/.ownership.yml    @dan
-docs/ids-retired.txt    @dan
-docs/superpowers/    @dan
-docs/superpowers/research/2026-08-24-living-documentation-toolkit.md    @dan
-docs/superpowers/research/2026-08-24-living-documentation.md    @dan
-README.md    @dan
+
+docs/decisions/adr/ @Danrley-Ruan-Saquetti
+docs/open-decisions.md @Danrley-Ruan-Saquetti
+docs/decisions/debt/ @Danrley-Ruan-Saquetti
+docs/requirements/ @Danrley-Ruan-Saquetti
+CONTRIBUTING.md @Danrley-Ruan-Saquetti
+docs/definition-of-done.md @Danrley-Ruan-Saquetti
+CLAUDE.md @Danrley-Ruan-Saquetti
+docs/glossary.md @Danrley-Ruan-Saquetti
+docs/charter/ @Danrley-Ruan-Saquetti
+docs/contracts/ @Danrley-Ruan-Saquetti
+CHANGELOG.md @Danrley-Ruan-Saquetti
+docs/deprecations.md @Danrley-Ruan-Saquetti
+docs/releases/ @Danrley-Ruan-Saquetti
+docs/migrations/ @Danrley-Ruan-Saquetti
+docs/.ownership.yml @Danrley-Ruan-Saquetti
+docs/ids-retired.txt @Danrley-Ruan-Saquetti
+docs/superpowers/ @Danrley-Ruan-Saquetti
+docs/superpowers/research/2026-08-24-living-documentation-toolkit.md @Danrley-Ruan-Saquetti
+docs/superpowers/research/2026-08-24-living-documentation.md @Danrley-Ruan-Saquetti
+README.md @Danrley-Ruan-Saquetti
+

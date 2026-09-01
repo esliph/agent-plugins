@@ -83,26 +83,26 @@ autoria e commits, §12 critério 4, §13 anti-requisitos),
 
 ## Cobertura da spec de fechamento
 
-| Item da spec | Onde fecha |
-| --- | --- |
-| `L-10` — identidade × forma escrita | Tasks 3, 4, 5 |
-| `L-1` — o `init` não instala enforcement | Tasks 6, 8 |
-| `L-2` — o plugin não tem caminho de instalação | Task 7 |
-| `L-7` — `--stage multi-team` não existe | Task 8 |
-| `L-3` — critério 4 sem mecanismo | Tasks 9, 10 |
-| `L-5` — bump em massa não é detectado | Task 11 |
-| `L-8` — ID na mensagem de commit; orçamento de tempo | Tasks 11, 13 |
-| `L-6` — `trigger` × `description` | Task 12 |
-| `L-9` — o enforcement não é vigiado | Task 6 |
-| Critérios de aceite 1 e 2 | Tasks 3, 4, 5 |
-| Critérios 3, 4 e 5 | Tasks 6, 7, 8 |
-| Critério 6 | Tasks 9, 10 |
-| Critérios 7 e 8 | Task 11 |
-| Critério 9 | Task 12 |
-| Critério 10 | Task 13 |
-| Critério 11 | Task 6 |
-| Critério 12 | Task 15 |
-| Critérios 9 e 10 da spec **original** (fora de escopo, linha humana na DoD) | Task 14 |
+| Item da spec                                                                | Onde fecha    |
+| --------------------------------------------------------------------------- | ------------- |
+| `L-10` — identidade × forma escrita                                         | Tasks 3, 4, 5 |
+| `L-1` — o `init` não instala enforcement                                    | Tasks 6, 8    |
+| `L-2` — o plugin não tem caminho de instalação                              | Task 7        |
+| `L-7` — `--stage multi-team` não existe                                     | Task 8        |
+| `L-3` — critério 4 sem mecanismo                                            | Tasks 9, 10   |
+| `L-5` — bump em massa não é detectado                                       | Task 11       |
+| `L-8` — ID na mensagem de commit; orçamento de tempo                        | Tasks 11, 13  |
+| `L-6` — `trigger` × `description`                                           | Task 12       |
+| `L-9` — o enforcement não é vigiado                                         | Task 6        |
+| Critérios de aceite 1 e 2                                                   | Tasks 3, 4, 5 |
+| Critérios 3, 4 e 5                                                          | Tasks 6, 7, 8 |
+| Critério 6                                                                  | Tasks 9, 10   |
+| Critérios 7 e 8                                                             | Task 11       |
+| Critério 9                                                                  | Task 12       |
+| Critério 10                                                                 | Task 13       |
+| Critério 11                                                                 | Task 6        |
+| Critério 12                                                                 | Task 15       |
+| Critérios 9 e 10 da spec **original** (fora de escopo, linha humana na DoD) | Task 14       |
 
 ---
 
@@ -113,18 +113,21 @@ plano toma e que não são óbvias, e abrir a lacuna que ele descobre e **não**
 resolve. Cada uma nasce `draft`/`open`: promover é ato humano (Task 16).
 
 **Files:**
+
 - Create: `docs/decisions/adr/ADR-0011-identidade-e-forma-escrita-do-id.md`
 - Create: `docs/decisions/adr/ADR-0012-o-que-o-estagio-parametriza.md`
 - Create: `docs/decisions/adr/ADR-0013-os-dois-limiares-do-fechamento.md`
 - Modify: `docs/open-decisions.md` (linha de `DA-0003`)
 
 **Interfaces:**
+
 - Consome: nada. É a primeira task.
 - Produz: os IDs `ADR-0011`, `ADR-0012`, `ADR-0013` e `DA-0003`, citáveis por
   toda task seguinte. Nenhum outro ADR é criado neste plano.
 
 **Requisitos:**
-- Frontmatter completo: `id`, `title`, `status: draft`, `owner: "@dan"`,
+
+- Frontmatter completo: `id`, `title`, `status: draft`, `owner: "@Danrley-Ruan-Saquetti"`,
   `trigger`, `last-reviewed`, `relates-to`, `supersedes`, `superseded-by`. O
   `trigger` de ADR é sempre "Nunca. Imutável após aceito; uma decisão nova o
   supersede." — cadência reprova em `CI-1`.
@@ -147,9 +150,9 @@ Crie `docs/decisions/adr/ADR-0011-identidade-e-forma-escrita-do-id.md`:
 id: ADR-0011
 title: Identidade de um ID e a forma escrita dele são coisas diferentes
 status: draft
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28
 relates-to: [RN-0003, RN-0024]
 supersedes: null
@@ -236,9 +239,9 @@ Crie `docs/decisions/adr/ADR-0012-o-que-o-estagio-parametriza.md`:
 id: ADR-0012
 title: O estágio parametriza os checks do workflow; os hooks entram como peça única
 status: draft
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28
 relates-to: [RF-0013, RN-0025]
 supersedes: null
@@ -311,9 +314,9 @@ Crie `docs/decisions/adr/ADR-0013-os-dois-limiares-do-fechamento.md`:
 id: ADR-0013
 title: Os dois limiares do fechamento — bump em massa e semelhança de gatilho
 status: draft
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28
 relates-to: [RN-0027, RN-0029]
 supersedes: null
@@ -426,16 +429,19 @@ enunciando o que o sistema deve fazer, sem descrever implementação. Nascem
 `draft`; a promoção é a Task 16.
 
 **Files:**
+
 - Modify: `docs/requirements/functional.md` (acrescenta `RF-0013`, `RF-0014`)
 - Modify: `docs/requirements/rules.md` (acrescenta `RN-0024`–`RN-0029`)
 - Modify: `docs/requirements/non-functional.md` (acrescenta `RNF-0005`)
 
 **Interfaces:**
+
 - Consome: os IDs de `ADR-0011`, `ADR-0012` e `ADR-0013` da Task 1.
 - Produz: `RF-0013`, `RF-0014`, `RN-0024`, `RN-0025`, `RN-0026`, `RN-0027`,
   `RN-0028`, `RN-0029`, `RNF-0005` — citados por todo teste deste plano.
 
 **Requisitos:**
+
 - Cada seção segue o formato de `templates/requirements.md`: título
   `## <ID> — <enunciado curto>`, depois `- **status:** draft`, `- **relates-to:**`
   quando houver, `- **fora de escopo:**`, e o enunciado em prosa.
@@ -603,6 +609,7 @@ codificam o formato: `src/docs/schema.ts` (leitura e chave canônica) e
 task — os parsers e os checks vêm na Task 4.
 
 **Files:**
+
 - Modify: `src/docs/schema.ts`
 - Modify: `src/ids/citations.ts`
 - Modify: `src/config/ownership.ts`
@@ -611,22 +618,24 @@ task — os parsers e os checks vêm na Task 4.
 - Test: `test/config/ownership.test.ts` (acrescenta casos)
 
 **Interfaces:**
+
 - Consome: `OwnershipError` e `asRecord` de `src/config/ownership.ts`.
 - Produz:
-  - `IdFormat { separator: string; padding: number }`
-  - `DEFAULT_ID_FORMAT: IdFormat` — `{ separator: '-', padding: 4 }`
-  - `SEPARATORS_ALLOWED: readonly string[]` — `['-', '_', '.', ':', '']`
-  - `PADDING_RANGE: { min: 2; max: 6 }`
-  - `digitRange(format): { min: number; max: number }`
-  - `idPatternSource(format?): string` — grupo 1 prefixo, grupo 2 número
-  - `parseId(value: unknown, format?): { prefix, number } | null`
-  - `canonicalId(parsed): string` — **inalterada**
-  - `writeId(prefix: string, number: number, format?): string`
-  - `citationPattern(format?): RegExp`
-  - `findCitations(source: string, format?): Citation[]`
-  - `OwnershipConfig.idFormat: IdFormat`
+    - `IdFormat { separator: string; padding: number }`
+    - `DEFAULT_ID_FORMAT: IdFormat` — `{ separator: '-', padding: 4 }`
+    - `SEPARATORS_ALLOWED: readonly string[]` — `['-', '_', '.', ':', '']`
+    - `PADDING_RANGE: { min: 2; max: 6 }`
+    - `digitRange(format): { min: number; max: number }`
+    - `idPatternSource(format?): string` — grupo 1 prefixo, grupo 2 número
+    - `parseId(value: unknown, format?): { prefix, number } | null`
+    - `canonicalId(parsed): string` — **inalterada**
+    - `writeId(prefix: string, number: number, format?): string`
+    - `citationPattern(format?): RegExp`
+    - `findCitations(source: string, format?): Citation[]`
+    - `OwnershipConfig.idFormat: IdFormat`
 
 **Requisitos:**
+
 - Todo parâmetro `format` tem `DEFAULT_ID_FORMAT` como padrão. Sem isso, esta
   task quebraria os cinco chamadores de uma vez, e o valor de fazer a mudança em
   duas tasks é justamente que a Task 3 não quebra nada.
@@ -655,51 +664,70 @@ Acrescente a `test/docs/schema.test.ts`:
 
 ```typescript
 import {
-  DEFAULT_ID_FORMAT,
-  canonicalId,
-  digitRange,
-  idPatternSource,
-  parseId,
-  writeId,
-} from '../../src/docs/schema.ts';
+    DEFAULT_ID_FORMAT,
+    canonicalId,
+    digitRange,
+    idPatternSource,
+    parseId,
+    writeId
+} from '../../src/docs/schema.ts'
 
-const SEM_HIFEN = { separator: '', padding: 3 } as const;
+const SEM_HIFEN = { separator: '', padding: 3 } as const
 
 test('RN-0024: parseId lê a forma declarada pelo projeto', () => {
-  assert.deepEqual(parseId('RN009', SEM_HIFEN), { prefix: 'RN', number: 9 });
-  assert.deepEqual(parseId('RN097', SEM_HIFEN), { prefix: 'RN', number: 97 });
-  assert.deepEqual(parseId('RN09', SEM_HIFEN), { prefix: 'RN', number: 9 }, 'um dígito a menos ainda é o mesmo item');
-  assert.equal(parseId('RN-009', SEM_HIFEN), null, 'um projeto tem uma forma, não duas');
-  assert.equal(parseId('RN0097', SEM_HIFEN), null, 'quatro dígitos não é a forma declarada');
-});
+    assert.deepEqual(parseId('RN009', SEM_HIFEN), { prefix: 'RN', number: 9 })
+    assert.deepEqual(parseId('RN097', SEM_HIFEN), { prefix: 'RN', number: 97 })
+    assert.deepEqual(
+        parseId('RN09', SEM_HIFEN),
+        { prefix: 'RN', number: 9 },
+        'um dígito a menos ainda é o mesmo item'
+    )
+    assert.equal(
+        parseId('RN-009', SEM_HIFEN),
+        null,
+        'um projeto tem uma forma, não duas'
+    )
+    assert.equal(
+        parseId('RN0097', SEM_HIFEN),
+        null,
+        'quatro dígitos não é a forma declarada'
+    )
+})
 
 test('RN-0024: a forma padrão é a de hoje — 3 ou 4 dígitos com hífen', () => {
-  assert.deepEqual(digitRange(DEFAULT_ID_FORMAT), { min: 3, max: 4 });
-  assert.deepEqual(parseId('ADR-0042'), { prefix: 'ADR', number: 42 });
-  assert.deepEqual(parseId('DA-007'), { prefix: 'DA', number: 7 });
-  assert.equal(parseId('RN009'), null);
-});
+    assert.deepEqual(digitRange(DEFAULT_ID_FORMAT), { min: 3, max: 4 })
+    assert.deepEqual(parseId('ADR-0042'), { prefix: 'ADR', number: 42 })
+    assert.deepEqual(parseId('DA-007'), { prefix: 'DA', number: 7 })
+    assert.equal(parseId('RN009'), null)
+})
 
 test('RN-0024: a chave canônica não depende da forma escrita', () => {
-  const semHifen = parseId('RN009', SEM_HIFEN);
-  const comHifen = parseId('RN-0009');
-  assert.ok(semHifen && comHifen);
-  assert.equal(canonicalId(semHifen), canonicalId(comHifen));
-  assert.equal(canonicalId(semHifen), 'RN-0009');
-});
+    const semHifen = parseId('RN009', SEM_HIFEN)
+    const comHifen = parseId('RN-0009')
+    assert.ok(semHifen && comHifen)
+    assert.equal(canonicalId(semHifen), canonicalId(comHifen))
+    assert.equal(canonicalId(semHifen), 'RN-0009')
+})
 
 test('RN-0024: writeId é a única função que imprime um ID', () => {
-  assert.equal(writeId('RN', 9), 'RN-0009');
-  assert.equal(writeId('RN', 9, SEM_HIFEN), 'RN009');
-  assert.equal(writeId('ADR', 142, { separator: '_', padding: 4 }), 'ADR_0142');
-  assert.equal(writeId('RN', 1234, SEM_HIFEN), 'RN1234', 'o número maior que o padding não é truncado');
-});
+    assert.equal(writeId('RN', 9), 'RN-0009')
+    assert.equal(writeId('RN', 9, SEM_HIFEN), 'RN009')
+    assert.equal(
+        writeId('ADR', 142, { separator: '_', padding: 4 }),
+        'ADR_0142'
+    )
+    assert.equal(
+        writeId('RN', 1234, SEM_HIFEN),
+        'RN1234',
+        'o número maior que o padding não é truncado'
+    )
+})
 
 test('idPatternSource entrega prefixo e número em dois grupos', () => {
-  const match = new RegExp(`^${idPatternSource()}$`).exec('TDR-0003');
-  assert.equal(match?.[1], 'TDR');
-  assert.equal(match?.[2], '0003');
-});
+    const match = new RegExp(`^${idPatternSource()}$`).exec('TDR-0003')
+    assert.equal(match?.[1], 'TDR')
+    assert.equal(match?.[2], '0003')
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -724,25 +752,34 @@ Substitua o bloco final do arquivo (de `const ID = …` até o fim) por:
  * IDs já se escrevem de outro jeito sem reescrever um arquivo dele.
  */
 export interface IdFormat {
-  separator: string;
-  padding: number;
+    separator: string
+    padding: number
 }
 
-export const DEFAULT_ID_FORMAT: IdFormat = Object.freeze({ separator: '-', padding: 4 });
+export const DEFAULT_ID_FORMAT: IdFormat = Object.freeze({
+    separator: '-',
+    padding: 4
+})
 
 /**
  * Vocabulário fechado (`ADR-0011`). Separador arbitrário viraria um padrão de
  * expressão regular vindo de configuração — superfície que este toolkit recusa.
  */
-export const SEPARATORS_ALLOWED: readonly string[] = Object.freeze(['-', '_', '.', ':', '']);
+export const SEPARATORS_ALLOWED: readonly string[] = Object.freeze([
+    '-',
+    '_',
+    '.',
+    ':',
+    ''
+])
 
-export const PADDING_RANGE = Object.freeze({ min: 2, max: 6 });
+export const PADDING_RANGE = Object.freeze({ min: 2, max: 6 })
 
 /** Padding da chave canônica. Interno, nunca exibido, nunca configurável. */
-const CANONICAL_PADDING = 4;
+const CANONICAL_PADDING = 4
 
 function escapeForRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 /**
@@ -753,23 +790,23 @@ function escapeForRegExp(value: string): string {
  * 4 dígitos, que é exatamente o que o toolkit lê desde a Fase 0.
  */
 export function digitRange(format: IdFormat): { min: number; max: number } {
-  return { min: Math.max(1, format.padding - 1), max: format.padding };
+    return { min: Math.max(1, format.padding - 1), max: format.padding }
 }
 
 /** O corpo do padrão de um ID: grupo 1 é o prefixo, grupo 2 é o número. */
 export function idPatternSource(format: IdFormat = DEFAULT_ID_FORMAT): string {
-  const { min, max } = digitRange(format);
-  return `([A-Z]{2,4})${escapeForRegExp(format.separator)}(\\d{${min},${max}})`;
+    const { min, max } = digitRange(format)
+    return `([A-Z]{2,4})${escapeForRegExp(format.separator)}(\\d{${min},${max}})`
 }
 
 export function parseId(
-  value: unknown,
-  format: IdFormat = DEFAULT_ID_FORMAT,
+    value: unknown,
+    format: IdFormat = DEFAULT_ID_FORMAT
 ): { prefix: string; number: number } | null {
-  if (typeof value !== 'string') return null;
-  const match = new RegExp(`^${idPatternSource(format)}$`).exec(value.trim());
-  if (!match?.[1] || !match[2]) return null;
-  return { prefix: match[1], number: Number.parseInt(match[2], 10) };
+    if (typeof value !== 'string') return null
+    const match = new RegExp(`^${idPatternSource(format)}$`).exec(value.trim())
+    if (!match?.[1] || !match[2]) return null
+    return { prefix: match[1], number: Number.parseInt(match[2], 10) }
 }
 
 /**
@@ -777,8 +814,11 @@ export function parseId(
  * projeto** (`ADR-0011`): é chave interna, e mudá-la mudaria a identidade de
  * todo item já registrado. `ADR-001`, `ADR-0001` e `ADR001` são a mesma coisa.
  */
-export function canonicalId(parsed: { prefix: string; number: number }): string {
-  return `${parsed.prefix}-${String(parsed.number).padStart(CANONICAL_PADDING, '0')}`;
+export function canonicalId(parsed: {
+    prefix: string
+    number: number
+}): string {
+    return `${parsed.prefix}-${String(parsed.number).padStart(CANONICAL_PADDING, '0')}`
 }
 
 /**
@@ -786,8 +826,12 @@ export function canonicalId(parsed: { prefix: string; number: number }): string 
  * concatenação: formato montado à mão em dois lugares diverge no primeiro
  * projeto que declarar outra forma.
  */
-export function writeId(prefix: string, number: number, format: IdFormat = DEFAULT_ID_FORMAT): string {
-  return `${prefix}${format.separator}${String(number).padStart(format.padding, '0')}`;
+export function writeId(
+    prefix: string,
+    number: number,
+    format: IdFormat = DEFAULT_ID_FORMAT
+): string {
+    return `${prefix}${format.separator}${String(number).padStart(format.padding, '0')}`
 }
 ```
 
@@ -796,8 +840,8 @@ export function writeId(prefix: string, number: number, format: IdFormat = DEFAU
 Troque a constante `CITATION` e a assinatura de `findCitations`:
 
 ```typescript
-import { DEFAULT_ID_FORMAT, idPatternSource } from '../docs/schema.ts';
-import type { IdFormat } from '../docs/schema.ts';
+import { DEFAULT_ID_FORMAT, idPatternSource } from '../docs/schema.ts'
+import type { IdFormat } from '../docs/schema.ts'
 
 /**
  * Sintaxe de citação do projeto (spec §8, `ADR-0011`): a forma escrita declarada
@@ -812,22 +856,25 @@ import type { IdFormat } from '../docs/schema.ts';
  * citações por linha.
  */
 export function citationPattern(format: IdFormat = DEFAULT_ID_FORMAT): RegExp {
-  return new RegExp(`\\b${idPatternSource(format)}\\b`, 'g');
+    return new RegExp(`\\b${idPatternSource(format)}\\b`, 'g')
 }
 
-export function findCitations(source: string, format: IdFormat = DEFAULT_ID_FORMAT): Citation[] {
-  const pattern = citationPattern(format);
-  const lines = source.replace(/\r\n/g, '\n').split('\n');
-  const citations: Citation[] = [];
+export function findCitations(
+    source: string,
+    format: IdFormat = DEFAULT_ID_FORMAT
+): Citation[] {
+    const pattern = citationPattern(format)
+    const lines = source.replace(/\r\n/g, '\n').split('\n')
+    const citations: Citation[] = []
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? '';
-    for (const match of line.matchAll(pattern)) {
-      citations.push({ id: match[0], line: i + 1 });
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i] ?? ''
+        for (const match of line.matchAll(pattern)) {
+            citations.push({ id: match[0], line: i + 1 })
+        }
     }
-  }
 
-  return citations;
+    return citations
 }
 ```
 
@@ -837,8 +884,12 @@ Acrescente o import, a função de leitura, o campo da interface e a linha do
 retorno:
 
 ```typescript
-import { DEFAULT_ID_FORMAT, PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts';
-import type { IdFormat } from '../docs/schema.ts';
+import {
+    DEFAULT_ID_FORMAT,
+    PADDING_RANGE,
+    SEPARATORS_ALLOWED
+} from '../docs/schema.ts'
+import type { IdFormat } from '../docs/schema.ts'
 
 /**
  * A forma escrita dos IDs deste projeto (`ADR-0011`, `RN-0024`). Ausente, é a
@@ -846,39 +897,42 @@ import type { IdFormat } from '../docs/schema.ts';
  * precise declarar nada.
  */
 function parseIdFormat(raw: unknown): IdFormat {
-  if (raw === undefined || raw === null) return DEFAULT_ID_FORMAT;
-  const item = asRecord(raw, 'id-format');
+    if (raw === undefined || raw === null) return DEFAULT_ID_FORMAT
+    const item = asRecord(raw, 'id-format')
 
-  const separator = item.separator ?? DEFAULT_ID_FORMAT.separator;
-  if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
-    throw new OwnershipError(
-      `${OWNERSHIP_PATH}: id-format.separator "${String(separator)}" não é aceito. ` +
-        `Válidos: ${SEPARATORS_ALLOWED.map((value) => `"${value}"`).join(', ')} (ADR-0011).`,
-    );
-  }
+    const separator = item.separator ?? DEFAULT_ID_FORMAT.separator
+    if (
+        typeof separator !== 'string' ||
+        !SEPARATORS_ALLOWED.includes(separator)
+    ) {
+        throw new OwnershipError(
+            `${OWNERSHIP_PATH}: id-format.separator "${String(separator)}" não é aceito. ` +
+                `Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')} (ADR-0011).`
+        )
+    }
 
-  const padding = item.padding ?? DEFAULT_ID_FORMAT.padding;
-  if (
-    typeof padding !== 'number' ||
-    !Number.isInteger(padding) ||
-    padding < PADDING_RANGE.min ||
-    padding > PADDING_RANGE.max
-  ) {
-    throw new OwnershipError(
-      `${OWNERSHIP_PATH}: id-format.padding "${String(padding)}" precisa ser inteiro entre ` +
-        `${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).`,
-    );
-  }
+    const padding = item.padding ?? DEFAULT_ID_FORMAT.padding
+    if (
+        typeof padding !== 'number' ||
+        !Number.isInteger(padding) ||
+        padding < PADDING_RANGE.min ||
+        padding > PADDING_RANGE.max
+    ) {
+        throw new OwnershipError(
+            `${OWNERSHIP_PATH}: id-format.padding "${String(padding)}" precisa ser inteiro entre ` +
+                `${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).`
+        )
+    }
 
-  return { separator, padding };
+    return { separator, padding }
 }
 ```
 
 Na interface `OwnershipConfig`, logo depois de `staleAfterMonths`:
 
 ```typescript
-  /** A forma escrita dos IDs deste projeto (`ADR-0011`). Nunca a identidade. */
-  idFormat: IdFormat;
+/** A forma escrita dos IDs deste projeto (`ADR-0011`). Nunca a identidade. */
+idFormat: IdFormat
 ```
 
 E no objeto que `parseOwnership` devolve, logo depois de `staleAfterMonths`:
@@ -893,20 +947,25 @@ Acrescente a `test/config/ownership.test.ts`:
 
 ```typescript
 test('RN-0024: id-format ausente é a forma do toolkit', () => {
-  const config = parseOwnership(MINIMO);
-  assert.deepEqual(config.idFormat, { separator: '-', padding: 4 });
-});
+    const config = parseOwnership(MINIMO)
+    assert.deepEqual(config.idFormat, { separator: '-', padding: 4 })
+})
 
 test('RN-0024: id-format declarado é lido, e o inválido é erro e não padrão silencioso', () => {
-  const config = parseOwnership(`${MINIMO}\nid-format:\n  separator: ""\n  padding: 3\n`);
-  assert.deepEqual(config.idFormat, { separator: '', padding: 3 });
+    const config = parseOwnership(
+        `${MINIMO}\nid-format:\n  separator: ""\n  padding: 3\n`
+    )
+    assert.deepEqual(config.idFormat, { separator: '', padding: 3 })
 
-  assert.throws(
-    () => parseOwnership(`${MINIMO}\nid-format:\n  separator: "~"\n`),
-    /separator "~" não é aceito/,
-  );
-  assert.throws(() => parseOwnership(`${MINIMO}\nid-format:\n  padding: 9\n`), /padding "9"/);
-});
+    assert.throws(
+        () => parseOwnership(`${MINIMO}\nid-format:\n  separator: "~"\n`),
+        /separator "~" não é aceito/
+    )
+    assert.throws(
+        () => parseOwnership(`${MINIMO}\nid-format:\n  padding: 9\n`),
+        /padding "9"/
+    )
+})
 ```
 
 `MINIMO` é a configuração mínima que o arquivo de teste já usa; se ela não
@@ -916,15 +975,17 @@ Acrescente a `test/ids/citations.test.ts`:
 
 ```typescript
 test('RN-0024: findCitations reconhece a forma declarada pelo projeto', () => {
-  const texto = 'A RN009 diz, e a RN-0009 não é citação neste projeto.';
-  const achadas = findCitations(texto, { separator: '', padding: 3 }).map((c) => c.id);
-  assert.deepEqual(achadas, ['RN009']);
-});
+    const texto = 'A RN009 diz, e a RN-0009 não é citação neste projeto.'
+    const achadas = findCitations(texto, { separator: '', padding: 3 }).map(
+        c => c.id
+    )
+    assert.deepEqual(achadas, ['RN009'])
+})
 
 test('RN-0024: sem formato declarado, a varredura é a de sempre', () => {
-  const achadas = findCitations('cita ADR-0001 e DA-007').map((c) => c.id);
-  assert.deepEqual(achadas, ['ADR-0001', 'DA-007']);
-});
+    const achadas = findCitations('cita ADR-0001 e DA-007').map(c => c.id)
+    assert.deepEqual(achadas, ['ADR-0001', 'DA-007'])
+})
 ```
 
 - [ ] **Step 7: Rodar tudo e ver passar**
@@ -963,6 +1024,7 @@ montagem de ID do `CI-2` e as mensagens de correção do `CI-1`. Ao fim desta
 task, **nenhum check monta um ID por concatenação** — critério de aceite 2.
 
 **Files:**
+
 - Modify: `src/docs/sections.ts` (o `HEADING` passa a ser derivado do formato)
 - Modify: `src/docs/table.ts` (`parseItemTable` recebe o formato)
 - Modify: `src/docs/collect.ts` (repassa `config.idFormat` aos dois parsers)
@@ -977,15 +1039,17 @@ task, **nenhum check monta um ID por concatenação** — critério de aceite 2.
 - Test: `test/acceptance/id-format.test.ts` (novo — o critério de aceite 2 inteiro)
 
 **Interfaces:**
+
 - Consome: `IdFormat`, `parseId`, `writeId`, `idPatternSource`,
   `findCitations`, `citationPattern`, `OwnershipConfig.idFormat` (Task 3).
 - Produz:
-  - `parseItemTable(source, startLine, format?)`
-  - `parseItemSections(source, startLine, format?)`
-  - `scanCitations(root, globs, format?)`
-  - Nenhuma outra assinatura pública muda.
+    - `parseItemTable(source, startLine, format?)`
+    - `parseItemSections(source, startLine, format?)`
+    - `scanCitations(root, globs, format?)`
+    - Nenhuma outra assinatura pública muda.
 
 **Requisitos:**
+
 - Todo check lê o formato de `context.config.idFormat`. Nenhum check recebe
   `IdFormat` por outro caminho, e nenhum usa o padrão implícito: o padrão existe
   para as funções, não para os checks.
@@ -1009,13 +1073,13 @@ task, **nenhum check monta um ID por concatenação** — critério de aceite 2.
 Crie `test/acceptance/id-format.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { runValidate } from '../../src/cli/validate.ts';
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { runValidate } from '../../src/cli/validate.ts'
+import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
 version: 1
@@ -1033,77 +1097,112 @@ documents:
   - path: docs/.ownership.yml
     owner: "@time"
     skill: living-docs-bootstrap
-`;
+`
 
-const CODEOWNERS = 'docs/rules.md    @time\ndocs/.ownership.yml    @time\n';
+const CODEOWNERS = 'docs/rules.md    @time\ndocs/.ownership.yml    @time\n'
 
 function regras(ids: readonly string[]): string {
-  return [
-    '---',
-    'title: Regras',
-    'owner: "@time"',
-    'trigger: A toda regra nova ou alterada.',
-    'last-reviewed: 2026-08-28',
-    '---',
-    '',
-    '# Regras',
-    '',
-    ...ids.flatMap((id) => [`## ${id} — Uma regra`, '', '- **status:** active', '']),
-  ].join('\n');
+    return [
+        '---',
+        'title: Regras',
+        'owner: "@time"',
+        'trigger: A toda regra nova ou alterada.',
+        'last-reviewed: 2026-08-28',
+        '---',
+        '',
+        '# Regras',
+        '',
+        ...ids.flatMap(id => [
+            `## ${id} — Uma regra`,
+            '',
+            '- **status:** active',
+            ''
+        ])
+    ].join('\n')
 }
 
 function arvore(ids: readonly string[]): Record<string, string> {
-  return {
-    [OWNERSHIP_PATH]: CONFIG,
-    CODEOWNERS,
-    'docs/rules.md': regras(ids),
-    'test/regras.test.ts': ids.map((id) => `// cobre ${id}`).join('\n') + '\n',
-  };
+    return {
+        [OWNERSHIP_PATH]: CONFIG,
+        CODEOWNERS,
+        'docs/rules.md': regras(ids),
+        'test/regras.test.ts': ids.map(id => `// cobre ${id}`).join('\n') + '\n'
+    }
 }
 
 test('critério 2: identidade, duplicata, sequência e citação funcionam na forma do projeto', () => {
-  withTempRepo(arvore(['RN001', 'RN002', 'RN003']), (root) => {
-    const result = runValidate(root);
-    assert.deepEqual(result.findings, [], JSON.stringify(result.findings, null, 2));
-  });
-});
+    withTempRepo(arvore(['RN001', 'RN002', 'RN003']), root => {
+        const result = runValidate(root)
+        assert.deepEqual(
+            result.findings,
+            [],
+            JSON.stringify(result.findings, null, 2)
+        )
+    })
+})
 
 test('critério 2: duplicata é detectada mesmo escrita com padding diferente', () => {
-  withTempRepo(arvore(['RN001', 'RN01']), (root) => {
-    const result = runValidate(root);
-    const duplicata = result.findings.find((f) => f.ruleId === 'CI-2' && /duplicad/.test(f.message));
-    assert.ok(duplicata, JSON.stringify(result.findings, null, 2));
-  });
-});
+    withTempRepo(arvore(['RN001', 'RN01']), root => {
+        const result = runValidate(root)
+        const duplicata = result.findings.find(
+            f => f.ruleId === 'CI-2' && /duplicad/.test(f.message)
+        )
+        assert.ok(duplicata, JSON.stringify(result.findings, null, 2))
+    })
+})
 
 test('critério 2: o buraco de sequência é relatado na forma escrita do projeto', () => {
-  withTempRepo(arvore(['RN001', 'RN003']), (root) => {
-    const result = runValidate(root);
-    const buraco = result.findings.find((f) => f.ruleId === 'CI-2' && /buraco/.test(f.message));
-    assert.ok(buraco, JSON.stringify(result.findings, null, 2));
-    assert.match(buraco.message, /RN002/, 'o ID sugerido precisa vir na forma do projeto');
-    assert.doesNotMatch(buraco.message, /RN-0002/, 'nenhum check monta ID por concatenação');
-  });
-});
+    withTempRepo(arvore(['RN001', 'RN003']), root => {
+        const result = runValidate(root)
+        const buraco = result.findings.find(
+            f => f.ruleId === 'CI-2' && /buraco/.test(f.message)
+        )
+        assert.ok(buraco, JSON.stringify(result.findings, null, 2))
+        assert.match(
+            buraco.message,
+            /RN002/,
+            'o ID sugerido precisa vir na forma do projeto'
+        )
+        assert.doesNotMatch(
+            buraco.message,
+            /RN-0002/,
+            'nenhum check monta ID por concatenação'
+        )
+    })
+})
 
 test('critério 2: citação que não resolve continua reprovando na forma do projeto', () => {
-  const arvoreComCitacao = arvore(['RN001']);
-  arvoreComCitacao['docs/rules.md'] += '\nO enunciado cita RN042, que não existe.\n';
+    const arvoreComCitacao = arvore(['RN001'])
+    arvoreComCitacao['docs/rules.md'] +=
+        '\nO enunciado cita RN042, que não existe.\n'
 
-  withTempRepo(arvoreComCitacao, (root) => {
-    const result = runValidate(root);
-    const citacao = result.findings.find((f) => f.ruleId === 'CI-2' && /RN042/.test(f.message));
-    assert.ok(citacao, JSON.stringify(result.findings, null, 2));
-  });
-});
+    withTempRepo(arvoreComCitacao, root => {
+        const result = runValidate(root)
+        const citacao = result.findings.find(
+            f => f.ruleId === 'CI-2' && /RN042/.test(f.message)
+        )
+        assert.ok(citacao, JSON.stringify(result.findings, null, 2))
+    })
+})
 
 test('RN-0024: nenhum arquivo de check monta um ID por concatenação', () => {
-  const suspeito = /\$\{[A-Za-z.]*[Pp]refix\}[-_.:]?\$\{/;
-  for (const file of ['ci1-structure.ts', 'ci2-ids.ts', 'ci3-traceability.ts']) {
-    const source = readFileSync(join(process.cwd(), 'src/checks', file), 'utf8');
-    assert.doesNotMatch(source, suspeito, `${file} monta ID à mão — use writeId (RN-0024)`);
-  }
-});
+    const suspeito = /\$\{[A-Za-z.]*[Pp]refix\}[-_.:]?\$\{/
+    for (const file of [
+        'ci1-structure.ts',
+        'ci2-ids.ts',
+        'ci3-traceability.ts'
+    ]) {
+        const source = readFileSync(
+            join(process.cwd(), 'src/checks', file),
+            'utf8'
+        )
+        assert.doesNotMatch(
+            source,
+            suspeito,
+            `${file} monta ID à mão — use writeId (RN-0024)`
+        )
+    }
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -1120,8 +1219,8 @@ Esperado: FALHA — os títulos `## RN001` não são reconhecidos pelo `HEADING`
 Troque a constante `HEADING` por uma função e ajuste os índices dos grupos:
 
 ```typescript
-import { DEFAULT_ID_FORMAT, idPatternSource, parseId } from './schema.ts';
-import type { IdFormat } from './schema.ts';
+import { DEFAULT_ID_FORMAT, idPatternSource, parseId } from './schema.ts'
+import type { IdFormat } from './schema.ts'
 
 /**
  * Grupos: 1 é o ID inteiro, 2 o prefixo, 3 o número, 4 o título.
@@ -1129,20 +1228,22 @@ import type { IdFormat } from './schema.ts';
  * `## RN001` é lido sem que nenhum arquivo dele mude.
  */
 function headingPattern(format: IdFormat): RegExp {
-  return new RegExp(`^#{2,4}\\s+(${idPatternSource(format)})\\s*(?:[—–-]\\s*(.*))?$`);
+    return new RegExp(
+        `^#{2,4}\\s+(${idPatternSource(format)})\\s*(?:[—–-]\\s*(.*))?$`
+    )
 }
 
 export function parseItemSections(
-  source: string,
-  startLine: number,
-  format: IdFormat = DEFAULT_ID_FORMAT,
+    source: string,
+    startLine: number,
+    format: IdFormat = DEFAULT_ID_FORMAT
 ): DocItem[] {
-  const HEADING = headingPattern(format);
-  // … o corpo continua igual, com dois ajustes:
-  //   const heading = HEADING.exec((lines[i] ?? '').trim());
-  //   if (!heading?.[1] || !parseId(heading[1], format)) continue;
-  //   … e o título passa a ser heading[4] em vez de heading[2]:
-  //   if (heading[4] !== undefined && heading[4].trim() !== '') fields.title = heading[4].trim();
+    const HEADING = headingPattern(format)
+    // … o corpo continua igual, com dois ajustes:
+    //   const heading = HEADING.exec((lines[i] ?? '').trim());
+    //   if (!heading?.[1] || !parseId(heading[1], format)) continue;
+    //   … e o título passa a ser heading[4] em vez de heading[2]:
+    //   if (heading[4] !== undefined && heading[4].trim() !== '') fields.title = heading[4].trim();
 }
 ```
 
@@ -1156,12 +1257,12 @@ Em `src/docs/table.ts`:
 
 ```typescript
 export function parseItemTable(
-  source: string,
-  startLine: number,
-  format: IdFormat = DEFAULT_ID_FORMAT,
+    source: string,
+    startLine: number,
+    format: IdFormat = DEFAULT_ID_FORMAT
 ): DocItem[] {
-  // … no laço de linhas, a única mudança:
-  //   if (!parseId(id, format)) continue;
+    // … no laço de linhas, a única mudança:
+    //   if (!parseId(id, format)) continue;
 }
 ```
 
@@ -1169,17 +1270,18 @@ Em `src/docs/collect.ts`, `parseItems` passa a receber o formato:
 
 ```typescript
 function parseItems(
-  rule: ArtifactRule,
-  source: string,
-  body: string | null,
-  bodyStart: number,
-  format: IdFormat,
+    rule: ArtifactRule,
+    source: string,
+    body: string | null,
+    bodyStart: number,
+    format: IdFormat
 ): DocItem[] {
-  const text = body ?? source;
-  const start = body === null ? 1 : bodyStart;
-  if (rule.collection === 'table') return parseItemTable(text, start, format);
-  if (rule.collection === 'sections') return parseItemSections(text, start, format);
-  return [];
+    const text = body ?? source
+    const start = body === null ? 1 : bodyStart
+    if (rule.collection === 'table') return parseItemTable(text, start, format)
+    if (rule.collection === 'sections')
+        return parseItemSections(text, start, format)
+    return []
 }
 ```
 
@@ -1190,11 +1292,11 @@ passa `config.idFormat`.
 
 ```typescript
 export function scanCitations(
-  root: string,
-  globs: readonly string[],
-  format: IdFormat = DEFAULT_ID_FORMAT,
+    root: string,
+    globs: readonly string[],
+    format: IdFormat = DEFAULT_ID_FORMAT
 ): Map<string, CitationSite[]> {
-  // … a única mudança: findCitations(content, format)
+    // … a única mudança: findCitations(content, format)
 }
 ```
 
@@ -1203,17 +1305,15 @@ export function scanCitations(
 `src/checks/ci1-structure.ts`:
 
 ```typescript
-import { writeId } from '../docs/schema.ts';
+import { writeId } from '../docs/schema.ts'
 
 // dentro do check, onde hoje está `parseId(data.id)`:
-const format = context.config.idFormat;
-const parsed = parseId(data.id, format);
+const format = context.config.idFormat
+const parsed = parseId(data.id, format)
 
 // e as duas correções que montavam ID à mão:
-`Use ${writeId(doc.rule.idPrefix, 1, format)} (spec §8).`
-
-`Renomeie para o território de ${doc.rule.idPrefix} (ex.: ${writeId(doc.rule.idPrefix, 1, format)}) ` +
-  'ou mova o arquivo para o artefato dono.'
+;`Use ${writeId(doc.rule.idPrefix, 1, format)} (spec §8).``Renomeie para o território de ${doc.rule.idPrefix} (ex.: ${writeId(doc.rule.idPrefix, 1, format)}) ` +
+    'ou mova o arquivo para o artefato dono.'
 ```
 
 `src/checks/ci2-ids.ts`:
@@ -1251,16 +1351,16 @@ todo `findCitations(x)` vira `findCitations(x, format)`, e a chamada de
 `src/hooks/hk3-state-promotion.ts` — guarde a configuração para ter o formato:
 
 ```typescript
-  let config;
-  try {
-    config = loadOwnership(env.root);
-  } catch {
-    return ALLOW; // falha aberta
-  }
-  const rule = findArtifactRule(config, repoPath);
-  if (!rule) return ALLOW;
-  // … e `findPromotion(current, next, rule, config.idFormat)`, que repassa o
-  // formato aos dois parsers.
+let config
+try {
+    config = loadOwnership(env.root)
+} catch {
+    return ALLOW // falha aberta
+}
+const rule = findArtifactRule(config, repoPath)
+if (!rule) return ALLOW
+// … e `findPromotion(current, next, rule, config.idFormat)`, que repassa o
+// formato aos dois parsers.
 ```
 
 `src/hooks/hk7-shortcut-debt.ts` — a citação de dívida deixa de exigir hífen:
@@ -1272,7 +1372,7 @@ todo `findCitations(x)` vira `findCitations(x, format)`, e a chamada de
  * linguagem, não caminho de projeto — e reconhecer `TDR001` e `TDR-0001` não
  * exige configuração nenhuma.
  */
-const DEBT = /\bTDR-?\d{2,}\b/;
+const DEBT = /\bTDR-?\d{2,}\b/
 ```
 
 - [ ] **Step 8: Rodar tudo**
@@ -1311,6 +1411,7 @@ quem instala declarou. Nenhum arquivo do repositório é alterado para que ele s
 adotado.
 
 **Files:**
+
 - Create: `src/ids/detect.ts`
 - Create: `test/ids/detect.test.ts`
 - Modify: `src/cli/init.ts` (`InitOptions.idFormat`, `InitResult.detected`)
@@ -1321,14 +1422,16 @@ adotado.
 - Modify: `test/acceptance/spec-criteria.test.ts` (critério 1 ganha a metade da forma)
 
 **Interfaces:**
+
 - Consome: `IdFormat`, `DEFAULT_ID_FORMAT` (Task 3); `listFiles`, `readTextFile`.
 - Produz:
-  - `detectIdFormat(root, paths): DetectedFormat | null`
-  - `DetectedFormat { format: IdFormat; count: number; sample: string }`
-  - `InitOptions.idFormat: IdFormat`
-  - `InitResult.detected: DetectedFormat | null`
+    - `detectIdFormat(root, paths): DetectedFormat | null`
+    - `DetectedFormat { format: IdFormat; count: number; sample: string }`
+    - `InitOptions.idFormat: IdFormat`
+    - `InitResult.detected: DetectedFormat | null`
 
 **Requisitos:**
+
 - A varredura é **permissiva de propósito**: ela procura `<2 a 4 maiúsculas>`,
   separador opcional, `2 a 6 dígitos` — porque a pergunta é "que forma este
   repositório usa?", e um detector que já soubesse a resposta não detectaria
@@ -1352,48 +1455,51 @@ A resposta: `RF-0014` viajou na Task 2; o CHANGELOG entra no Step 7.
 Crie `test/ids/detect.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { detectIdFormat } from '../../src/ids/detect.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { detectIdFormat } from '../../src/ids/detect.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const SEM_HIFEN = [
-  '# Regras',
-  '',
-  '## RN001 — Uma regra',
-  '- **status:** active',
-  '',
-  '## RN002 — Outra',
-  '- **status:** active',
-  '',
-  '## RN003 — Mais uma',
-  '- **status:** active',
-  '',
-].join('\n');
+    '# Regras',
+    '',
+    '## RN001 — Uma regra',
+    '- **status:** active',
+    '',
+    '## RN002 — Outra',
+    '- **status:** active',
+    '',
+    '## RN003 — Mais uma',
+    '- **status:** active',
+    ''
+].join('\n')
 
 test('RF-0014: a varredura relata a forma dominante e quantos itens leu nela', () => {
-  withTempRepo({ 'docs/business-rules.md': SEM_HIFEN }, (root) => {
-    const detected = detectIdFormat(root, ['docs/business-rules.md']);
-    assert.ok(detected);
-    assert.deepEqual(detected.format, { separator: '', padding: 3 });
-    assert.equal(detected.count, 3);
-    assert.equal(detected.sample, 'RN001');
-  });
-});
+    withTempRepo({ 'docs/business-rules.md': SEM_HIFEN }, root => {
+        const detected = detectIdFormat(root, ['docs/business-rules.md'])
+        assert.ok(detected)
+        assert.deepEqual(detected.format, { separator: '', padding: 3 })
+        assert.equal(detected.count, 3)
+        assert.equal(detected.sample, 'RN001')
+    })
+})
 
 test('RF-0014: repositório sem ID nenhum não inventa forma', () => {
-  withTempRepo({ 'docs/vazio.md': '# nada aqui\n' }, (root) => {
-    assert.equal(detectIdFormat(root, ['docs/vazio.md']), null);
-  });
-});
+    withTempRepo({ 'docs/vazio.md': '# nada aqui\n' }, root => {
+        assert.equal(detectIdFormat(root, ['docs/vazio.md']), null)
+    })
+})
 
 test('RF-0014: a forma padrão é detectada como padrão', () => {
-  withTempRepo({ 'docs/adr/ADR-0001-x.md': '---\nid: ADR-0001\n---\n\n# ADR-0001\n' }, (root) => {
-    const detected = detectIdFormat(root, ['docs/adr/']);
-    assert.ok(detected);
-    assert.deepEqual(detected.format, { separator: '-', padding: 4 });
-  });
-});
+    withTempRepo(
+        { 'docs/adr/ADR-0001-x.md': '---\nid: ADR-0001\n---\n\n# ADR-0001\n' },
+        root => {
+            const detected = detectIdFormat(root, ['docs/adr/'])
+            assert.ok(detected)
+            assert.deepEqual(detected.format, { separator: '-', padding: 4 })
+        }
+    )
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -1407,16 +1513,16 @@ Esperado: FALHA — `Cannot find module '../../src/ids/detect.ts'`.
 - [ ] **Step 3: Implementar `src/ids/detect.ts`**
 
 ```typescript
-import { listFiles, readTextFile } from '../core/files.ts';
-import { PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts';
-import type { IdFormat } from '../docs/schema.ts';
+import { listFiles, readTextFile } from '../core/files.ts'
+import { PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts'
+import type { IdFormat } from '../docs/schema.ts'
 
 export interface DetectedFormat {
-  format: IdFormat;
-  /** Quantas ocorrências foram lidas nessa forma. */
-  count: number;
-  /** Uma ocorrência real, para quem instala reconhecer o que o toolkit viu. */
-  sample: string;
+    format: IdFormat
+    /** Quantas ocorrências foram lidas nessa forma. */
+    count: number
+    /** Uma ocorrência real, para quem instala reconhecer o que o toolkit viu. */
+    sample: string
 }
 
 /**
@@ -1425,10 +1531,10 @@ export interface DetectedFormat {
  * repositório usa?", e um detector que já soubesse a resposta não detectaria
  * nada (`RF-0014`).
  */
-const ANY_ID = /\b([A-Z]{2,4})([-_.:]?)(\d{2,6})\b/g;
+const ANY_ID = /\b([A-Z]{2,4})([-_.:]?)(\d{2,6})\b/g
 
 function keyOf(separator: string, digits: number): string {
-  return `${separator}|${digits}`;
+    return `${separator}|${digits}`
 }
 
 /**
@@ -1436,35 +1542,46 @@ function keyOf(separator: string, digits: number): string {
  * nenhum. Só os caminhos que o `init` resolveu entram: detectar formato no
  * repositório inteiro é ruído, não inventário.
  */
-export function detectIdFormat(root: string, paths: readonly string[]): DetectedFormat | null {
-  const globs = paths.map((path) => (path.endsWith('/') ? `${path}**` : path));
-  const tallies = new Map<string, { format: IdFormat; count: number; sample: string }>();
+export function detectIdFormat(
+    root: string,
+    paths: readonly string[]
+): DetectedFormat | null {
+    const globs = paths.map(path => (path.endsWith('/') ? `${path}**` : path))
+    const tallies = new Map<
+        string,
+        { format: IdFormat; count: number; sample: string }
+    >()
 
-  for (const file of listFiles(root, globs)) {
-    const content = readTextFile(root, file);
-    if (content === null) continue;
+    for (const file of listFiles(root, globs)) {
+        const content = readTextFile(root, file)
+        if (content === null) continue
 
-    for (const match of content.matchAll(ANY_ID)) {
-      const separator = match[2] ?? '';
-      const digits = (match[3] ?? '').length;
-      if (!SEPARATORS_ALLOWED.includes(separator)) continue;
-      if (digits < PADDING_RANGE.min || digits > PADDING_RANGE.max) continue;
+        for (const match of content.matchAll(ANY_ID)) {
+            const separator = match[2] ?? ''
+            const digits = (match[3] ?? '').length
+            if (!SEPARATORS_ALLOWED.includes(separator)) continue
+            if (digits < PADDING_RANGE.min || digits > PADDING_RANGE.max)
+                continue
 
-      const key = keyOf(separator, digits);
-      const tally = tallies.get(key);
-      if (tally) {
-        tally.count += 1;
-        continue;
-      }
-      tallies.set(key, { format: { separator, padding: digits }, count: 1, sample: match[0] });
+            const key = keyOf(separator, digits)
+            const tally = tallies.get(key)
+            if (tally) {
+                tally.count += 1
+                continue
+            }
+            tallies.set(key, {
+                format: { separator, padding: digits },
+                count: 1,
+                sample: match[0]
+            })
+        }
     }
-  }
 
-  let winner: DetectedFormat | null = null;
-  for (const tally of tallies.values()) {
-    if (winner === null || tally.count > winner.count) winner = tally;
-  }
-  return winner;
+    let winner: DetectedFormat | null = null
+    for (const tally of tallies.values()) {
+        if (winner === null || tally.count > winner.count) winner = tally
+    }
+    return winner
 }
 ```
 
@@ -1473,23 +1590,23 @@ export function detectIdFormat(root: string, paths: readonly string[]): Detected
 Em `src/cli/init.ts`:
 
 ```typescript
-import { detectIdFormat } from '../ids/detect.ts';
-import type { DetectedFormat } from '../ids/detect.ts';
-import { DEFAULT_ID_FORMAT } from '../docs/schema.ts';
-import type { IdFormat } from '../docs/schema.ts';
+import { detectIdFormat } from '../ids/detect.ts'
+import type { DetectedFormat } from '../ids/detect.ts'
+import { DEFAULT_ID_FORMAT } from '../docs/schema.ts'
+import type { IdFormat } from '../docs/schema.ts'
 
 export interface InitOptions {
-  owner: string;
-  dryRun: boolean;
-  stage: Stage;
-  /** A forma escrita declarada por quem instala (`ADR-0011`). */
-  idFormat: IdFormat;
+    owner: string
+    dryRun: boolean
+    stage: Stage
+    /** A forma escrita declarada por quem instala (`ADR-0011`). */
+    idFormat: IdFormat
 }
 
 export interface InitResult {
-  // … os campos que já existem
-  /** A forma escrita que o inventário achou, quando difere da declarada (`RF-0014`). */
-  detected: DetectedFormat | null;
+    // … os campos que já existem
+    /** A forma escrita que o inventário achou, quando difere da declarada (`RF-0014`). */
+    detected: DetectedFormat | null
 }
 ```
 
@@ -1497,15 +1614,15 @@ Dentro de `runInit`, depois de resolver `paths` e antes de escrever qualquer
 arquivo:
 
 ```typescript
-  // Relatar, nunca adotar em silêncio (`RF-0014`): adoção silenciosa de formato
-  // é a mesma classe de erro que adoção silenciosa de caminho.
-  const detected = detectIdFormat(root, Object.values(paths));
-  result.detected =
+// Relatar, nunca adotar em silêncio (`RF-0014`): adoção silenciosa de formato
+// é a mesma classe de erro que adoção silenciosa de caminho.
+const detected = detectIdFormat(root, Object.values(paths))
+result.detected =
     detected !== null &&
     (detected.format.separator !== options.idFormat.separator ||
-      detected.format.padding !== options.idFormat.padding)
-      ? detected
-      : null;
+        detected.format.padding !== options.idFormat.padding)
+        ? detected
+        : null
 ```
 
 E nos `values` do template:
@@ -1520,44 +1637,48 @@ E nos `values` do template:
 Em `templates/ownership.yml`, logo depois de `stale-after-months: 6`:
 
 ```yaml
-
 # A forma escrita de um ID neste projeto (ADR-0011). A identidade NÃO depende
 # dela: `RN009` e `RN-0009` são o mesmo item. Mude isto para adotar um
 # repositório cujos IDs já se escrevem de outro jeito — nunca renumere o
 # repositório para caber no padrão.
 id-format:
-  separator: "{{ID_SEPARATOR}}"
-  padding: {{ID_PADDING}}
+    separator: '{{ID_SEPARATOR}}'
+    padding: { { ID_PADDING } }
 ```
 
 Em `src/cli/index.ts`, na leitura das opções de `init`:
 
 ```typescript
-      const separatorIndex = argv.indexOf('--id-separator');
-      const separator = separatorIndex === -1 ? DEFAULT_ID_FORMAT.separator : (argv[separatorIndex + 1] ?? '');
-      const paddingIndex = argv.indexOf('--id-padding');
-      const padding =
-        paddingIndex === -1 ? DEFAULT_ID_FORMAT.padding : Number.parseInt(argv[paddingIndex + 1] ?? '', 10);
-      if (!SEPARATORS_ALLOWED.includes(separator) || !Number.isInteger(padding)) {
-        process.stderr.write(
-          `living-docs: forma de ID inválida. --id-separator aceita ${SEPARATORS_ALLOWED.map((s) => `"${s}"`).join(', ')} ` +
-            `e --id-padding um inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).\n`,
-        );
-        return 2;
-      }
+const separatorIndex = argv.indexOf('--id-separator')
+const separator =
+    separatorIndex === -1
+        ? DEFAULT_ID_FORMAT.separator
+        : (argv[separatorIndex + 1] ?? '')
+const paddingIndex = argv.indexOf('--id-padding')
+const padding =
+    paddingIndex === -1
+        ? DEFAULT_ID_FORMAT.padding
+        : Number.parseInt(argv[paddingIndex + 1] ?? '', 10)
+if (!SEPARATORS_ALLOWED.includes(separator) || !Number.isInteger(padding)) {
+    process.stderr.write(
+        `living-docs: forma de ID inválida. --id-separator aceita ${SEPARATORS_ALLOWED.map(s => `"${s}"`).join(', ')} ` +
+            `e --id-padding um inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).\n`
+    )
+    return 2
+}
 ```
 
 E, na saída, depois das linhas `adotado`:
 
 ```typescript
-      if (result.detected !== null) {
-        const { format, count, sample } = result.detected;
-        process.stdout.write(
-          `formato   ${sample}  (${count} ocorrência(s) nesta forma) — o repositório escreve IDs de outro jeito.\n` +
+if (result.detected !== null) {
+    const { format, count, sample } = result.detected
+    process.stdout.write(
+        `formato   ${sample}  (${count} ocorrência(s) nesta forma) — o repositório escreve IDs de outro jeito.\n` +
             `          Para adotá-la: --id-separator "${format.separator}" --id-padding ${format.padding}. ` +
-            'Nenhum arquivo foi alterado (RF-0014).\n',
-        );
-      }
+            'Nenhum arquivo foi alterado (RF-0014).\n'
+    )
+}
 ```
 
 Acrescente as duas opções ao texto de `USAGE`:
@@ -1574,34 +1695,45 @@ Acrescente a `test/acceptance/spec-criteria.test.ts` (e atualize a constante
 
 ```typescript
 test('critério 1 (fechamento): o inventário relata a forma detectada e não toca em arquivo nenhum', () => {
-  const preexistente = [
-    '---',
-    'title: Regras',
-    'owner: "@time"',
-    'trigger: A toda regra nova ou alterada.',
-    'last-reviewed: 2026-08-28',
-    '---',
-    '',
-    '## RN001 — Uma regra',
-    '- **status:** active',
-    '',
-    '## RN002 — Outra',
-    '- **status:** active',
-    '',
-  ].join('\n');
+    const preexistente = [
+        '---',
+        'title: Regras',
+        'owner: "@time"',
+        'trigger: A toda regra nova ou alterada.',
+        'last-reviewed: 2026-08-28',
+        '---',
+        '',
+        '## RN001 — Uma regra',
+        '- **status:** active',
+        '',
+        '## RN002 — Outra',
+        '- **status:** active',
+        ''
+    ].join('\n')
 
-  withTempRepo({ 'docs/business-rules.md': preexistente }, (root) => {
-    const antes = readFileSync(join(root, 'docs/business-rules.md'), 'utf8');
+    withTempRepo({ 'docs/business-rules.md': preexistente }, root => {
+        const antes = readFileSync(join(root, 'docs/business-rules.md'), 'utf8')
 
-    const result = runInit(root, { ...OPTIONS, stage: 'small-team', dryRun: true });
+        const result = runInit(root, {
+            ...OPTIONS,
+            stage: 'small-team',
+            dryRun: true
+        })
 
-    assert.ok(result.adopted.some((entry) => entry.path === 'docs/business-rules.md'));
-    assert.ok(result.detected, 'a forma detectada precisa ser relatada');
-    assert.deepEqual(result.detected.format, { separator: '', padding: 3 });
-    assert.ok(result.detected.count >= 2);
-    assert.equal(readFileSync(join(root, 'docs/business-rules.md'), 'utf8'), antes);
-  });
-});
+        assert.ok(
+            result.adopted.some(
+                entry => entry.path === 'docs/business-rules.md'
+            )
+        )
+        assert.ok(result.detected, 'a forma detectada precisa ser relatada')
+        assert.deepEqual(result.detected.format, { separator: '', padding: 3 })
+        assert.ok(result.detected.count >= 2)
+        assert.equal(
+            readFileSync(join(root, 'docs/business-rules.md'), 'utf8'),
+            antes
+        )
+    })
+})
 ```
 
 - [ ] **Step 7: A `SK-0` para de adotar formato em silêncio**
@@ -1610,11 +1742,11 @@ Em `plugin/skills/living-docs-bootstrap/SKILL.md`, no passo 1, depois da frase
 sobre as linhas `adotado`, acrescente:
 
 ```markdown
-   Leia também a linha `formato`: quando o repositório escreve IDs de outro
-   jeito (`RN001` em vez de `RN-0009`), o inventário diz qual forma achou e
-   quantas ocorrências leu nela. **Confirme com quem é dono do repositório** e
-   declare com `--id-separator` e `--id-padding` — nunca renumere o que já
-   existe para caber no padrão do toolkit (`ADR-0011`, `RF-0014`).
+Leia também a linha `formato`: quando o repositório escreve IDs de outro
+jeito (`RN001` em vez de `RN-0009`), o inventário diz qual forma achou e
+quantas ocorrências leu nela. **Confirme com quem é dono do repositório** e
+declare com `--id-separator` e `--id-padding` — nunca renumere o que já
+existe para caber no padrão do toolkit (`ADR-0011`, `RF-0014`).
 ```
 
 E no checklist, depois da linha de `ids-retired.txt`:
@@ -1654,6 +1786,7 @@ enforcement deste repositório passa a ter doc dono vigiado e a contar como
 visível a quem consome, porque é literalmente o que o consumidor instala.
 
 **Files:**
+
 - Create: `templates/workflow.yml`
 - Create: `test/cli/init-enforcement.test.ts`
 - Modify: `src/cli/init.ts` (`STAGE_PHASES`, `InitOptions.invoke`, escrita do workflow)
@@ -1662,13 +1795,15 @@ visível a quem consome, porque é literalmente o que o consumidor instala.
 - Modify: `CHANGELOG.md`
 
 **Interfaces:**
+
 - Consome: `writeIfAbsent`, `template`, `InitResult` (Task 5).
 - Produz:
-  - `WORKFLOW_PATH = '.github/workflows/living-docs.yml'`
-  - `STAGE_PHASES: Readonly<Record<Stage, readonly number[]>>`
-  - `InitOptions.invoke: string`
+    - `WORKFLOW_PATH = '.github/workflows/living-docs.yml'`
+    - `STAGE_PHASES: Readonly<Record<Stage, readonly number[]>>`
+    - `InitOptions.invoke: string`
 
 **Requisitos:**
+
 - **O workflow instalado não menciona Docker.** `RNF-0002` é regra deste
   toolkit, não de quem o usa. O comando vem de `--invoke` e o padrão é
   `npx living-docs`.
@@ -1694,66 +1829,76 @@ visível a quem consome, porque é literalmente o que o consumidor instala.
 Crie `test/cli/init-enforcement.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { runInit } from '../../src/cli/init.ts';
-import { DEFAULT_ID_FORMAT } from '../../src/docs/schema.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { runInit } from '../../src/cli/init.ts'
+import { DEFAULT_ID_FORMAT } from '../../src/docs/schema.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const OPTIONS = {
-  owner: '@time',
-  dryRun: false,
-  stage: 'production' as const,
-  idFormat: DEFAULT_ID_FORMAT,
-  invoke: 'npx living-docs',
-};
+    owner: '@time',
+    dryRun: false,
+    stage: 'production' as const,
+    idFormat: DEFAULT_ID_FORMAT,
+    invoke: 'npx living-docs'
+}
 
-const WORKFLOW = '.github/workflows/living-docs.yml';
+const WORKFLOW = '.github/workflows/living-docs.yml'
 
 test('RF-0013: o init escreve o workflow de CI do estágio', () => {
-  withTempRepo({}, (root) => {
-    const result = runInit(root, OPTIONS);
+    withTempRepo({}, root => {
+        const result = runInit(root, OPTIONS)
 
-    assert.ok(result.created.includes(WORKFLOW), JSON.stringify(result.created, null, 2));
-    const yaml = readFileSync(join(root, WORKFLOW), 'utf8');
-    assert.match(yaml, /npx living-docs validate/);
-    assert.match(yaml, /npx living-docs drift/);
-    assert.match(yaml, /npx living-docs changelog --base/);
-  });
-});
+        assert.ok(
+            result.created.includes(WORKFLOW),
+            JSON.stringify(result.created, null, 2)
+        )
+        const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
+        assert.match(yaml, /npx living-docs validate/)
+        assert.match(yaml, /npx living-docs drift/)
+        assert.match(yaml, /npx living-docs changelog --base/)
+    })
+})
 
 test('RF-0013: o workflow instalado não impõe Docker a quem instala', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, OPTIONS);
-    const yaml = readFileSync(join(root, WORKFLOW), 'utf8');
-    assert.doesNotMatch(yaml, /docker/i, 'RNF-0002 é regra deste toolkit, não do consumidor');
-  });
-});
+    withTempRepo({}, root => {
+        runInit(root, OPTIONS)
+        const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
+        assert.doesNotMatch(
+            yaml,
+            /docker/i,
+            'RNF-0002 é regra deste toolkit, não do consumidor'
+        )
+    })
+})
 
 test('RN-0025: o estágio solo instala validate e nada além', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, { ...OPTIONS, stage: 'solo' });
-    const yaml = readFileSync(join(root, WORKFLOW), 'utf8');
-    assert.match(yaml, /living-docs validate/);
-    assert.doesNotMatch(yaml, /living-docs drift/);
-    assert.doesNotMatch(yaml, /living-docs changelog/);
-  });
-});
+    withTempRepo({}, root => {
+        runInit(root, { ...OPTIONS, stage: 'solo' })
+        const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
+        assert.match(yaml, /living-docs validate/)
+        assert.doesNotMatch(yaml, /living-docs drift/)
+        assert.doesNotMatch(yaml, /living-docs changelog/)
+    })
+})
 
 test('RF-0013: workflow preexistente é mantido, e rodar duas vezes não duplica', () => {
-  const meu = 'name: meu-ci\non:\n  push:\n';
-  withTempRepo({ '.github/workflows/ci.yml': meu }, (root) => {
-    runInit(root, OPTIONS);
-    assert.equal(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8'), meu);
+    const meu = 'name: meu-ci\non:\n  push:\n'
+    withTempRepo({ '.github/workflows/ci.yml': meu }, root => {
+        runInit(root, OPTIONS)
+        assert.equal(
+            readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8'),
+            meu
+        )
 
-    const depois = readFileSync(join(root, WORKFLOW), 'utf8');
-    const segunda = runInit(root, OPTIONS);
-    assert.ok(segunda.skipped.includes(WORKFLOW));
-    assert.equal(readFileSync(join(root, WORKFLOW), 'utf8'), depois);
-  });
-});
+        const depois = readFileSync(join(root, WORKFLOW), 'utf8')
+        const segunda = runInit(root, OPTIONS)
+        assert.ok(segunda.skipped.includes(WORKFLOW))
+        assert.equal(readFileSync(join(root, WORKFLOW), 'utf8'), depois)
+    })
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -1802,41 +1947,47 @@ Em `src/cli/init.ts`:
 
 ```typescript
 /** Onde o workflow instalado mora no repositório de quem instala. */
-export const WORKFLOW_PATH = '.github/workflows/living-docs.yml';
+export const WORKFLOW_PATH = '.github/workflows/living-docs.yml'
 
 /**
  * As fases da spec §10 que cada estágio instala. É daqui que sai o conjunto de
  * enforcement do estágio — nem mais, nem menos (`RN-0025`, `ADR-0012`).
  */
 const STAGE_PHASES: Readonly<Record<Stage, readonly number[]>> = Object.freeze({
-  solo: [0, 1],
-  'small-team': [0, 1, 2, 3, 4],
-  production: [0, 1, 2, 3, 4, 5, 6],
-});
+    solo: [0, 1],
+    'small-team': [0, 1, 2, 3, 4],
+    production: [0, 1, 2, 3, 4, 5, 6]
+})
 
 /**
  * Os passos que este estágio acrescenta ao `validate`, que todo estágio roda.
  * Cada passo existe porque uma fase do estágio instalou o check que ele chama.
  */
 function workflowSteps(stage: Stage, invoke: string): string {
-  const phases = STAGE_PHASES[stage];
-  const steps: string[] = [];
+    const phases = STAGE_PHASES[stage]
+    const steps: string[] = []
 
-  if (phases.includes(5)) {
-    steps.push(['', '      - name: CI-5 — deriva de contrato gerado', `        run: ${invoke} drift`].join('\n'));
-  }
-  if (phases.includes(6)) {
-    steps.push(
-      [
-        '',
-        '      - name: CI-6 — entrada de CHANGELOG',
-        "        if: github.event_name == 'pull_request'",
-        `        run: ${invoke} changelog --base \${{ github.event.pull_request.base.sha }}`,
-      ].join('\n'),
-    );
-  }
+    if (phases.includes(5)) {
+        steps.push(
+            [
+                '',
+                '      - name: CI-5 — deriva de contrato gerado',
+                `        run: ${invoke} drift`
+            ].join('\n')
+        )
+    }
+    if (phases.includes(6)) {
+        steps.push(
+            [
+                '',
+                '      - name: CI-6 — entrada de CHANGELOG',
+                "        if: github.event_name == 'pull_request'",
+                `        run: ${invoke} changelog --base \${{ github.event.pull_request.base.sha }}`
+            ].join('\n')
+        )
+    }
 
-  return steps.length === 0 ? '' : `${steps.join('\n')}\n`;
+    return steps.length === 0 ? '' : `${steps.join('\n')}\n`
 }
 ```
 
@@ -1850,9 +2001,15 @@ function workflowSteps(stage: Stage, invoke: string): string {
 E, ao fim de `runInit`, antes do `declareDocuments`:
 
 ```typescript
-  // O enforcement do estágio (`RF-0013`). Mesclar, nunca sobrescrever: o
-  // workflow que já existe é de quem o escreveu.
-  writeIfAbsent(root, WORKFLOW_PATH, template('workflow.yml', values), options, result);
+// O enforcement do estágio (`RF-0013`). Mesclar, nunca sobrescrever: o
+// workflow que já existe é de quem o escreveu.
+writeIfAbsent(
+    root,
+    WORKFLOW_PATH,
+    template('workflow.yml', values),
+    options,
+    result
+)
 ```
 
 - [ ] **Step 5: A flag `--invoke` no CLI**
@@ -1860,14 +2017,15 @@ E, ao fim de `runInit`, antes do `declareDocuments`:
 Em `src/cli/index.ts`, junto das demais opções de `init`:
 
 ```typescript
-      const invokeIndex = argv.indexOf('--invoke');
-      const invoke = invokeIndex === -1 ? 'npx living-docs' : (argv[invokeIndex + 1] ?? '');
-      if (invoke.trim() === '') {
-        process.stderr.write(
-          'living-docs: `--invoke` precisa do comando que roda o CLI no seu CI — ele não se adivinha (DA-0003).\n',
-        );
-        return 2;
-      }
+const invokeIndex = argv.indexOf('--invoke')
+const invoke =
+    invokeIndex === -1 ? 'npx living-docs' : (argv[invokeIndex + 1] ?? '')
+if (invoke.trim() === '') {
+    process.stderr.write(
+        'living-docs: `--invoke` precisa do comando que roda o CLI no seu CI — ele não se adivinha (DA-0003).\n'
+    )
+    return 2
+}
 ```
 
 E no `USAGE`:
@@ -1882,20 +2040,20 @@ Em `docs/.ownership.yml`, acrescente ao bloco `watches:` (as duas regras juntas,
 depois da regra de `plugin/skills/**`):
 
 ```yaml
-  - code: ".github/workflows/**"
-    doc: docs/definition-of-done.md
-    reason: "a última linha da Definition of Done nomeia o que o workflow roda — mudar o workflow muda o que 'pronto' significa"
+- code: '.github/workflows/**'
+  doc: docs/definition-of-done.md
+  reason: "a última linha da Definition of Done nomeia o que o workflow roda — mudar o workflow muda o que 'pronto' significa"
 
-  - code: ".github/workflows/**"
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: "o enforcement é literalmente o que o consumidor instala"
+- code: '.github/workflows/**'
+  doc: CHANGELOG.md
+  consumer-visible: true
+  reason: 'o enforcement é literalmente o que o consumidor instala'
 ```
 
 E em `consumer-visible-paths:`, no fim da lista:
 
 ```yaml
-  - ".github/workflows/**"
+- '.github/workflows/**'
 ```
 
 As duas listas precisam continuar idênticas: `test/docs/release-history.test.ts`
@@ -1937,6 +2095,7 @@ consumidor que liga os hooks na sessão — instalada por mesclagem, sem perder 
 nenhum de quem já tinha os seus.
 
 **Files:**
+
 - Create: `.claude-plugin/marketplace.json`
 - Create: `src/config/claude-settings.ts`
 - Create: `test/config/claude-settings.test.ts`
@@ -1947,15 +2106,17 @@ nenhum de quem já tinha os seus.
 - Modify: `CHANGELOG.md`
 
 **Interfaces:**
+
 - Consome: `InitOptions`, `InitResult` (Task 6).
 - Produz:
-  - `SETTINGS_PATH = '.claude/settings.json'`
-  - `MARKETPLACE_NAME = 'living-docs'`, `PLUGIN_REF = 'living-docs@living-docs'`
-  - `mergeSettings(current: string | null, marketplace: string): { text: string; added: string[] }`
-  - `SettingsError`
-  - `InitOptions.marketplace: string | null`
+    - `SETTINGS_PATH = '.claude/settings.json'`
+    - `MARKETPLACE_NAME = 'living-docs'`, `PLUGIN_REF = 'living-docs@living-docs'`
+    - `mergeSettings(current: string | null, marketplace: string): { text: string; added: string[] }`
+    - `SettingsError`
+    - `InitOptions.marketplace: string | null`
 
 **Requisitos:**
+
 - **Mesclagem, nunca sobrescrita.** Chave que já existe fica como está — inclusive
   uma entrada `living-docs` que o consumidor tenha escrito à mão. Só se
   acrescenta o que falta.
@@ -1979,68 +2140,90 @@ viajou na Task 2; o CHANGELOG entra no Step 7.
 Crie `test/config/claude-settings.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { SettingsError, mergeSettings } from '../../src/config/claude-settings.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import {
+    SettingsError,
+    mergeSettings
+} from '../../src/config/claude-settings.ts'
 
 test('RF-0013: sem settings, o registro nasce com o marketplace e o plugin', () => {
-  const { text, added } = mergeSettings(null, 'time/living-docs');
-  const parsed = JSON.parse(text) as Record<string, Record<string, unknown>>;
+    const { text, added } = mergeSettings(null, 'time/living-docs')
+    const parsed = JSON.parse(text) as Record<string, Record<string, unknown>>
 
-  assert.deepEqual(parsed.extraKnownMarketplaces?.['living-docs'], {
-    source: { source: 'github', repo: 'time/living-docs' },
-  });
-  assert.equal(parsed.enabledPlugins?.['living-docs@living-docs'], true);
-  assert.equal(added.length, 2);
-  assert.ok(text.endsWith('\n'));
-});
+    assert.deepEqual(parsed.extraKnownMarketplaces?.['living-docs'], {
+        source: { source: 'github', repo: 'time/living-docs' }
+    })
+    assert.equal(parsed.enabledPlugins?.['living-docs@living-docs'], true)
+    assert.equal(added.length, 2)
+    assert.ok(text.endsWith('\n'))
+})
 
 test('RF-0013: o que o consumidor já tinha continua lá', () => {
-  const meu = JSON.stringify(
-    {
-      hooks: { PreToolUse: [{ matcher: 'Edit', hooks: [{ type: 'command', command: './meu-hook.sh' }] }] },
-      enabledPlugins: { 'outro@loja': true },
-    },
-    null,
-    2,
-  );
+    const meu = JSON.stringify(
+        {
+            hooks: {
+                PreToolUse: [
+                    {
+                        matcher: 'Edit',
+                        hooks: [{ type: 'command', command: './meu-hook.sh' }]
+                    }
+                ]
+            },
+            enabledPlugins: { 'outro@loja': true }
+        },
+        null,
+        2
+    )
 
-  const { text } = mergeSettings(meu, 'time/living-docs');
-  const parsed = JSON.parse(text) as Record<string, Record<string, unknown>>;
+    const { text } = mergeSettings(meu, 'time/living-docs')
+    const parsed = JSON.parse(text) as Record<string, Record<string, unknown>>
 
-  assert.ok(parsed.hooks, 'nenhum hook do consumidor é perdido');
-  assert.equal(parsed.enabledPlugins?.['outro@loja'], true);
-  assert.equal(parsed.enabledPlugins?.['living-docs@living-docs'], true);
-});
+    assert.ok(parsed.hooks, 'nenhum hook do consumidor é perdido')
+    assert.equal(parsed.enabledPlugins?.['outro@loja'], true)
+    assert.equal(parsed.enabledPlugins?.['living-docs@living-docs'], true)
+})
 
 test('RF-0013: mesclar duas vezes não duplica e não muda um byte', () => {
-  const primeira = mergeSettings(null, 'time/living-docs');
-  const segunda = mergeSettings(primeira.text, 'time/living-docs');
+    const primeira = mergeSettings(null, 'time/living-docs')
+    const segunda = mergeSettings(primeira.text, 'time/living-docs')
 
-  assert.equal(segunda.text, primeira.text);
-  assert.deepEqual(segunda.added, []);
-});
+    assert.equal(segunda.text, primeira.text)
+    assert.deepEqual(segunda.added, [])
+})
 
 test('RF-0013: entrada que o consumidor escreveu à mão não é reescrita', () => {
-  const meu = JSON.stringify(
-    { extraKnownMarketplaces: { 'living-docs': { source: { source: 'git', url: 'file:///opt/toolkit' } } } },
-    null,
-    2,
-  );
+    const meu = JSON.stringify(
+        {
+            extraKnownMarketplaces: {
+                'living-docs': {
+                    source: { source: 'git', url: 'file:///opt/toolkit' }
+                }
+            }
+        },
+        null,
+        2
+    )
 
-  const { text, added } = mergeSettings(meu, 'time/living-docs');
-  const parsed = JSON.parse(text) as Record<string, Record<string, Record<string, unknown>>>;
+    const { text, added } = mergeSettings(meu, 'time/living-docs')
+    const parsed = JSON.parse(text) as Record<
+        string,
+        Record<string, Record<string, unknown>>
+    >
 
-  assert.deepEqual(parsed.extraKnownMarketplaces?.['living-docs']?.source, {
-    source: 'git',
-    url: 'file:///opt/toolkit',
-  });
-  assert.deepEqual(added, ['enabledPlugins["living-docs@living-docs"]']);
-});
+    assert.deepEqual(parsed.extraKnownMarketplaces?.['living-docs']?.source, {
+        source: 'git',
+        url: 'file:///opt/toolkit'
+    })
+    assert.deepEqual(added, ['enabledPlugins["living-docs@living-docs"]'])
+})
 
 test('RF-0013: settings ilegível é erro, nunca sobrescrita', () => {
-  assert.throws(() => mergeSettings('{ isto não é json', 'time/living-docs'), SettingsError);
-});
+    assert.throws(
+        () => mergeSettings('{ isto não é json', 'time/living-docs'),
+        SettingsError
+    )
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -2062,25 +2245,26 @@ Esperado: FALHA — `Cannot find module '../../src/config/claude-settings.ts'`.
  * mesma regra que o `init` já pratica com o CODEOWNERS — e é o passo 1 da `SK-0`
  * ("nunca criar um paralelo") visto do lado do enforcement.
  */
-export const SETTINGS_PATH = '.claude/settings.json';
-export const MARKETPLACE_NAME = 'living-docs';
-export const PLUGIN_REF = 'living-docs@living-docs';
+export const SETTINGS_PATH = '.claude/settings.json'
+export const MARKETPLACE_NAME = 'living-docs'
+export const PLUGIN_REF = 'living-docs@living-docs'
 
 export class SettingsError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'SettingsError';
-  }
+    constructor(message: string) {
+        super(message)
+        this.name = 'SettingsError'
+    }
 }
 
-type Json = Record<string, unknown>;
+type Json = Record<string, unknown>
 
 function objectAt(root: Json, key: string): Json {
-  const value = root[key];
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) return value as Json;
-  const created: Json = {};
-  root[key] = created;
-  return created;
+    const value = root[key]
+    if (value !== null && typeof value === 'object' && !Array.isArray(value))
+        return value as Json
+    const created: Json = {}
+    root[key] = created
+    return created
 }
 
 /**
@@ -2089,38 +2273,49 @@ function objectAt(root: Json, key: string): Json {
  * `added` lista o que entrou — vazio significa "já estava tudo lá", e é o que
  * torna a segunda execução silenciosa em vez de mentirosa.
  */
-export function mergeSettings(current: string | null, marketplace: string): { text: string; added: string[] } {
-  let root: Json = {};
-  if (current !== null && current.trim() !== '') {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(current);
-    } catch (err) {
-      throw new SettingsError(
-        `${SETTINGS_PATH}: JSON inválido — ${err instanceof Error ? err.message : String(err)}`,
-      );
+export function mergeSettings(
+    current: string | null,
+    marketplace: string
+): { text: string; added: string[] } {
+    let root: Json = {}
+    if (current !== null && current.trim() !== '') {
+        let parsed: unknown
+        try {
+            parsed = JSON.parse(current)
+        } catch (err) {
+            throw new SettingsError(
+                `${SETTINGS_PATH}: JSON inválido — ${err instanceof Error ? err.message : String(err)}`
+            )
+        }
+        if (
+            parsed === null ||
+            typeof parsed !== 'object' ||
+            Array.isArray(parsed)
+        ) {
+            throw new SettingsError(
+                `${SETTINGS_PATH}: o conteúdo não é um objeto JSON.`
+            )
+        }
+        root = parsed as Json
     }
-    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new SettingsError(`${SETTINGS_PATH}: o conteúdo não é um objeto JSON.`);
+
+    const added: string[] = []
+
+    const marketplaces = objectAt(root, 'extraKnownMarketplaces')
+    if (marketplaces[MARKETPLACE_NAME] === undefined) {
+        marketplaces[MARKETPLACE_NAME] = {
+            source: { source: 'github', repo: marketplace }
+        }
+        added.push(`extraKnownMarketplaces["${MARKETPLACE_NAME}"]`)
     }
-    root = parsed as Json;
-  }
 
-  const added: string[] = [];
+    const plugins = objectAt(root, 'enabledPlugins')
+    if (plugins[PLUGIN_REF] === undefined) {
+        plugins[PLUGIN_REF] = true
+        added.push(`enabledPlugins["${PLUGIN_REF}"]`)
+    }
 
-  const marketplaces = objectAt(root, 'extraKnownMarketplaces');
-  if (marketplaces[MARKETPLACE_NAME] === undefined) {
-    marketplaces[MARKETPLACE_NAME] = { source: { source: 'github', repo: marketplace } };
-    added.push(`extraKnownMarketplaces["${MARKETPLACE_NAME}"]`);
-  }
-
-  const plugins = objectAt(root, 'enabledPlugins');
-  if (plugins[PLUGIN_REF] === undefined) {
-    plugins[PLUGIN_REF] = true;
-    added.push(`enabledPlugins["${PLUGIN_REF}"]`);
-  }
-
-  return { text: `${JSON.stringify(root, null, 2)}\n`, added };
+    return { text: `${JSON.stringify(root, null, 2)}\n`, added }
 }
 ```
 
@@ -2130,20 +2325,20 @@ Crie `.claude-plugin/marketplace.json` na raiz do toolkit:
 
 ```json
 {
-  "name": "living-docs",
-  "description": "Toolkit de documentação viva: ADR, decisões abertas, dívida registrada, requisitos com ID estável, contrato gerado e o enforcement que os mantém vivos.",
-  "owner": {
-    "name": "Dan Ruan",
-    "email": "danrsaquetti@gmail.com"
-  },
-  "plugins": [
-    {
-      "name": "living-docs",
-      "description": "Sete skills donas de artefato, dois agents, oito hooks e sete comandos — o lado de sessão do toolkit de documentação viva.",
-      "version": "0.1.0",
-      "source": "./plugin"
-    }
-  ]
+    "name": "living-docs",
+    "description": "Toolkit de documentação viva: ADR, decisões abertas, dívida registrada, requisitos com ID estável, contrato gerado e o enforcement que os mantém vivos.",
+    "owner": {
+        "name": "Dan Ruan",
+        "email": "danrsaquetti@gmail.com"
+    },
+    "plugins": [
+        {
+            "name": "living-docs",
+            "description": "Sete skills donas de artefato, dois agents, oito hooks e sete comandos — o lado de sessão do toolkit de documentação viva.",
+            "version": "0.1.0",
+            "source": "./plugin"
+        }
+    ]
 }
 ```
 
@@ -2151,18 +2346,29 @@ Acrescente a `test/plugin/manifest.test.ts`:
 
 ```typescript
 test('o manifesto de marketplace aponta para o plugin deste repositório', () => {
-  const marketplace = readJson('.claude-plugin/marketplace.json');
-  const plugins = marketplace.plugins as { name: string; source: string; version: string }[];
+    const marketplace = readJson('.claude-plugin/marketplace.json')
+    const plugins = marketplace.plugins as {
+        name: string
+        source: string
+        version: string
+    }[]
 
-  assert.equal(marketplace.name, 'living-docs');
-  assert.equal(plugins.length, 1);
-  assert.equal(plugins[0]?.name, 'living-docs');
-  assert.equal(plugins[0]?.source, './plugin');
-  assert.ok(existsSync(join(ROOT, 'plugin/.claude-plugin/plugin.json')), 'a fonte precisa ter manifesto');
+    assert.equal(marketplace.name, 'living-docs')
+    assert.equal(plugins.length, 1)
+    assert.equal(plugins[0]?.name, 'living-docs')
+    assert.equal(plugins[0]?.source, './plugin')
+    assert.ok(
+        existsSync(join(ROOT, 'plugin/.claude-plugin/plugin.json')),
+        'a fonte precisa ter manifesto'
+    )
 
-  const plugin = readJson('plugin/.claude-plugin/plugin.json');
-  assert.equal(plugins[0]?.version, plugin.version, 'duas versões é a garantia de que uma está errada');
-});
+    const plugin = readJson('plugin/.claude-plugin/plugin.json')
+    assert.equal(
+        plugins[0]?.version,
+        plugin.version,
+        'duas versões é a garantia de que uma está errada'
+    )
+})
 ```
 
 - [ ] **Step 5: Ligar ao `init`**
@@ -2170,14 +2376,18 @@ test('o manifesto de marketplace aponta para o plugin deste repositório', () =>
 Em `src/cli/init.ts`:
 
 ```typescript
-import { SETTINGS_PATH, SettingsError, mergeSettings } from '../config/claude-settings.ts';
+import {
+    SETTINGS_PATH,
+    SettingsError,
+    mergeSettings
+} from '../config/claude-settings.ts'
 ```
 
 `InitOptions` ganha `marketplace: string | null`. E, logo depois da escrita do
 workflow:
 
 ```typescript
-  declarePlugin(root, options, result);
+declarePlugin(root, options, result)
 ```
 
 com:
@@ -2191,50 +2401,57 @@ com:
  * `generated[]`. Settings ilegível também não é tocado: consertar configuração
  * alheia apaga trabalho de alguém.
  */
-function declarePlugin(root: string, options: InitOptions, result: InitResult): void {
-  if (options.marketplace === null) {
-    result.notInstalled.push(
-      `registro do plugin em ${SETTINGS_PATH} — sem \`--marketplace <owner/repo>\` a fonte não se ` +
-        'adivinha (`DA-0003`); os hooks não sobem na sessão até ele ser declarado',
-    );
-    return;
-  }
+function declarePlugin(
+    root: string,
+    options: InitOptions,
+    result: InitResult
+): void {
+    if (options.marketplace === null) {
+        result.notInstalled.push(
+            `registro do plugin em ${SETTINGS_PATH} — sem \`--marketplace <owner/repo>\` a fonte não se ` +
+                'adivinha (`DA-0003`); os hooks não sobem na sessão até ele ser declarado'
+        )
+        return
+    }
 
-  const file = join(root, SETTINGS_PATH);
-  const current = existsSync(file) ? readFileSync(file, 'utf8') : null;
+    const file = join(root, SETTINGS_PATH)
+    const current = existsSync(file) ? readFileSync(file, 'utf8') : null
 
-  let merged;
-  try {
-    merged = mergeSettings(current, options.marketplace);
-  } catch (err) {
-    result.notInstalled.push(
-      `registro do plugin em ${SETTINGS_PATH} — ${err instanceof SettingsError ? err.message : String(err)}; ` +
-        'declare-o à mão para não perder o que já está lá',
-    );
-    return;
-  }
+    let merged
+    try {
+        merged = mergeSettings(current, options.marketplace)
+    } catch (err) {
+        result.notInstalled.push(
+            `registro do plugin em ${SETTINGS_PATH} — ${err instanceof SettingsError ? err.message : String(err)}; ` +
+                'declare-o à mão para não perder o que já está lá'
+        )
+        return
+    }
 
-  if (merged.added.length === 0) {
-    result.skipped.push(SETTINGS_PATH);
-    return;
-  }
+    if (merged.added.length === 0) {
+        result.skipped.push(SETTINGS_PATH)
+        return
+    }
 
-  result.created.push(`${SETTINGS_PATH} (${merged.added.join(', ')})`);
-  if (options.dryRun) return;
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, merged.text, 'utf8');
+    result.created.push(`${SETTINGS_PATH} (${merged.added.join(', ')})`)
+    if (options.dryRun) return
+    mkdirSync(dirname(file), { recursive: true })
+    writeFileSync(file, merged.text, 'utf8')
 }
 ```
 
 Em `src/cli/index.ts`:
 
 ```typescript
-      const marketplaceIndex = argv.indexOf('--marketplace');
-      const marketplace = marketplaceIndex === -1 ? null : (argv[marketplaceIndex + 1] ?? '');
-      if (marketplace !== null && !/^[\w.-]+\/[\w.-]+$/.test(marketplace)) {
-        process.stderr.write('living-docs: `--marketplace` recebe `<owner>/<repo>` — ex.: time/living-docs.\n');
-        return 2;
-      }
+const marketplaceIndex = argv.indexOf('--marketplace')
+const marketplace =
+    marketplaceIndex === -1 ? null : (argv[marketplaceIndex + 1] ?? '')
+if (marketplace !== null && !/^[\w.-]+\/[\w.-]+$/.test(marketplace)) {
+    process.stderr.write(
+        'living-docs: `--marketplace` recebe `<owner>/<repo>` — ex.: time/living-docs.\n'
+    )
+    return 2
+}
 ```
 
 E no `USAGE`:
@@ -2250,45 +2467,76 @@ Acrescente a `test/cli/init-enforcement.test.ts` (e passe
 
 ```typescript
 test('critério 3: sem enforcement, o init deixa workflow e registro de plugin — e rodar de novo não duplica', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, OPTIONS);
+    withTempRepo({}, root => {
+        runInit(root, OPTIONS)
 
-    assert.ok(existsSync(join(root, WORKFLOW)));
-    const settings = JSON.parse(readFileSync(join(root, '.claude/settings.json'), 'utf8')) as Record<string, Record<string, unknown>>;
-    assert.equal(settings.enabledPlugins?.['living-docs@living-docs'], true);
+        assert.ok(existsSync(join(root, WORKFLOW)))
+        const settings = JSON.parse(
+            readFileSync(join(root, '.claude/settings.json'), 'utf8')
+        ) as Record<string, Record<string, unknown>>
+        assert.equal(settings.enabledPlugins?.['living-docs@living-docs'], true)
 
-    const antes = readFileSync(join(root, '.claude/settings.json'), 'utf8');
-    const segunda = runInit(root, OPTIONS);
-    assert.equal(readFileSync(join(root, '.claude/settings.json'), 'utf8'), antes);
-    assert.ok(segunda.skipped.includes('.claude/settings.json'));
-  });
-});
+        const antes = readFileSync(join(root, '.claude/settings.json'), 'utf8')
+        const segunda = runInit(root, OPTIONS)
+        assert.equal(
+            readFileSync(join(root, '.claude/settings.json'), 'utf8'),
+            antes
+        )
+        assert.ok(segunda.skipped.includes('.claude/settings.json'))
+    })
+})
 
 test('critério 4: hooks e workflows próprios continuam lá, e o do toolkit foi acrescentado', () => {
-  const meusHooks = JSON.stringify(
-    { hooks: { PostToolUse: [{ matcher: 'Write', hooks: [{ type: 'command', command: './formata.sh' }] }] } },
-    null,
-    2,
-  );
+    const meusHooks = JSON.stringify(
+        {
+            hooks: {
+                PostToolUse: [
+                    {
+                        matcher: 'Write',
+                        hooks: [{ type: 'command', command: './formata.sh' }]
+                    }
+                ]
+            }
+        },
+        null,
+        2
+    )
 
-  withTempRepo({ '.claude/settings.json': meusHooks, '.github/workflows/ci.yml': 'name: meu-ci\non:\n  push:\n' }, (root) => {
-    runInit(root, OPTIONS);
+    withTempRepo(
+        {
+            '.claude/settings.json': meusHooks,
+            '.github/workflows/ci.yml': 'name: meu-ci\non:\n  push:\n'
+        },
+        root => {
+            runInit(root, OPTIONS)
 
-    const settings = JSON.parse(readFileSync(join(root, '.claude/settings.json'), 'utf8')) as Record<string, Record<string, unknown>>;
-    assert.ok(settings.hooks, 'nenhum hook do consumidor pode ser perdido');
-    assert.equal(settings.enabledPlugins?.['living-docs@living-docs'], true);
-    assert.match(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8'), /meu-ci/);
-    assert.ok(existsSync(join(root, WORKFLOW)));
-  });
-});
+            const settings = JSON.parse(
+                readFileSync(join(root, '.claude/settings.json'), 'utf8')
+            ) as Record<string, Record<string, unknown>>
+            assert.ok(
+                settings.hooks,
+                'nenhum hook do consumidor pode ser perdido'
+            )
+            assert.equal(
+                settings.enabledPlugins?.['living-docs@living-docs'],
+                true
+            )
+            assert.match(
+                readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8'),
+                /meu-ci/
+            )
+            assert.ok(existsSync(join(root, WORKFLOW)))
+        }
+    )
+})
 
 test('RF-0013: sem --marketplace, o registro não é inventado — é relatado', () => {
-  withTempRepo({}, (root) => {
-    const result = runInit(root, { ...OPTIONS, marketplace: null });
-    assert.equal(existsSync(join(root, '.claude/settings.json')), false);
-    assert.ok(result.notInstalled.some((linha) => linha.includes('DA-0003')));
-  });
-});
+    withTempRepo({}, root => {
+        const result = runInit(root, { ...OPTIONS, marketplace: null })
+        assert.equal(existsSync(join(root, '.claude/settings.json')), false)
+        assert.ok(result.notInstalled.some(linha => linha.includes('DA-0003')))
+    })
+})
 ```
 
 - [ ] **Step 7: Rodar, anotar o CHANGELOG e commitar**
@@ -2321,6 +2569,7 @@ passa a existir — e existe porque passa a ter enforcement atrás dele: é o
 estágio que instala a Fase 7, com a metade de `CI-7` que lê o diff.
 
 **Files:**
+
 - Modify: `src/cli/init.ts` (`STAGES`, `STAGE_PHASES`, `NOT_INSTALLED`, `workflowSteps`, os testes de estágio)
 - Modify: `src/cli/index.ts` (`USAGE`)
 - Modify: `plugin/skills/living-docs-bootstrap/SKILL.md` (passo 2 e a tabela de propriedade)
@@ -2329,10 +2578,12 @@ estágio que instala a Fase 7, com a metade de `CI-7` que lê o diff.
 - Modify: `CHANGELOG.md`
 
 **Interfaces:**
+
 - Consome: `STAGE_PHASES`, `workflowSteps` (Task 6).
 - Produz: `Stage` passa a incluir `'multi-team'`.
 
 **Requisitos:**
+
 - `multi-team` instala **os mesmos artefatos** que `production` e **um passo a
   mais** de enforcement: `validate --base`, que é a metade de `CI-7` que lê o
   diff. É isso que o faz deixar de ser rótulo sem conteúdo.
@@ -2356,43 +2607,64 @@ Acrescente a `test/cli/init-enforcement.test.ts`:
 
 ```typescript
 test('critério 5: multi-team instala o enforcement da Fase 7', () => {
-  withTempRepo({}, (root) => {
-    const result = runInit(root, { ...OPTIONS, stage: 'multi-team' });
+    withTempRepo({}, root => {
+        const result = runInit(root, { ...OPTIONS, stage: 'multi-team' })
 
-    const yaml = readFileSync(join(root, WORKFLOW), 'utf8');
-    assert.match(yaml, /npx living-docs validate --base/, 'a metade de CI-7 que lê o diff é a Fase 7');
-    assert.match(yaml, /npx living-docs drift/);
-    assert.match(yaml, /npx living-docs changelog --base/);
-    assert.deepEqual(result.notInstalled, [], 'as sete fases existem: nada fica de fora');
-  });
-});
+        const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
+        assert.match(
+            yaml,
+            /npx living-docs validate --base/,
+            'a metade de CI-7 que lê o diff é a Fase 7'
+        )
+        assert.match(yaml, /npx living-docs drift/)
+        assert.match(yaml, /npx living-docs changelog --base/)
+        assert.deepEqual(
+            result.notInstalled,
+            [],
+            'as sete fases existem: nada fica de fora'
+        )
+    })
+})
 
 test('RN-0025: multi-team instala tudo que production instala', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, { ...OPTIONS, stage: 'multi-team' });
-    for (const path of ['CHANGELOG.md', 'docs/contracts/errors.md', 'docs/deprecations.md']) {
-      assert.ok(existsSync(join(root, path)), `${path} deveria existir no estágio multi-team`);
-    }
-  });
-});
+    withTempRepo({}, root => {
+        runInit(root, { ...OPTIONS, stage: 'multi-team' })
+        for (const path of [
+            'CHANGELOG.md',
+            'docs/contracts/errors.md',
+            'docs/deprecations.md'
+        ]) {
+            assert.ok(
+                existsSync(join(root, path)),
+                `${path} deveria existir no estágio multi-team`
+            )
+        }
+    })
+})
 
 test('RN-0025: production não instala o passo da Fase 7', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, { ...OPTIONS, stage: 'production' });
-    assert.doesNotMatch(readFileSync(join(root, WORKFLOW), 'utf8'), /validate --base/);
-  });
-});
+    withTempRepo({}, root => {
+        runInit(root, { ...OPTIONS, stage: 'production' })
+        assert.doesNotMatch(
+            readFileSync(join(root, WORKFLOW), 'utf8'),
+            /validate --base/
+        )
+    })
+})
 ```
 
 E a `test/plugin/authoring.test.ts`:
 
 ```typescript
 test('a SK-0 não manda escolher estágio que o CLI rejeita', () => {
-  const source = skillSource('living-docs-bootstrap');
-  for (const stage of ['solo', 'small-team', 'production', 'multi-team']) {
-    assert.ok(source.includes(stage), `a SK-0 precisa nomear o estágio \`${stage}\` como o CLI o chama`);
-  }
-});
+    const source = skillSource('living-docs-bootstrap')
+    for (const stage of ['solo', 'small-team', 'production', 'multi-team']) {
+        assert.ok(
+            source.includes(stage),
+            `a SK-0 precisa nomear o estágio \`${stage}\` como o CLI o chama`
+        )
+    }
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -2413,42 +2685,49 @@ Esperado: FALHA — `multi-team` não é um `Stage`.
  * a Fase 7 (`RN-0025`, `ADR-0012`). Um rótulo sem conteúdo é a wiki morta
  * nascendo de fábrica.
  */
-export const STAGES = ['solo', 'small-team', 'production', 'multi-team'] as const;
+export const STAGES = [
+    'solo',
+    'small-team',
+    'production',
+    'multi-team'
+] as const
 
 const STAGE_PHASES: Readonly<Record<Stage, readonly number[]>> = Object.freeze({
-  solo: [0, 1],
-  'small-team': [0, 1, 2, 3, 4],
-  production: [0, 1, 2, 3, 4, 5, 6],
-  'multi-team': [0, 1, 2, 3, 4, 5, 6, 7],
-});
+    solo: [0, 1],
+    'small-team': [0, 1, 2, 3, 4],
+    production: [0, 1, 2, 3, 4, 5, 6],
+    'multi-team': [0, 1, 2, 3, 4, 5, 6, 7]
+})
 
-const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
-  solo: [],
-  'small-team': [],
-  production: [],
-  // `multi-team` cobre a Fase 7 da spec §10, e ela existe.
-  'multi-team': [],
-});
+const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
+    {
+        solo: [],
+        'small-team': [],
+        production: [],
+        // `multi-team` cobre a Fase 7 da spec §10, e ela existe.
+        'multi-team': []
+    }
+)
 
 /** Este estágio chega até a fase dada? É a pergunta que substitui comparar strings. */
 function reaches(stage: Stage, phase: number): boolean {
-  return STAGE_PHASES[stage].includes(phase);
+    return STAGE_PHASES[stage].includes(phase)
 }
 ```
 
 Em `workflowSteps`, acrescente ao fim:
 
 ```typescript
-  if (phases.includes(7)) {
+if (phases.includes(7)) {
     steps.push(
-      [
-        '',
-        '      - name: CI-7 — vínculo código→doc no diff do PR',
-        "        if: github.event_name == 'pull_request'",
-        `        run: ${invoke} validate --base \${{ github.event.pull_request.base.sha }}`,
-      ].join('\n'),
-    );
-  }
+        [
+            '',
+            '      - name: CI-7 — vínculo código→doc no diff do PR',
+            "        if: github.event_name == 'pull_request'",
+            `        run: ${invoke} validate --base \${{ github.event.pull_request.base.sha }}`
+        ].join('\n')
+    )
+}
 ```
 
 E troque cada `options.stage === 'production'` por `reaches(options.stage, 5)`
@@ -2507,6 +2786,7 @@ julgasse se aquela edição é a implementação da regra que falta estaria no l
 errado (spec §1, corolário 1).
 
 **Files:**
+
 - Create: `src/docs/blocked.ts`
 - Create: `src/hooks/hk8-open-decision-guard.ts`
 - Create: `test/docs/blocked.test.ts`
@@ -2520,15 +2800,17 @@ errado (spec §1, corolário 1).
 - Modify: `CHANGELOG.md`
 
 **Interfaces:**
+
 - Consome: `ArtifactDoc` (`src/docs/collect.ts`), `fieldOf`, `picomatch`,
   `toRepoPath`, `askOutput`, `hookEnv`, `readPayload`.
 - Produz:
-  - `BlockedClaim { id, doc, line, paths, skill, owner, gap }`
-  - `blockedClaims(docs: readonly ArtifactDoc[]): BlockedClaim[]`
-  - `claimsFor(claims, paths): { claim: BlockedClaim; matched: string[] }[]`
-  - `decideHk8(payload, env): Hk8Decision`
+    - `BlockedClaim { id, doc, line, paths, skill, owner, gap }`
+    - `blockedClaims(docs: readonly ArtifactDoc[]): BlockedClaim[]`
+    - `claimsFor(claims, paths): { claim: BlockedClaim; matched: string[] }[]`
+    - `decideHk8(payload, env): Hk8Decision`
 
 **Requisitos:**
+
 - **`ask`, nunca `deny`.** O arquivo `hk8-open-decision-guard.ts` não conhece a
   palavra `deny`, e o teste prova isso lendo a fonte.
 - O campo é **opcional**: decisão aberta sem caminho declarado continua válida e
@@ -2552,12 +2834,12 @@ CHANGELOG entra no Step 7.
 Crie `test/docs/blocked.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { blockedClaims, claimsFor } from '../../src/docs/blocked.ts';
-import { collectArtifacts } from '../../src/docs/collect.ts';
-import { loadOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { blockedClaims, claimsFor } from '../../src/docs/blocked.ts'
+import { collectArtifacts } from '../../src/docs/collect.ts'
+import { loadOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
 version: 1
@@ -2571,49 +2853,61 @@ artifacts:
       resolved-by: "Resolvida por"
       blocks: "Bloqueia"
       gap: "Lacuna"
-`;
+`
 
 const TABELA = [
-  '---',
-  'title: Open Decisions',
-  'owner: "@time"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
-  'last-reviewed: 2026-08-28',
-  '---',
-  '',
-  '| ID | Lacuna | Status | Resolvida por | Bloqueia | Aberta em |',
-  '| --- | --- | --- | --- | --- | --- |',
-  '| DA-0001 | Como arredondar centavos | open | — | `src/cobranca/**`, `src/api/checkout/**` | 2026-08-28 |',
-  '| DA-0002 | Já resolvida | resolved | ADR-0001 | `src/legado/**` | 2026-08-20 |',
-  '| DA-0003 | Sem caminho declarado | open | — | — | 2026-08-28 |',
-  '',
-].join('\n');
+    '---',
+    'title: Open Decisions',
+    'owner: "@time"',
+    'trigger: Toda vez que alguém trombou numa lacuna.',
+    'last-reviewed: 2026-08-28',
+    '---',
+    '',
+    '| ID | Lacuna | Status | Resolvida por | Bloqueia | Aberta em |',
+    '| --- | --- | --- | --- | --- | --- |',
+    '| DA-0001 | Como arredondar centavos | open | — | `src/cobranca/**`, `src/api/checkout/**` | 2026-08-28 |',
+    '| DA-0002 | Já resolvida | resolved | ADR-0001 | `src/legado/**` | 2026-08-20 |',
+    '| DA-0003 | Sem caminho declarado | open | — | — | 2026-08-28 |',
+    ''
+].join('\n')
 
 function claims(root: string) {
-  const config = loadOwnership(root);
-  return blockedClaims(collectArtifacts(root, config));
+    const config = loadOwnership(root)
+    return blockedClaims(collectArtifacts(root, config))
 }
 
 test('RN-0026: só decisão aberta com caminho declarado reivindica', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA }, (root) => {
-    const found = claims(root);
-    assert.equal(found.length, 1, JSON.stringify(found, null, 2));
-    assert.equal(found[0]?.id, 'DA-0001');
-    assert.deepEqual(found[0]?.paths, ['src/cobranca/**', 'src/api/checkout/**']);
-    assert.equal(found[0]?.skill, 'decision-recorder');
-    assert.match(found[0]?.gap ?? '', /centavos/);
-  });
-});
+    withTempRepo(
+        { [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA },
+        root => {
+            const found = claims(root)
+            assert.equal(found.length, 1, JSON.stringify(found, null, 2))
+            assert.equal(found[0]?.id, 'DA-0001')
+            assert.deepEqual(found[0]?.paths, [
+                'src/cobranca/**',
+                'src/api/checkout/**'
+            ])
+            assert.equal(found[0]?.skill, 'decision-recorder')
+            assert.match(found[0]?.gap ?? '', /centavos/)
+        }
+    )
+})
 
 test('RN-0026: claimsFor devolve o que cada reivindicação pegou', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA }, (root) => {
-    const hits = claimsFor(claims(root), ['src/cobranca/taxa.ts', 'README.md']);
-    assert.equal(hits.length, 1);
-    assert.deepEqual(hits[0]?.matched, ['src/cobranca/taxa.ts']);
+    withTempRepo(
+        { [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA },
+        root => {
+            const hits = claimsFor(claims(root), [
+                'src/cobranca/taxa.ts',
+                'README.md'
+            ])
+            assert.equal(hits.length, 1)
+            assert.deepEqual(hits[0]?.matched, ['src/cobranca/taxa.ts'])
 
-    assert.deepEqual(claimsFor(claims(root), ['README.md']), []);
-  });
-});
+            assert.deepEqual(claimsFor(claims(root), ['README.md']), [])
+        }
+    )
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -2627,9 +2921,9 @@ Esperado: FALHA — `Cannot find module '../../src/docs/blocked.ts'`.
 - [ ] **Step 3: Implementar `src/docs/blocked.ts`**
 
 ```typescript
-import picomatch from 'picomatch';
-import { fieldOf } from '../config/ownership.ts';
-import type { ArtifactDoc } from './collect.ts';
+import picomatch from 'picomatch'
+import { fieldOf } from '../config/ownership.ts'
+import type { ArtifactDoc } from './collect.ts'
 
 /**
  * Uma decisão aberta que nomeou os caminhos que ela bloqueia (`RN-0026`).
@@ -2639,91 +2933,97 @@ import type { ArtifactDoc } from './collect.ts';
  * caminho e não ser lembrado.
  */
 export interface BlockedClaim {
-  id: string;
-  /** O documento onde a decisão mora. */
-  doc: string;
-  line: number;
-  /** Os globs declarados, como o projeto os escreveu. */
-  paths: string[];
-  skill: string;
-  owner: string;
-  /** O enunciado da lacuna, quando o item o traz. */
-  gap: string | null;
+    id: string
+    /** O documento onde a decisão mora. */
+    doc: string
+    line: number
+    /** Os globs declarados, como o projeto os escreveu. */
+    paths: string[]
+    skill: string
+    owner: string
+    /** O enunciado da lacuna, quando o item o traz. */
+    gap: string | null
 }
 
-const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na', 'nenhum', 'nenhuma']);
+const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na', 'nenhum', 'nenhuma'])
 
 /** Um caminho por vírgula ou por espaço; crase é decoração de markdown. */
 function splitPaths(raw: string): string[] {
-  return raw
-    .split(/[,\s]+/)
-    .map((path) => path.replace(/`/g, '').trim())
-    .filter((path) => path !== '' && !EMPTY.has(path.toLowerCase()));
+    return raw
+        .split(/[,\s]+/)
+        .map(path => path.replace(/`/g, '').trim())
+        .filter(path => path !== '' && !EMPTY.has(path.toLowerCase()))
 }
 
 /** As reivindicações declaradas por decisões `open`, em qualquer forma de coleção. */
 export function blockedClaims(docs: readonly ArtifactDoc[]): BlockedClaim[] {
-  const claims: BlockedClaim[] = [];
+    const claims: BlockedClaim[] = []
 
-  for (const doc of docs) {
-    if (doc.rule.collection === 'per-file') {
-      const data = doc.frontmatter?.data;
-      if (data?.status !== 'open' || typeof data.id !== 'string') continue;
-      const raw = data.blocks;
-      const paths = splitPaths(Array.isArray(raw) ? raw.join(' ') : String(raw ?? ''));
-      if (paths.length === 0) continue;
+    for (const doc of docs) {
+        if (doc.rule.collection === 'per-file') {
+            const data = doc.frontmatter?.data
+            if (data?.status !== 'open' || typeof data.id !== 'string') continue
+            const raw = data.blocks
+            const paths = splitPaths(
+                Array.isArray(raw) ? raw.join(' ') : String(raw ?? '')
+            )
+            if (paths.length === 0) continue
 
-      claims.push({
-        id: data.id,
-        doc: doc.file,
-        line: doc.frontmatter?.lines.id ?? 1,
-        paths,
-        skill: doc.rule.skill,
-        owner: doc.rule.owner,
-        gap: typeof data.title === 'string' ? data.title : null,
-      });
-      continue;
+            claims.push({
+                id: data.id,
+                doc: doc.file,
+                line: doc.frontmatter?.lines.id ?? 1,
+                paths,
+                skill: doc.rule.skill,
+                owner: doc.rule.owner,
+                gap: typeof data.title === 'string' ? data.title : null
+            })
+            continue
+        }
+
+        for (const item of doc.items) {
+            if (item.status !== 'open') continue
+            const raw = fieldOf(doc.rule, item, 'blocks')
+            if (raw === null) continue
+            const paths = splitPaths(raw)
+            if (paths.length === 0) continue
+
+            claims.push({
+                id: item.id,
+                doc: doc.file,
+                line: item.line,
+                paths,
+                skill: doc.rule.skill,
+                owner: doc.rule.owner,
+                gap: fieldOf(doc.rule, item, 'gap') ?? item.fields.title ?? null
+            })
+        }
     }
 
-    for (const item of doc.items) {
-      if (item.status !== 'open') continue;
-      const raw = fieldOf(doc.rule, item, 'blocks');
-      if (raw === null) continue;
-      const paths = splitPaths(raw);
-      if (paths.length === 0) continue;
-
-      claims.push({
-        id: item.id,
-        doc: doc.file,
-        line: item.line,
-        paths,
-        skill: doc.rule.skill,
-        owner: doc.rule.owner,
-        gap: fieldOf(doc.rule, item, 'gap') ?? item.fields.title ?? null,
-      });
-    }
-  }
-
-  return claims;
+    return claims
 }
 
 /** Que reivindicações este conjunto de caminhos toca, e o que cada uma pegou. */
 export function claimsFor(
-  claims: readonly BlockedClaim[],
-  paths: readonly string[],
+    claims: readonly BlockedClaim[],
+    paths: readonly string[]
 ): { claim: BlockedClaim; matched: string[] }[] {
-  const normalized = paths.map((path) => path.replace(/\\/g, '/').replace(/^\.\//, ''));
-  const hits: { claim: BlockedClaim; matched: string[] }[] = [];
+    const normalized = paths.map(path =>
+        path.replace(/\\/g, '/').replace(/^\.\//, '')
+    )
+    const hits: { claim: BlockedClaim; matched: string[] }[] = []
 
-  for (const claim of claims) {
-    const matches = picomatch(claim.paths);
-    // O próprio documento da decisão nunca é bloqueado: quem vai resolvê-la
-    // precisa poder escrever nela.
-    const matched = normalized.filter((path) => path !== claim.doc && matches(path));
-    if (matched.length > 0) hits.push({ claim, matched });
-  }
+    for (const claim of claims) {
+        const matches = picomatch(claim.paths)
+        // O próprio documento da decisão nunca é bloqueado: quem vai resolvê-la
+        // precisa poder escrever nela.
+        const matched = normalized.filter(
+            path => path !== claim.doc && matches(path)
+        )
+        if (matched.length > 0) hits.push({ claim, matched })
+    }
 
-  return hits;
+    return hits
 }
 ```
 
@@ -2732,14 +3032,14 @@ export function claimsFor(
 Crie `test/hooks/hk8-open-decision-guard.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { decideHk8 } from '../../src/hooks/hk8-open-decision-guard.ts';
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
-import { toolkitRoot } from '../../src/core/roots.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { decideHk8 } from '../../src/hooks/hk8-open-decision-guard.ts'
+import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { toolkitRoot } from '../../src/core/roots.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
 version: 1
@@ -2752,71 +3052,98 @@ artifacts:
     field-map:
       blocks: "Bloqueia"
       gap: "Lacuna"
-`;
+`
 
 const TABELA = [
-  '---',
-  'title: Open Decisions',
-  'owner: "@time"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
-  'last-reviewed: 2026-08-28',
-  '---',
-  '',
-  '| ID | Lacuna | Status | Bloqueia | Aberta em |',
-  '| --- | --- | --- | --- | --- |',
-  '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-28 |',
-  '',
-].join('\n');
+    '---',
+    'title: Open Decisions',
+    'owner: "@time"',
+    'trigger: Toda vez que alguém trombou numa lacuna.',
+    'last-reviewed: 2026-08-28',
+    '---',
+    '',
+    '| ID | Lacuna | Status | Bloqueia | Aberta em |',
+    '| --- | --- | --- | --- | --- |',
+    '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-28 |',
+    ''
+].join('\n')
 
-const ARVORE = { [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA };
+const ARVORE = { [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA }
 
 test('RN-0026: editar caminho reivindicado pergunta, nomeando a decisão e a skill dona', () => {
-  withTempRepo(ARVORE, (root) => {
-    const decision = decideHk8(
-      { tool_name: 'Edit', tool_input: { file_path: 'src/cobranca/taxa.ts', old_string: 'a', new_string: 'b' } },
-      { root, hostRoots: [root] },
-    );
+    withTempRepo(ARVORE, root => {
+        const decision = decideHk8(
+            {
+                tool_name: 'Edit',
+                tool_input: {
+                    file_path: 'src/cobranca/taxa.ts',
+                    old_string: 'a',
+                    new_string: 'b'
+                }
+            },
+            { root, hostRoots: [root] }
+        )
 
-    assert.equal(decision.action, 'ask');
-    const reason = decision.action === 'ask' ? decision.reason : '';
-    assert.match(reason, /DA-0001/);
-    assert.match(reason, /centavos/, 'a lacuna precisa ser nomeada');
-    assert.match(reason, /decision-recorder/);
-    assert.match(reason, /docs\/open-decisions\.md/);
-  });
-});
+        assert.equal(decision.action, 'ask')
+        const reason = decision.action === 'ask' ? decision.reason : ''
+        assert.match(reason, /DA-0001/)
+        assert.match(reason, /centavos/, 'a lacuna precisa ser nomeada')
+        assert.match(reason, /decision-recorder/)
+        assert.match(reason, /docs\/open-decisions\.md/)
+    })
+})
 
 test('RN-0026: caminho não reivindicado passa em silêncio', () => {
-  withTempRepo(ARVORE, (root) => {
-    const decision = decideHk8(
-      { tool_name: 'Write', tool_input: { file_path: 'src/relatorio/pdf.ts', content: 'x' } },
-      { root, hostRoots: [root] },
-    );
-    assert.equal(decision.action, 'allow');
-  });
-});
+    withTempRepo(ARVORE, root => {
+        const decision = decideHk8(
+            {
+                tool_name: 'Write',
+                tool_input: { file_path: 'src/relatorio/pdf.ts', content: 'x' }
+            },
+            { root, hostRoots: [root] }
+        )
+        assert.equal(decision.action, 'allow')
+    })
+})
 
 test('RN-0026: escrever na própria decisão nunca é bloqueado', () => {
-  withTempRepo(ARVORE, (root) => {
-    const decision = decideHk8(
-      { tool_name: 'Edit', tool_input: { file_path: 'docs/open-decisions.md', old_string: 'open', new_string: 'resolved' } },
-      { root, hostRoots: [root] },
-    );
-    assert.equal(decision.action, 'allow');
-  });
-});
+    withTempRepo(ARVORE, root => {
+        const decision = decideHk8(
+            {
+                tool_name: 'Edit',
+                tool_input: {
+                    file_path: 'docs/open-decisions.md',
+                    old_string: 'open',
+                    new_string: 'resolved'
+                }
+            },
+            { root, hostRoots: [root] }
+        )
+        assert.equal(decision.action, 'allow')
+    })
+})
 
 test('RNF-0001: sem configuração legível, HK-8 falha aberta', () => {
-  withTempRepo({}, (root) => {
-    const decision = decideHk8({ tool_name: 'Edit', tool_input: { file_path: 'src/x.ts' } }, { root, hostRoots: [root] });
-    assert.equal(decision.action, 'allow');
-  });
-});
+    withTempRepo({}, root => {
+        const decision = decideHk8(
+            { tool_name: 'Edit', tool_input: { file_path: 'src/x.ts' } },
+            { root, hostRoots: [root] }
+        )
+        assert.equal(decision.action, 'allow')
+    })
+})
 
 test('RN-0026: HK-8 pergunta e não conhece a palavra deny', () => {
-  const source = readFileSync(join(toolkitRoot(), 'src/hooks/hk8-open-decision-guard.ts'), 'utf8');
-  assert.doesNotMatch(source, /\bdenyOutput\b/, 'hook que julga está no lugar errado (spec §1)');
-});
+    const source = readFileSync(
+        join(toolkitRoot(), 'src/hooks/hk8-open-decision-guard.ts'),
+        'utf8'
+    )
+    assert.doesNotMatch(
+        source,
+        /\bdenyOutput\b/,
+        'hook que julga está no lugar errado (spec §1)'
+    )
+})
 ```
 
 - [ ] **Step 5: Implementar `src/hooks/hk8-open-decision-guard.ts`**
@@ -2833,58 +3160,62 @@ test('RN-0026: HK-8 pergunta e não conhece a palavra deny', () => {
  * edição é a implementação da regra que falta ou outra coisa qualquer no mesmo
  * caminho, e hook que julga está no lugar errado (spec §1, corolário 1).
  */
-import { loadOwnership } from '../config/ownership.ts';
-import { collectArtifacts } from '../docs/collect.ts';
-import { blockedClaims, claimsFor } from '../docs/blocked.ts';
-import { toRepoPath } from './lib/paths.ts';
-import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts';
-import type { HookEnv, HookPayload } from './lib/io.ts';
+import { loadOwnership } from '../config/ownership.ts'
+import { collectArtifacts } from '../docs/collect.ts'
+import { blockedClaims, claimsFor } from '../docs/blocked.ts'
+import { toRepoPath } from './lib/paths.ts'
+import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts'
+import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk8Decision = { action: 'allow' } | { action: 'ask'; reason: string };
+export type Hk8Decision =
+    | { action: 'allow' }
+    | { action: 'ask'; reason: string }
 
-const ALLOW: Hk8Decision = { action: 'allow' };
+const ALLOW: Hk8Decision = { action: 'allow' }
 
 export function decideHk8(payload: HookPayload, env: HookEnv): Hk8Decision {
-  const filePath = payload.tool_input?.file_path;
-  if (typeof filePath !== 'string') return ALLOW;
+    const filePath = payload.tool_input?.file_path
+    if (typeof filePath !== 'string') return ALLOW
 
-  const repoPath = toRepoPath(filePath, env.hostRoots);
-  if (repoPath === null) return ALLOW;
+    const repoPath = toRepoPath(filePath, env.hostRoots)
+    if (repoPath === null) return ALLOW
 
-  let hits;
-  try {
-    const config = loadOwnership(env.root);
-    hits = claimsFor(blockedClaims(collectArtifacts(env.root, config)), [repoPath]);
-  } catch {
-    return ALLOW; // falha aberta (`RNF-0001`)
-  }
+    let hits
+    try {
+        const config = loadOwnership(env.root)
+        hits = claimsFor(blockedClaims(collectArtifacts(env.root, config)), [
+            repoPath
+        ])
+    } catch {
+        return ALLOW // falha aberta (`RNF-0001`)
+    }
 
-  const hit = hits[0];
-  if (hit === undefined) return ALLOW;
+    const hit = hits[0]
+    if (hit === undefined) return ALLOW
 
-  const { claim } = hit;
-  return {
-    action: 'ask',
-    reason:
-      `HK-8: \`${repoPath}\` está reivindicado por ${claim.id}, uma decisão **aberta** em ${claim.doc}` +
-      `${claim.gap === null ? '' : ` — "${claim.gap}"`}. ` +
-      `Ela bloqueia: ${claim.paths.join(', ')}. ` +
-      'Regra de origem: `RN-0026` e o critério de aceite 4 da spec §12 — comportamento sem regra escrita vira ' +
-      'decisão aberta, e a implementação não acontece enquanto ela estiver aberta. ' +
-      `Resolva a decisão primeiro (skill dona: ${claim.skill}; dono: ${claim.owner}), ou confirme que esta edição ` +
-      'não é a implementação da regra que falta.',
-  };
+    const { claim } = hit
+    return {
+        action: 'ask',
+        reason:
+            `HK-8: \`${repoPath}\` está reivindicado por ${claim.id}, uma decisão **aberta** em ${claim.doc}` +
+            `${claim.gap === null ? '' : ` — "${claim.gap}"`}. ` +
+            `Ela bloqueia: ${claim.paths.join(', ')}. ` +
+            'Regra de origem: `RN-0026` e o critério de aceite 4 da spec §12 — comportamento sem regra escrita vira ' +
+            'decisão aberta, e a implementação não acontece enquanto ela estiver aberta. ' +
+            `Resolva a decisão primeiro (skill dona: ${claim.skill}; dono: ${claim.owner}), ou confirme que esta edição ` +
+            'não é a implementação da regra que falta.'
+    }
 }
 
 async function main(): Promise<void> {
-  const payload = await readPayload();
-  if (!payload) return;
-  const decision = decideHk8(payload, hookEnv());
-  emit(decision.action === 'ask' ? askOutput(decision.reason) : null);
+    const payload = await readPayload()
+    if (!payload) return
+    const decision = decideHk8(payload, hookEnv())
+    emit(decision.action === 'ask' ? askOutput(decision.reason) : null)
 }
 
 if (process.argv[1]?.endsWith('hk8-open-decision-guard.ts')) {
-  main().catch(() => process.exit(0));
+    main().catch(() => process.exit(0))
 }
 ```
 
@@ -2894,12 +3225,12 @@ Em `plugin/hooks/hooks.json`, no grupo `PreToolUse` / `Edit|Write`, depois de
 `hk3-state-promotion`:
 
 ```json
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk8-open-decision-guard",
-            "shell": "bash",
-            "async": false
-          }
+{
+    "type": "command",
+    "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk8-open-decision-guard",
+    "shell": "bash",
+    "async": false
+}
 ```
 
 Em `test/plugin/manifest.test.ts`, o esperado passa a ser:
@@ -2918,18 +3249,18 @@ A coluna **Bloqueia** é opcional: quando preenchida com os caminhos que a lacun
 impede de implementar, `HK-8` pergunta na edição e `CI-7` reprova no diff
 (`RN-0026`). Vazia (`—`), a decisão continua válida e não bloqueia nada.
 
-| ID | Lacuna | Status | Resolvida por | Bloqueia | Aberta em |
-| --- | --- | --- | --- | --- | --- |
+| ID  | Lacuna | Status | Resolvida por | Bloqueia | Aberta em |
+| --- | ------ | ------ | ------------- | -------- | --------- |
 ```
 
 Em `templates/ownership.yml` e em `docs/.ownership.yml`, o `field-map` do
 artefato DA ganha as duas linhas:
 
 ```yaml
-    field-map:
-      resolved-by: "Resolvida por"
-      blocks: "Bloqueia"
-      gap: "Lacuna"
+field-map:
+    resolved-by: 'Resolvida por'
+    blocks: 'Bloqueia'
+    gap: 'Lacuna'
 ```
 
 E em `docs/open-decisions.md`, acrescente a coluna ao cabeçalho, ao separador e
@@ -2966,6 +3297,7 @@ metades do `CI-7` já aceitam. E o critério de aceite 4 da spec original — qu
 nunca teve teste — passa a ter.
 
 **Files:**
+
 - Modify: `src/checks/ci7-ownership-coverage.ts` (sexta classe de achado)
 - Modify: `src/checks/catalog.ts` (`failsWhen` de `CI-7`)
 - Modify: `docs/contracts/checks.gen.md` (**regerado**, nunca editado)
@@ -2974,12 +3306,14 @@ nunca teve teste — passa a ter.
 - Modify: `CHANGELOG.md`
 
 **Interfaces:**
+
 - Consome: `blockedClaims`, `claimsFor` (Task 9); `docsExceptionReason`,
   `DiffFacts`.
 - Produz: nenhuma assinatura nova — `ci7OwnershipCoverage(diff)` ganha uma classe
   de achado.
 
 **Requisitos:**
+
 - A classe nova só existe **com diff** (`validate --base`), como a quinta. Sem
   base não há diff, e inventar um produziria achado sobre mudança que não é
   desta branch.
@@ -3003,73 +3337,95 @@ Acrescente a `test/acceptance/spec-criteria.test.ts` (e o import
 
 ```typescript
 const DECISAO_BLOQUEANTE = [
-  'version: 1',
-  'artifacts:',
-  '  - id-prefix: DA',
-  '    path: docs/open-decisions.md',
-  '    owner: "@time"',
-  '    skill: decision-recorder',
-  '    collection: table',
-  '    field-map:',
-  '      blocks: "Bloqueia"',
-  '      gap: "Lacuna"',
-  'documents:',
-  '  - path: docs/.ownership.yml',
-  '    owner: "@time"',
-  '    skill: living-docs-bootstrap',
-  '',
-].join('\n');
+    'version: 1',
+    'artifacts:',
+    '  - id-prefix: DA',
+    '    path: docs/open-decisions.md',
+    '    owner: "@time"',
+    '    skill: decision-recorder',
+    '    collection: table',
+    '    field-map:',
+    '      blocks: "Bloqueia"',
+    '      gap: "Lacuna"',
+    'documents:',
+    '  - path: docs/.ownership.yml',
+    '    owner: "@time"',
+    '    skill: living-docs-bootstrap',
+    ''
+].join('\n')
 
 const DECISOES = [
-  '---',
-  'title: Open Decisions',
-  'owner: "@time"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
-  'last-reviewed: 2026-08-28',
-  '---',
-  '',
-  '| ID | Lacuna | Status | Bloqueia | Aberta em |',
-  '| --- | --- | --- | --- | --- |',
-  '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-28 |',
-  '',
-].join('\n');
+    '---',
+    'title: Open Decisions',
+    'owner: "@time"',
+    'trigger: Toda vez que alguém trombou numa lacuna.',
+    'last-reviewed: 2026-08-28',
+    '---',
+    '',
+    '| ID | Lacuna | Status | Bloqueia | Aberta em |',
+    '| --- | --- | --- | --- | --- |',
+    '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-28 |',
+    ''
+].join('\n')
 
 test('critério 4 da spec §12: comportamento sem regra é perguntado na edição e reprovado no diff', () => {
-  const arvore = {
-    [OWNERSHIP_PATH]: DECISAO_BLOQUEANTE,
-    CODEOWNERS: 'docs/    @time\n',
-    'docs/open-decisions.md': DECISOES,
-  };
+    const arvore = {
+        [OWNERSHIP_PATH]: DECISAO_BLOQUEANTE,
+        CODEOWNERS: 'docs/    @time\n',
+        'docs/open-decisions.md': DECISOES
+    }
 
-  const git = (changed: string[], messages: string[]) => (args: readonly string[]): string =>
-    args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n';
+    const git =
+        (changed: string[], messages: string[]) =>
+        (args: readonly string[]): string =>
+            args.includes('diff')
+                ? changed.join(NUL) + NUL
+                : messages.join(`${NUL}\n`) + NUL + '\n'
 
-  withTempRepo(arvore, (root) => {
-    // Metade 1 — na edição, HK-8 pergunta nomeando a decisão.
-    const pergunta = decideHk8(
-      { tool_name: 'Edit', tool_input: { file_path: 'src/cobranca/taxa.ts', old_string: 'a', new_string: 'b' } },
-      { root, hostRoots: [root] },
-    );
-    assert.equal(pergunta.action, 'ask');
-    assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /DA-0001/);
+    withTempRepo(arvore, root => {
+        // Metade 1 — na edição, HK-8 pergunta nomeando a decisão.
+        const pergunta = decideHk8(
+            {
+                tool_name: 'Edit',
+                tool_input: {
+                    file_path: 'src/cobranca/taxa.ts',
+                    old_string: 'a',
+                    new_string: 'b'
+                }
+            },
+            { root, hostRoots: [root] }
+        )
+        assert.equal(pergunta.action, 'ask')
+        assert.match(
+            pergunta.action === 'ask' ? pergunta.reason : '',
+            /DA-0001/
+        )
 
-    // Metade 2 — no diff, CI-7 reprova.
-    const reprovado = runValidate(root, 'origin/master', git(['src/cobranca/taxa.ts'], ['feat: centavos']));
-    const finding = reprovado.findings.find((f) => f.ruleId === 'CI-7' && /DA-0001/.test(f.message));
-    assert.ok(finding, JSON.stringify(reprovado.findings, null, 2));
-    assert.equal(reprovado.exitCode, 1);
+        // Metade 2 — no diff, CI-7 reprova.
+        const reprovado = runValidate(
+            root,
+            'origin/master',
+            git(['src/cobranca/taxa.ts'], ['feat: centavos'])
+        )
+        const finding = reprovado.findings.find(
+            f => f.ruleId === 'CI-7' && /DA-0001/.test(f.message)
+        )
+        assert.ok(finding, JSON.stringify(reprovado.findings, null, 2))
+        assert.equal(reprovado.exitCode, 1)
 
-    // E a razão escrita é a única saída.
-    const comRazao = git(
-      ['src/cobranca/taxa.ts'],
-      ['refactor: renomeia interno\n\nDocs: none — não é a implementação da regra que falta'],
-    );
-    assert.equal(runValidate(root, 'origin/master', comRazao).exitCode, 0);
+        // E a razão escrita é a única saída.
+        const comRazao = git(
+            ['src/cobranca/taxa.ts'],
+            [
+                'refactor: renomeia interno\n\nDocs: none — não é a implementação da regra que falta'
+            ]
+        )
+        assert.equal(runValidate(root, 'origin/master', comRazao).exitCode, 0)
 
-    // Sem base, esta metade não roda.
-    assert.equal(runValidate(root).exitCode, 0);
-  });
-});
+        // Sem base, esta metade não roda.
+        assert.equal(runValidate(root).exitCode, 0)
+    })
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -3087,24 +3443,28 @@ Em `src/checks/ci7-ownership-coverage.ts`, dentro do mesmo
 do laço de `pendingDocs`:
 
 ```typescript
-        // 6 — caminho reivindicado por decisão aberta (`RN-0026`).
-        for (const { claim, matched } of claimsFor(blockedClaims(context.docs), diff.changed)) {
-          const levados =
-            matched.slice(0, 5).join(', ') + (matched.length > 5 ? `, … (+${matched.length - 5})` : '');
+// 6 — caminho reivindicado por decisão aberta (`RN-0026`).
+for (const { claim, matched } of claimsFor(
+    blockedClaims(context.docs),
+    diff.changed
+)) {
+    const levados =
+        matched.slice(0, 5).join(', ') +
+        (matched.length > 5 ? `, … (+${matched.length - 5})` : '')
 
-          findings.push(
-            error(
-              claim.doc,
-              claim.line,
-              `O diff \`${diff.base}...HEAD\` toca caminho reivindicado por ${claim.id}, que está \`open\`` +
+    findings.push(
+        error(
+            claim.doc,
+            claim.line,
+            `O diff \`${diff.base}...HEAD\` toca caminho reivindicado por ${claim.id}, que está \`open\`` +
                 `${claim.gap === null ? '' : ` — "${claim.gap}"`}: ${levados}.`,
-              `Resolva ${claim.id} antes de implementar (skill dona: ${claim.skill}) — enquanto a decisão está ` +
+            `Resolva ${claim.id} antes de implementar (skill dona: ${claim.skill}) — enquanto a decisão está ` +
                 'aberta não há regra, e a saída é o ID, não o código. Se esta mudança não é a implementação da ' +
                 'regra que falta, escreva a razão numa mensagem de commit, no formato `Docs: none — <razão>` ' +
-                '(`RN-0026`, `ADR-0010`).',
-            ),
-          );
-        }
+                '(`RN-0026`, `ADR-0010`).'
+        )
+    )
+}
 ```
 
 Com o import `import { blockedClaims, claimsFor } from '../docs/blocked.ts';` e o
@@ -3160,6 +3520,7 @@ em massa de `last-reviewed` (§2 regra 3, §13) e o commit que altera artefato s
 citar o ID afetado (§11). Fecha os critérios de aceite 7 e 8.
 
 **Files:**
+
 - Modify: `src/git/diff.ts` (`FileEdit`, `changedLines`)
 - Modify: `src/config/ownership.ts` (`last-reviewed-bump-limit`)
 - Create: `src/checks/ci9-commit-discipline.ts`
@@ -3175,20 +3536,22 @@ citar o ID afetado (§11). Fecha os critérios de aceite 7 e 8.
 - Modify: `CHANGELOG.md`
 
 **Interfaces:**
+
 - Consome: `DiffFacts` (`src/checks/ci6-changelog-required.ts`), `git()` e
   `runGitDiff` (`src/git/diff.ts`), `findArtifactRule`, `parseId`,
   `canonicalId`, `findCitations`.
 - Produz:
-  - `interface FileEdit { path: string; added: string[]; removed: string[] }`
-  - `changedLines(root: string, base: string, run?: GitRunner): FileEdit[]`
-  - `interface CommitFacts extends DiffFacts { edits: readonly FileEdit[] }`
-  - `isPureDateBump(edit: FileEdit): boolean`
-  - `declaredIds(doc: ArtifactDoc, format: IdFormat): string[]` — canônicos
-  - `ci9CommitDiscipline(facts: CommitFacts | null): Check`
-  - `OwnershipConfig.lastReviewedBumpLimit: number` e `DEFAULT_BUMP_LIMIT`
-  - `validateChecks(diff: CommitFacts | null)` — a assinatura estreita
+    - `interface FileEdit { path: string; added: string[]; removed: string[] }`
+    - `changedLines(root: string, base: string, run?: GitRunner): FileEdit[]`
+    - `interface CommitFacts extends DiffFacts { edits: readonly FileEdit[] }`
+    - `isPureDateBump(edit: FileEdit): boolean`
+    - `declaredIds(doc: ArtifactDoc, format: IdFormat): string[]` — canônicos
+    - `ci9CommitDiscipline(facts: CommitFacts | null): Check`
+    - `OwnershipConfig.lastReviewedBumpLimit: number` e `DEFAULT_BUMP_LIMIT`
+    - `validateChecks(diff: CommitFacts | null)` — a assinatura estreita
 
 **Requisitos:**
+
 - **O check só existe com diff.** Sem `--base` não há commit para ler, e
   inventar um produziria achado sobre mudança que não é desta branch — a mesma
   regra das duas metades do diff no `CI-7` (`ADR-0010`).
@@ -3217,49 +3580,49 @@ Acrescente a `test/git/diff.test.ts`, e ao import do topo acrescente
 
 ```typescript
 const PATCH = [
-  'diff --git a/docs/glossary.md b/docs/glossary.md',
-  'index 1111111..2222222 100644',
-  '--- a/docs/glossary.md',
-  '+++ b/docs/glossary.md',
-  '@@ -6 +6 @@',
-  '-last-reviewed: 2026-01-01',
-  '+last-reviewed: 2026-08-31',
-  'diff --git a/docs/apagado.md b/docs/apagado.md',
-  'deleted file mode 100644',
-  '--- a/docs/apagado.md',
-  '+++ /dev/null',
-  '@@ -1,2 +0,0 @@',
-  '-titulo',
-  '--- isto e conteudo removido, nao cabecalho',
-  '',
-].join('\n');
+    'diff --git a/docs/glossary.md b/docs/glossary.md',
+    'index 1111111..2222222 100644',
+    '--- a/docs/glossary.md',
+    '+++ b/docs/glossary.md',
+    '@@ -6 +6 @@',
+    '-last-reviewed: 2026-01-01',
+    '+last-reviewed: 2026-08-31',
+    'diff --git a/docs/apagado.md b/docs/apagado.md',
+    'deleted file mode 100644',
+    '--- a/docs/apagado.md',
+    '+++ /dev/null',
+    '@@ -1,2 +0,0 @@',
+    '-titulo',
+    '--- isto e conteudo removido, nao cabecalho',
+    ''
+].join('\n')
 
 test('RN-0027: changedLines separa por arquivo e nao confunde conteudo com cabecalho', () => {
-  const git = fake(PATCH);
-  const edits = changedLines('/repo', 'origin/master', git.run);
+    const git = fake(PATCH)
+    const edits = changedLines('/repo', 'origin/master', git.run)
 
-  // O arquivo apagado nao vira edicao: `+++ /dev/null` nao abre secao, e as
-  // linhas removidas dele nao vazam para o arquivo anterior.
-  assert.deepEqual(edits, [
-    {
-      path: 'docs/glossary.md',
-      added: ['last-reviewed: 2026-08-31'],
-      removed: ['last-reviewed: 2026-01-01'],
-    },
-  ]);
+    // O arquivo apagado nao vira edicao: `+++ /dev/null` nao abre secao, e as
+    // linhas removidas dele nao vazam para o arquivo anterior.
+    assert.deepEqual(edits, [
+        {
+            path: 'docs/glossary.md',
+            added: ['last-reviewed: 2026-08-31'],
+            removed: ['last-reviewed: 2026-01-01']
+        }
+    ])
 
-  assert.deepEqual(git.calls[0], [
-    '-c',
-    'safe.directory=*',
-    '-c',
-    'core.quotePath=false',
-    'diff',
-    '--unified=0',
-    '--no-color',
-    '--no-renames',
-    'origin/master...HEAD',
-  ]);
-});
+    assert.deepEqual(git.calls[0], [
+        '-c',
+        'safe.directory=*',
+        '-c',
+        'core.quotePath=false',
+        'diff',
+        '--unified=0',
+        '--no-color',
+        '--no-renames',
+        'origin/master...HEAD'
+    ])
+})
 ```
 
 - [x] **Step 2: Rodar e ver falhar**
@@ -3277,14 +3640,14 @@ Ao fim de `src/git/diff.ts`:
 ```typescript
 /** O que um arquivo ganhou e perdeu neste diff. Ordem de leitura, sem contexto. */
 export interface FileEdit {
-  /** Caminho relativo à raiz, sempre com `/`. */
-  path: string;
-  added: string[];
-  removed: string[];
+    /** Caminho relativo à raiz, sempre com `/`. */
+    path: string
+    added: string[]
+    removed: string[]
 }
 
 /** Só o cabeçalho de destino abre seção — `+++ /dev/null` (remoção) não abre. */
-const FILE_HEADER = /^\+\+\+ b\/(.+)$/;
+const FILE_HEADER = /^\+\+\+ b\/(.+)$/
 
 /**
  * O diff linha a linha, por arquivo (`RN-0027`).
@@ -3299,42 +3662,58 @@ const FILE_HEADER = /^\+\+\+ b\/(.+)$/;
  * `--` é escrita como `--- ...`, idêntica a um cabeçalho de origem. Só depois de
  * um `@@` uma linha é conteúdo.
  */
-export function changedLines(root: string, base: string, run: GitRunner = runGitDiff): FileEdit[] {
-  const output = git(
-    ['-c', 'core.quotePath=false', 'diff', '--unified=0', '--no-color', '--no-renames', `${base}...HEAD`],
-    root,
-    run,
-    `git diff --unified=0 ${base}...HEAD`,
-  );
+export function changedLines(
+    root: string,
+    base: string,
+    run: GitRunner = runGitDiff
+): FileEdit[] {
+    const output = git(
+        [
+            '-c',
+            'core.quotePath=false',
+            'diff',
+            '--unified=0',
+            '--no-color',
+            '--no-renames',
+            `${base}...HEAD`
+        ],
+        root,
+        run,
+        `git diff --unified=0 ${base}...HEAD`
+    )
 
-  const edits: FileEdit[] = [];
-  let current: FileEdit | null = null;
-  let inHunk = false;
+    const edits: FileEdit[] = []
+    let current: FileEdit | null = null
+    let inHunk = false
 
-  for (const line of output.split('\n')) {
-    if (line.startsWith('diff --git ')) {
-      current = null;
-      inHunk = false;
-      continue;
+    for (const line of output.split('\n')) {
+        if (line.startsWith('diff --git ')) {
+            current = null
+            inHunk = false
+            continue
+        }
+        if (line.startsWith('@@')) {
+            inHunk = true
+            continue
+        }
+        if (!inHunk) {
+            const path = FILE_HEADER.exec(line)?.[1]
+            if (path !== undefined) {
+                current = {
+                    path: path.replace(/\\/g, '/'),
+                    added: [],
+                    removed: []
+                }
+                edits.push(current)
+            }
+            continue
+        }
+        if (current === null) continue
+        if (line.startsWith('+')) current.added.push(line.slice(1))
+        else if (line.startsWith('-')) current.removed.push(line.slice(1))
     }
-    if (line.startsWith('@@')) {
-      inHunk = true;
-      continue;
-    }
-    if (!inHunk) {
-      const path = FILE_HEADER.exec(line)?.[1];
-      if (path !== undefined) {
-        current = { path: path.replace(/\\/g, '/'), added: [], removed: [] };
-        edits.push(current);
-      }
-      continue;
-    }
-    if (current === null) continue;
-    if (line.startsWith('+')) current.added.push(line.slice(1));
-    else if (line.startsWith('-')) current.removed.push(line.slice(1));
-  }
 
-  return edits;
+    return edits
 }
 ```
 
@@ -3351,12 +3730,15 @@ Esperado: PASSA.
 Crie `test/checks/ci9-commit-discipline.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { ci9CommitDiscipline, isPureDateBump } from '../../src/checks/ci9-commit-discipline.ts';
-import { parseOwnership } from '../../src/config/ownership.ts';
-import { collectArtifacts } from '../../src/docs/collect.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import {
+    ci9CommitDiscipline,
+    isPureDateBump
+} from '../../src/checks/ci9-commit-discipline.ts'
+import { parseOwnership } from '../../src/config/ownership.ts'
+import { collectArtifacts } from '../../src/docs/collect.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const OWNERSHIP = `
 version: 1
@@ -3370,172 +3752,215 @@ artifacts:
     path: docs/decisions/adr/
     owner: "@time"
     skill: decision-recorder
-`;
+`
 
 const REGRAS = [
-  '---',
-  'title: Regras',
-  'owner: "@time"',
-  'trigger: Antes de implementar comportamento novo.',
-  'last-reviewed: 2026-08-31',
-  '---',
-  '',
-  '## RN-0001 — Centavos arredondam para cima',
-  '',
-  '- **status:** active',
-  '',
-  'Prosa.',
-  '',
-].join('\n');
+    '---',
+    'title: Regras',
+    'owner: "@time"',
+    'trigger: Antes de implementar comportamento novo.',
+    'last-reviewed: 2026-08-31',
+    '---',
+    '',
+    '## RN-0001 — Centavos arredondam para cima',
+    '',
+    '- **status:** active',
+    '',
+    'Prosa.',
+    ''
+].join('\n')
 
-const ARVORE = { 'docs/requirements/rules.md': REGRAS };
+const ARVORE = { 'docs/requirements/rules.md': REGRAS }
 
 function contextFor(root: string, ownership = OWNERSHIP) {
-  const config = parseOwnership(ownership);
-  return { root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-31' };
+    const config = parseOwnership(ownership)
+    return {
+        root,
+        config,
+        docs: collectArtifacts(root, config),
+        documents: [],
+        today: '2026-08-31'
+    }
 }
 
 /** Uma edição que só mexeu na data de revisão. */
 function bump(path: string) {
-  return { path, added: ['last-reviewed: 2026-08-31'], removed: ['last-reviewed: 2026-01-01'] };
+    return {
+        path,
+        added: ['last-reviewed: 2026-08-31'],
+        removed: ['last-reviewed: 2026-01-01']
+    }
 }
 
 test('RN-0027: tres documentos que so mudaram a data reprovam, nomeando o anti-requisito', () => {
-  withTempRepo(ARVORE, (root) => {
-    const findings = ci9CommitDiscipline({
-      base: 'origin/master',
-      changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
-      messages: ['chore: revisao da documentacao'],
-      edits: [bump('docs/a.md'), bump('docs/b.md'), bump('docs/c.md')],
-    }).run(contextFor(root));
+    withTempRepo(ARVORE, root => {
+        const findings = ci9CommitDiscipline({
+            base: 'origin/master',
+            changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
+            messages: ['chore: revisao da documentacao'],
+            edits: [bump('docs/a.md'), bump('docs/b.md'), bump('docs/c.md')]
+        }).run(contextFor(root))
 
-    const bumpFinding = findings.find((f) => /last-reviewed/.test(f.message));
-    assert.ok(bumpFinding, JSON.stringify(findings, null, 2));
-    assert.equal(bumpFinding?.ruleId, 'CI-9');
-    assert.equal(bumpFinding?.severity, 'error');
-    assert.match(bumpFinding?.message ?? '', /docs\/a\.md/);
-    assert.match(bumpFinding?.message ?? '', /docs\/c\.md/);
-  });
-});
+        const bumpFinding = findings.find(f => /last-reviewed/.test(f.message))
+        assert.ok(bumpFinding, JSON.stringify(findings, null, 2))
+        assert.equal(bumpFinding?.ruleId, 'CI-9')
+        assert.equal(bumpFinding?.severity, 'error')
+        assert.match(bumpFinding?.message ?? '', /docs\/a\.md/)
+        assert.match(bumpFinding?.message ?? '', /docs\/c\.md/)
+    })
+})
 
 test('RN-0027: dois bumps passam, e documento que mudou de verdade nunca conta', () => {
-  withTempRepo(ARVORE, (root) => {
-    const doisBumps = ci9CommitDiscipline({
-      base: 'origin/master',
-      changed: ['docs/a.md', 'docs/b.md'],
-      messages: ['docs: revisao'],
-      edits: [bump('docs/a.md'), bump('docs/b.md')],
-    }).run(contextFor(root));
-    assert.deepEqual(doisBumps.filter((f) => /last-reviewed/.test(f.message)), []);
+    withTempRepo(ARVORE, root => {
+        const doisBumps = ci9CommitDiscipline({
+            base: 'origin/master',
+            changed: ['docs/a.md', 'docs/b.md'],
+            messages: ['docs: revisao'],
+            edits: [bump('docs/a.md'), bump('docs/b.md')]
+        }).run(contextFor(root))
+        assert.deepEqual(
+            doisBumps.filter(f => /last-reviewed/.test(f.message)),
+            []
+        )
 
-    // Tres documentos tocados, mas um deles mudou no corpo: revisao de verdade.
-    const comCorpo = ci9CommitDiscipline({
-      base: 'origin/master',
-      changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
-      messages: ['docs: revisao'],
-      edits: [
-        bump('docs/a.md'),
-        bump('docs/b.md'),
-        {
-          path: 'docs/c.md',
-          added: ['last-reviewed: 2026-08-31', 'paragrafo novo'],
-          removed: ['last-reviewed: 2026-01-01'],
-        },
-      ],
-    }).run(contextFor(root));
-    assert.deepEqual(comCorpo.filter((f) => /last-reviewed/.test(f.message)), []);
-  });
-});
+        // Tres documentos tocados, mas um deles mudou no corpo: revisao de verdade.
+        const comCorpo = ci9CommitDiscipline({
+            base: 'origin/master',
+            changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
+            messages: ['docs: revisao'],
+            edits: [
+                bump('docs/a.md'),
+                bump('docs/b.md'),
+                {
+                    path: 'docs/c.md',
+                    added: ['last-reviewed: 2026-08-31', 'paragrafo novo'],
+                    removed: ['last-reviewed: 2026-01-01']
+                }
+            ]
+        }).run(contextFor(root))
+        assert.deepEqual(
+            comCorpo.filter(f => /last-reviewed/.test(f.message)),
+            []
+        )
+    })
+})
 
 test('RN-0027: o limiar e configuravel, e o padrao e tres', () => {
-  withTempRepo(ARVORE, (root) => {
-    const facts = {
-      base: 'origin/master',
-      changed: ['docs/a.md', 'docs/b.md'],
-      messages: ['docs: revisao'],
-      edits: [bump('docs/a.md'), bump('docs/b.md')],
-    };
-    const comLimiar2 = ci9CommitDiscipline(facts).run(
-      contextFor(root, `${OWNERSHIP}last-reviewed-bump-limit: 2\n`),
-    );
-    assert.ok(comLimiar2.some((f) => /last-reviewed/.test(f.message)));
-  });
-});
+    withTempRepo(ARVORE, root => {
+        const facts = {
+            base: 'origin/master',
+            changed: ['docs/a.md', 'docs/b.md'],
+            messages: ['docs: revisao'],
+            edits: [bump('docs/a.md'), bump('docs/b.md')]
+        }
+        const comLimiar2 = ci9CommitDiscipline(facts).run(
+            contextFor(root, `${OWNERSHIP}last-reviewed-bump-limit: 2\n`)
+        )
+        assert.ok(comLimiar2.some(f => /last-reviewed/.test(f.message)))
+    })
+})
 
 test('RN-0028: commit que altera artefato sem citar o ID declarado nele reprova', () => {
-  withTempRepo(ARVORE, (root) => {
-    const findings = ci9CommitDiscipline({
-      base: 'origin/master',
-      changed: ['docs/requirements/rules.md'],
-      messages: ['docs: ajusta a prosa da regra'],
-      edits: [],
-    }).run(contextFor(root));
+    withTempRepo(ARVORE, root => {
+        const findings = ci9CommitDiscipline({
+            base: 'origin/master',
+            changed: ['docs/requirements/rules.md'],
+            messages: ['docs: ajusta a prosa da regra'],
+            edits: []
+        }).run(contextFor(root))
 
-    assert.equal(findings.length, 1);
-    assert.equal(findings[0]?.file, 'docs/requirements/rules.md');
-    assert.match(findings[0]?.message ?? '', /RN-0001/);
-    assert.match(findings[0]?.fix ?? '', /mensagem de commit/);
-  });
-});
+        assert.equal(findings.length, 1)
+        assert.equal(findings[0]?.file, 'docs/requirements/rules.md')
+        assert.match(findings[0]?.message ?? '', /RN-0001/)
+        assert.match(findings[0]?.fix ?? '', /mensagem de commit/)
+    })
+})
 
 test('RN-0028: basta uma mensagem do diff citar um dos IDs do arquivo', () => {
-  withTempRepo(ARVORE, (root) => {
-    const findings = ci9CommitDiscipline({
-      base: 'origin/master',
-      changed: ['docs/requirements/rules.md'],
-      messages: ['chore: mexe em outra coisa', 'docs(RN-0001): a regra ganha o caso do negativo'],
-      edits: [],
-    }).run(contextFor(root));
+    withTempRepo(ARVORE, root => {
+        const findings = ci9CommitDiscipline({
+            base: 'origin/master',
+            changed: ['docs/requirements/rules.md'],
+            messages: [
+                'chore: mexe em outra coisa',
+                'docs(RN-0001): a regra ganha o caso do negativo'
+            ],
+            edits: []
+        }).run(contextFor(root))
 
-    assert.deepEqual(findings, []);
-  });
-});
+        assert.deepEqual(findings, [])
+    })
+})
 
 test('RN-0028: arquivo que nao e artefato, e artefato ausente, nao sao cobrados', () => {
-  withTempRepo(ARVORE, (root) => {
-    const findings = ci9CommitDiscipline({
-      base: 'origin/master',
-      changed: ['src/cli/index.ts', 'docs/decisions/adr/ADR-0001-apagado.md'],
-      messages: ['refactor: renomeia interno'],
-      edits: [],
-    }).run(contextFor(root));
+    withTempRepo(ARVORE, root => {
+        const findings = ci9CommitDiscipline({
+            base: 'origin/master',
+            changed: [
+                'src/cli/index.ts',
+                'docs/decisions/adr/ADR-0001-apagado.md'
+            ],
+            messages: ['refactor: renomeia interno'],
+            edits: []
+        }).run(contextFor(root))
 
-    assert.deepEqual(findings, []);
-  });
-});
+        assert.deepEqual(findings, [])
+    })
+})
 
 test('RN-0024: a citacao e comparada por identidade, nao pela forma escrita', () => {
-  withTempRepo(
-    { 'docs/requirements/rules.md': REGRAS.replace('## RN-0001', '## RN001') },
-    (root) => {
-      // O projeto escreve `RN001`; o commit cita `RN001`. Mesma identidade que
-      // `RN-0001` teria — e quem compara e `canonicalId`, nao a forma escrita.
-      const findings = ci9CommitDiscipline({
-        base: 'origin/master',
-        changed: ['docs/requirements/rules.md'],
-        messages: ['docs(RN001): a regra ganha o caso do negativo'],
-        edits: [],
-      }).run(contextFor(root, `${OWNERSHIP}id-format:\n  separator: ""\n  padding: 3\n`));
+    withTempRepo(
+        {
+            'docs/requirements/rules.md': REGRAS.replace(
+                '## RN-0001',
+                '## RN001'
+            )
+        },
+        root => {
+            // O projeto escreve `RN001`; o commit cita `RN001`. Mesma identidade que
+            // `RN-0001` teria — e quem compara e `canonicalId`, nao a forma escrita.
+            const findings = ci9CommitDiscipline({
+                base: 'origin/master',
+                changed: ['docs/requirements/rules.md'],
+                messages: ['docs(RN001): a regra ganha o caso do negativo'],
+                edits: []
+            }).run(
+                contextFor(
+                    root,
+                    `${OWNERSHIP}id-format:\n  separator: ""\n  padding: 3\n`
+                )
+            )
 
-      assert.deepEqual(findings, []);
-    },
-  );
-});
+            assert.deepEqual(findings, [])
+        }
+    )
+})
 
 test('ADR-0010: sem diff, CI-9 nao tem o que dizer', () => {
-  withTempRepo(ARVORE, (root) => {
-    assert.deepEqual(ci9CommitDiscipline(null).run(contextFor(root)), []);
-  });
-});
+    withTempRepo(ARVORE, root => {
+        assert.deepEqual(ci9CommitDiscipline(null).run(contextFor(root)), [])
+    })
+})
 
 test('RN-0027: isPureDateBump e so a data, e nada mais', () => {
-  assert.equal(isPureDateBump(bump('docs/a.md')), true);
-  assert.equal(
-    isPureDateBump({ path: 'docs/a.md', added: ['last-reviewed: x', 'outra'], removed: ['last-reviewed: y'] }),
-    false,
-  );
-  assert.equal(isPureDateBump({ path: 'docs/a.md', added: ['titulo'], removed: ['titulo antigo'] }), false);
-});
+    assert.equal(isPureDateBump(bump('docs/a.md')), true)
+    assert.equal(
+        isPureDateBump({
+            path: 'docs/a.md',
+            added: ['last-reviewed: x', 'outra'],
+            removed: ['last-reviewed: y']
+        }),
+        false
+    )
+    assert.equal(
+        isPureDateBump({
+            path: 'docs/a.md',
+            added: ['titulo'],
+            removed: ['titulo antigo']
+        }),
+        false
+    )
+})
 ```
 
 - [x] **Step 6: Rodar e ver falhar**
@@ -3552,8 +3977,8 @@ Em `src/config/ownership.ts`, no `OwnershipConfig`, logo abaixo de
 `staleAfterMonths`:
 
 ```typescript
-  /** Quantos documentos com bump de data seco reprovam (`ADR-0013`, `RN-0027`). */
-  lastReviewedBumpLimit: number;
+/** Quantos documentos com bump de data seco reprovam (`ADR-0013`, `RN-0027`). */
+lastReviewedBumpLimit: number
 ```
 
 Antes de `parseOwnership`:
@@ -3563,17 +3988,17 @@ Antes de `parseOwnership`:
  * O limiar de bump em massa (`ADR-0013`). Piso 2, e não 1: um documento revisado
  * de verdade atualiza a data, e limiar 1 reprovaria o mecanismo funcionando.
  */
-export const DEFAULT_BUMP_LIMIT = 3;
+export const DEFAULT_BUMP_LIMIT = 3
 
 function parseBumpLimit(raw: unknown): number {
-  if (raw === undefined || raw === null) return DEFAULT_BUMP_LIMIT;
-  if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
-    throw new OwnershipError(
-      `${OWNERSHIP_PATH}: last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 ` +
-        '(limiar 1 reprovaria a revisão legítima de um documento só — ADR-0013).',
-    );
-  }
-  return raw;
+    if (raw === undefined || raw === null) return DEFAULT_BUMP_LIMIT
+    if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
+        throw new OwnershipError(
+            `${OWNERSHIP_PATH}: last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 ` +
+                '(limiar 1 reprovaria a revisão legítima de um documento só — ADR-0013).'
+        )
+    }
+    return raw
 }
 ```
 
@@ -3587,11 +4012,19 @@ Acrescente a `test/config/ownership.test.ts`:
 
 ```typescript
 test('RN-0027: last-reviewed-bump-limit tem padrao 3 e piso 2', () => {
-  const base = 'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/adr/\n    owner: "@t"\n    skill: s\n';
-  assert.equal(parseOwnership(base).lastReviewedBumpLimit, 3);
-  assert.equal(parseOwnership(`${base}last-reviewed-bump-limit: 5\n`).lastReviewedBumpLimit, 5);
-  assert.throws(() => parseOwnership(`${base}last-reviewed-bump-limit: 1\n`), /maior ou igual a 2/);
-});
+    const base =
+        'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/adr/\n    owner: "@t"\n    skill: s\n'
+    assert.equal(parseOwnership(base).lastReviewedBumpLimit, 3)
+    assert.equal(
+        parseOwnership(`${base}last-reviewed-bump-limit: 5\n`)
+            .lastReviewedBumpLimit,
+        5
+    )
+    assert.throws(
+        () => parseOwnership(`${base}last-reviewed-bump-limit: 1\n`),
+        /maior ou igual a 2/
+    )
+})
 ```
 
 - [x] **Step 8: Implementar `CI-9`**
@@ -3599,16 +4032,16 @@ test('RN-0027: last-reviewed-bump-limit tem padrao 3 e piso 2', () => {
 Crie `src/checks/ci9-commit-discipline.ts`:
 
 ```typescript
-import type { Check, CheckContext, Finding } from '../core/types.ts';
-import type { DiffFacts } from './ci6-changelog-required.ts';
-import type { FileEdit } from '../git/diff.ts';
-import type { ArtifactDoc } from '../docs/collect.ts';
-import { findArtifactRule } from '../config/ownership.ts';
-import { canonicalId, parseId } from '../docs/schema.ts';
-import type { IdFormat } from '../docs/schema.ts';
-import { findCitations } from '../ids/citations.ts';
+import type { Check, CheckContext, Finding } from '../core/types.ts'
+import type { DiffFacts } from './ci6-changelog-required.ts'
+import type { FileEdit } from '../git/diff.ts'
+import type { ArtifactDoc } from '../docs/collect.ts'
+import { findArtifactRule } from '../config/ownership.ts'
+import { canonicalId, parseId } from '../docs/schema.ts'
+import type { IdFormat } from '../docs/schema.ts'
+import { findCitations } from '../ids/citations.ts'
 
-const RULE = 'CI-9';
+const RULE = 'CI-9'
 
 /**
  * O diff com as linhas, e não só os caminhos. É o fato a mais que `CI-9` pede e
@@ -3617,19 +4050,19 @@ const RULE = 'CI-9';
  * check que se cala sem dizer que se calou.
  */
 export interface CommitFacts extends DiffFacts {
-  edits: readonly FileEdit[];
+    edits: readonly FileEdit[]
 }
 
-const LAST_REVIEWED = /^\s*last-reviewed\s*:/i;
+const LAST_REVIEWED = /^\s*last-reviewed\s*:/i
 
 /** A edição mexeu na data de revisão e em mais nada (`RN-0027`). */
 export function isPureDateBump(edit: FileEdit): boolean {
-  return (
-    edit.added.length === 1 &&
-    edit.removed.length === 1 &&
-    LAST_REVIEWED.test(edit.added[0] ?? '') &&
-    LAST_REVIEWED.test(edit.removed[0] ?? '')
-  );
+    return (
+        edit.added.length === 1 &&
+        edit.removed.length === 1 &&
+        LAST_REVIEWED.test(edit.added[0] ?? '') &&
+        LAST_REVIEWED.test(edit.removed[0] ?? '')
+    )
 }
 
 /**
@@ -3637,23 +4070,25 @@ export function isPureDateBump(edit: FileEdit): boolean {
  * individual declara um no frontmatter; coleção declara um por item.
  */
 export function declaredIds(doc: ArtifactDoc, format: IdFormat): string[] {
-  const raw: unknown[] =
-    doc.rule.collection === 'per-file' ? [doc.frontmatter?.data?.id] : doc.items.map((item) => item.id);
+    const raw: unknown[] =
+        doc.rule.collection === 'per-file'
+            ? [doc.frontmatter?.data?.id]
+            : doc.items.map(item => item.id)
 
-  const ids: string[] = [];
-  for (const value of raw) {
-    const parsed = parseId(value, format);
-    if (parsed !== null) ids.push(canonicalId(parsed));
-  }
-  return ids;
+    const ids: string[] = []
+    for (const value of raw) {
+        const parsed = parseId(value, format)
+        if (parsed !== null) ids.push(canonicalId(parsed))
+    }
+    return ids
 }
 
 function normalizePath(path: string): string {
-  return path.replace(/\\/g, '/').replace(/^\.\//, '');
+    return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 function error(file: string, message: string, fix: string): Finding {
-  return { ruleId: RULE, file, line: 0, severity: 'error', message, fix };
+    return { ruleId: RULE, file, line: 0, severity: 'error', message, fix }
 }
 
 /**
@@ -3670,66 +4105,77 @@ function error(file: string, message: string, fix: string): Finding {
  * (`ADR-0013`).
  */
 export function ci9CommitDiscipline(facts: CommitFacts | null): Check {
-  return {
-    id: RULE,
-    name: 'commit discipline',
-    run(context: CheckContext): Finding[] {
-      if (facts === null) return [];
-      const findings: Finding[] = [];
-      const { config } = context;
+    return {
+        id: RULE,
+        name: 'commit discipline',
+        run(context: CheckContext): Finding[] {
+            if (facts === null) return []
+            const findings: Finding[] = []
+            const { config } = context
 
-      // 1 — bump em massa de `last-reviewed` (`RN-0027`).
-      // Sem rótulo de exceção, de propósito: o rótulo seria a caixinha marcada
-      // que o anti-requisito da spec §13 descreve (`ADR-0013`).
-      const bumps = facts.edits.filter(isPureDateBump).map((edit) => normalizePath(edit.path));
-      if (bumps.length >= config.lastReviewedBumpLimit) {
-        const lista = bumps.slice(0, 5).join(', ') + (bumps.length > 5 ? `, … (+${bumps.length - 5})` : '');
-        findings.push(
-          error(
-            bumps[0] ?? '',
-            `O diff \`${facts.base}...HEAD\` altera a data de revisão de ${bumps.length} documentos e nada mais ` +
-              `no corpo de nenhum deles (limiar: ${config.lastReviewedBumpLimit}): ${lista}.`,
-            'Um documento revisado de verdade muda em mais do que a data — bump em massa é o mecanismo de revisão ' +
-              'sendo desligado enquanto se finge cumpri-lo. Reverta a data dos que não foram revisados, ou revise-os ' +
-              '(`RN-0027`, `ADR-0013`; o limiar é `last-reviewed-bump-limit` no `.ownership.yml`).',
-          ),
-        );
-      }
+            // 1 — bump em massa de `last-reviewed` (`RN-0027`).
+            // Sem rótulo de exceção, de propósito: o rótulo seria a caixinha marcada
+            // que o anti-requisito da spec §13 descreve (`ADR-0013`).
+            const bumps = facts.edits
+                .filter(isPureDateBump)
+                .map(edit => normalizePath(edit.path))
+            if (bumps.length >= config.lastReviewedBumpLimit) {
+                const lista =
+                    bumps.slice(0, 5).join(', ') +
+                    (bumps.length > 5 ? `, … (+${bumps.length - 5})` : '')
+                findings.push(
+                    error(
+                        bumps[0] ?? '',
+                        `O diff \`${facts.base}...HEAD\` altera a data de revisão de ${bumps.length} documentos e nada mais ` +
+                            `no corpo de nenhum deles (limiar: ${config.lastReviewedBumpLimit}): ${lista}.`,
+                        'Um documento revisado de verdade muda em mais do que a data — bump em massa é o mecanismo de revisão ' +
+                            'sendo desligado enquanto se finge cumpri-lo. Reverta a data dos que não foram revisados, ou revise-os ' +
+                            '(`RN-0027`, `ADR-0013`; o limiar é `last-reviewed-bump-limit` no `.ownership.yml`).'
+                    )
+                )
+            }
 
-      // 2 — commit que altera artefato sem citar o ID afetado (`RN-0028`).
-      const citados = new Set<string>();
-      for (const message of facts.messages) {
-        for (const citation of findCitations(message, config.idFormat)) {
-          const parsed = parseId(citation.id, config.idFormat);
-          if (parsed !== null) citados.add(canonicalId(parsed));
+            // 2 — commit que altera artefato sem citar o ID afetado (`RN-0028`).
+            const citados = new Set<string>()
+            for (const message of facts.messages) {
+                for (const citation of findCitations(
+                    message,
+                    config.idFormat
+                )) {
+                    const parsed = parseId(citation.id, config.idFormat)
+                    if (parsed !== null) citados.add(canonicalId(parsed))
+                }
+            }
+
+            for (const path of facts.changed.map(normalizePath)) {
+                if (findArtifactRule(config, path) === null) continue
+                const doc = context.docs.find(
+                    candidate => candidate.file === path
+                )
+                if (doc === undefined) continue // apagado no diff: não há ID a citar
+
+                const ids = declaredIds(doc, config.idFormat)
+                if (ids.length === 0) continue // arquivo de artefato sem item: nada a citar
+                if (ids.some(id => citados.has(id))) continue
+
+                const lista =
+                    ids.slice(0, 5).join(', ') +
+                    (ids.length > 5 ? `, … (+${ids.length - 5})` : '')
+                findings.push(
+                    error(
+                        path,
+                        `O diff \`${facts.base}...HEAD\` altera \`${path}\` e nenhuma mensagem de commit cita um dos IDs ` +
+                            `declarados nele (${lista}).`,
+                        'Cite o ID afetado na mensagem de commit — o formato deste projeto está em `CONTRIBUTING.md`. É a ' +
+                            'citação que torna o `git log` navegável por regra: sem ela o histórico responde "o que mudou" e ' +
+                            `nunca "por causa de qual regra" (\`RN-0028\`; skill dona: ${doc.rule.skill}).`
+                    )
+                )
+            }
+
+            return findings
         }
-      }
-
-      for (const path of facts.changed.map(normalizePath)) {
-        if (findArtifactRule(config, path) === null) continue;
-        const doc = context.docs.find((candidate) => candidate.file === path);
-        if (doc === undefined) continue; // apagado no diff: não há ID a citar
-
-        const ids = declaredIds(doc, config.idFormat);
-        if (ids.length === 0) continue; // arquivo de artefato sem item: nada a citar
-        if (ids.some((id) => citados.has(id))) continue;
-
-        const lista = ids.slice(0, 5).join(', ') + (ids.length > 5 ? `, … (+${ids.length - 5})` : '');
-        findings.push(
-          error(
-            path,
-            `O diff \`${facts.base}...HEAD\` altera \`${path}\` e nenhuma mensagem de commit cita um dos IDs ` +
-              `declarados nele (${lista}).`,
-            'Cite o ID afetado na mensagem de commit — o formato deste projeto está em `CONTRIBUTING.md`. É a ' +
-              'citação que torna o `git log` navegável por regra: sem ela o histórico responde "o que mudou" e ' +
-              `nunca "por causa de qual regra" (\`RN-0028\`; skill dona: ${doc.rule.skill}).`,
-          ),
-        );
-      }
-
-      return findings;
-    },
-  };
+    }
 }
 ```
 
@@ -3739,37 +4185,39 @@ Em `src/checks/registry.ts`, importe `ci9CommitDiscipline` e o tipo
 `CommitFacts`, troque o tipo do parâmetro e acrescente o check:
 
 ```typescript
-export function validateChecks(diff: CommitFacts | null = null): readonly Check[] {
-  return [
-    ci1Structure,
-    ci2Ids,
-    ci3Traceability,
-    ci4Staleness,
-    ci7OwnershipCoverage(diff),
-    ci8Links,
-    ci9CommitDiscipline(diff),
-  ];
+export function validateChecks(
+    diff: CommitFacts | null = null
+): readonly Check[] {
+    return [
+        ci1Structure,
+        ci2Ids,
+        ci3Traceability,
+        ci4Staleness,
+        ci7OwnershipCoverage(diff),
+        ci8Links,
+        ci9CommitDiscipline(diff)
+    ]
 }
 ```
 
 E reexporte o tipo junto de `CatalogEntry`:
 
 ```typescript
-export type { CatalogEntry, CommitFacts };
+export type { CatalogEntry, CommitFacts }
 ```
 
 Em `src/cli/validate.ts`, importe `changedLines` e acrescente o terceiro fato:
 
 ```typescript
-  const diff =
+const diff =
     base === null
-      ? null
-      : {
-          base,
-          changed: changedPaths(root, base, run),
-          messages: commitMessages(root, base, run),
-          edits: changedLines(root, base, run),
-        };
+        ? null
+        : {
+              base,
+              changed: changedPaths(root, base, run),
+              messages: commitMessages(root, base, run),
+              edits: changedLines(root, base, run)
+          }
 ```
 
 Em `src/checks/catalog.ts`, ao fim do array:
@@ -3807,98 +4255,111 @@ perguntas ao git — caminhos, mensagens e linhas.
 
 ```typescript
 const fakeGit =
-  (changed: string[], messages: string[], patch = '') =>
-  (args: readonly string[]): string => {
-    if (args.includes('log')) return messages.join(`${NUL}\n`) + NUL + '\n';
-    if (args.includes('--unified=0')) return patch;
-    return changed.join(NUL) + NUL;
-  };
+    (changed: string[], messages: string[], patch = '') =>
+    (args: readonly string[]): string => {
+        if (args.includes('log')) return messages.join(`${NUL}\n`) + NUL + '\n'
+        if (args.includes('--unified=0')) return patch
+        return changed.join(NUL) + NUL
+    }
 
 const bumpPatch = (paths: string[]): string =>
-  paths
-    .flatMap((path) => [
-      `diff --git a/${path} b/${path}`,
-      `--- a/${path}`,
-      `+++ b/${path}`,
-      '@@ -5 +5 @@',
-      '-last-reviewed: 2026-01-01',
-      '+last-reviewed: 2026-08-31',
-    ])
-    .join('\n');
+    paths
+        .flatMap(path => [
+            `diff --git a/${path} b/${path}`,
+            `--- a/${path}`,
+            `+++ b/${path}`,
+            '@@ -5 +5 @@',
+            '-last-reviewed: 2026-01-01',
+            '+last-reviewed: 2026-08-31'
+        ])
+        .join('\n')
 
 const REGRAS_COM_RN_0001 = [
-  '---',
-  'title: Regras',
-  'owner: "@time"',
-  'trigger: Antes de implementar comportamento novo.',
-  'last-reviewed: 2026-08-31',
-  '---',
-  '',
-  '## RN-0001 — Centavos arredondam para cima',
-  '',
-  '- **status:** draft',
-  '',
-  'Prosa.',
-  '',
-].join('\n');
+    '---',
+    'title: Regras',
+    'owner: "@time"',
+    'trigger: Antes de implementar comportamento novo.',
+    'last-reviewed: 2026-08-31',
+    '---',
+    '',
+    '## RN-0001 — Centavos arredondam para cima',
+    '',
+    '- **status:** draft',
+    '',
+    'Prosa.',
+    ''
+].join('\n')
 
 const OWNERSHIP_COM_REGRAS = [
-  'version: 1',
-  'artifacts:',
-  '  - id-prefix: RN',
-  '    path: docs/requirements/rules.md',
-  '    owner: "@time"',
-  '    skill: requirements-keeper',
-  '    collection: sections',
-  'documents:',
-  '  - path: docs/.ownership.yml',
-  '    owner: "@time"',
-  '    skill: living-docs-bootstrap',
-  '',
-].join('\n');
+    'version: 1',
+    'artifacts:',
+    '  - id-prefix: RN',
+    '    path: docs/requirements/rules.md',
+    '    owner: "@time"',
+    '    skill: requirements-keeper',
+    '    collection: sections',
+    'documents:',
+    '  - path: docs/.ownership.yml',
+    '    owner: "@time"',
+    '    skill: living-docs-bootstrap',
+    ''
+].join('\n')
 
 test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () => {
-  const arvore = {
-    [OWNERSHIP_PATH]: OWNERSHIP_COM_REGRAS,
-    CODEOWNERS: 'docs/    @time\n',
-    'docs/requirements/rules.md': REGRAS_COM_RN_0001,
-  };
+    const arvore = {
+        [OWNERSHIP_PATH]: OWNERSHIP_COM_REGRAS,
+        CODEOWNERS: 'docs/    @time\n',
+        'docs/requirements/rules.md': REGRAS_COM_RN_0001
+    }
 
-  withTempRepo(arvore, (root) => {
-    // Criterio 7 — tres documentos que so mudaram a data.
-    const bumps = ['docs/a.md', 'docs/b.md', 'docs/c.md'];
-    const massa = runValidate(
-      root,
-      'origin/master',
-      fakeGit(bumps, ['chore: revisao geral'], bumpPatch(bumps)),
-    );
-    const bumpFinding = massa.findings.find((f) => f.ruleId === 'CI-9' && /last-reviewed/.test(f.message));
-    assert.ok(bumpFinding, JSON.stringify(massa.findings, null, 2));
-    assert.equal(massa.exitCode, 1);
+    withTempRepo(arvore, root => {
+        // Criterio 7 — tres documentos que so mudaram a data.
+        const bumps = ['docs/a.md', 'docs/b.md', 'docs/c.md']
+        const massa = runValidate(
+            root,
+            'origin/master',
+            fakeGit(bumps, ['chore: revisao geral'], bumpPatch(bumps))
+        )
+        const bumpFinding = massa.findings.find(
+            f => f.ruleId === 'CI-9' && /last-reviewed/.test(f.message)
+        )
+        assert.ok(bumpFinding, JSON.stringify(massa.findings, null, 2))
+        assert.equal(massa.exitCode, 1)
 
-    // Criterio 8 — artefato alterado sem o ID na mensagem.
-    const semCitacao = runValidate(
-      root,
-      'origin/master',
-      fakeGit(['docs/requirements/rules.md'], ['docs: ajusta a prosa']),
-    );
-    assert.ok(
-      semCitacao.findings.some((f) => f.ruleId === 'CI-9' && /RN-0001/.test(f.message)),
-      JSON.stringify(semCitacao.findings, null, 2),
-    );
+        // Criterio 8 — artefato alterado sem o ID na mensagem.
+        const semCitacao = runValidate(
+            root,
+            'origin/master',
+            fakeGit(['docs/requirements/rules.md'], ['docs: ajusta a prosa'])
+        )
+        assert.ok(
+            semCitacao.findings.some(
+                f => f.ruleId === 'CI-9' && /RN-0001/.test(f.message)
+            ),
+            JSON.stringify(semCitacao.findings, null, 2)
+        )
 
-    // E citar o ID em qualquer commit do diff basta.
-    const comCitacao = runValidate(
-      root,
-      'origin/master',
-      fakeGit(['docs/requirements/rules.md'], ['docs(RN-0001): o caso do negativo']),
-    );
-    assert.deepEqual(comCitacao.findings.filter((f) => f.ruleId === 'CI-9'), []);
+        // E citar o ID em qualquer commit do diff basta.
+        const comCitacao = runValidate(
+            root,
+            'origin/master',
+            fakeGit(
+                ['docs/requirements/rules.md'],
+                ['docs(RN-0001): o caso do negativo']
+            )
+        )
+        assert.deepEqual(
+            comCitacao.findings.filter(f => f.ruleId === 'CI-9'),
+            []
+        )
 
-    // Sem base, CI-9 nao roda.
-    assert.deepEqual(runValidate(root).findings.filter((f) => f.ruleId === 'CI-9'), []);
-  });
-});
+        // Sem base, CI-9 nao roda.
+        assert.deepEqual(
+            runValidate(root).findings.filter(f => f.ruleId === 'CI-9'),
+            []
+        )
+    })
+})
 ```
 
 Se `OWNERSHIP_PATH`, `NUL` ou `withTempRepo` já estiverem importados no arquivo,
@@ -3964,6 +4425,7 @@ coisa" e nada compara: `test/plugin/authoring.test.ts` valida a `description`,
 `CI-1` valida o `trigger`, e nada cruza os dois. Fecha o critério de aceite 9.
 
 **Files:**
+
 - Create: `src/checks/ci10-trigger-routing.ts`
 - Modify: `src/checks/registry.ts` (`ci10` na lista de `validate`)
 - Modify: `src/checks/catalog.ts` (entrada de `CI-10`)
@@ -3977,18 +4439,20 @@ coisa" e nada compara: `test/plugin/authoring.test.ts` valida a `description`,
 - Modify: `CHANGELOG.md`
 
 **Interfaces:**
+
 - Consome: `normalizeProse` (`src/docs/markdown.ts`), `parseFrontmatter`,
   `toolkitRoot`, `ArtifactDoc`/`DocumentDoc`.
 - Produz:
-  - `SHARED_ROOTS_FLOOR`, `ROOT_FLOOR`, `ROOT_LENGTH` — os três números de
-    `ADR-0013`, exportados para o teste os citar em vez de repetir
-  - `rootsOf(text: string): Set<string>`
-  - `sharedRoots(trigger: string, description: string): string[]`
-  - `loadSkillDescriptions(root?: string): Map<string, string>`
-  - `routedDocs(context: CheckContext): RoutedDoc[]`
-  - `ci10TriggerRouting(descriptions?: ReadonlyMap<string, string>): Check`
+    - `SHARED_ROOTS_FLOOR`, `ROOT_FLOOR`, `ROOT_LENGTH` — os três números de
+      `ADR-0013`, exportados para o teste os citar em vez de repetir
+    - `rootsOf(text: string): Set<string>`
+    - `sharedRoots(trigger: string, description: string): string[]`
+    - `loadSkillDescriptions(root?: string): Map<string, string>`
+    - `routedDocs(context: CheckContext): RoutedDoc[]`
+    - `ci10TriggerRouting(descriptions?: ReadonlyMap<string, string>): Check`
 
 **Requisitos:**
+
 - **Só o gatilho do documento entra** (`ADR-0013`). Artefato `per-file` fica de
   fora: cada arquivo dele é um **item**, e o `trigger` de um ADR é "Nunca.
   Imutável após aceito", que é do item e não do artefato. Entram os containers
@@ -4018,20 +4482,20 @@ na Task 2); `src/checks/catalog.ts` pede `docs/contracts/checks.gen.md` e
 Crie `test/checks/ci10-trigger-routing.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 import {
-  ci10TriggerRouting,
-  loadSkillDescriptions,
-  rootsOf,
-  sharedRoots,
-  SHARED_ROOTS_FLOOR,
-} from '../../src/checks/ci10-trigger-routing.ts';
-import { parseOwnership } from '../../src/config/ownership.ts';
-import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts';
-import { runValidate } from '../../src/cli/validate.ts';
-import { toolkitRoot } from '../../src/core/roots.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+    ci10TriggerRouting,
+    loadSkillDescriptions,
+    rootsOf,
+    sharedRoots,
+    SHARED_ROOTS_FLOOR
+} from '../../src/checks/ci10-trigger-routing.ts'
+import { parseOwnership } from '../../src/config/ownership.ts'
+import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
+import { runValidate } from '../../src/cli/validate.ts'
+import { toolkitRoot } from '../../src/core/roots.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const OWNERSHIP = `
 version: 1
@@ -4052,170 +4516,208 @@ documents:
   - path: CHANGELOG.md
     owner: "@time"
     skill: release-historian
-`;
+`
 
 const container = (trigger: string): string =>
-  [
+    [
+        '---',
+        'title: Open Decisions',
+        'owner: "@time"',
+        `trigger: ${trigger}`,
+        'last-reviewed: 2026-08-31',
+        '---',
+        '',
+        '| ID | Lacuna | Status | Aberta em |',
+        '| --- | --- | --- | --- |',
+        ''
+    ].join('\n')
+
+const ADR_CONGELADO = [
     '---',
-    'title: Open Decisions',
+    'id: ADR-0001',
+    'title: X',
+    'status: draft',
     'owner: "@time"',
-    `trigger: ${trigger}`,
+    'trigger: Nunca. Imutavel apos aceito; uma decisao nova o supersede.',
     'last-reviewed: 2026-08-31',
     '---',
     '',
-    '| ID | Lacuna | Status | Aberta em |',
-    '| --- | --- | --- | --- |',
-    '',
-  ].join('\n');
-
-const ADR_CONGELADO = [
-  '---',
-  'id: ADR-0001',
-  'title: X',
-  'status: draft',
-  'owner: "@time"',
-  'trigger: Nunca. Imutavel apos aceito; uma decisao nova o supersede.',
-  'last-reviewed: 2026-08-31',
-  '---',
-  '',
-  'corpo',
-  '',
-].join('\n');
+    'corpo',
+    ''
+].join('\n')
 
 const DESCRICOES = new Map([
-  [
-    'decision-recorder',
-    'Use quando alguem trombar numa lacuna — comportamento sem regra escrita — ou quando tomar decisao custosa de reverter.',
-  ],
-  ['glossary-keeper', 'Use quando um termo de dominio novo aparecer em codigo, spec ou conversa.'],
-]);
+    [
+        'decision-recorder',
+        'Use quando alguem trombar numa lacuna — comportamento sem regra escrita — ou quando tomar decisao custosa de reverter.'
+    ],
+    [
+        'glossary-keeper',
+        'Use quando um termo de dominio novo aparecer em codigo, spec ou conversa.'
+    ]
+])
 
 function contextFor(root: string) {
-  const config = parseOwnership(OWNERSHIP);
-  return {
-    root,
-    config,
-    docs: collectArtifacts(root, config),
-    documents: collectDocuments(root, config),
-    today: '2026-08-31',
-  };
+    const config = parseOwnership(OWNERSHIP)
+    return {
+        root,
+        config,
+        docs: collectArtifacts(root, config),
+        documents: collectDocuments(root, config),
+        today: '2026-08-31'
+    }
 }
 
 test('RN-0029: gatilho e description que falam do mesmo evento passam', () => {
-  const arvore = {
-    'docs/open-decisions.md': container('Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'),
-    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
-  };
+    const arvore = {
+        'docs/open-decisions.md': container(
+            'Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'
+        ),
+        'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO
+    }
 
-  withTempRepo(arvore, (root) => {
-    assert.deepEqual(ci10TriggerRouting(DESCRICOES).run(contextFor(root)), []);
-  });
-});
+    withTempRepo(arvore, root => {
+        assert.deepEqual(
+            ci10TriggerRouting(DESCRICOES).run(contextFor(root)),
+            []
+        )
+    })
+})
 
 test('RN-0029: gatilho que fala de outro evento reprova, nomeando os dois', () => {
-  const arvore = {
-    'docs/open-decisions.md': container('Quando o deploy quebrar em producao.'),
-    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
-  };
+    const arvore = {
+        'docs/open-decisions.md': container(
+            'Quando o deploy quebrar em producao.'
+        ),
+        'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO
+    }
 
-  withTempRepo(arvore, (root) => {
-    const findings = ci10TriggerRouting(DESCRICOES).run(contextFor(root));
+    withTempRepo(arvore, root => {
+        const findings = ci10TriggerRouting(DESCRICOES).run(contextFor(root))
 
-    assert.equal(findings.length, 1);
-    assert.equal(findings[0]?.ruleId, 'CI-10');
-    assert.equal(findings[0]?.severity, 'error');
-    assert.equal(findings[0]?.file, 'docs/open-decisions.md');
-    assert.match(findings[0]?.message ?? '', /decision-recorder/);
-    assert.match(findings[0]?.message ?? '', /deploy quebrar/);
-  });
-});
+        assert.equal(findings.length, 1)
+        assert.equal(findings[0]?.ruleId, 'CI-10')
+        assert.equal(findings[0]?.severity, 'error')
+        assert.equal(findings[0]?.file, 'docs/open-decisions.md')
+        assert.match(findings[0]?.message ?? '', /decision-recorder/)
+        assert.match(findings[0]?.message ?? '', /deploy quebrar/)
+    })
+})
 
 test('ADR-0013: o trigger de um item nunca entra — artefato per-file fica fora', () => {
-  const arvore = {
-    'docs/open-decisions.md': container('Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'),
-    // "Nunca. Imutavel apos aceito" nao compartilha raiz nenhuma com a
-    // description da decision-recorder, e ainda assim nao e achado.
-    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
-  };
+    const arvore = {
+        'docs/open-decisions.md': container(
+            'Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'
+        ),
+        // "Nunca. Imutavel apos aceito" nao compartilha raiz nenhuma com a
+        // description da decision-recorder, e ainda assim nao e achado.
+        'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO
+    }
 
-  withTempRepo(arvore, (root) => {
-    const findings = ci10TriggerRouting(DESCRICOES).run(contextFor(root));
-    assert.deepEqual(findings.filter((f) => f.file.startsWith('docs/decisions/')), []);
-  });
-});
+    withTempRepo(arvore, root => {
+        const findings = ci10TriggerRouting(DESCRICOES).run(contextFor(root))
+        assert.deepEqual(
+            findings.filter(f => f.file.startsWith('docs/decisions/')),
+            []
+        )
+    })
+})
 
 test('RN-0029: skill dona ausente da raiz do toolkit avisa e segue', () => {
-  const arvore = {
-    'docs/open-decisions.md': container('Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'),
-    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
-    'docs/glossary.md': [
-      '---',
-      'title: Glossario',
-      'owner: "@time"',
-      'trigger: Termo de dominio novo em codigo, spec ou conversa.',
-      'last-reviewed: 2026-08-31',
-      '---',
-      '',
-      'corpo',
-      '',
-    ].join('\n'),
-  };
+    const arvore = {
+        'docs/open-decisions.md': container(
+            'Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'
+        ),
+        'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
+        'docs/glossary.md': [
+            '---',
+            'title: Glossario',
+            'owner: "@time"',
+            'trigger: Termo de dominio novo em codigo, spec ou conversa.',
+            'last-reviewed: 2026-08-31',
+            '---',
+            '',
+            'corpo',
+            ''
+        ].join('\n')
+    }
 
-  // A description da glossary-keeper sai do mapa: e o repositorio que declarou
-  // uma skill que a raiz do toolkit nao tem.
-  const semGlossario = new Map([...DESCRICOES].filter(([name]) => name !== 'glossary-keeper'));
+    // A description da glossary-keeper sai do mapa: e o repositorio que declarou
+    // uma skill que a raiz do toolkit nao tem.
+    const semGlossario = new Map(
+        [...DESCRICOES].filter(([name]) => name !== 'glossary-keeper')
+    )
 
-  withTempRepo(arvore, (root) => {
-    const findings = ci10TriggerRouting(semGlossario).run(contextFor(root));
+    withTempRepo(arvore, root => {
+        const findings = ci10TriggerRouting(semGlossario).run(contextFor(root))
 
-    assert.equal(findings.length, 1);
-    assert.equal(findings[0]?.severity, 'warning');
-    assert.equal(findings[0]?.file, 'docs/glossary.md');
-    assert.match(findings[0]?.message ?? '', /glossary-keeper/);
-  });
-});
+        assert.equal(findings.length, 1)
+        assert.equal(findings[0]?.severity, 'warning')
+        assert.equal(findings[0]?.file, 'docs/glossary.md')
+        assert.match(findings[0]?.message ?? '', /glossary-keeper/)
+    })
+})
 
 test('RN-0029: documento sem trigger no frontmatter nao e achado', () => {
-  const arvore = {
-    'docs/open-decisions.md': container('Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'),
-    'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
-    // CHANGELOG.md tem dono e skill e nao tem frontmatter. E legitimo.
-    'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
-  };
+    const arvore = {
+        'docs/open-decisions.md': container(
+            'Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.'
+        ),
+        'docs/decisions/adr/ADR-0001-x.md': ADR_CONGELADO,
+        // CHANGELOG.md tem dono e skill e nao tem frontmatter. E legitimo.
+        'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n'
+    }
 
-  withTempRepo(arvore, (root) => {
-    assert.deepEqual(ci10TriggerRouting(DESCRICOES).run(contextFor(root)), []);
-  });
-});
+    withTempRepo(arvore, root => {
+        assert.deepEqual(
+            ci10TriggerRouting(DESCRICOES).run(contextFor(root)),
+            []
+        )
+    })
+})
 
 test('ADR-0013: a raiz e a palavra de cinco letras ou mais, truncada em seis', () => {
-  const raizes = rootsOf('Toda alterada de **regra**, com pontuacao!');
-  assert.ok(raizes.has('altera'), [...raizes].join(', '));
-  assert.ok(raizes.has('regra'));
-  // "Toda" e "com" tem menos de cinco letras: nao sao raiz.
-  assert.ok(!raizes.has('toda'));
-  assert.ok(!raizes.has('com'));
-  // O truncamento e o que faz "alterada" encontrar "alterar".
-  assert.deepEqual(sharedRoots('regra alterada', 'a regra vai alterar'), ['regra', 'altera']);
-});
+    const raizes = rootsOf('Toda alterada de **regra**, com pontuacao!')
+    assert.ok(raizes.has('altera'), [...raizes].join(', '))
+    assert.ok(raizes.has('regra'))
+    // "Toda" e "com" tem menos de cinco letras: nao sao raiz.
+    assert.ok(!raizes.has('toda'))
+    assert.ok(!raizes.has('com'))
+    // O truncamento e o que faz "alterada" encontrar "alterar".
+    assert.deepEqual(sharedRoots('regra alterada', 'a regra vai alterar'), [
+        'regra',
+        'altera'
+    ])
+})
 
 test('ADR-0013: a raiz do toolkit e legivel, e os pares dela cabem no piso', () => {
-  // Dogfooding, e e a calibracao do ADR-0013: se um par do proprio toolkit
-  // ficar abaixo do piso, o numero esta errado — nao o documento.
-  const descricoes = loadSkillDescriptions(toolkitRoot());
-  assert.ok(descricoes.size >= 8, `so ${descricoes.size} skills lidas da raiz do toolkit`);
-  assert.ok((descricoes.get('release-historian') ?? '').length > 0, 'description da release-historian nao foi lida');
-  assert.ok(SHARED_ROOTS_FLOOR >= 2, 'o piso e escrito, e esta abaixo do que o ADR-0013 fixou');
+    // Dogfooding, e e a calibracao do ADR-0013: se um par do proprio toolkit
+    // ficar abaixo do piso, o numero esta errado — nao o documento.
+    const descricoes = loadSkillDescriptions(toolkitRoot())
+    assert.ok(
+        descricoes.size >= 8,
+        `so ${descricoes.size} skills lidas da raiz do toolkit`
+    )
+    assert.ok(
+        (descricoes.get('release-historian') ?? '').length > 0,
+        'description da release-historian nao foi lida'
+    )
+    assert.ok(
+        SHARED_ROOTS_FLOOR >= 2,
+        'o piso e escrito, e esta abaixo do que o ADR-0013 fixou'
+    )
 
-  // Os doze pares deste repositorio, medidos pelo check e nao repetidos aqui:
-  // repetir o `trigger` num teste seria a copia que RN-0010 recusa.
-  const findings = runValidate(toolkitRoot()).findings.filter((f) => f.ruleId === 'CI-10');
-  assert.deepEqual(
-    findings.filter((f) => f.severity === 'error'),
-    [],
-    JSON.stringify(findings, null, 2),
-  );
-});
+    // Os doze pares deste repositorio, medidos pelo check e nao repetidos aqui:
+    // repetir o `trigger` num teste seria a copia que RN-0010 recusa.
+    const findings = runValidate(toolkitRoot()).findings.filter(
+        f => f.ruleId === 'CI-10'
+    )
+    assert.deepEqual(
+        findings.filter(f => f.severity === 'error'),
+        [],
+        JSON.stringify(findings, null, 2)
+    )
+})
 ```
 
 - [x] **Step 2: Rodar e ver falhar**
@@ -4231,23 +4733,23 @@ Esperado: FALHA — `src/checks/ci10-trigger-routing.ts` não existe.
 Crie `src/checks/ci10-trigger-routing.ts`:
 
 ```typescript
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-import type { Check, CheckContext, Finding } from '../core/types.ts';
-import { normalizeProse } from '../docs/markdown.ts';
-import { parseFrontmatter } from '../frontmatter/parse.ts';
-import { toolkitRoot } from '../core/roots.ts';
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import type { Check, CheckContext, Finding } from '../core/types.ts'
+import { normalizeProse } from '../docs/markdown.ts'
+import { parseFrontmatter } from '../frontmatter/parse.ts'
+import { toolkitRoot } from '../core/roots.ts'
 
-const RULE = 'CI-10';
+const RULE = 'CI-10'
 
 /** Palavra curta não é raiz: "toda", "com" e "que" casariam com tudo (`ADR-0009`). */
-export const ROOT_FLOOR = 5;
+export const ROOT_FLOOR = 5
 
 /**
  * O truncamento é o que faz "alterada" encontrar "alterar" sem que o toolkit
  * aprenda português (`ADR-0013`).
  */
-export const ROOT_LENGTH = 6;
+export const ROOT_LENGTH = 6
 
 /**
  * Quantas raízes o `trigger` e a `description` precisam compartilhar
@@ -4255,21 +4757,21 @@ export const ROOT_LENGTH = 6;
  * calibrado: a correção de um falso positivo é um ADR novo, nunca uma exceção
  * local.
  */
-export const SHARED_ROOTS_FLOOR = 2;
+export const SHARED_ROOTS_FLOOR = 2
 
 export function rootsOf(text: string): Set<string> {
-  return new Set(
-    normalizeProse(text)
-      .split(' ')
-      .filter((word) => word.length >= ROOT_FLOOR)
-      .map((word) => word.slice(0, ROOT_LENGTH)),
-  );
+    return new Set(
+        normalizeProse(text)
+            .split(' ')
+            .filter(word => word.length >= ROOT_FLOOR)
+            .map(word => word.slice(0, ROOT_LENGTH))
+    )
 }
 
 /** As raízes que os dois textos têm em comum, na ordem do primeiro. */
 export function sharedRoots(trigger: string, description: string): string[] {
-  const other = rootsOf(description);
-  return [...rootsOf(trigger)].filter((root) => other.has(root));
+    const other = rootsOf(description)
+    return [...rootsOf(trigger)].filter(root => other.has(root))
 }
 
 /**
@@ -4279,51 +4781,58 @@ export function sharedRoots(trigger: string, description: string): string[] {
  * validado e a skill mora no toolkit. Diretório ausente devolve mapa vazio, e
  * mapa vazio vira aviso — nunca falha.
  */
-export function loadSkillDescriptions(root: string = toolkitRoot()): Map<string, string> {
-  const dir = join(root, 'plugin', 'skills');
-  const found = new Map<string, string>();
+export function loadSkillDescriptions(
+    root: string = toolkitRoot()
+): Map<string, string> {
+    const dir = join(root, 'plugin', 'skills')
+    const found = new Map<string, string>()
 
-  let names: string[];
-  try {
-    names = readdirSync(dir);
-  } catch {
-    return found;
-  }
-
-  for (const name of names) {
-    let source: string;
+    let names: string[]
     try {
-      source = readFileSync(join(dir, name, 'SKILL.md'), 'utf8');
+        names = readdirSync(dir)
     } catch {
-      continue;
+        return found
     }
 
-    let description: unknown;
-    try {
-      description = parseFrontmatter(source)?.data.description;
-    } catch {
-      continue; // SKILL.md com frontmatter quebrado é achado de `authoring`, não daqui
-    }
-    if (typeof description === 'string') found.set(name, description);
-  }
+    for (const name of names) {
+        let source: string
+        try {
+            source = readFileSync(join(dir, name, 'SKILL.md'), 'utf8')
+        } catch {
+            continue
+        }
 
-  return found;
+        let description: unknown
+        try {
+            description = parseFrontmatter(source)?.data.description
+        } catch {
+            continue // SKILL.md com frontmatter quebrado é achado de `authoring`, não daqui
+        }
+        if (typeof description === 'string') found.set(name, description)
+    }
+
+    return found
 }
 
 export interface RoutedDoc {
-  file: string;
-  line: number;
-  skill: string;
-  trigger: string;
+    file: string
+    line: number
+    skill: string
+    trigger: string
 }
 
-function triggerOf(frontmatter: { data: Record<string, unknown>; lines: Record<string, number> } | null): {
-  trigger: string;
-  line: number;
+function triggerOf(
+    frontmatter: {
+        data: Record<string, unknown>
+        lines: Record<string, number>
+    } | null
+): {
+    trigger: string
+    line: number
 } | null {
-  const value = frontmatter?.data.trigger;
-  if (typeof value !== 'string' || value.trim() === '') return null;
-  return { trigger: value, line: frontmatter?.lines.trigger ?? 1 };
+    const value = frontmatter?.data.trigger
+    if (typeof value !== 'string' || value.trim() === '') return null
+    return { trigger: value, line: frontmatter?.lines.trigger ?? 1 }
 }
 
 /**
@@ -4335,23 +4844,33 @@ function triggerOf(frontmatter: { data: Record<string, unknown>; lines: Record<s
  * `documents:` que declaram skill.
  */
 export function routedDocs(context: CheckContext): RoutedDoc[] {
-  const routed: RoutedDoc[] = [];
+    const routed: RoutedDoc[] = []
 
-  for (const doc of context.docs) {
-    if (doc.rule.collection === 'per-file') continue;
-    const found = triggerOf(doc.frontmatter);
-    if (found === null) continue;
-    routed.push({ file: doc.file, line: found.line, skill: doc.rule.skill, trigger: found.trigger });
-  }
+    for (const doc of context.docs) {
+        if (doc.rule.collection === 'per-file') continue
+        const found = triggerOf(doc.frontmatter)
+        if (found === null) continue
+        routed.push({
+            file: doc.file,
+            line: found.line,
+            skill: doc.rule.skill,
+            trigger: found.trigger
+        })
+    }
 
-  for (const document of context.documents) {
-    if (document.rule.skill === null) continue;
-    const found = triggerOf(document.frontmatter);
-    if (found === null) continue;
-    routed.push({ file: document.file, line: found.line, skill: document.rule.skill, trigger: found.trigger });
-  }
+    for (const document of context.documents) {
+        if (document.rule.skill === null) continue
+        const found = triggerOf(document.frontmatter)
+        if (found === null) continue
+        routed.push({
+            file: document.file,
+            line: found.line,
+            skill: document.rule.skill,
+            trigger: found.trigger
+        })
+    }
 
-  return routed;
+    return routed
 }
 
 /**
@@ -4367,57 +4886,57 @@ export function routedDocs(context: CheckContext): RoutedDoc[] {
  * `CI-7`: o padrão lê a raiz do toolkit, e o teste passa um mapa.
  */
 export function ci10TriggerRouting(
-  descriptions: ReadonlyMap<string, string> = loadSkillDescriptions(),
+    descriptions: ReadonlyMap<string, string> = loadSkillDescriptions()
 ): Check {
-  return {
-    id: RULE,
-    name: 'trigger routing',
-    run(context: CheckContext): Finding[] {
-      const findings: Finding[] = [];
+    return {
+        id: RULE,
+        name: 'trigger routing',
+        run(context: CheckContext): Finding[] {
+            const findings: Finding[] = []
 
-      for (const routed of routedDocs(context)) {
-        const description = descriptions.get(routed.skill);
+            for (const routed of routedDocs(context)) {
+                const description = descriptions.get(routed.skill)
 
-        // Aviso, não falha: um projeto pode declarar skill própria, e reprovar
-        // por isso seria exigir que todo dono fosse do plugin (`RN-0029`).
-        if (description === undefined) {
-          findings.push({
-            ruleId: RULE,
-            file: routed.file,
-            line: routed.line,
-            severity: 'warning',
-            message:
-              `\`${routed.file}\` declara \`${routed.skill}\` como skill dona, e a raiz do toolkit não tem uma ` +
-              'skill com esse nome — o gatilho deste documento não pôde ser cruzado com o roteamento.',
-            fix:
-              `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
-              'confira o nome em `plugin/skills/` (`RN-0029`).',
-          });
-          continue;
+                // Aviso, não falha: um projeto pode declarar skill própria, e reprovar
+                // por isso seria exigir que todo dono fosse do plugin (`RN-0029`).
+                if (description === undefined) {
+                    findings.push({
+                        ruleId: RULE,
+                        file: routed.file,
+                        line: routed.line,
+                        severity: 'warning',
+                        message:
+                            `\`${routed.file}\` declara \`${routed.skill}\` como skill dona, e a raiz do toolkit não tem uma ` +
+                            'skill com esse nome — o gatilho deste documento não pôde ser cruzado com o roteamento.',
+                        fix:
+                            `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
+                            'confira o nome em `plugin/skills/` (`RN-0029`).'
+                    })
+                    continue
+                }
+
+                const shared = sharedRoots(routed.trigger, description)
+                if (shared.length >= SHARED_ROOTS_FLOOR) continue
+
+                findings.push({
+                    ruleId: RULE,
+                    file: routed.file,
+                    line: routed.line,
+                    severity: 'error',
+                    message:
+                        `O \`trigger\` de \`${routed.file}\` ("${routed.trigger.trim().replace(/\s+/g, ' ').slice(0, 120)}") e a ` +
+                        `\`description\` de \`${routed.skill}\` falam de eventos diferentes: ` +
+                        `${shared.length} raiz(es) em comum, mínimo ${SHARED_ROOTS_FLOOR}.`,
+                    fix:
+                        'Reescreva um dos dois para nomear o mesmo evento — quem mantém o documento e quem roteia a skill ' +
+                        'precisam estar falando da mesma coisa, senão o documento declara um gatilho que nada dispara ' +
+                        `(\`RN-0029\`, \`ADR-0013\`; skill dona: ${routed.skill}).`
+                })
+            }
+
+            return findings
         }
-
-        const shared = sharedRoots(routed.trigger, description);
-        if (shared.length >= SHARED_ROOTS_FLOOR) continue;
-
-        findings.push({
-          ruleId: RULE,
-          file: routed.file,
-          line: routed.line,
-          severity: 'error',
-          message:
-            `O \`trigger\` de \`${routed.file}\` ("${routed.trigger.trim().replace(/\s+/g, ' ').slice(0, 120)}") e a ` +
-            `\`description\` de \`${routed.skill}\` falam de eventos diferentes: ` +
-            `${shared.length} raiz(es) em comum, mínimo ${SHARED_ROOTS_FLOOR}.`,
-          fix:
-            'Reescreva um dos dois para nomear o mesmo evento — quem mantém o documento e quem roteia a skill ' +
-            'precisam estar falando da mesma coisa, senão o documento declara um gatilho que nada dispara ' +
-            `(\`RN-0029\`, \`ADR-0013\`; skill dona: ${routed.skill}).`,
-        });
-      }
-
-      return findings;
-    },
-  };
+    }
 }
 ```
 
@@ -4498,67 +5017,74 @@ Acrescente a `test/acceptance/spec-criteria.test.ts`:
 
 ```typescript
 test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI', () => {
-  const ownership = [
-    'version: 1',
-    'artifacts:',
-    '  - id-prefix: DA',
-    '    path: docs/open-decisions.md',
-    '    owner: "@time"',
-    '    skill: decision-recorder',
-    '    collection: table',
-    'documents:',
-    '  - path: docs/.ownership.yml',
-    '    owner: "@time"',
-    '    skill: living-docs-bootstrap',
-    '',
-  ].join('\n');
+    const ownership = [
+        'version: 1',
+        'artifacts:',
+        '  - id-prefix: DA',
+        '    path: docs/open-decisions.md',
+        '    owner: "@time"',
+        '    skill: decision-recorder',
+        '    collection: table',
+        'documents:',
+        '  - path: docs/.ownership.yml',
+        '    owner: "@time"',
+        '    skill: living-docs-bootstrap',
+        ''
+    ].join('\n')
 
-  const decisoes = (trigger: string): string =>
-    [
-      '---',
-      'title: Open Decisions',
-      'owner: "@time"',
-      `trigger: ${trigger}`,
-      'last-reviewed: 2026-08-31',
-      '---',
-      '',
-      '| ID | Lacuna | Status | Aberta em |',
-      '| --- | --- | --- | --- |',
-      '',
-    ].join('\n');
+    const decisoes = (trigger: string): string =>
+        [
+            '---',
+            'title: Open Decisions',
+            'owner: "@time"',
+            `trigger: ${trigger}`,
+            'last-reviewed: 2026-08-31',
+            '---',
+            '',
+            '| ID | Lacuna | Status | Aberta em |',
+            '| --- | --- | --- | --- |',
+            ''
+        ].join('\n')
 
-  // Divergente: reprova nomeando os dois.
-  withTempRepo(
-    {
-      [OWNERSHIP_PATH]: ownership,
-      CODEOWNERS: 'docs/    @time\n',
-      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
-    },
-    (root) => {
-      const result = runValidate(root);
-      const finding = result.findings.find((f) => f.ruleId === 'CI-10');
-      assert.ok(finding, JSON.stringify(result.findings, null, 2));
-      assert.equal(finding?.severity, 'error');
-      assert.match(finding?.message ?? '', /decision-recorder/);
-      assert.equal(result.exitCode, 1);
-    },
-  );
+    // Divergente: reprova nomeando os dois.
+    withTempRepo(
+        {
+            [OWNERSHIP_PATH]: ownership,
+            CODEOWNERS: 'docs/    @time\n',
+            'docs/open-decisions.md': decisoes(
+                'Quando o deploy quebrar em producao.'
+            )
+        },
+        root => {
+            const result = runValidate(root)
+            const finding = result.findings.find(f => f.ruleId === 'CI-10')
+            assert.ok(finding, JSON.stringify(result.findings, null, 2))
+            assert.equal(finding?.severity, 'error')
+            assert.match(finding?.message ?? '', /decision-recorder/)
+            assert.equal(result.exitCode, 1)
+        }
+    )
 
-  // Skill que a raiz do toolkit nao tem: avisa e segue.
-  withTempRepo(
-    {
-      [OWNERSHIP_PATH]: ownership.replace('skill: decision-recorder', 'skill: decisoes-do-time'),
-      CODEOWNERS: 'docs/    @time\n',
-      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
-    },
-    (root) => {
-      const result = runValidate(root);
-      const finding = result.findings.find((f) => f.ruleId === 'CI-10');
-      assert.equal(finding?.severity, 'warning');
-      assert.equal(result.exitCode, 0);
-    },
-  );
-});
+    // Skill que a raiz do toolkit nao tem: avisa e segue.
+    withTempRepo(
+        {
+            [OWNERSHIP_PATH]: ownership.replace(
+                'skill: decision-recorder',
+                'skill: decisoes-do-time'
+            ),
+            CODEOWNERS: 'docs/    @time\n',
+            'docs/open-decisions.md': decisoes(
+                'Quando o deploy quebrar em producao.'
+            )
+        },
+        root => {
+            const result = runValidate(root)
+            const finding = result.findings.find(f => f.ruleId === 'CI-10')
+            assert.equal(finding?.severity, 'warning')
+            assert.equal(result.exitCode, 0)
+        }
+    )
+})
 ```
 
 - [x] **Step 8: Rodar tudo, CHANGELOG e commit**
@@ -4599,6 +5125,7 @@ git commit -m "feat(RN-0029, ADR-0013): CI-10 cruza o gatilho do artefato com a 
 diz nada do check. Fecha o critério de aceite 10.
 
 **Files:**
+
 - Create: `src/checks/budget.ts`
 - Modify: `src/cli/validate.ts`, `src/cli/drift.ts`, `src/cli/changelog.ts`
   (cada resultado passa a trazer o que mediu)
@@ -4609,14 +5136,16 @@ diz nada do check. Fecha o critério de aceite 10.
 - Modify: `CHANGELOG.md`
 
 **Interfaces:**
+
 - Consome: `runValidate`, `runDrift`, `runChangelog`.
 - Produz:
-  - `CHECK_BUDGET_MS` (`src/checks/budget.ts`)
-  - `formatElapsed(ms: number): string`
-  - `ValidateResult.elapsedMs`, `DriftResult.elapsedMs`,
-    `ChangelogResult.elapsedMs`
+    - `CHECK_BUDGET_MS` (`src/checks/budget.ts`)
+    - `formatElapsed(ms: number): string`
+    - `ValidateResult.elapsedMs`, `DriftResult.elapsedMs`,
+      `ChangelogResult.elapsedMs`
 
 **Requisitos:**
+
 - **O teto é do conjunto, não de cada check** (`RNF-0005`): é o conjunto que
   roda no PR. Um teto por check aprovaria oito checks lentos.
 - **Medido, nunca estimado.** O CLI mede a execução real e imprime o que mediu,
@@ -4642,61 +5171,64 @@ e o CHANGELOG entra no Step 6.
 Crie `test/checks/budget.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { CHECK_BUDGET_MS, formatElapsed } from '../../src/checks/budget.ts';
-import { runValidate } from '../../src/cli/validate.ts';
-import { runDrift } from '../../src/cli/drift.ts';
-import { runChangelog } from '../../src/cli/changelog.ts';
-import { toolkitRoot } from '../../src/core/roots.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { CHECK_BUDGET_MS, formatElapsed } from '../../src/checks/budget.ts'
+import { runValidate } from '../../src/cli/validate.ts'
+import { runDrift } from '../../src/cli/drift.ts'
+import { runChangelog } from '../../src/cli/changelog.ts'
+import { toolkitRoot } from '../../src/core/roots.ts'
 
-const NUL = String.fromCharCode(0);
+const NUL = String.fromCharCode(0)
 
 /** O git falso deste teste: o custo medido e o dos checks, nao o do git. */
 const git = (args: readonly string[]): string => {
-  if (args.includes('log')) return `docs(RN-0001): x${NUL}\n`;
-  if (args.includes('--unified=0')) return '';
-  return `src/cli/index.ts${NUL}CHANGELOG.md${NUL}`;
-};
+    if (args.includes('log')) return `docs(RN-0001): x${NUL}\n`
+    if (args.includes('--unified=0')) return ''
+    return `src/cli/index.ts${NUL}CHANGELOG.md${NUL}`
+}
 
 test('RNF-0005: o conjunto completo de checks cabe no teto declarado, medido', () => {
-  const root = toolkitRoot();
-  const inicio = process.hrtime.bigint();
+    const root = toolkitRoot()
+    const inicio = process.hrtime.bigint()
 
-  // O conjunto e o que roda no PR: as duas execucoes de `validate`, o `drift`
-  // com o gerador de verdade, e o `changelog`. Nao e o tempo de um check.
-  runValidate(root);
-  runValidate(root, 'origin/master', git);
-  runDrift(root);
-  runChangelog(root, 'origin/master', git);
+    // O conjunto e o que roda no PR: as duas execucoes de `validate`, o `drift`
+    // com o gerador de verdade, e o `changelog`. Nao e o tempo de um check.
+    runValidate(root)
+    runValidate(root, 'origin/master', git)
+    runDrift(root)
+    runChangelog(root, 'origin/master', git)
 
-  const decorrido = Number(process.hrtime.bigint() - inicio) / 1e6;
+    const decorrido = Number(process.hrtime.bigint() - inicio) / 1e6
 
-  assert.ok(
-    decorrido < CHECK_BUDGET_MS,
-    `o conjunto levou ${formatElapsed(decorrido)}, e o teto declarado e ${formatElapsed(CHECK_BUDGET_MS)} ` +
-      '(RNF-0005) — meça antes de subir o teto',
-  );
-});
+    assert.ok(
+        decorrido < CHECK_BUDGET_MS,
+        `o conjunto levou ${formatElapsed(decorrido)}, e o teto declarado e ${formatElapsed(CHECK_BUDGET_MS)} ` +
+            '(RNF-0005) — meça antes de subir o teto'
+    )
+})
 
 test('RNF-0005: cada comando devolve o que mediu, e a medida nao e estimada', () => {
-  const root = toolkitRoot();
+    const root = toolkitRoot()
 
-  const validado = runValidate(root);
-  assert.equal(typeof validado.elapsedMs, 'number');
-  assert.ok(validado.elapsedMs >= 0);
-  // Uma varredura da arvore inteira nao custa zero: medida zerada e medida
-  // que ninguem tomou.
-  assert.ok(validado.elapsedMs > 0, 'elapsedMs veio zerado — o relogio nao foi lido');
+    const validado = runValidate(root)
+    assert.equal(typeof validado.elapsedMs, 'number')
+    assert.ok(validado.elapsedMs >= 0)
+    // Uma varredura da arvore inteira nao custa zero: medida zerada e medida
+    // que ninguem tomou.
+    assert.ok(
+        validado.elapsedMs > 0,
+        'elapsedMs veio zerado — o relogio nao foi lido'
+    )
 
-  assert.equal(typeof runDrift(root).elapsedMs, 'number');
-});
+    assert.equal(typeof runDrift(root).elapsedMs, 'number')
+})
 
 test('RNF-0005: formatElapsed e legivel por quem le o log do PR', () => {
-  assert.equal(formatElapsed(842), '842 ms');
-  assert.equal(formatElapsed(1500), '1.5 s');
-  assert.equal(formatElapsed(120_000), '120.0 s');
-});
+    assert.equal(formatElapsed(842), '842 ms')
+    assert.equal(formatElapsed(1500), '1.5 s')
+    assert.equal(formatElapsed(120_000), '120.0 s')
+})
 ```
 
 - [x] **Step 2: Rodar e ver falhar**
@@ -4725,11 +5257,11 @@ Crie `src/checks/budget.ts`:
  * regressão de ordem de grandeza, não ruído de máquina carregada. Subir este
  * número sem uma medida nova ao lado é transformá-lo de volta em intenção.
  */
-export const CHECK_BUDGET_MS = 120_000;
+export const CHECK_BUDGET_MS = 120_000
 
 /** Milissegundos como quem lê o log do PR os lê. */
 export function formatElapsed(ms: number): string {
-  return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`;
+    return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`
 }
 ```
 
@@ -4742,7 +5274,7 @@ Em `src/cli/validate.ts`: acrescente `elapsedMs: number;` a `ValidateResult`
 e dentro de `runValidate`:
 
 ```typescript
-  const inicio = process.hrtime.bigint();
+const inicio = process.hrtime.bigint()
 ```
 
 logo antes de `forgetTree(root);`, e no `return`:
@@ -4771,16 +5303,16 @@ uma função só, usada pelos três comandos:
  * máquina estava carregada trocaria um enforcement por um teste instável.
  */
 function reportElapsed(elapsedMs: number): void {
-  process.stdout.write(
-    `living-docs: conjunto de checks em ${formatElapsed(elapsedMs)} ` +
-      `(teto declarado: ${formatElapsed(CHECK_BUDGET_MS)} — RNF-0005).\n`,
-  );
-  if (elapsedMs > CHECK_BUDGET_MS) {
-    process.stderr.write(
-      'living-docs: o conjunto passou do teto declarado. Meça o que ficou lento antes de subir o número ' +
-        '(RNF-0005).\n',
-    );
-  }
+    process.stdout.write(
+        `living-docs: conjunto de checks em ${formatElapsed(elapsedMs)} ` +
+            `(teto declarado: ${formatElapsed(CHECK_BUDGET_MS)} — RNF-0005).\n`
+    )
+    if (elapsedMs > CHECK_BUDGET_MS) {
+        process.stderr.write(
+            'living-docs: o conjunto passou do teto declarado. Meça o que ficou lento antes de subir o número ' +
+                '(RNF-0005).\n'
+        )
+    }
 }
 ```
 
@@ -4842,14 +5374,17 @@ check que fingisse medi-los seria pior que a ausência dele (§11,
 anti-requisitos).
 
 **Files:**
+
 - Modify: `docs/definition-of-done.md`
 - Modify: `test/docs/maintenance.test.ts`
 
 **Interfaces:**
+
 - Consome: nada. É documento e o teste que o lê.
 - Produz: nenhuma assinatura.
 
 **Requisitos:**
+
 - Cada item da Definition of Done **nomeia o que o verifica** — é `RN-0017`, e
   `CI-7` reprova item que não nomeia. "verificação: humana" satisfaz a regra: o
   vocabulário aceito inclui a palavra, e é deliberado.
@@ -4869,23 +5404,27 @@ mesma regra que o resto do arquivo já pratica:
 
 ```typescript
 test('spec §12 criterios 9 e 10: o que so gente verifica entra como linha humana', () => {
-  const documento = documentWithRole(CONFIG, 'definition-of-done');
-  assert.ok(documento);
-  const dod = readFileSync(join(ROOT, documento.path), 'utf8');
+    const documento = documentWithRole(CONFIG, 'definition-of-done')
+    assert.ok(documento)
+    const dod = readFileSync(join(ROOT, documento.path), 'utf8')
 
-  const humanos = [/falta de contexto/i, /volume documental/i];
-  for (const padrao of humanos) {
-    const linha = dod.split('\n').find((l) => padrao.test(l));
-    assert.ok(linha, `a Definition of Done nao tem a linha de ${padrao}`);
-    assert.match(linha ?? '', /^- \[ \] /, 'precisa ser item de checklist');
-    assert.match(
-      linha ?? '',
-      /verificacao: humana|verificação: humana/,
-      'estes dois sao verificacao humana por natureza — um check que fingisse medi-los seria pior que a ausencia dele',
-    );
-    assert.doesNotMatch(linha ?? '', /\bCI-\d+\b/, 'nenhum check mede estes dois');
-  }
-});
+    const humanos = [/falta de contexto/i, /volume documental/i]
+    for (const padrao of humanos) {
+        const linha = dod.split('\n').find(l => padrao.test(l))
+        assert.ok(linha, `a Definition of Done nao tem a linha de ${padrao}`)
+        assert.match(linha ?? '', /^- \[ \] /, 'precisa ser item de checklist')
+        assert.match(
+            linha ?? '',
+            /verificacao: humana|verificação: humana/,
+            'estes dois sao verificacao humana por natureza — um check que fingisse medi-los seria pior que a ausencia dele'
+        )
+        assert.doesNotMatch(
+            linha ?? '',
+            /\bCI-\d+\b/,
+            'nenhum check mede estes dois'
+        )
+    }
+})
 ```
 
 - [x] **Step 2: Rodar e ver falhar**
@@ -4946,15 +5485,18 @@ ponto de extensão não era o que a spec dizia que era**. Esse resultado é
 entregável, seja qual for.
 
 **Files:**
+
 - Modify: `test/acceptance/consumer-repo.test.ts`
 - Modify: `CHANGELOG.md` (só se algo mudar de público — veja o Step 6)
 
 **Interfaces:**
+
 - Consome: `runInit`, `runValidate`, `mergeSettings`, `WORKFLOW_PATH`,
   `SETTINGS_PATH`, `DetectedFormat`.
 - Produz: nenhuma assinatura. Produz uma **prova**.
 
 **Requisitos:**
+
 - **Nenhum arquivo preexistente é reescrito.** O teste tira uma impressão
   (conteúdo byte a byte) de tudo que existia antes do `init` e compara depois.
   Qualquer diferença reprova — é o critério 1 da spec original.
@@ -4981,9 +5523,9 @@ O arquivo já importa `runInit`, `runValidate`, `toolkitRoot`, `withTempRepo`,
 imports o que falta:
 
 ```typescript
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
-import { SETTINGS_PATH } from '../../src/config/claude-settings.ts';
-import { WORKFLOW_PATH } from '../../src/cli/init.ts';
+import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { SETTINGS_PATH } from '../../src/config/claude-settings.ts'
+import { WORKFLOW_PATH } from '../../src/cli/init.ts'
 ```
 
 E, ao topo do arquivo:
@@ -4991,103 +5533,123 @@ E, ao topo do arquivo:
 ```typescript
 /** As 97 regras do consumidor, escritas como ele as escreve: `RN001`. */
 const REGRAS_DO_CONSUMIDOR = [
-  '---',
-  'title: Regras de negocio',
-  'owner: "@consumidor"',
-  'trigger: >',
-  '  Antes de implementar qualquer comportamento, e a toda regra nova ou alterada.',
-  'last-reviewed: 2026-08-31',
-  '---',
-  '',
-  '# Regras de negocio',
-  '',
-  ...Array.from({ length: 97 }, (_, i) => {
-    const id = `RN${String(i + 1).padStart(3, '0')}`;
-    return [`## ${id} — Regra numero ${i + 1}`, '', '- **status:** active', '', 'Prosa da regra.', ''].join('\n');
-  }),
-].join('\n');
+    '---',
+    'title: Regras de negocio',
+    'owner: "@consumidor"',
+    'trigger: >',
+    '  Antes de implementar qualquer comportamento, e a toda regra nova ou alterada.',
+    'last-reviewed: 2026-08-31',
+    '---',
+    '',
+    '# Regras de negocio',
+    '',
+    ...Array.from({ length: 97 }, (_, i) => {
+        const id = `RN${String(i + 1).padStart(3, '0')}`
+        return [
+            `## ${id} — Regra numero ${i + 1}`,
+            '',
+            '- **status:** active',
+            '',
+            'Prosa da regra.',
+            ''
+        ].join('\n')
+    })
+].join('\n')
 
 const DECISOES_EM_PROSA = [
-  '---',
-  'title: Decisoes em aberto',
-  'owner: "@consumidor"',
-  'trigger: >',
-  '  Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.',
-  'last-reviewed: 2026-08-31',
-  '---',
-  '',
-  '## DA001 — Como arredondar centavos',
-  '',
-  '- **status:** open',
-  '',
-  '**Contexto:** a cobranca arredonda hoje de tres jeitos.',
-  '**Alternativas:** para cima, bancario, truncar.',
-  '**Recomendacao:** bancario.',
-  '**Situacao:** ainda em discussao com o financeiro.',
-  '',
-  '## DA002 — Fuso do fechamento',
-  '',
-  '- **status:** open',
-  '',
-  '**Contexto:** o fechamento roda em UTC e o relatorio sai em BRT.',
-  '**Situacao:** aguardando o time de dados.',
-  '',
-].join('\n');
+    '---',
+    'title: Decisoes em aberto',
+    'owner: "@consumidor"',
+    'trigger: >',
+    '  Toda vez que alguem trombou numa lacuna — comportamento sem regra escrita.',
+    'last-reviewed: 2026-08-31',
+    '---',
+    '',
+    '## DA001 — Como arredondar centavos',
+    '',
+    '- **status:** open',
+    '',
+    '**Contexto:** a cobranca arredonda hoje de tres jeitos.',
+    '**Alternativas:** para cima, bancario, truncar.',
+    '**Recomendacao:** bancario.',
+    '**Situacao:** ainda em discussao com o financeiro.',
+    '',
+    '## DA002 — Fuso do fechamento',
+    '',
+    '- **status:** open',
+    '',
+    '**Contexto:** o fechamento roda em UTC e o relatorio sai em BRT.',
+    '**Situacao:** aguardando o time de dados.',
+    ''
+].join('\n')
 
 /** O `.claude/settings.json` que o consumidor ja tem, com hooks proprios. */
 const SETTINGS_DO_CONSUMIDOR = JSON.stringify(
-  {
-    hooks: {
-      PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: './scripts/audita.sh' }] }],
+    {
+        hooks: {
+            PreToolUse: [
+                {
+                    matcher: 'Bash',
+                    hooks: [{ type: 'command', command: './scripts/audita.sh' }]
+                }
+            ]
+        },
+        extraKnownMarketplaces: {
+            'time-interno': {
+                source: { source: 'github', repo: 'time/plugins' }
+            }
+        }
     },
-    extraKnownMarketplaces: { 'time-interno': { source: { source: 'github', repo: 'time/plugins' } } },
-  },
-  null,
-  2,
-);
+    null,
+    2
+)
 
 const WORKFLOW_DO_CONSUMIDOR = [
-  'name: api',
-  'on:',
-  '  pull_request:',
-  '    paths: ["services/api/**"]',
-  'jobs:',
-  '  test:',
-  '    runs-on: ubuntu-latest',
-  '    steps:',
-  '      - uses: actions/checkout@v4',
-  '      - run: npm ci && npm test',
-  '',
-].join('\n');
+    'name: api',
+    'on:',
+    '  pull_request:',
+    '    paths: ["services/api/**"]',
+    'jobs:',
+    '  test:',
+    '    runs-on: ubuntu-latest',
+    '    steps:',
+    '      - uses: actions/checkout@v4',
+    '      - run: npm ci && npm test',
+    ''
+].join('\n')
 
 const CONSUMIDOR = {
-  'docs/regras-de-negocio.md': REGRAS_DO_CONSUMIDOR,
-  'docs/decisoes-em-aberto.md': DECISOES_EM_PROSA,
-  'docs/adr/.gitkeep': '',
-  'docs/architecture/contexto.md': '# Contexto\n\nDesenho C4 nivel 1.\n',
-  'docs/domains/cobranca.md': '# Cobranca\n\nInvariantes do dominio.\n',
-  'test/cobranca.test.ts': "test('RN001: arredonda para cima', () => {});\n",
-  '.claude/settings.json': SETTINGS_DO_CONSUMIDOR,
-  '.github/workflows/api.yml': WORKFLOW_DO_CONSUMIDOR,
-  'README.md': '# consumidor\n',
-};
+    'docs/regras-de-negocio.md': REGRAS_DO_CONSUMIDOR,
+    'docs/decisoes-em-aberto.md': DECISOES_EM_PROSA,
+    'docs/adr/.gitkeep': '',
+    'docs/architecture/contexto.md': '# Contexto\n\nDesenho C4 nivel 1.\n',
+    'docs/domains/cobranca.md': '# Cobranca\n\nInvariantes do dominio.\n',
+    'test/cobranca.test.ts': "test('RN001: arredonda para cima', () => {});\n",
+    '.claude/settings.json': SETTINGS_DO_CONSUMIDOR,
+    '.github/workflows/api.yml': WORKFLOW_DO_CONSUMIDOR,
+    'README.md': '# consumidor\n'
+}
 
 /** Impressao byte a byte da arvore, para provar que nada preexistente mudou. */
-function impressao(root: string, arquivos: readonly string[]): Record<string, string> {
-  const registro: Record<string, string> = {};
-  for (const arquivo of arquivos) registro[arquivo] = readFileSync(join(root, arquivo), 'utf8');
-  return registro;
+function impressao(
+    root: string,
+    arquivos: readonly string[]
+): Record<string, string> {
+    const registro: Record<string, string> = {}
+    for (const arquivo of arquivos)
+        registro[arquivo] = readFileSync(join(root, arquivo), 'utf8')
+    return registro
 }
 
 const OPCOES_DO_CONSUMIDOR = {
-  owner: '@consumidor',
-  dryRun: false,
-  stage: 'production' as const,
-  idFormat: { separator: '', padding: 3 },
-  // O consumidor nao roda Docker: e assim que ele chama o CLI.
-  invoke: 'npx living-docs',
-  marketplace: 'time/living-docs',
-};
+    owner: '@consumidor',
+    dryRun: false,
+    stage: 'production' as const,
+    idFormat: { separator: '', padding: 3 },
+    // O consumidor nao roda Docker: e assim que ele chama o CLI.
+    invoke: 'npx living-docs',
+    marketplace: 'time/living-docs'
+}
 ```
 
 - [x] **Step 2: Escrever o teste do critério 12 (falha)**
@@ -5096,61 +5658,108 @@ Ainda em `test/acceptance/consumer-repo.test.ts`:
 
 ```typescript
 test('criterio 12: o consumidor real e adotado, e nenhum arquivo dele e reescrito', () => {
-  withTempRepo(CONSUMIDOR, (root) => {
-    const preexistentes = Object.keys(CONSUMIDOR).filter((p) => p !== 'docs/adr/.gitkeep');
-    const antes = impressao(root, preexistentes);
+    withTempRepo(CONSUMIDOR, root => {
+        const preexistentes = Object.keys(CONSUMIDOR).filter(
+            p => p !== 'docs/adr/.gitkeep'
+        )
+        const antes = impressao(root, preexistentes)
 
-    // --dry-run primeiro: o inventario relata a forma que ele achou, e nao a
-    // adota em silencio (RF-0014).
-    const seco = runInit(root, { ...OPCOES_DO_CONSUMIDOR, idFormat: DEFAULT_ID_FORMAT, dryRun: true });
-    assert.ok(seco.detected, 'o inventario nao relatou a forma escrita do consumidor');
-    assert.equal(seco.detected?.format.separator, '');
-    assert.equal(seco.detected?.format.padding, 3);
-    assert.ok((seco.detected?.count ?? 0) >= 97, `so ${seco.detected?.count} ocorrencias lidas`);
-    assert.deepEqual(impressao(root, preexistentes), antes, '--dry-run escreveu no repositorio');
+        // --dry-run primeiro: o inventario relata a forma que ele achou, e nao a
+        // adota em silencio (RF-0014).
+        const seco = runInit(root, {
+            ...OPCOES_DO_CONSUMIDOR,
+            idFormat: DEFAULT_ID_FORMAT,
+            dryRun: true
+        })
+        assert.ok(
+            seco.detected,
+            'o inventario nao relatou a forma escrita do consumidor'
+        )
+        assert.equal(seco.detected?.format.separator, '')
+        assert.equal(seco.detected?.format.padding, 3)
+        assert.ok(
+            (seco.detected?.count ?? 0) >= 97,
+            `so ${seco.detected?.count} ocorrencias lidas`
+        )
+        assert.deepEqual(
+            impressao(root, preexistentes),
+            antes,
+            '--dry-run escreveu no repositorio'
+        )
 
-    // Agora a instalacao, com a forma declarada.
-    const result = runInit(root, OPCOES_DO_CONSUMIDOR);
+        // Agora a instalacao, com a forma declarada.
+        const result = runInit(root, OPCOES_DO_CONSUMIDOR)
 
-    // 1 — nada preexistente foi reescrito.
-    assert.deepEqual(impressao(root, preexistentes), antes, 'o init reescreveu arquivo preexistente');
+        // 1 — nada preexistente foi reescrito.
+        assert.deepEqual(
+            impressao(root, preexistentes),
+            antes,
+            'o init reescreveu arquivo preexistente'
+        )
 
-    // 2 — as regras e as decisoes foram ADOTADAS, nao recriadas.
-    const adotados = result.adopted.map((e) => e.path);
-    assert.ok(adotados.includes('docs/regras-de-negocio.md'), JSON.stringify(result.adopted));
-    assert.ok(adotados.includes('docs/decisoes-em-aberto.md'), JSON.stringify(result.adopted));
-    assert.ok(!existsSync(join(root, 'docs/requirements/rules.md')), 'o init criou um paralelo');
-    assert.ok(!existsSync(join(root, 'docs/open-decisions.md')), 'o init criou um paralelo');
+        // 2 — as regras e as decisoes foram ADOTADAS, nao recriadas.
+        const adotados = result.adopted.map(e => e.path)
+        assert.ok(
+            adotados.includes('docs/regras-de-negocio.md'),
+            JSON.stringify(result.adopted)
+        )
+        assert.ok(
+            adotados.includes('docs/decisoes-em-aberto.md'),
+            JSON.stringify(result.adopted)
+        )
+        assert.ok(
+            !existsSync(join(root, 'docs/requirements/rules.md')),
+            'o init criou um paralelo'
+        )
+        assert.ok(
+            !existsSync(join(root, 'docs/open-decisions.md')),
+            'o init criou um paralelo'
+        )
 
-    // 3 — o diretorio de ADRs vazio nasce adotado.
-    assert.ok(adotados.includes('docs/adr/'), JSON.stringify(result.adopted));
+        // 3 — o diretorio de ADRs vazio nasce adotado.
+        assert.ok(
+            adotados.includes('docs/adr/'),
+            JSON.stringify(result.adopted)
+        )
 
-    // 4 — os hooks e o workflow do consumidor continuam la, e o do toolkit entrou.
-    const settings = JSON.parse(readFileSync(join(root, SETTINGS_PATH), 'utf8'));
-    assert.ok(settings.hooks.PreToolUse.some((e: { matcher: string }) => e.matcher === 'Bash'));
-    assert.ok(settings.extraKnownMarketplaces['time-interno']);
-    assert.ok(settings.extraKnownMarketplaces['living-docs']);
-    assert.ok(existsSync(join(root, '.github/workflows/api.yml')));
-    assert.ok(existsSync(join(root, WORKFLOW_PATH)));
+        // 4 — os hooks e o workflow do consumidor continuam la, e o do toolkit entrou.
+        const settings = JSON.parse(
+            readFileSync(join(root, SETTINGS_PATH), 'utf8')
+        )
+        assert.ok(
+            settings.hooks.PreToolUse.some(
+                (e: { matcher: string }) => e.matcher === 'Bash'
+            )
+        )
+        assert.ok(settings.extraKnownMarketplaces['time-interno'])
+        assert.ok(settings.extraKnownMarketplaces['living-docs'])
+        assert.ok(existsSync(join(root, '.github/workflows/api.yml')))
+        assert.ok(existsSync(join(root, WORKFLOW_PATH)))
 
-    // 5 — o workflow instalado nao impoe Docker a quem instala.
-    const workflow = readFileSync(join(root, WORKFLOW_PATH), 'utf8');
-    assert.doesNotMatch(workflow, /docker/i);
-    assert.match(workflow, /npx living-docs validate/);
+        // 5 — o workflow instalado nao impoe Docker a quem instala.
+        const workflow = readFileSync(join(root, WORKFLOW_PATH), 'utf8')
+        assert.doesNotMatch(workflow, /docker/i)
+        assert.match(workflow, /npx living-docs validate/)
 
-    // 6 — o CODEOWNERS, que ele nao tinha, foi escrito.
-    assert.ok(existsSync(join(root, 'CODEOWNERS')));
+        // 6 — o CODEOWNERS, que ele nao tinha, foi escrito.
+        assert.ok(existsSync(join(root, 'CODEOWNERS')))
 
-    // 7 — a situacao em prosa continua prosa: virar estado e ato humano.
-    assert.match(readFileSync(join(root, 'docs/decisoes-em-aberto.md'), 'utf8'), /ainda em discussao/);
+        // 7 — a situacao em prosa continua prosa: virar estado e ato humano.
+        assert.match(
+            readFileSync(join(root, 'docs/decisoes-em-aberto.md'), 'utf8'),
+            /ainda em discussao/
+        )
 
-    // 8 — rodar de novo nao duplica nada.
-    const segunda = runInit(root, OPCOES_DO_CONSUMIDOR);
-    assert.deepEqual(segunda.created, [], JSON.stringify(segunda.created));
-    const settingsDepois = readFileSync(join(root, SETTINGS_PATH), 'utf8');
-    assert.equal(settingsDepois.match(/living-docs@living-docs/g)?.length ?? 0, 1);
-  });
-});
+        // 8 — rodar de novo nao duplica nada.
+        const segunda = runInit(root, OPCOES_DO_CONSUMIDOR)
+        assert.deepEqual(segunda.created, [], JSON.stringify(segunda.created))
+        const settingsDepois = readFileSync(join(root, SETTINGS_PATH), 'utf8')
+        assert.equal(
+            settingsDepois.match(/living-docs@living-docs/g)?.length ?? 0,
+            1
+        )
+    })
+})
 ```
 
 - [x] **Step 3: Rodar e ver o que falha**
@@ -5175,45 +5784,60 @@ Ainda no mesmo arquivo, o segundo teste — o binário:
 
 ```typescript
 test('criterio 12: a camada 4 entra com dono e sem skill, sem que nenhum check mude', () => {
-  withTempRepo(CONSUMIDOR, (root) => {
-    runInit(root, OPCOES_DO_CONSUMIDOR);
+    withTempRepo(CONSUMIDOR, root => {
+        runInit(root, OPCOES_DO_CONSUMIDOR)
 
-    // Antes de declarar: os documentos de arquitetura caem no corpus de CI-7 e
-    // reprovam por falta de dono. E o comportamento correto — o corpus e tudo
-    // que vive sob a raiz da documentacao, e nao uma lista de tipos conhecidos.
-    const semDono = runValidate(root);
-    assert.ok(
-      semDono.findings.some((f) => f.ruleId === 'CI-7' && f.file.startsWith('docs/architecture/')),
-      JSON.stringify(semDono.findings, null, 2),
-    );
+        // Antes de declarar: os documentos de arquitetura caem no corpus de CI-7 e
+        // reprovam por falta de dono. E o comportamento correto — o corpus e tudo
+        // que vive sob a raiz da documentacao, e nao uma lista de tipos conhecidos.
+        const semDono = runValidate(root)
+        assert.ok(
+            semDono.findings.some(
+                f =>
+                    f.ruleId === 'CI-7' &&
+                    f.file.startsWith('docs/architecture/')
+            ),
+            JSON.stringify(semDono.findings, null, 2)
+        )
 
-    // A declaracao: dono, sem skill. Nada alem disso.
-    const ownership = readFileSync(join(root, OWNERSHIP_PATH), 'utf8');
-    writeFileSync(
-      join(root, OWNERSHIP_PATH),
-      `${ownership}\n  - path: docs/architecture/\n    owner: "@consumidor"\n  - path: docs/domains/\n    owner: "@consumidor"\n`,
-      'utf8',
-    );
-    // E o CODEOWNERS, que CI-7 tambem cobra.
-    const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
-    writeFileSync(
-      join(root, 'CODEOWNERS'),
-      `${codeowners}docs/architecture/    @consumidor\ndocs/domains/    @consumidor\n`,
-      'utf8',
-    );
+        // A declaracao: dono, sem skill. Nada alem disso.
+        const ownership = readFileSync(join(root, OWNERSHIP_PATH), 'utf8')
+        writeFileSync(
+            join(root, OWNERSHIP_PATH),
+            `${ownership}\n  - path: docs/architecture/\n    owner: "@consumidor"\n  - path: docs/domains/\n    owner: "@consumidor"\n`,
+            'utf8'
+        )
+        // E o CODEOWNERS, que CI-7 tambem cobra.
+        const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
+        writeFileSync(
+            join(root, 'CODEOWNERS'),
+            `${codeowners}docs/architecture/    @consumidor\ndocs/domains/    @consumidor\n`,
+            'utf8'
+        )
 
-    const result = runValidate(root);
-    assert.deepEqual(
-      result.findings.filter((f) => f.file.startsWith('docs/architecture/') || f.file.startsWith('docs/domains/')),
-      [],
-      'a camada 4 exigiu mais do que dono e linha no CODEOWNERS',
-    );
-    assert.equal(result.exitCode, 0, JSON.stringify(result.findings, null, 2));
+        const result = runValidate(root)
+        assert.deepEqual(
+            result.findings.filter(
+                f =>
+                    f.file.startsWith('docs/architecture/') ||
+                    f.file.startsWith('docs/domains/')
+            ),
+            [],
+            'a camada 4 exigiu mais do que dono e linha no CODEOWNERS'
+        )
+        assert.equal(
+            result.exitCode,
+            0,
+            JSON.stringify(result.findings, null, 2)
+        )
 
-    // Sem skill dona, CI-10 nao tem par a cruzar: documento sem skill nao e achado.
-    assert.deepEqual(result.findings.filter((f) => f.ruleId === 'CI-10'), []);
-  });
-});
+        // Sem skill dona, CI-10 nao tem par a cruzar: documento sem skill nao e achado.
+        assert.deepEqual(
+            result.findings.filter(f => f.ruleId === 'CI-10'),
+            []
+        )
+    })
+})
 ```
 
 Note a ordem em que o `.ownership.yml` recebe as duas entradas: elas precisam
@@ -5248,8 +5872,8 @@ Não conserte em silêncio. Abra a decisão e pare:
 
 Escreva o caso concreto — qual check, qual documento, o que ele exigiu — e abra
 uma `DA` pela `decision-recorder` (`/open-decision`), citando a §8 da spec de
-fechamento: *"se adotar a camada 4 exigir tocar em algum check, o ponto de
-extensão não era o que a spec dizia que era"*. O número sai da skill, não deste
+fechamento: _"se adotar a camada 4 exigir tocar em algum check, o ponto de
+extensão não era o que a spec dizia que era"_. O número sai da skill, não deste
 plano. Esse resultado invalida uma decisão da spec, e é mais valioso que um
 teste verde.
 
@@ -5278,16 +5902,19 @@ Esta task **não promove nada**. Ela entrega a lista, com o que sustenta cada
 item, para que uma pessoa decida.
 
 **Files:**
+
 - Nenhum, pelo agente. Os arquivos que a **pessoa** pode promover:
   `docs/decisions/adr/ADR-0011-*.md`, `ADR-0012-*.md`, `ADR-0013-*.md`,
   `docs/requirements/functional.md`, `docs/requirements/rules.md`,
   `docs/requirements/non-functional.md`.
 
 **Interfaces:**
+
 - Consome: tudo. É a última task.
 - Produz: uma decisão humana, ou o registro de que ela ainda não foi tomada.
 
 **Requisitos:**
+
 - **Nenhum agente promove estado** (spec §4). Se você é o agente executando este
   plano, o Step 3 é onde você para.
 - `DA-0003` continua `open` — ela é uma lacuna de verdade, não um resto de
@@ -5335,3 +5962,4 @@ deixe `draft` o que ainda não decidiu. Um ADR promovido fica congelado — `HK-
 bloqueia o corpo dele a partir daí, e o conserto passa a ser `superseded` mais um
 ADR novo. É esse custo que torna a promoção uma decisão, e não um passo de
 processo.
+

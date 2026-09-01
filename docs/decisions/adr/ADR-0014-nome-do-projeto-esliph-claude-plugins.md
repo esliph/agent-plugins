@@ -2,9 +2,9 @@
 id: ADR-0014
 title: Nome do projeto — @esliph/claude-plugins
 status: draft
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-09-01
 relates-to: []
 supersedes: null
@@ -67,3 +67,4 @@ executável — quem lê esses documentos precisa saber que ele corresponde a
 `esliph-claude-plugins` no container. E `package-lock.json` teve o campo `name`
 editado à mão; o próximo `npm install` dentro do container reescreve o arquivo, e
 é ele a fonte de verdade do lock.
+

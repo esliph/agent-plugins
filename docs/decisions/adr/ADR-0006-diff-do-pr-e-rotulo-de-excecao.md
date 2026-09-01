@@ -2,9 +2,9 @@
 id: ADR-0006
 title: De onde CI-6 tira o diff, o que conta como rótulo de exceção, e onde ele roda
 status: draft
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-26
 relates-to: [RF-0008, RN-0013]
 supersedes: null
@@ -44,7 +44,7 @@ como se a branch tivesse mudado. Um PR passa a ser cobrado por arquivo que ele
 não tocou.
 
 **`git diff <base>...HEAD` (três pontos), com a base recebida por argumento.
-Escolhida.** Três pontos parte do *merge-base*: é exatamente "o que esta
+Escolhida.** Três pontos parte do _merge-base_: é exatamente "o que esta
 branch mudou". A base vem de `--base <ref>` porque nenhum padrão é honesto —
 `origin/main` não existe em todo repositório, e um padrão errado produz um
 check que reprova o PR inteiro ou não reprova nada.
@@ -62,7 +62,7 @@ arquivo que precisa ser criado e apagado a cada PR vira lixo esquecido na
 
 **Uma linha na mensagem de commit, no formato `Changelog: none — <razão>`.
 Escolhida.** Está no controle de versão, viaja com a mudança para sempre, é
-legível por `git log` sem rede nem provedor, e é a mesma forma de *trailer* que
+legível por `git log` sem rede nem provedor, e é a mesma forma de _trailer_ que
 o próprio repositório já usa para atribuição de commit. A razão é
 **obrigatória**: um rótulo sem razão é uma caixinha marcada, e caixinha marcada
 é o começo da wiki morta.
@@ -138,3 +138,4 @@ carregar um `--base` que ele não usa.
   momentos diferentes (o lembrete na edição e a barreira no PR) e um projeto
   pode legitimamente querer um sem o outro; neste repositório, um teste de
   dogfooding cobra a igualdade das duas em vez de deixá-las derivar.
+

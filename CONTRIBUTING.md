@@ -1,9 +1,9 @@
 ---
 title: Como se contribui aqui
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
-  errou por falta de contexto que caberia nesta página.
+    Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
+    errou por falta de contexto que caberia nesta página.
 last-reviewed: 2026-08-27
 ---
 
@@ -46,20 +46,20 @@ não o ambiente.
 
 ## Onde a verdade mora
 
-| Pergunta | Artefato |
-| --- | --- |
-| O que o toolkit deve ser | `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md` |
-| Qual é a regra de X | `docs/requirements/` |
-| Por que foi feito assim | `docs/decisions/adr/` |
-| O que ainda não foi decidido | `docs/open-decisions.md` |
-| O que se aceitou dever | `docs/decisions/debt/` |
-| Quem é dono de cada caminho | `docs/.ownership.yml` e `CODEOWNERS` |
-| Qual é o vocabulário do domínio | `docs/glossary.md` |
-| O que é inviolável, e a visão do produto | `docs/charter/` |
-| O que é público, e o que cada erro significa | `docs/contracts/` |
-| O que mudou para quem usa | `CHANGELOG.md` e `docs/releases/` |
-| Quando está pronto | `docs/definition-of-done.md` |
-| Quem responde por cada documento sem ID | `docs/.ownership.yml` (`documents:`) |
+| Pergunta                                     | Artefato                                                               |
+| -------------------------------------------- | ---------------------------------------------------------------------- |
+| O que o toolkit deve ser                     | `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md` |
+| Qual é a regra de X                          | `docs/requirements/`                                                   |
+| Por que foi feito assim                      | `docs/decisions/adr/`                                                  |
+| O que ainda não foi decidido                 | `docs/open-decisions.md`                                               |
+| O que se aceitou dever                       | `docs/decisions/debt/`                                                 |
+| Quem é dono de cada caminho                  | `docs/.ownership.yml` e `CODEOWNERS`                                   |
+| Qual é o vocabulário do domínio              | `docs/glossary.md`                                                     |
+| O que é inviolável, e a visão do produto     | `docs/charter/`                                                        |
+| O que é público, e o que cada erro significa | `docs/contracts/`                                                      |
+| O que mudou para quem usa                    | `CHANGELOG.md` e `docs/releases/`                                      |
+| Quando está pronto                           | `docs/definition-of-done.md`                                           |
+| Quem responde por cada documento sem ID      | `docs/.ownership.yml` (`documents:`)                                   |
 
 Nenhuma dessas respostas é copiada para outro lugar. Duplicata apodrece, e a
 versão velha ganha da nova por repetição.
@@ -74,3 +74,4 @@ Mensagem de commit em português, no formato `tipo(ID): assunto`.
 Isso não é acidente, é sintoma: falta uma linha em algum documento. A correção é
 acrescentar essa linha — em `CLAUDE.md` se for política ou índice, no artefato
 dono se for regra. A skill `working-agreements-keeper` é dona desse loop.
+

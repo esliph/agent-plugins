@@ -10,7 +10,7 @@
 
 Três coisas de natureza diferente, nesta ordem porque cada uma consome a anterior.
 
-1. **`watches` vira engine.** Hoje o campo é lido e validado por `src/config/ownership.ts` e **nenhuma regra o preenche** — ele existe no tipo e não existe no mundo. A Fase 3 introduz `src/config/watches.ts`, um módulo com uma pergunta só: *dado um conjunto de caminhos, que docs eles exigem, e quais desses docs eles não tocam*. `HK-4` faz essa pergunta com um caminho; `HK-5` faz com o índice inteiro do git; `CI-7`, na Fase 7, fará com o diff do PR. Nenhum dos três aprende caminho de projeto: a resposta inteira vem de `docs/.ownership.yml`.
+1. **`watches` vira engine.** Hoje o campo é lido e validado por `src/config/ownership.ts` e **nenhuma regra o preenche** — ele existe no tipo e não existe no mundo. A Fase 3 introduz `src/config/watches.ts`, um módulo com uma pergunta só: _dado um conjunto de caminhos, que docs eles exigem, e quais desses docs eles não tocam_. `HK-4` faz essa pergunta com um caminho; `HK-5` faz com o índice inteiro do git; `CI-7`, na Fase 7, fará com o diff do PR. Nenhum dos três aprende caminho de projeto: a resposta inteira vem de `docs/.ownership.yml`.
 
 2. **Dois hooks novos, e os dois são os primeiros do seu tipo.** `HK-4` é o primeiro `PostToolUse` — a saída não é `permissionDecision`, é `additionalContext`, e por isso `src/hooks/lib/io.ts` ganha um segundo formatador. `HK-5` é o primeiro `PreToolUse` com matcher `Bash`: não recebe `file_path`, recebe `command`, e para saber o que está no commit precisa perguntar ao git — o que traz `src/git/staged.ts`, o primeiro módulo do toolkit que executa subprocesso. Os dois obedecem a mesma regra: **nunca negam**. `HK-4` informa, `HK-5` pergunta. Um lembrete que bloqueia é desinstalado no primeiro atalho legítimo, e aí não sobra lembrete nenhum.
 
@@ -87,14 +87,17 @@ Novo (`+`) e alterado (`~`). O que não aparece aqui não muda.
 **Objetivo:** escrever a regra **antes** do código, que é a regra que o próprio toolkit impõe (`SK-4`, regra 1; critério de aceite 4). Nascem em `draft`; a promoção para `active` é ato humano e acontece na Task 9, depois que os testes já as citam — `CI-3` exige citação para requisito `active`, e um requisito `active` sem cobertura reprova o próprio repositório.
 
 **Files:**
+
 - Modify: `docs/requirements/rules.md` (acrescenta `RN-0008`, `RN-0009`, `RN-0010` ao final; atualiza `last-reviewed`)
 - Modify: `docs/requirements/functional.md` (acrescenta `RF-0004`; atualiza `last-reviewed`)
 
 **Interfaces:**
+
 - Consome: o formato de seção de `templates/requirements.md`, já em uso nas Fases 0–2.
 - Produz: os IDs `RN-0008`, `RN-0009`, `RN-0010` e `RF-0004`, citados pelos testes das Tasks 2 a 9. Nenhum outro ID novo nasce nesta fase.
 
 **Requisitos:**
+
 - Os quatro nascem `status: draft`. **Não promova.** `HK-3` devolve `ask`, e a resposta não é do agente.
 - O ID vem em sequência: os últimos usados são `RN-0007` e `RF-0003`. Confira `docs/ids-retired.txt` antes (está vazio; confira mesmo assim — é o hábito que a regra protege).
 - Cada requisito traz `fora de escopo`, que é o campo que impede o alargamento silencioso.
@@ -178,6 +181,7 @@ Em `docs/requirements/rules.md` e `docs/requirements/functional.md`, o campo do 
 docker compose exec toolkit npm test
 docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts validate; echo "exit=$?"
 ```
+
 Esperado: testes verdes e `exit=0`. Os requisitos novos estão em `draft`, então `CI-3` ainda não exige citação para eles. Se `CI-1` reclamar de `status`, confira que o valor é exatamente `draft`.
 
 - [ ] **Step 5: Commit**
@@ -194,18 +198,21 @@ git commit -m "docs(RN-0008..RN-0010, RF-0004): requisitos da Fase 3 em draft"
 **Objetivo:** a peça de engine que falta. Uma pergunta, três consumidores (`HK-4`, `HK-5` e, na Fase 7, `CI-7`), zero caminhos embutidos.
 
 **Files:**
+
 - Create: `src/config/watches.ts`
 - Test: `test/config/watches.test.ts`
 
 **Interfaces:**
+
 - Consome: `OwnershipConfig`, `WatchRule` e `findArtifactRule` de `src/config/ownership.ts` (já existem, sem alteração); `picomatch`.
 - Produz, para as Tasks 4, 5 e 9:
-  - `interface WatchMatch { doc: string; reason: string | null; consumerVisible: boolean; matched: string[]; skill: string | null; owner: string | null }`
-  - `watchesFor(config: OwnershipConfig, paths: readonly string[]): WatchMatch[]`
-  - `pendingDocs(config: OwnershipConfig, paths: readonly string[]): WatchMatch[]`
-  - `coversDoc(doc: string, paths: readonly string[]): boolean`
+    - `interface WatchMatch { doc: string; reason: string | null; consumerVisible: boolean; matched: string[]; skill: string | null; owner: string | null }`
+    - `watchesFor(config: OwnershipConfig, paths: readonly string[]): WatchMatch[]`
+    - `pendingDocs(config: OwnershipConfig, paths: readonly string[]): WatchMatch[]`
+    - `coversDoc(doc: string, paths: readonly string[]): boolean`
 
 **Requisitos:**
+
 - Agrupa por **doc**, não por regra: duas entradas de `watches` que apontam para o mesmo doc produzem uma exigência só, com os caminhos somados.
 - `skill` e `owner` vêm de `findArtifactRule` quando o doc é artefato declarado, e são `null` quando não é. **Não é erro:** `CONTRIBUTING.md` é doc dono legítimo e não tem família de IDs — é a lacuna que a Task 9 registra como `DA-0002`.
 - Normaliza `\` para `/` e remove `./` antes de casar. O `file_path` de um hook chega no formato do host, que em Windows usa barra invertida.
@@ -217,10 +224,10 @@ git commit -m "docs(RN-0008..RN-0010, RF-0004): requisitos da Fase 3 em draft"
 `test/config/watches.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { parseOwnership } from '../../src/config/ownership.ts';
-import { coversDoc, pendingDocs, watchesFor } from '../../src/config/watches.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { parseOwnership } from '../../src/config/ownership.ts'
+import { coversDoc, pendingDocs, watchesFor } from '../../src/config/watches.ts'
 
 const CONFIG = parseOwnership(`
 version: 1
@@ -239,7 +246,7 @@ watches:
   - code: "src/domain/pedido/**"
     doc: docs/requirements/rules.md
     reason: "outro motivo, mesmo doc"
-`);
+`)
 
 const SEM_WATCHES = parseOwnership(`
 version: 1
@@ -249,63 +256,81 @@ artifacts:
     owner: "@team"
     skill: requirements-keeper
     collection: sections
-`);
+`)
 
 test('RN-0008: caminho vigiado nomeia o doc dono, com quem o mantém e por quê', () => {
-  const matches = watchesFor(CONFIG, ['src/domain/reembolso.ts']);
-  assert.equal(matches.length, 1);
-  assert.equal(matches[0]?.doc, 'docs/requirements/rules.md');
-  assert.equal(matches[0]?.skill, 'requirements-keeper');
-  assert.equal(matches[0]?.owner, '@team');
-  assert.match(String(matches[0]?.reason), /regra com ID antes do código/);
-  assert.deepEqual(matches[0]?.matched, ['src/domain/reembolso.ts']);
-});
+    const matches = watchesFor(CONFIG, ['src/domain/reembolso.ts'])
+    assert.equal(matches.length, 1)
+    assert.equal(matches[0]?.doc, 'docs/requirements/rules.md')
+    assert.equal(matches[0]?.skill, 'requirements-keeper')
+    assert.equal(matches[0]?.owner, '@team')
+    assert.match(String(matches[0]?.reason), /regra com ID antes do código/)
+    assert.deepEqual(matches[0]?.matched, ['src/domain/reembolso.ts'])
+})
 
 test('RN-0008: caminho fora de watches não exige doc nenhum', () => {
-  assert.deepEqual(watchesFor(CONFIG, ['README.md', 'test/helpers/tmp.ts']), []);
-});
+    assert.deepEqual(
+        watchesFor(CONFIG, ['README.md', 'test/helpers/tmp.ts']),
+        []
+    )
+})
 
 test('doc sem artefato declarado é exigido do mesmo jeito, só que sem skill', () => {
-  const [match] = watchesFor(CONFIG, ['src/api/errors/not-found.ts']);
-  assert.equal(match?.doc, 'docs/contracts/errors.md');
-  assert.equal(match?.skill, null);
-  assert.equal(match?.owner, null);
-});
+    const [match] = watchesFor(CONFIG, ['src/api/errors/not-found.ts'])
+    assert.equal(match?.doc, 'docs/contracts/errors.md')
+    assert.equal(match?.skill, null)
+    assert.equal(match?.owner, null)
+})
 
 test('duas regras para o mesmo doc viram uma exigência só, com os caminhos somados', () => {
-  const matches = watchesFor(CONFIG, ['src/domain/pedido/item.ts', 'src/domain/reembolso.ts']);
-  assert.equal(matches.length, 1);
-  assert.deepEqual(matches[0]?.matched, ['src/domain/pedido/item.ts', 'src/domain/reembolso.ts']);
-});
+    const matches = watchesFor(CONFIG, [
+        'src/domain/pedido/item.ts',
+        'src/domain/reembolso.ts'
+    ])
+    assert.equal(matches.length, 1)
+    assert.deepEqual(matches[0]?.matched, [
+        'src/domain/pedido/item.ts',
+        'src/domain/reembolso.ts'
+    ])
+})
 
 test('RN-0008: o doc tocado no mesmo conjunto sai da lista de pendências', () => {
-  const paths = ['src/domain/reembolso.ts', 'docs/requirements/rules.md'];
-  assert.equal(watchesFor(CONFIG, paths).length, 1);
-  assert.deepEqual(pendingDocs(CONFIG, paths), []);
-});
+    const paths = ['src/domain/reembolso.ts', 'docs/requirements/rules.md']
+    assert.equal(watchesFor(CONFIG, paths).length, 1)
+    assert.deepEqual(pendingDocs(CONFIG, paths), [])
+})
 
 test('RN-0008: sem o doc, a pendência permanece', () => {
-  const pending = pendingDocs(CONFIG, ['src/domain/reembolso.ts']);
-  assert.equal(pending.length, 1);
-  assert.equal(pending[0]?.doc, 'docs/requirements/rules.md');
-});
+    const pending = pendingDocs(CONFIG, ['src/domain/reembolso.ts'])
+    assert.equal(pending.length, 1)
+    assert.equal(pending[0]?.doc, 'docs/requirements/rules.md')
+})
 
 test('doc declarado como diretório é coberto por qualquer arquivo dentro dele', () => {
-  assert.equal(coversDoc('docs/requirements/', ['docs/requirements/rules.md']), true);
-  assert.equal(coversDoc('docs/requirements/', ['docs/glossary.md']), false);
-  assert.equal(coversDoc('docs/requirements/rules.md', ['docs/requirements/rules.md']), true);
-  assert.equal(coversDoc('docs/requirements/rules.md', ['docs/requirements/']), false);
-});
+    assert.equal(
+        coversDoc('docs/requirements/', ['docs/requirements/rules.md']),
+        true
+    )
+    assert.equal(coversDoc('docs/requirements/', ['docs/glossary.md']), false)
+    assert.equal(
+        coversDoc('docs/requirements/rules.md', ['docs/requirements/rules.md']),
+        true
+    )
+    assert.equal(
+        coversDoc('docs/requirements/rules.md', ['docs/requirements/']),
+        false
+    )
+})
 
 test('caminho em formato de host é normalizado antes de casar', () => {
-  assert.equal(watchesFor(CONFIG, ['src\\domain\\reembolso.ts']).length, 1);
-  assert.equal(watchesFor(CONFIG, ['./src/domain/reembolso.ts']).length, 1);
-});
+    assert.equal(watchesFor(CONFIG, ['src\\domain\\reembolso.ts']).length, 1)
+    assert.equal(watchesFor(CONFIG, ['./src/domain/reembolso.ts']).length, 1)
+})
 
 test('sem `watches`, nada é exigido — é o estado das Fases 0 a 2', () => {
-  assert.deepEqual(watchesFor(SEM_WATCHES, ['src/domain/reembolso.ts']), []);
-  assert.deepEqual(pendingDocs(SEM_WATCHES, ['src/domain/reembolso.ts']), []);
-});
+    assert.deepEqual(watchesFor(SEM_WATCHES, ['src/domain/reembolso.ts']), [])
+    assert.deepEqual(pendingDocs(SEM_WATCHES, ['src/domain/reembolso.ts']), [])
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -313,31 +338,32 @@ test('sem `watches`, nada é exigido — é o estado das Fases 0 a 2', () => {
 ```bash
 docker compose exec toolkit node --test test/config/watches.test.ts
 ```
+
 Esperado: FAIL — `Cannot find module '.../src/config/watches.ts'`.
 
 - [ ] **Step 3: Escrever `src/config/watches.ts`**
 
 ```typescript
-import picomatch from 'picomatch';
-import { findArtifactRule } from './ownership.ts';
-import type { OwnershipConfig } from './ownership.ts';
+import picomatch from 'picomatch'
+import { findArtifactRule } from './ownership.ts'
+import type { OwnershipConfig } from './ownership.ts'
 
 export interface WatchMatch {
-  /** Doc dono exigido, normalizado. */
-  doc: string;
-  /** Por que o vínculo existe. O texto é do projeto; o toolkit só o transporta. */
-  reason: string | null;
-  /** `consumer-visible: true` em alguma das regras que apontam para este doc (CI-6, Fase 6). */
-  consumerVisible: boolean;
-  /** Caminhos do conjunto que dispararam a exigência, sem repetição e na ordem em que vieram. */
-  matched: string[];
-  /** Skill dona do doc, quando o doc é artefato declarado; null quando não é. */
-  skill: string | null;
-  owner: string | null;
+    /** Doc dono exigido, normalizado. */
+    doc: string
+    /** Por que o vínculo existe. O texto é do projeto; o toolkit só o transporta. */
+    reason: string | null
+    /** `consumer-visible: true` em alguma das regras que apontam para este doc (CI-6, Fase 6). */
+    consumerVisible: boolean
+    /** Caminhos do conjunto que dispararam a exigência, sem repetição e na ordem em que vieram. */
+    matched: string[]
+    /** Skill dona do doc, quando o doc é artefato declarado; null quando não é. */
+    skill: string | null
+    owner: string | null
 }
 
 function normalize(path: string): string {
-  return path.replace(/\\/g, '/').replace(/^\.\//, '');
+    return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 /**
@@ -345,11 +371,13 @@ function normalize(path: string): string {
  * coberto pelo que está dentro dele; declarado como arquivo, só por igualdade.
  */
 export function coversDoc(doc: string, paths: readonly string[]): boolean {
-  const target = normalize(doc);
-  return paths.some((path) => {
-    const candidate = normalize(path);
-    return target.endsWith('/') ? candidate.startsWith(target) : candidate === target;
-  });
+    const target = normalize(doc)
+    return paths.some(path => {
+        const candidate = normalize(path)
+        return target.endsWith('/')
+            ? candidate.startsWith(target)
+            : candidate === target
+    })
 }
 
 /**
@@ -359,43 +387,53 @@ export function coversDoc(doc: string, paths: readonly string[]): boolean {
  * caminho), por `HK-5` (com o índice inteiro) e, na Fase 7, por `CI-7` (com o
  * diff). Nenhum deles conhece caminho de projeto: tudo vem do `.ownership.yml`.
  */
-export function watchesFor(config: OwnershipConfig, paths: readonly string[]): WatchMatch[] {
-  const normalized = paths.map(normalize);
-  const byDoc = new Map<string, WatchMatch>();
+export function watchesFor(
+    config: OwnershipConfig,
+    paths: readonly string[]
+): WatchMatch[] {
+    const normalized = paths.map(normalize)
+    const byDoc = new Map<string, WatchMatch>()
 
-  for (const watch of config.watches) {
-    const matches = picomatch(watch.code);
-    const hits = normalized.filter((path) => matches(path));
-    if (hits.length === 0) continue;
+    for (const watch of config.watches) {
+        const matches = picomatch(watch.code)
+        const hits = normalized.filter(path => matches(path))
+        if (hits.length === 0) continue
 
-    const doc = normalize(watch.doc);
-    const existing = byDoc.get(doc);
-    if (existing) {
-      existing.reason = existing.reason ?? watch.reason;
-      existing.consumerVisible = existing.consumerVisible || watch.consumerVisible;
-      for (const hit of hits) if (!existing.matched.includes(hit)) existing.matched.push(hit);
-      continue;
+        const doc = normalize(watch.doc)
+        const existing = byDoc.get(doc)
+        if (existing) {
+            existing.reason = existing.reason ?? watch.reason
+            existing.consumerVisible =
+                existing.consumerVisible || watch.consumerVisible
+            for (const hit of hits)
+                if (!existing.matched.includes(hit)) existing.matched.push(hit)
+            continue
+        }
+
+        // Doc que não é artefato declarado continua sendo doc dono: quem responde por
+        // ele é o CODEOWNERS. A ausência de skill é informação, não erro.
+        const rule = findArtifactRule(config, doc)
+        byDoc.set(doc, {
+            doc,
+            reason: watch.reason,
+            consumerVisible: watch.consumerVisible,
+            matched: [...hits],
+            skill: rule?.skill ?? null,
+            owner: rule?.owner ?? null
+        })
     }
 
-    // Doc que não é artefato declarado continua sendo doc dono: quem responde por
-    // ele é o CODEOWNERS. A ausência de skill é informação, não erro.
-    const rule = findArtifactRule(config, doc);
-    byDoc.set(doc, {
-      doc,
-      reason: watch.reason,
-      consumerVisible: watch.consumerVisible,
-      matched: [...hits],
-      skill: rule?.skill ?? null,
-      owner: rule?.owner ?? null,
-    });
-  }
-
-  return [...byDoc.values()];
+    return [...byDoc.values()]
 }
 
 /** Docs que estes caminhos exigem e que eles não tocam — o mecanismo 1 (spec §7). */
-export function pendingDocs(config: OwnershipConfig, paths: readonly string[]): WatchMatch[] {
-  return watchesFor(config, paths).filter((match) => !coversDoc(match.doc, paths));
+export function pendingDocs(
+    config: OwnershipConfig,
+    paths: readonly string[]
+): WatchMatch[] {
+    return watchesFor(config, paths).filter(
+        match => !coversDoc(match.doc, paths)
+    )
 }
 ```
 
@@ -405,6 +443,7 @@ export function pendingDocs(config: OwnershipConfig, paths: readonly string[]): 
 docker compose exec toolkit node --test test/config/watches.test.ts
 docker compose exec toolkit npm run typecheck
 ```
+
 Esperado: PASS nos dez testes; type-check limpo.
 
 - [ ] **Step 5: Commit**
@@ -421,19 +460,22 @@ git commit -m "feat(RN-0008): watches responde que docs um conjunto de caminhos 
 **Objetivo:** `HK-5` precisa saber o que está no commit antes de ele existir. É a única fonte dessa informação, e é a primeira vez que o toolkit executa subprocesso.
 
 **Files:**
+
 - Create: `src/git/staged.ts`
 - Test: `test/git/staged.test.ts`
 
 **Interfaces:**
+
 - Consome: `node:child_process`.
 - Produz, para a Task 5:
-  - `type GitRunner = (args: readonly string[], cwd: string) => string`
-  - `stagedPaths(root: string, run?: GitRunner): string[]`
+    - `type GitRunner = (args: readonly string[], cwd: string) => string`
+    - `stagedPaths(root: string, run?: GitRunner): string[]`
 
 **Requisitos:**
+
 - Um comando, de leitura: `git -c safe.directory=* diff --cached --name-only -z`.
-  - `-z` separa por byte NUL: sem ele, o git **escapa e envolve em aspas** caminho com acento ou espaço, e o caminho deixa de casar com os globs de `watches`.
-  - `-c safe.directory=*` existe porque o hook roda dentro do container, com uid diferente do dono do checkout montado; sem isso o git recusa o repositório com `dubious ownership` e o hook silencia justamente quando deveria falar.
+    - `-z` separa por byte NUL: sem ele, o git **escapa e envolve em aspas** caminho com acento ou espaço, e o caminho deixa de casar com os globs de `watches`.
+    - `-c safe.directory=*` existe porque o hook roda dentro do container, com uid diferente do dono do checkout montado; sem isso o git recusa o repositório com `dubious ownership` e o hook silencia justamente quando deveria falar.
 - Timeout de 3 s — o orçamento do hook inteiro é 5 s (spec §7), e ainda há a leitura do `.ownership.yml`.
 - **Qualquer** erro devolve `[]`. Sem `.git`, sem `git` no PATH, timeout, exit ≠ 0: lista vazia. `HK-5` traduz lista vazia em "deixe passar".
 - O runner é injetável para que o teste não dependa de um repositório real — e há um teste com repositório real mesmo assim, porque o formato da saída do git é a metade que um fake não prova.
@@ -443,60 +485,82 @@ git commit -m "feat(RN-0008): watches responde que docs um conjunto de caminhos 
 `test/git/staged.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { stagedPaths } from '../../src/git/staged.ts';
-import type { GitRunner } from '../../src/git/staged.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { stagedPaths } from '../../src/git/staged.ts'
+import type { GitRunner } from '../../src/git/staged.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
-const NUL = String.fromCharCode(0);
+const NUL = String.fromCharCode(0)
 
 test('RN-0008: devolve os caminhos do índice, sem entrada vazia', () => {
-  const fake: GitRunner = () => `src/domain/a.ts${NUL}docs/requirements/rules.md${NUL}`;
-  assert.deepEqual(stagedPaths('/qualquer', fake), ['src/domain/a.ts', 'docs/requirements/rules.md']);
-});
+    const fake: GitRunner = () =>
+        `src/domain/a.ts${NUL}docs/requirements/rules.md${NUL}`
+    assert.deepEqual(stagedPaths('/qualquer', fake), [
+        'src/domain/a.ts',
+        'docs/requirements/rules.md'
+    ])
+})
 
 test('índice vazio devolve lista vazia', () => {
-  assert.deepEqual(stagedPaths('/qualquer', () => ''), []);
-});
+    assert.deepEqual(
+        stagedPaths('/qualquer', () => ''),
+        []
+    )
+})
 
 test('RNF-0001: erro do git não trava o trabalho — devolve lista vazia', () => {
-  const explode: GitRunner = () => {
-    throw new Error('fatal: not a git repository');
-  };
-  assert.deepEqual(stagedPaths('/qualquer', explode), []);
-});
+    const explode: GitRunner = () => {
+        throw new Error('fatal: not a git repository')
+    }
+    assert.deepEqual(stagedPaths('/qualquer', explode), [])
+})
 
 test('o comando executado é de leitura, e só um', () => {
-  const seen: string[][] = [];
-  const spy: GitRunner = (args) => {
-    seen.push([...args]);
-    return '';
-  };
-  stagedPaths('/qualquer', spy);
-  assert.equal(seen.length, 1);
-  assert.deepEqual(seen[0]?.filter((arg) => ['add', 'commit', 'checkout', 'stash', 'reset'].includes(arg)), []);
-  assert.ok(seen[0]?.includes('--cached'));
-  assert.ok(seen[0]?.includes('-z'));
-});
+    const seen: string[][] = []
+    const spy: GitRunner = args => {
+        seen.push([...args])
+        return ''
+    }
+    stagedPaths('/qualquer', spy)
+    assert.equal(seen.length, 1)
+    assert.deepEqual(
+        seen[0]?.filter(arg =>
+            ['add', 'commit', 'checkout', 'stash', 'reset'].includes(arg)
+        ),
+        []
+    )
+    assert.ok(seen[0]?.includes('--cached'))
+    assert.ok(seen[0]?.includes('-z'))
+})
 
 test('lê o índice de um repositório de verdade', () => {
-  withTempRepo({ 'src/a.ts': 'export const a = 1;\n' }, (root) => {
-    const git = (...args: string[]): void => {
-      execFileSync('git', args, { cwd: root, stdio: 'ignore' });
-    };
-    try {
-      git('init', '-q');
-    } catch {
-      return; // sem git no ambiente: nada a provar aqui
-    }
-    git('-c', 'user.email=teste@exemplo.dev', '-c', 'user.name=Teste', 'commit', '-q', '-m', 'seed', '--allow-empty');
-    git('add', 'src/a.ts');
+    withTempRepo({ 'src/a.ts': 'export const a = 1;\n' }, root => {
+        const git = (...args: string[]): void => {
+            execFileSync('git', args, { cwd: root, stdio: 'ignore' })
+        }
+        try {
+            git('init', '-q')
+        } catch {
+            return // sem git no ambiente: nada a provar aqui
+        }
+        git(
+            '-c',
+            'user.email=teste@exemplo.dev',
+            '-c',
+            'user.name=Teste',
+            'commit',
+            '-q',
+            '-m',
+            'seed',
+            '--allow-empty'
+        )
+        git('add', 'src/a.ts')
 
-    assert.deepEqual(stagedPaths(root), ['src/a.ts']);
-  });
-});
+        assert.deepEqual(stagedPaths(root), ['src/a.ts'])
+    })
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -504,26 +568,27 @@ test('lê o índice de um repositório de verdade', () => {
 ```bash
 docker compose exec toolkit node --test test/git/staged.test.ts
 ```
+
 Esperado: FAIL — `Cannot find module '.../src/git/staged.ts'`.
 
 - [ ] **Step 3: Escrever `src/git/staged.ts`**
 
 ```typescript
-import { execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process'
 
 /** Executor de git, injetável: o teste não precisa de um repositório para provar o resto. */
-export type GitRunner = (args: readonly string[], cwd: string) => string;
+export type GitRunner = (args: readonly string[], cwd: string) => string
 
 /** Teto local; o orçamento do hook inteiro é 5 s (spec §7). */
-const TIMEOUT_MS = 3_000;
+const TIMEOUT_MS = 3_000
 
 const runGit: GitRunner = (args, cwd) =>
-  execFileSync('git', [...args], {
-    cwd,
-    encoding: 'utf8',
-    timeout: TIMEOUT_MS,
-    stdio: ['ignore', 'pipe', 'ignore'],
-  });
+    execFileSync('git', [...args], {
+        cwd,
+        encoding: 'utf8',
+        timeout: TIMEOUT_MS,
+        stdio: ['ignore', 'pipe', 'ignore']
+    })
 
 /**
  * Caminhos no índice, relativos à raiz do repositório e sempre com `/`.
@@ -537,17 +602,20 @@ const runGit: GitRunner = (args, cwd) =>
  * sei", e quem chama trata "não sei" como "deixe passar".
  */
 export function stagedPaths(root: string, run: GitRunner = runGit): string[] {
-  let output: string;
-  try {
-    output = run(['-c', 'safe.directory=*', 'diff', '--cached', '--name-only', '-z'], root);
-  } catch {
-    return [];
-  }
+    let output: string
+    try {
+        output = run(
+            ['-c', 'safe.directory=*', 'diff', '--cached', '--name-only', '-z'],
+            root
+        )
+    } catch {
+        return []
+    }
 
-  return output
-    .split(String.fromCharCode(0))
-    .map((path) => path.trim().replace(/\\/g, '/'))
-    .filter((path) => path !== '');
+    return output
+        .split(String.fromCharCode(0))
+        .map(path => path.trim().replace(/\\/g, '/'))
+        .filter(path => path !== '')
 }
 ```
 
@@ -557,6 +625,7 @@ export function stagedPaths(root: string, run: GitRunner = runGit): string[] {
 docker compose exec toolkit node --test test/git/staged.test.ts
 docker compose exec toolkit npm run typecheck
 ```
+
 Esperado: PASS nos cinco testes. Se o de repositório real falhar em `git commit --allow-empty`, confirme que o `git` da imagem é ≥ 2.35 (`docker compose exec toolkit git --version`) — abaixo disso `-c safe.directory=*` não é reconhecido, e a correção é o `Dockerfile`, não o teste.
 
 - [ ] **Step 5: Commit**
@@ -573,18 +642,21 @@ git commit -m "feat(RN-0008): stagedPaths lê o índice do git com falha aberta"
 **Objetivo:** o primeiro `PostToolUse` do toolkit. Não decide nada: injeta contexto no momento em que a informação é útil, que é logo depois da edição e não na véspera do commit.
 
 **Files:**
+
 - Create: `src/hooks/hk4-watch-reminder.ts`
 - Modify: `src/hooks/lib/io.ts` (acrescenta `contextOutput`)
 - Test: `test/hooks/hk4-watch-reminder.test.ts`
 
 **Interfaces:**
+
 - Consome: `watchesFor`, `coversDoc`, `WatchMatch` (Task 2); `toRepoPath` de `src/hooks/lib/paths.ts`; `loadOwnership`; `HookEnv`/`HookPayload`/`emit`/`readPayload`/`hookEnv` de `src/hooks/lib/io.ts`.
 - Produz:
-  - `contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string` em `src/hooks/lib/io.ts` — `HK-6` vai reusá-lo na Fase 7.
-  - `type Hk4Decision = { action: 'silent' } | { action: 'remind'; context: string }`
-  - `decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision`
+    - `contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string` em `src/hooks/lib/io.ts` — `HK-6` vai reusá-lo na Fase 7.
+    - `type Hk4Decision = { action: 'silent' } | { action: 'remind'; context: string }`
+    - `decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision`
 
 **Requisitos:**
+
 - Saída é `hookSpecificOutput.additionalContext`. **Nenhum** `permissionDecision` sai deste hook (`RN-0009`).
 - Editar o próprio doc dono não gera lembrete — lembrar alguém de fazer o que acabou de fazer é o começo do ruído que ensina a ignorar hook.
 - A mensagem nomeia: o caminho editado, o doc dono, o motivo declarado, a skill dona (quando existe) e a regra de origem. E diz, com todas as letras, que não é bloqueio.
@@ -595,13 +667,13 @@ git commit -m "feat(RN-0008): stagedPaths lê o índice do git com falha aberta"
 `test/hooks/hk4-watch-reminder.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { decideHk4 } from '../../src/hooks/hk4-watch-reminder.ts';
-import type { Hk4Decision } from '../../src/hooks/hk4-watch-reminder.ts';
-import { contextOutput } from '../../src/hooks/lib/io.ts';
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { decideHk4 } from '../../src/hooks/hk4-watch-reminder.ts'
+import type { Hk4Decision } from '../../src/hooks/hk4-watch-reminder.ts'
+import { contextOutput } from '../../src/hooks/lib/io.ts'
+import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
 version: 1
@@ -618,70 +690,77 @@ watches:
   - code: "plugin/skills/**"
     doc: CONTRIBUTING.md
     reason: "skill nova muda como se trabalha aqui"
-`;
+`
 
-function assertRemind(decision: Hk4Decision): asserts decision is { action: 'remind'; context: string } {
-  assert.equal(decision.action, 'remind');
+function assertRemind(
+    decision: Hk4Decision
+): asserts decision is { action: 'remind'; context: string } {
+    assert.equal(decision.action, 'remind')
 }
 
 function decide(filePath: string, config: string | null = CONFIG): Hk4Decision {
-  let decision: Hk4Decision = { action: 'silent' };
-  const files = config === null ? {} : { [OWNERSHIP_PATH]: config };
-  withTempRepo(files, (root) => {
-    decision = decideHk4(
-      { tool_name: 'Edit', tool_input: { file_path: filePath } },
-      { root, hostRoots: [root] },
-    );
-  });
-  return decision;
+    let decision: Hk4Decision = { action: 'silent' }
+    const files = config === null ? {} : { [OWNERSHIP_PATH]: config }
+    withTempRepo(files, root => {
+        decision = decideHk4(
+            { tool_name: 'Edit', tool_input: { file_path: filePath } },
+            { root, hostRoots: [root] }
+        )
+    })
+    return decision
 }
 
 test('RN-0008: editar caminho vigiado lembra o doc dono, com motivo e skill', () => {
-  const decision = decide('src/domain/reembolso.ts');
-  assertRemind(decision);
-  assert.match(decision.context, /docs\/requirements\/rules\.md/);
-  assert.match(decision.context, /regra com ID antes do código/);
-  assert.match(decision.context, /requirements-keeper/);
-  assert.match(decision.context, /HK-4/);
-});
+    const decision = decide('src/domain/reembolso.ts')
+    assertRemind(decision)
+    assert.match(decision.context, /docs\/requirements\/rules\.md/)
+    assert.match(decision.context, /regra com ID antes do código/)
+    assert.match(decision.context, /requirements-keeper/)
+    assert.match(decision.context, /HK-4/)
+})
 
 test('RN-0009: HK-4 lembra e não bloqueia — a saída não carrega decisão de permissão', () => {
-  const decision = decide('src/domain/reembolso.ts');
-  assertRemind(decision);
-  assert.match(decision.context, /não é bloqueio|lembrete/i);
+    const decision = decide('src/domain/reembolso.ts')
+    assertRemind(decision)
+    assert.match(decision.context, /não é bloqueio|lembrete/i)
 
-  const emitted = JSON.parse(contextOutput('PostToolUse', decision.context)) as {
-    hookSpecificOutput: Record<string, unknown>;
-  };
-  assert.equal(emitted.hookSpecificOutput.hookEventName, 'PostToolUse');
-  assert.equal(typeof emitted.hookSpecificOutput.additionalContext, 'string');
-  assert.equal('permissionDecision' in emitted.hookSpecificOutput, false);
-});
+    const emitted = JSON.parse(
+        contextOutput('PostToolUse', decision.context)
+    ) as {
+        hookSpecificOutput: Record<string, unknown>
+    }
+    assert.equal(emitted.hookSpecificOutput.hookEventName, 'PostToolUse')
+    assert.equal(typeof emitted.hookSpecificOutput.additionalContext, 'string')
+    assert.equal('permissionDecision' in emitted.hookSpecificOutput, false)
+})
 
 test('doc dono sem skill declarada ainda é lembrado', () => {
-  const decision = decide('plugin/skills/nova/SKILL.md');
-  assertRemind(decision);
-  assert.match(decision.context, /CONTRIBUTING\.md/);
-});
+    const decision = decide('plugin/skills/nova/SKILL.md')
+    assertRemind(decision)
+    assert.match(decision.context, /CONTRIBUTING\.md/)
+})
 
 test('editar o próprio doc dono não gera lembrete', () => {
-  assert.equal(decide('docs/requirements/rules.md').action, 'silent');
-});
+    assert.equal(decide('docs/requirements/rules.md').action, 'silent')
+})
 
 test('caminho fora de watches é silêncio', () => {
-  assert.equal(decide('README.md').action, 'silent');
-});
+    assert.equal(decide('README.md').action, 'silent')
+})
 
 test('RNF-0001: sem configuração legível, silêncio', () => {
-  assert.equal(decide('src/domain/reembolso.ts', null).action, 'silent');
-});
+    assert.equal(decide('src/domain/reembolso.ts', null).action, 'silent')
+})
 
 test('payload sem file_path é silêncio', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, (root) => {
-    const decision = decideHk4({ tool_name: 'Edit', tool_input: {} }, { root, hostRoots: [root] });
-    assert.equal(decision.action, 'silent');
-  });
-});
+    withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
+        const decision = decideHk4(
+            { tool_name: 'Edit', tool_input: {} },
+            { root, hostRoots: [root] }
+        )
+        assert.equal(decision.action, 'silent')
+    })
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -689,6 +768,7 @@ test('payload sem file_path é silêncio', () => {
 ```bash
 docker compose exec toolkit node --test test/hooks/hk4-watch-reminder.test.ts
 ```
+
 Esperado: FAIL — `Cannot find module '.../src/hooks/hk4-watch-reminder.ts'`.
 
 - [ ] **Step 3: Acrescentar `contextOutput` a `src/hooks/lib/io.ts`**
@@ -702,10 +782,13 @@ Depois de `askOutput`, antes de `emit`:
  * Não existe variante com `permissionDecision` aqui de propósito — o mecanismo 1
  * lembra e pergunta, nunca nega (spec §7).
  */
-export function contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string {
-  return JSON.stringify({
-    hookSpecificOutput: { hookEventName: event, additionalContext: context },
-  });
+export function contextOutput(
+    event: 'PostToolUse' | 'SessionStart',
+    context: string
+): string {
+    return JSON.stringify({
+        hookSpecificOutput: { hookEventName: event, additionalContext: context }
+    })
 }
 ```
 
@@ -720,67 +803,75 @@ export function contextOutput(event: 'PostToolUse' | 'SessionStart', context: st
  * em que a informação ainda é útil. Lembrete, nunca bloqueio: a saída é
  * `additionalContext`, e este arquivo não conhece a palavra `deny`.
  */
-import { loadOwnership } from '../config/ownership.ts';
-import { coversDoc, watchesFor } from '../config/watches.ts';
-import type { WatchMatch } from '../config/watches.ts';
-import { toRepoPath } from './lib/paths.ts';
-import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts';
-import type { HookEnv, HookPayload } from './lib/io.ts';
+import { loadOwnership } from '../config/ownership.ts'
+import { coversDoc, watchesFor } from '../config/watches.ts'
+import type { WatchMatch } from '../config/watches.ts'
+import { toRepoPath } from './lib/paths.ts'
+import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts'
+import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk4Decision = { action: 'silent' } | { action: 'remind'; context: string };
+export type Hk4Decision =
+    | { action: 'silent' }
+    | { action: 'remind'; context: string }
 
-const SILENT: Hk4Decision = { action: 'silent' };
+const SILENT: Hk4Decision = { action: 'silent' }
 
 function describe(match: WatchMatch): string {
-  const parts = [`- \`${match.doc}\``];
-  if (match.owner !== null) parts.push(`(dono: ${match.owner})`);
-  if (match.reason !== null) parts.push(`— ${match.reason}`);
-  parts.push(
-    match.skill !== null
-      ? `Skill dona: ${match.skill}.`
-      : 'Sem skill declarada para este doc — o dono está no CODEOWNERS.',
-  );
-  return parts.join(' ');
+    const parts = [`- \`${match.doc}\``]
+    if (match.owner !== null) parts.push(`(dono: ${match.owner})`)
+    if (match.reason !== null) parts.push(`— ${match.reason}`)
+    parts.push(
+        match.skill !== null
+            ? `Skill dona: ${match.skill}.`
+            : 'Sem skill declarada para este doc — o dono está no CODEOWNERS.'
+    )
+    return parts.join(' ')
 }
 
 export function decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision {
-  const filePath = payload.tool_input?.file_path;
-  if (typeof filePath !== 'string') return SILENT;
+    const filePath = payload.tool_input?.file_path
+    if (typeof filePath !== 'string') return SILENT
 
-  const repoPath = toRepoPath(filePath, env.hostRoots);
-  if (repoPath === null) return SILENT;
+    const repoPath = toRepoPath(filePath, env.hostRoots)
+    if (repoPath === null) return SILENT
 
-  let config;
-  try {
-    config = loadOwnership(env.root);
-  } catch {
-    return SILENT; // falha aberta
-  }
+    let config
+    try {
+        config = loadOwnership(env.root)
+    } catch {
+        return SILENT // falha aberta
+    }
 
-  // Quem acabou de editar o doc dono não precisa ser lembrado dele.
-  const pending = watchesFor(config, [repoPath]).filter((match) => !coversDoc(match.doc, [repoPath]));
-  if (pending.length === 0) return SILENT;
+    // Quem acabou de editar o doc dono não precisa ser lembrado dele.
+    const pending = watchesFor(config, [repoPath]).filter(
+        match => !coversDoc(match.doc, [repoPath])
+    )
+    if (pending.length === 0) return SILENT
 
-  return {
-    action: 'remind',
-    context:
-      `HK-4: \`${repoPath}\` é caminho vigiado em \`docs/.ownership.yml\` (\`watches\`). ` +
-      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — a atualização do doc dono cabe no mesmo PR; ' +
-      'se não couber, ela não acontece.\n' +
-      `Doc dono a atualizar:\n${pending.map(describe).join('\n')}\n` +
-      'Isto é lembrete, não é bloqueio: se a mudança realmente não afeta o doc, siga em frente.',
-  };
+    return {
+        action: 'remind',
+        context:
+            `HK-4: \`${repoPath}\` é caminho vigiado em \`docs/.ownership.yml\` (\`watches\`). ` +
+            'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — a atualização do doc dono cabe no mesmo PR; ' +
+            'se não couber, ela não acontece.\n' +
+            `Doc dono a atualizar:\n${pending.map(describe).join('\n')}\n` +
+            'Isto é lembrete, não é bloqueio: se a mudança realmente não afeta o doc, siga em frente.'
+    }
 }
 
 async function main(): Promise<void> {
-  const payload = await readPayload();
-  if (!payload) return; // falha aberta
-  const decision = decideHk4(payload, hookEnv());
-  emit(decision.action === 'remind' ? contextOutput('PostToolUse', decision.context) : null);
+    const payload = await readPayload()
+    if (!payload) return // falha aberta
+    const decision = decideHk4(payload, hookEnv())
+    emit(
+        decision.action === 'remind'
+            ? contextOutput('PostToolUse', decision.context)
+            : null
+    )
 }
 
 if (process.argv[1]?.endsWith('hk4-watch-reminder.ts')) {
-  main().catch(() => process.exit(0)); // falha aberta, sempre
+    main().catch(() => process.exit(0)) // falha aberta, sempre
 }
 ```
 
@@ -790,6 +881,7 @@ if (process.argv[1]?.endsWith('hk4-watch-reminder.ts')) {
 docker compose exec toolkit node --test test/hooks/hk4-watch-reminder.test.ts
 docker compose exec toolkit npm run typecheck
 ```
+
 Esperado: PASS nos sete testes.
 
 - [ ] **Step 6: Commit**
@@ -806,17 +898,20 @@ git commit -m "feat(RN-0008, RN-0009): HK-4 lembra o doc dono de caminho vigiado
 **Objetivo:** o mecanismo 1 no ponto mais barato possível. É o primeiro hook com matcher `Bash`: não há `file_path` no payload, e a verdade sobre o que vai no commit está no índice do git.
 
 **Files:**
+
 - Create: `src/hooks/hk5-commit-guard.ts`
 - Test: `test/hooks/hk5-commit-guard.test.ts`
 
 **Interfaces:**
+
 - Consome: `pendingDocs`, `WatchMatch` (Task 2); `stagedPaths`, `GitRunner` (Task 3); `askOutput`/`emit`/`hookEnv`/`readPayload` de `src/hooks/lib/io.ts`.
 - Produz:
-  - `isGitCommit(command: string): boolean`
-  - `type Hk5Decision = { action: 'allow' } | { action: 'ask'; reason: string }`
-  - `decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): Hk5Decision`
+    - `isGitCommit(command: string): boolean`
+    - `type Hk5Decision = { action: 'allow' } | { action: 'ask'; reason: string }`
+    - `decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): Hk5Decision`
 
 **Requisitos:**
+
 - Só age quando `tool_name` é `Bash` **e** o comando é um `git commit`. `git status`, `npm test`, `git log` passam sem tocar em disco.
 - O reconhecimento de `git commit` é sintático e deliberadamente simples: `git` no início do comando ou depois de `;`, `&&`, `||`, com `commit` adiante. Um hook que interpreta intenção está no lugar errado (spec §7). Ele prefere perguntar demais a perguntar de menos — a saída é `ask`, e uma pergunta a mais custa uma tecla.
 - Índice vazio → `allow`. É o mesmo caminho de "git indisponível", e é o que a falha aberta exige.
@@ -828,16 +923,16 @@ git commit -m "feat(RN-0008, RN-0009): HK-4 lembra o doc dono de caminho vigiado
 `test/hooks/hk5-commit-guard.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { decideHk5, isGitCommit } from '../../src/hooks/hk5-commit-guard.ts';
-import type { Hk5Decision } from '../../src/hooks/hk5-commit-guard.ts';
-import type { GitRunner } from '../../src/git/staged.ts';
-import { askOutput } from '../../src/hooks/lib/io.ts';
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { decideHk5, isGitCommit } from '../../src/hooks/hk5-commit-guard.ts'
+import type { Hk5Decision } from '../../src/hooks/hk5-commit-guard.ts'
+import type { GitRunner } from '../../src/git/staged.ts'
+import { askOutput } from '../../src/hooks/lib/io.ts'
+import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
-const NUL = String.fromCharCode(0);
+const NUL = String.fromCharCode(0)
 
 const CONFIG = `
 version: 1
@@ -851,98 +946,132 @@ watches:
   - code: "src/domain/**"
     doc: docs/requirements/rules.md
     reason: "comportamento novo exige regra com ID antes do código"
-`;
+`
 
-const staged = (...paths: string[]): GitRunner => () => paths.map((path) => `${path}${NUL}`).join('');
+const staged =
+    (...paths: string[]): GitRunner =>
+    () =>
+        paths.map(path => `${path}${NUL}`).join('')
 
-function assertAsk(decision: Hk5Decision): asserts decision is { action: 'ask'; reason: string } {
-  assert.equal(decision.action, 'ask');
+function assertAsk(
+    decision: Hk5Decision
+): asserts decision is { action: 'ask'; reason: string } {
+    assert.equal(decision.action, 'ask')
 }
 
-function decide(command: string, run: GitRunner, config: string | null = CONFIG): Hk5Decision {
-  let decision: Hk5Decision = { action: 'allow' };
-  const files = config === null ? {} : { [OWNERSHIP_PATH]: config };
-  withTempRepo(files, (root) => {
-    decision = decideHk5({ tool_name: 'Bash', tool_input: { command } }, { root, hostRoots: [root] }, run);
-  });
-  return decision;
+function decide(
+    command: string,
+    run: GitRunner,
+    config: string | null = CONFIG
+): Hk5Decision {
+    let decision: Hk5Decision = { action: 'allow' }
+    const files = config === null ? {} : { [OWNERSHIP_PATH]: config }
+    withTempRepo(files, root => {
+        decision = decideHk5(
+            { tool_name: 'Bash', tool_input: { command } },
+            { root, hostRoots: [root] },
+            run
+        )
+    })
+    return decision
 }
 
 test('RN-0008: staged toca caminho vigiado sem o doc dono — pergunta e lista os pendentes', () => {
-  const decision = decide('git commit -m "feat: reembolso parcial"', staged('src/domain/reembolso.ts'));
-  assertAsk(decision);
-  assert.match(decision.reason, /docs\/requirements\/rules\.md/);
-  assert.match(decision.reason, /src\/domain\/reembolso\.ts/);
-  assert.match(decision.reason, /requirements-keeper/);
-  assert.match(decision.reason, /HK-5/);
-});
+    const decision = decide(
+        'git commit -m "feat: reembolso parcial"',
+        staged('src/domain/reembolso.ts')
+    )
+    assertAsk(decision)
+    assert.match(decision.reason, /docs\/requirements\/rules\.md/)
+    assert.match(decision.reason, /src\/domain\/reembolso\.ts/)
+    assert.match(decision.reason, /requirements-keeper/)
+    assert.match(decision.reason, /HK-5/)
+})
 
 test('RN-0008: staged que traz o doc dono passa', () => {
-  const run = staged('src/domain/reembolso.ts', 'docs/requirements/rules.md');
-  assert.equal(decide('git commit -m "feat: reembolso parcial"', run).action, 'allow');
-});
+    const run = staged('src/domain/reembolso.ts', 'docs/requirements/rules.md')
+    assert.equal(
+        decide('git commit -m "feat: reembolso parcial"', run).action,
+        'allow'
+    )
+})
 
 test('RN-0009: HK-5 pergunta, nunca nega', () => {
-  const decision = decide('git commit -m "x"', staged('src/domain/reembolso.ts'));
-  assertAsk(decision);
-  const emitted = JSON.parse(askOutput(decision.reason)) as {
-    hookSpecificOutput: { permissionDecision: string };
-  };
-  assert.equal(emitted.hookSpecificOutput.permissionDecision, 'ask');
-});
+    const decision = decide(
+        'git commit -m "x"',
+        staged('src/domain/reembolso.ts')
+    )
+    assertAsk(decision)
+    const emitted = JSON.parse(askOutput(decision.reason)) as {
+        hookSpecificOutput: { permissionDecision: string }
+    }
+    assert.equal(emitted.hookSpecificOutput.permissionDecision, 'ask')
+})
 
 test('a mensagem ensina as duas saídas legítimas', () => {
-  const decision = decide('git commit -m "x"', staged('src/domain/reembolso.ts'));
-  assertAsk(decision);
-  assert.match(decision.reason, /atualize o doc/i);
-  assert.match(decision.reason, /decisão humana|uma pessoa/i);
-});
+    const decision = decide(
+        'git commit -m "x"',
+        staged('src/domain/reembolso.ts')
+    )
+    assertAsk(decision)
+    assert.match(decision.reason, /atualize o doc/i)
+    assert.match(decision.reason, /decisão humana|uma pessoa/i)
+})
 
 test('comando que não é git commit passa sem consultar o git', () => {
-  let consultado = false;
-  const spy: GitRunner = () => {
-    consultado = true;
-    return '';
-  };
-  for (const command of ['git status', 'npm test', 'git add -A', 'echo "git commit"']) {
-    assert.equal(decide(command, spy).action, 'allow', command);
-  }
-  assert.equal(consultado, false);
-});
+    let consultado = false
+    const spy: GitRunner = () => {
+        consultado = true
+        return ''
+    }
+    for (const command of [
+        'git status',
+        'npm test',
+        'git add -A',
+        'echo "git commit"'
+    ]) {
+        assert.equal(decide(command, spy).action, 'allow', command)
+    }
+    assert.equal(consultado, false)
+})
 
 test('reconhece git commit em cadeia e com opções', () => {
-  assert.equal(isGitCommit('git commit'), true);
-  assert.equal(isGitCommit('git add -A && git commit -m "x"'), true);
-  assert.equal(isGitCommit('git -c user.name=Teste commit --amend'), true);
-  assert.equal(isGitCommit('git status'), false);
-  assert.equal(isGitCommit('npm run commitlint'), false);
-});
+    assert.equal(isGitCommit('git commit'), true)
+    assert.equal(isGitCommit('git add -A && git commit -m "x"'), true)
+    assert.equal(isGitCommit('git -c user.name=Teste commit --amend'), true)
+    assert.equal(isGitCommit('git status'), false)
+    assert.equal(isGitCommit('npm run commitlint'), false)
+})
 
 test('RNF-0001: git indisponível — passa', () => {
-  const explode: GitRunner = () => {
-    throw new Error('fatal: not a git repository');
-  };
-  assert.equal(decide('git commit -m "x"', explode).action, 'allow');
-});
+    const explode: GitRunner = () => {
+        throw new Error('fatal: not a git repository')
+    }
+    assert.equal(decide('git commit -m "x"', explode).action, 'allow')
+})
 
 test('RNF-0001: sem .ownership.yml — passa', () => {
-  assert.equal(decide('git commit -m "x"', staged('src/domain/reembolso.ts'), null).action, 'allow');
-});
+    assert.equal(
+        decide('git commit -m "x"', staged('src/domain/reembolso.ts'), null)
+            .action,
+        'allow'
+    )
+})
 
 test('índice vazio — passa', () => {
-  assert.equal(decide('git commit -m "x"', () => '').action, 'allow');
-});
+    assert.equal(decide('git commit -m "x"', () => '').action, 'allow')
+})
 
 test('tool_name diferente de Bash não é assunto deste hook', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, (root) => {
-    const decision = decideHk5(
-      { tool_name: 'Edit', tool_input: { command: 'git commit -m "x"' } },
-      { root, hostRoots: [root] },
-      staged('src/domain/reembolso.ts'),
-    );
-    assert.equal(decision.action, 'allow');
-  });
-});
+    withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
+        const decision = decideHk5(
+            { tool_name: 'Edit', tool_input: { command: 'git commit -m "x"' } },
+            { root, hostRoots: [root] },
+            staged('src/domain/reembolso.ts')
+        )
+        assert.equal(decision.action, 'allow')
+    })
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -950,6 +1079,7 @@ test('tool_name diferente de Bash não é assunto deste hook', () => {
 ```bash
 docker compose exec toolkit node --test test/hooks/hk5-commit-guard.test.ts
 ```
+
 Esperado: FAIL — `Cannot find module '.../src/hooks/hk5-commit-guard.ts'`.
 
 - [ ] **Step 3: Escrever `src/hooks/hk5-commit-guard.ts`**
@@ -964,17 +1094,19 @@ Esperado: FAIL — `Cannot find module '.../src/hooks/hk5-commit-guard.ts'`.
  * mais barato possível. Devolve `ask`, nunca `deny`: um commit sem o doc pode
  * ser legítimo, e quem decide isso é uma pessoa.
  */
-import { loadOwnership } from '../config/ownership.ts';
-import { pendingDocs } from '../config/watches.ts';
-import type { WatchMatch } from '../config/watches.ts';
-import { stagedPaths } from '../git/staged.ts';
-import type { GitRunner } from '../git/staged.ts';
-import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts';
-import type { HookEnv, HookPayload } from './lib/io.ts';
+import { loadOwnership } from '../config/ownership.ts'
+import { pendingDocs } from '../config/watches.ts'
+import type { WatchMatch } from '../config/watches.ts'
+import { stagedPaths } from '../git/staged.ts'
+import type { GitRunner } from '../git/staged.ts'
+import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts'
+import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk5Decision = { action: 'allow' } | { action: 'ask'; reason: string };
+export type Hk5Decision =
+    | { action: 'allow' }
+    | { action: 'ask'; reason: string }
 
-const ALLOW: Hk5Decision = { action: 'allow' };
+const ALLOW: Hk5Decision = { action: 'allow' }
 
 /**
  * `git … commit` no início do comando ou depois de um separador.
@@ -983,62 +1115,67 @@ const ALLOW: Hk5Decision = { action: 'allow' };
  * no lugar errado (spec §7). Ele erra para o lado de perguntar demais — a saída
  * é `ask`, e uma pergunta a mais custa uma tecla.
  */
-const GIT_COMMIT = /(?:^|[;&|]\s*)git\b[^;&|]*\bcommit\b/;
+const GIT_COMMIT = /(?:^|[;&|]\s*)git\b[^;&|]*\bcommit\b/
 
 export function isGitCommit(command: string): boolean {
-  return GIT_COMMIT.test(command.trim());
+    return GIT_COMMIT.test(command.trim())
 }
 
 function describe(match: WatchMatch): string {
-  const parts = [`- \`${match.doc}\``];
-  if (match.owner !== null) parts.push(`(dono: ${match.owner})`);
-  parts.push(`— exigido por: ${match.matched.join(', ')}`);
-  if (match.reason !== null) parts.push(`Motivo: ${match.reason}`);
-  if (match.skill !== null) parts.push(`Skill dona: ${match.skill}.`);
-  return parts.join(' ');
+    const parts = [`- \`${match.doc}\``]
+    if (match.owner !== null) parts.push(`(dono: ${match.owner})`)
+    parts.push(`— exigido por: ${match.matched.join(', ')}`)
+    if (match.reason !== null) parts.push(`Motivo: ${match.reason}`)
+    if (match.skill !== null) parts.push(`Skill dona: ${match.skill}.`)
+    return parts.join(' ')
 }
 
-export function decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): Hk5Decision {
-  if (payload.tool_name !== undefined && payload.tool_name !== 'Bash') return ALLOW;
+export function decideHk5(
+    payload: HookPayload,
+    env: HookEnv,
+    run?: GitRunner
+): Hk5Decision {
+    if (payload.tool_name !== undefined && payload.tool_name !== 'Bash')
+        return ALLOW
 
-  const command = payload.tool_input?.command;
-  if (typeof command !== 'string' || !isGitCommit(command)) return ALLOW;
+    const command = payload.tool_input?.command
+    if (typeof command !== 'string' || !isGitCommit(command)) return ALLOW
 
-  let config;
-  try {
-    config = loadOwnership(env.root);
-  } catch {
-    return ALLOW; // falha aberta
-  }
+    let config
+    try {
+        config = loadOwnership(env.root)
+    } catch {
+        return ALLOW // falha aberta
+    }
 
-  // Lista vazia significa "não sei": índice vazio, sem git, ou repositório recusado.
-  const staged = stagedPaths(env.root, run);
-  if (staged.length === 0) return ALLOW;
+    // Lista vazia significa "não sei": índice vazio, sem git, ou repositório recusado.
+    const staged = stagedPaths(env.root, run)
+    if (staged.length === 0) return ALLOW
 
-  const pending = pendingDocs(config, staged);
-  if (pending.length === 0) return ALLOW;
+    const pending = pendingDocs(config, staged)
+    if (pending.length === 0) return ALLOW
 
-  return {
-    action: 'ask',
-    reason:
-      'HK-5: este commit leva código de caminho vigiado sem o doc dono. ' +
-      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — se a atualização da documentação não cabe no ' +
-      'PR que mudou o código, ela não acontece.\n' +
-      `Pendente:\n${pending.map(describe).join('\n')}\n` +
-      'Caminho válido: atualize o doc agora (skill dona acima) e refaça o `git add`. ' +
-      'Se a mudança realmente não afeta o doc, isso é uma decisão humana — diga que é o caso e siga.',
-  };
+    return {
+        action: 'ask',
+        reason:
+            'HK-5: este commit leva código de caminho vigiado sem o doc dono. ' +
+            'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — se a atualização da documentação não cabe no ' +
+            'PR que mudou o código, ela não acontece.\n' +
+            `Pendente:\n${pending.map(describe).join('\n')}\n` +
+            'Caminho válido: atualize o doc agora (skill dona acima) e refaça o `git add`. ' +
+            'Se a mudança realmente não afeta o doc, isso é uma decisão humana — diga que é o caso e siga.'
+    }
 }
 
 async function main(): Promise<void> {
-  const payload = await readPayload();
-  if (!payload) return; // falha aberta
-  const decision = decideHk5(payload, hookEnv());
-  emit(decision.action === 'ask' ? askOutput(decision.reason) : null);
+    const payload = await readPayload()
+    if (!payload) return // falha aberta
+    const decision = decideHk5(payload, hookEnv())
+    emit(decision.action === 'ask' ? askOutput(decision.reason) : null)
 }
 
 if (process.argv[1]?.endsWith('hk5-commit-guard.ts')) {
-  main().catch(() => process.exit(0)); // falha aberta, sempre
+    main().catch(() => process.exit(0)) // falha aberta, sempre
 }
 ```
 
@@ -1049,6 +1186,7 @@ docker compose exec toolkit node --test test/hooks/hk5-commit-guard.test.ts
 docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 ```
+
 Esperado: PASS na suíte inteira.
 
 - [ ] **Step 5: Commit**
@@ -1065,14 +1203,17 @@ git commit -m "feat(RN-0008, RN-0009): HK-5 pergunta no commit que leva código 
 **Objetivo:** os dois hooks existem e ninguém os chama. Esta task liga os fios — e é a primeira vez que `hooks.json` declara mais de um evento.
 
 **Files:**
+
 - Modify: `plugin/hooks/hooks.json`
 - Test: `test/plugin/manifest.test.ts:32-47` (o teste que hoje afirma "um grupo, dois hooks") e `test/plugin/manifest.test.ts:60-70` (o que varre só `PreToolUse`)
 
 **Interfaces:**
+
 - Consome: `plugin/hooks/run-hook.sh`, **sem alteração**. O wrapper passa o payload cru e recebe o nome do hook como argumento; cada hook sabe de que evento é. Verificado no Step 1.
 - Produz: nada para tasks seguintes além do plugin funcionando.
 
 **Requisitos:**
+
 - `PreToolUse` passa a ter **dois** grupos: `Edit|Write` (com `HK-1` e `HK-3`) e `Bash` (com `HK-5`). `PostToolUse` ganha um grupo `Edit|Write` (com `HK-4`).
 - Todo comando continua relocável (`${CLAUDE_PLUGIN_ROOT}`) e síncrono (`"async": false`) — um lembrete que chega depois da próxima ferramenta não é lembrete.
 - O teste que varre "todo hook referenciado existe" passa a varrer **todos** os eventos, não só `PreToolUse`. É o mesmo motivo do teste de skills ser varredura e não lista: o próximo evento entra sem ninguém lembrar de acrescentá-lo aqui.
@@ -1089,55 +1230,86 @@ Em `test/plugin/manifest.test.ts`, substitua o teste `'hooks.json registra HK-1 
 
 ```typescript
 test('hooks.json registra os quatro hooks nos eventos e matchers da spec §7', () => {
-  const config = readJson('plugin/hooks/hooks.json');
-  const hooks = config.hooks as Record<string, { matcher: string; hooks: { command: string }[] }[]>;
+    const config = readJson('plugin/hooks/hooks.json')
+    const hooks = config.hooks as Record<
+        string,
+        { matcher: string; hooks: { command: string }[] }[]
+    >
 
-  const grupos = new Map(
-    Object.entries(hooks).flatMap(([evento, lista]) =>
-      lista.map((grupo) => [`${evento}:${grupo.matcher}`, grupo.hooks.map((hook) => hook.command)] as const),
-    ),
-  );
+    const grupos = new Map(
+        Object.entries(hooks).flatMap(([evento, lista]) =>
+            lista.map(
+                grupo =>
+                    [
+                        `${evento}:${grupo.matcher}`,
+                        grupo.hooks.map(hook => hook.command)
+                    ] as const
+            )
+        )
+    )
 
-  const esperado: Record<string, string[]> = {
-    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk3-state-promotion'],
-    'PreToolUse:Bash': ['hk5-commit-guard'],
-    'PostToolUse:Edit|Write': ['hk4-watch-reminder'],
-  };
-
-  assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort());
-  for (const [chave, nomes] of Object.entries(esperado)) {
-    const comandos = grupos.get(chave) ?? [];
-    assert.equal(comandos.length, nomes.length, `${chave}: ${comandos.length} hooks`);
-    for (const nome of nomes) {
-      assert.ok(comandos.some((comando) => comando.includes(nome)), `${chave} deveria invocar ${nome}`);
+    const esperado: Record<string, string[]> = {
+        'PreToolUse:Edit|Write': ['hk1-append-only', 'hk3-state-promotion'],
+        'PreToolUse:Bash': ['hk5-commit-guard'],
+        'PostToolUse:Edit|Write': ['hk4-watch-reminder']
     }
-    for (const comando of comandos) {
-      assert.ok(comando.includes('${CLAUDE_PLUGIN_ROOT}'), 'o comando precisa ser relocável');
+
+    assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort())
+    for (const [chave, nomes] of Object.entries(esperado)) {
+        const comandos = grupos.get(chave) ?? []
+        assert.equal(
+            comandos.length,
+            nomes.length,
+            `${chave}: ${comandos.length} hooks`
+        )
+        for (const nome of nomes) {
+            assert.ok(
+                comandos.some(comando => comando.includes(nome)),
+                `${chave} deveria invocar ${nome}`
+            )
+        }
+        for (const comando of comandos) {
+            assert.ok(
+                comando.includes('${CLAUDE_PLUGIN_ROOT}'),
+                'o comando precisa ser relocável'
+            )
+        }
     }
-  }
-});
+})
 ```
 
 E o teste `'todo hook referenciado existe no repositório'` passa a varrer todos os eventos:
 
 ```typescript
 test('todo hook referenciado existe no repositório', () => {
-  const config = readJson('plugin/hooks/hooks.json');
-  const hooks = config.hooks as Record<string, { hooks: { command: string }[] }[]>;
-  let vistos = 0;
+    const config = readJson('plugin/hooks/hooks.json')
+    const hooks = config.hooks as Record<
+        string,
+        { hooks: { command: string }[] }[]
+    >
+    let vistos = 0
 
-  for (const grupos of Object.values(hooks)) {
-    for (const grupo of grupos) {
-      for (const hook of grupo.hooks) {
-        const name = hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? '';
-        assert.ok(existsSync(join(ROOT, 'src/hooks', `${name}.ts`)), `src/hooks/${name}.ts deveria existir`);
-        vistos += 1;
-      }
+    for (const grupos of Object.values(hooks)) {
+        for (const grupo of grupos) {
+            for (const hook of grupo.hooks) {
+                const name =
+                    hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ??
+                    ''
+                assert.ok(
+                    existsSync(join(ROOT, 'src/hooks', `${name}.ts`)),
+                    `src/hooks/${name}.ts deveria existir`
+                )
+                vistos += 1
+            }
+        }
     }
-  }
 
-  assert.equal(vistos, 4, 'a varredura deveria ver os quatro hooks das Fases 1 e 3');
-});
+    assert.equal(
+        vistos,
+        4,
+        'a varredura deveria ver os quatro hooks das Fases 1 e 3'
+    )
+})
 ```
 
 - [ ] **Step 3: Rodar e ver falhar**
@@ -1145,57 +1317,58 @@ test('todo hook referenciado existe no repositório', () => {
 ```bash
 docker compose exec toolkit node --test test/plugin/manifest.test.ts
 ```
+
 Esperado: FAIL — o `hooks.json` atual só tem `PreToolUse:Edit|Write`.
 
 - [ ] **Step 4: Escrever `plugin/hooks/hooks.json`**
 
 ```json
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk1-append-only",
-            "shell": "bash",
-            "async": false
-          },
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk3-state-promotion",
-            "shell": "bash",
-            "async": false
-          }
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk1-append-only",
+                        "shell": "bash",
+                        "async": false
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk3-state-promotion",
+                        "shell": "bash",
+                        "async": false
+                    }
+                ]
+            },
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk5-commit-guard",
+                        "shell": "bash",
+                        "async": false
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk4-watch-reminder",
+                        "shell": "bash",
+                        "async": false
+                    }
+                ]
+            }
         ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk5-commit-guard",
-            "shell": "bash",
-            "async": false
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk4-watch-reminder",
-            "shell": "bash",
-            "async": false
-          }
-        ]
-      }
-    ]
-  }
+    }
 }
 ```
 
@@ -1204,6 +1377,7 @@ Esperado: FAIL — o `hooks.json` atual só tem `PreToolUse:Edit|Write`.
 ```bash
 docker compose exec toolkit npm test
 ```
+
 Esperado: PASS.
 
 - [ ] **Step 6: Verificar os dois hooks à mão, pelo contrato real**
@@ -1236,6 +1410,7 @@ git commit -m "feat(RN-0008): plugin registra HK-4 (PostToolUse) e HK-5 (PreTool
 **Objetivo:** dar dono a "como se trabalha aqui". A Definition of Done é o mecanismo 1 escrito onde ele é lido, e é a fonte de `CI-7` na Fase 7; o contrato do agente nasce índice, não conteúdo.
 
 **Files:**
+
 - Create: `plugin/skills/working-agreements-keeper/SKILL.md`
 - Create: `CONTRIBUTING.md`, `docs/definition-of-done.md`, `CLAUDE.md`
 - Create: `test/docs/agent-contract.test.ts`
@@ -1243,10 +1418,12 @@ git commit -m "feat(RN-0008): plugin registra HK-4 (PostToolUse) e HK-5 (PreTool
 - Modify: `test/plugin/authoring.test.ts` (asserções específicas de `SK-6`)
 
 **Interfaces:**
+
 - Consome: as convenções de autoria da spec §11, já verificadas por `test/plugin/authoring.test.ts` sobre **todas** as skills — a skill nova entra na varredura no dia em que nasce.
 - Produz: o nome `working-agreements-keeper`, citado por `watches`/CODEOWNERS na Task 9 e pelos templates na Task 8.
 
 **Requisitos:**
+
 - A skill obedece à varredura existente: seções na ordem `Overview` → `Do que você é dono` → `Quando usar / quando não` → `Procedimento` → `Fronteiras` → `Checklist`; `description` com mais de 120 caracteres, contendo "Use" e escrita em **sintoma** ("um agente errou por falta de contexto", "isso não estava escrito em lugar nenhum"); checklist com ao menos 6 caixas, cada uma nomeando `CI-n`, `HK-n` ou verificação humana.
 - A skill **não** copia o conteúdo dos artefatos que governa. Ela aponta para `templates/`.
 - `CLAUDE.md` é índice e política: cabe numa tela, linka os artefatos donos e não repete o enunciado de nenhum requisito (`RN-0010`).
@@ -1257,54 +1434,77 @@ git commit -m "feat(RN-0008): plugin registra HK-4 (PostToolUse) e HK-5 (PreTool
 `test/docs/agent-contract.test.ts`:
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { toolkitRoot } from '../../src/core/roots.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { toolkitRoot } from '../../src/core/roots.ts'
 
-const ROOT = toolkitRoot();
-const CONTRATO = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8');
+const ROOT = toolkitRoot()
+const CONTRATO = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8')
 
 test('RN-0010: o contrato do agente aponta para os artefatos donos', () => {
-  const alvos = [
-    'LIVING-DOCUMENTATION-TOOLKIT.md',
-    'docs/.ownership.yml',
-    'CONTRIBUTING.md',
-    'docs/definition-of-done.md',
-    'docs/requirements/',
-  ];
-  for (const alvo of alvos) {
-    assert.ok(CONTRATO.includes(alvo), `o contrato deveria apontar para ${alvo}`);
-  }
-});
+    const alvos = [
+        'LIVING-DOCUMENTATION-TOOLKIT.md',
+        'docs/.ownership.yml',
+        'CONTRIBUTING.md',
+        'docs/definition-of-done.md',
+        'docs/requirements/'
+    ]
+    for (const alvo of alvos) {
+        assert.ok(
+            CONTRATO.includes(alvo),
+            `o contrato deveria apontar para ${alvo}`
+        )
+    }
+})
 
 test('RN-0010: o contrato não copia o enunciado de requisito nenhum', () => {
-  const titulos = ['rules.md', 'functional.md', 'non-functional.md'].flatMap((arquivo) =>
-    [...readFileSync(join(ROOT, 'docs/requirements', arquivo), 'utf8').matchAll(/^## (R[NF]F?-\d{4} — .+)$/gm)].map(
-      (match) => match[1] ?? '',
-    ),
-  );
+    const titulos = ['rules.md', 'functional.md', 'non-functional.md'].flatMap(
+        arquivo =>
+            [
+                ...readFileSync(
+                    join(ROOT, 'docs/requirements', arquivo),
+                    'utf8'
+                ).matchAll(/^## (R[NF]F?-\d{4} — .+)$/gm)
+            ].map(match => match[1] ?? '')
+    )
 
-  assert.ok(titulos.length >= 11, `esperava os requisitos das Fases 0 a 3, achei ${titulos.length}`);
-  for (const titulo of titulos) {
-    assert.equal(CONTRATO.includes(titulo), false, `o contrato copia o requisito "${titulo}"`);
-  }
-});
+    assert.ok(
+        titulos.length >= 11,
+        `esperava os requisitos das Fases 0 a 3, achei ${titulos.length}`
+    )
+    for (const titulo of titulos) {
+        assert.equal(
+            CONTRATO.includes(titulo),
+            false,
+            `o contrato copia o requisito "${titulo}"`
+        )
+    }
+})
 
 test('RN-0010: o contrato é índice, não manual — cabe numa tela', () => {
-  const linhas = CONTRATO.split('\n').length;
-  assert.ok(linhas <= 60, `contrato com ${linhas} linhas: índice que não cabe numa tela vira manual`);
-});
+    const linhas = CONTRATO.split('\n').length
+    assert.ok(
+        linhas <= 60,
+        `contrato com ${linhas} linhas: índice que não cabe numa tela vira manual`
+    )
+})
 
 test('a Definition of Done nomeia a verificação de cada item', () => {
-  const dod = readFileSync(join(ROOT, 'docs/definition-of-done.md'), 'utf8');
-  const itens = dod.split('\n').filter((linha) => linha.trim().startsWith('- [ ]'));
-  assert.ok(itens.length >= 6, `DoD com apenas ${itens.length} itens`);
-  for (const item of itens) {
-    assert.match(item, /CI-\d|HK-\d|human/i, `item sem verificação nomeada — ${item}`);
-  }
-});
+    const dod = readFileSync(join(ROOT, 'docs/definition-of-done.md'), 'utf8')
+    const itens = dod
+        .split('\n')
+        .filter(linha => linha.trim().startsWith('- [ ]'))
+    assert.ok(itens.length >= 6, `DoD com apenas ${itens.length} itens`)
+    for (const item of itens) {
+        assert.match(
+            item,
+            /CI-\d|HK-\d|human/i,
+            `item sem verificação nomeada — ${item}`
+        )
+    }
+})
 ```
 
 - [ ] **Step 2: Rodar e ver falhar**
@@ -1312,6 +1512,7 @@ test('a Definition of Done nomeia a verificação de cada item', () => {
 ```bash
 docker compose exec toolkit node --test test/docs/agent-contract.test.ts
 ```
+
 Esperado: FAIL — `ENOENT` em `CLAUDE.md`.
 
 - [ ] **Step 3: Escrever `docs/definition-of-done.md`**
@@ -1319,10 +1520,10 @@ Esperado: FAIL — `ENOENT` em `CLAUDE.md`.
 ```markdown
 ---
 title: Definition of Done
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
-  de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
+    Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
+    de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
 last-reviewed: 2026-08-25
 ---
 
@@ -1351,13 +1552,13 @@ alguém as encontre depois.
 
 - [ ] **Step 4: Escrever `CONTRIBUTING.md`**
 
-```markdown
+````markdown
 ---
 title: Como se contribui aqui
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
-  errou por falta de contexto que caberia nesta página.
+    Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
+    errou por falta de contexto que caberia nesta página.
 last-reviewed: 2026-08-25
 ---
 
@@ -1377,6 +1578,7 @@ docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 ./bin/living-docs validate
 ```
+````
 
 Se um comando pede `node`, `npm` ou `npx` fora do container, ele está errado —
 não o ambiente.
@@ -1395,15 +1597,15 @@ não o ambiente.
 
 ## Onde a verdade mora
 
-| Pergunta | Artefato |
-| --- | --- |
-| O que o toolkit deve ser | `LIVING-DOCUMENTATION-TOOLKIT.md` |
-| Qual é a regra de X | `docs/requirements/` |
-| Por que foi feito assim | `docs/decisions/adr/` |
-| O que ainda não foi decidido | `docs/open-decisions.md` |
-| O que se aceitou dever | `docs/decisions/debt/` |
-| Quem é dono de cada caminho | `docs/.ownership.yml` e `CODEOWNERS` |
-| Quando está pronto | `docs/definition-of-done.md` |
+| Pergunta                     | Artefato                             |
+| ---------------------------- | ------------------------------------ |
+| O que o toolkit deve ser     | `LIVING-DOCUMENTATION-TOOLKIT.md`    |
+| Qual é a regra de X          | `docs/requirements/`                 |
+| Por que foi feito assim      | `docs/decisions/adr/`                |
+| O que ainda não foi decidido | `docs/open-decisions.md`             |
+| O que se aceitou dever       | `docs/decisions/debt/`               |
+| Quem é dono de cada caminho  | `docs/.ownership.yml` e `CODEOWNERS` |
+| Quando está pronto           | `docs/definition-of-done.md`         |
 
 Nenhuma dessas respostas é copiada para outro lugar. Duplicata apodrece, e a
 versão velha ganha da nova por repetição.
@@ -1418,7 +1620,8 @@ Mensagem de commit em português, no formato `tipo(ID): assunto`.
 Isso não é acidente, é sintoma: falta uma linha em algum documento. A correção é
 acrescentar essa linha — em `CLAUDE.md` se for política ou índice, no artefato
 dono se for regra. A skill `working-agreements-keeper` é dona desse loop.
-```
+
+````
 
 - [ ] **Step 5: Escrever `CLAUDE.md`**
 
@@ -1467,7 +1670,7 @@ invocá-las pelo nome.
 - Criar artefato de documentação fora de `docs/` ou fora do controle de versão.
 - Bumpar `last-reviewed` em massa.
 - Copiar para cá o conteúdo de qualquer artefato acima.
-```
+````
 
 - [ ] **Step 6: Escrever `plugin/skills/working-agreements-keeper/SKILL.md`**
 
@@ -1475,13 +1678,13 @@ invocá-las pelo nome.
 ---
 name: working-agreements-keeper
 description: >
-  Use quando um agente ou uma pessoa errou por falta de contexto — "ninguém me
-  disse que era assim", "isso não estava escrito em lugar nenhum", "achei que
-  podia rodar direto", "como é que se faz isso aqui?", "quando é que isso está
-  pronto?" — e sempre que o processo de trabalho mudar: comando novo, passo
-  obrigatório novo, regra de commit, política sobre o que agente pode ou não
-  fazer sozinho. Também quando o contrato do agente (CLAUDE.md/AGENTS.md)
-  estiver repetindo conteúdo que pertence a outro documento.
+    Use quando um agente ou uma pessoa errou por falta de contexto — "ninguém me
+    disse que era assim", "isso não estava escrito em lugar nenhum", "achei que
+    podia rodar direto", "como é que se faz isso aqui?", "quando é que isso está
+    pronto?" — e sempre que o processo de trabalho mudar: comando novo, passo
+    obrigatório novo, regra de commit, política sobre o que agente pode ou não
+    fazer sozinho. Também quando o contrato do agente (CLAUDE.md/AGENTS.md)
+    estiver repetindo conteúdo que pertence a outro documento.
 ---
 
 # working-agreements-keeper — dono de como se trabalha aqui
@@ -1500,11 +1703,11 @@ Caminhos e donos vêm de `docs/.ownership.yml` e do `CODEOWNERS`; não assuma.
 
 ## Do que você é dono
 
-| Artefato | O que é |
-| --- | --- |
-| `CONTRIBUTING.md` | O processo: ambiente, ciclo, idioma, onde a verdade mora |
+| Artefato                     | O que é                                                            |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `CONTRIBUTING.md`            | O processo: ambiente, ciclo, idioma, onde a verdade mora           |
 | `docs/definition-of-done.md` | A lista do que precisa estar feito, com a verificação de cada item |
-| `CLAUDE.md` / `AGENTS.md` | Contrato do agente: índice e política, nunca conteúdo |
+| `CLAUDE.md` / `AGENTS.md`    | Contrato do agente: índice e política, nunca conteúdo              |
 
 As sementes estão em `templates/contributing.md`,
 `templates/definition-of-done.md` e `templates/agent-contract.md`. Não reproduza
@@ -1513,8 +1716,8 @@ o conteúdo delas aqui.
 ## Quando usar / quando não
 
 **Use** quando o processo mudar, e quando um erro por falta de contexto
-acontecer — a correção é uma linha nova, e ela tem uma de duas formas: *onde
-está a verdade* ou *o que nunca fazer*.
+acontecer — a correção é uma linha nova, e ela tem uma de duas formas: _onde
+está a verdade_ ou _o que nunca fazer_.
 
 **Não use** para registrar regra de negócio (é `requirements-keeper`), decisão
 técnica (é `decision-recorder`) ou o que o linter já pega — configuração de
@@ -1532,8 +1735,8 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
    contrato do agente.
 3. **Procure a linha que já cobre isso.** Erro repetido costuma ser linha
    existente mal colocada, não linha faltando.
-4. **Escreva uma linha, não um parágrafo.** Forma: *onde está a verdade* ("a
-   regra de X mora em `docs/requirements/rules.md`") ou *o que nunca fazer*
+4. **Escreva uma linha, não um parágrafo.** Forma: _onde está a verdade_ ("a
+   regra de X mora em `docs/requirements/rules.md`") ou _o que nunca fazer_
    ("nunca rode `npm` fora do container").
 5. **Item novo na DoD nomeia sua verificação**: um `CI-n`, um `HK-n`, ou
    explicitamente "humana". Item sem verificação não entra.
@@ -1544,12 +1747,12 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| Como se trabalha, e quando algo está pronto | A regra de negócio que o CONTRIBUTING referencia |
-| Transformar erro por falta de contexto em linha nova | Duplicar conteúdo de outro artefato |
-| A política sobre o que um agente pode fazer sozinho | Aceitar a decisão em si (é ato humano, `HK-3`) |
-| O item da DoD e a verificação que o cobre | Escrever o check que verifica (é `CI-n`, na engine) |
+| É seu                                                | Não é seu                                           |
+| ---------------------------------------------------- | --------------------------------------------------- |
+| Como se trabalha, e quando algo está pronto          | A regra de negócio que o CONTRIBUTING referencia    |
+| Transformar erro por falta de contexto em linha nova | Duplicar conteúdo de outro artefato                 |
+| A política sobre o que um agente pode fazer sozinho  | Aceitar a decisão em si (é ato humano, `HK-3`)      |
+| O item da DoD e a verificação que o cobre            | Escrever o check que verifica (é `CI-n`, na engine) |
 
 ## Checklist
 
@@ -1568,32 +1771,50 @@ Ao final do arquivo, no mesmo estilo das que já existem para `decision-recorder
 
 ```typescript
 test('working-agreements-keeper: a description nomeia o erro por falta de contexto', () => {
-  const description = String(parseFrontmatter(skillSource('working-agreements-keeper'))?.data.description ?? '');
-  assert.match(description, /Use quando/i);
-  for (const sintoma of ['falta de contexto', 'não estava escrito', 'pronto']) {
-    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`);
-  }
-});
+    const description = String(
+        parseFrontmatter(skillSource('working-agreements-keeper'))?.data
+            .description ?? ''
+    )
+    assert.match(description, /Use quando/i)
+    for (const sintoma of [
+        'falta de contexto',
+        'não estava escrito',
+        'pronto'
+    ]) {
+        assert.ok(
+            description.toLowerCase().includes(sintoma),
+            `a description deveria conter o sintoma "${sintoma}"`
+        )
+    }
+})
 
 test('working-agreements-keeper não duplica o conteúdo dos acordos que governa', () => {
-  const source = skillSource('working-agreements-keeper');
-  assert.match(source, /templates\/definition-of-done\.md/, 'ela deve apontar para o template, não copiá-lo');
-  assert.doesNotMatch(source, /^- \[ \] `npm test`/m, 'a skill não deve conter a DoD');
-});
+    const source = skillSource('working-agreements-keeper')
+    assert.match(
+        source,
+        /templates\/definition-of-done\.md/,
+        'ela deve apontar para o template, não copiá-lo'
+    )
+    assert.doesNotMatch(
+        source,
+        /^- \[ \] `npm test`/m,
+        'a skill não deve conter a DoD'
+    )
+})
 ```
 
 - [ ] **Step 8: Atualizar o `CODEOWNERS`**
 
 ```
 # Espelha o campo `owner` de docs/.ownership.yml. Um artefato, um dono.
-docs/decisions/adr/    @dan
-docs/open-decisions.md    @dan
-docs/decisions/debt/    @dan
-docs/requirements/    @dan
-CONTRIBUTING.md    @dan
-docs/definition-of-done.md    @dan
-CLAUDE.md    @dan
-docs/.ownership.yml    @dan
+docs/decisions/adr/    @Danrley-Ruan-Saquetti
+docs/open-decisions.md    @Danrley-Ruan-Saquetti
+docs/decisions/debt/    @Danrley-Ruan-Saquetti
+docs/requirements/    @Danrley-Ruan-Saquetti
+CONTRIBUTING.md    @Danrley-Ruan-Saquetti
+docs/definition-of-done.md    @Danrley-Ruan-Saquetti
+CLAUDE.md    @Danrley-Ruan-Saquetti
+docs/.ownership.yml    @Danrley-Ruan-Saquetti
 ```
 
 - [ ] **Step 9: Rodar tudo**
@@ -1603,6 +1824,7 @@ docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts validate; echo "exit=$?"
 ```
+
 Esperado: PASS e `exit=0`. A varredura de `test/plugin/authoring.test.ts` agora roda sobre quatro skills; se ela reclamar de seção fora de ordem ou de item de checklist sem verificação, o erro está no `SKILL.md`, não no teste.
 
 - [ ] **Step 10: Commit**
@@ -1619,16 +1841,19 @@ git commit -m "feat(SK-6, RN-0010): working-agreements-keeper, DoD e contrato do
 **Objetivo:** o que este repositório acabou de ganhar à mão, um consumidor ganha por comando. E o `init` para de prometer a Fase 3 como "não instalada".
 
 **Files:**
+
 - Create: `templates/contributing.md`, `templates/definition-of-done.md`, `templates/agent-contract.md`
 - Modify: `templates/CODEOWNERS`, `templates/ownership.yml`
 - Modify: `src/cli/init.ts`
 - Test: `test/cli/init.test.ts`
 
 **Interfaces:**
+
 - Consome: `template()`, `writeIfAbsent()`, `InitResult` e `Stage` de `src/cli/init.ts` (já existem).
 - Produz: nada para tasks seguintes; é folha.
 
 **Requisitos:**
+
 - Estágio `solo` continua sem instalar nada disso. A tabela da spec §10 põe a Fase 3 em "time pequeno / produto real".
 - `AGENTS.md` existente é **adotado** (entra em `result.adopted`, e nenhum `CLAUDE.md` nasce ao lado). Qualquer um dos três já escrito é mantido intacto — `RF-0002` continua valendo.
 - `NOT_INSTALLED['small-team']` perde a linha da Fase 3 e mantém a da Fase 4. Prometer honestamente o que falta é `RF-0003`.
@@ -1641,60 +1866,103 @@ Acrescente a `test/cli/init.test.ts`:
 
 ```typescript
 test('RF-0004: small-team instala os acordos de trabalho', () => {
-  withTempRepo({}, (root) => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
-    for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
-      assert.ok(existsSync(join(root, path)), `${path} deveria existir`);
-      assert.ok(result.created.includes(path), `${path} deveria constar como criado`);
-    }
-    assert.match(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), /@time/);
-  });
-});
+    withTempRepo({}, root => {
+        const result = runInit(root, {
+            owner: '@time',
+            dryRun: false,
+            stage: 'small-team'
+        })
+        for (const path of [
+            'CONTRIBUTING.md',
+            'docs/definition-of-done.md',
+            'CLAUDE.md'
+        ]) {
+            assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
+            assert.ok(
+                result.created.includes(path),
+                `${path} deveria constar como criado`
+            )
+        }
+        assert.match(
+            readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'),
+            /@time/
+        )
+    })
+})
 
 test('RF-0004: solo não instala acordo de trabalho nenhum', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' });
-    for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
-      assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`);
-    }
-  });
-});
+    withTempRepo({}, root => {
+        runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
+        for (const path of [
+            'CONTRIBUTING.md',
+            'docs/definition-of-done.md',
+            'CLAUDE.md'
+        ]) {
+            assert.equal(
+                existsSync(join(root, path)),
+                false,
+                `${path} não deveria existir no estágio solo`
+            )
+        }
+    })
+})
 
 test('RF-0004: AGENTS.md existente é adotado; nenhum CLAUDE.md paralelo nasce', () => {
-  withTempRepo({ 'AGENTS.md': '# contrato antigo\n' }, (root) => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
-    assert.equal(existsSync(join(root, 'CLAUDE.md')), false);
-    assert.equal(readFileSync(join(root, 'AGENTS.md'), 'utf8'), '# contrato antigo\n');
-    assert.ok(result.adopted.some((entry) => entry.path === 'AGENTS.md'));
-  });
-});
+    withTempRepo({ 'AGENTS.md': '# contrato antigo\n' }, root => {
+        const result = runInit(root, {
+            owner: '@time',
+            dryRun: false,
+            stage: 'small-team'
+        })
+        assert.equal(existsSync(join(root, 'CLAUDE.md')), false)
+        assert.equal(
+            readFileSync(join(root, 'AGENTS.md'), 'utf8'),
+            '# contrato antigo\n'
+        )
+        assert.ok(result.adopted.some(entry => entry.path === 'AGENTS.md'))
+    })
+})
 
 test('RF-0004: acordo já escrito não é reescrito na segunda execução', () => {
-  withTempRepo({ 'CONTRIBUTING.md': '# do jeito deles\n' }, (root) => {
-    const options = { owner: '@time', dryRun: false, stage: 'small-team' as const };
-    runInit(root, options);
-    const segunda = runInit(root, options);
-    assert.equal(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), '# do jeito deles\n');
-    assert.ok(segunda.skipped.includes('CONTRIBUTING.md'));
-    assert.deepEqual(segunda.created, []);
-  });
-});
+    withTempRepo({ 'CONTRIBUTING.md': '# do jeito deles\n' }, root => {
+        const options = {
+            owner: '@time',
+            dryRun: false,
+            stage: 'small-team' as const
+        }
+        runInit(root, options)
+        const segunda = runInit(root, options)
+        assert.equal(
+            readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'),
+            '# do jeito deles\n'
+        )
+        assert.ok(segunda.skipped.includes('CONTRIBUTING.md'))
+        assert.deepEqual(segunda.created, [])
+    })
+})
 
 test('RF-0003: small-team não promete mais a Fase 3 como pendente', () => {
-  withTempRepo({}, (root) => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
-    assert.equal(result.notInstalled.some((item) => /Fase 3/.test(item)), false);
-    assert.ok(result.notInstalled.some((item) => /Fase 4/.test(item)));
-  });
-});
+    withTempRepo({}, root => {
+        const result = runInit(root, {
+            owner: '@time',
+            dryRun: false,
+            stage: 'small-team'
+        })
+        assert.equal(
+            result.notInstalled.some(item => /Fase 3/.test(item)),
+            false
+        )
+        assert.ok(result.notInstalled.some(item => /Fase 4/.test(item)))
+    })
+})
 
 test('o init não inventa `watches` — o vínculo código→doc é ato humano', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
-    const config = loadOwnership(root);
-    assert.deepEqual(config.watches, []);
-  });
-});
+    withTempRepo({}, root => {
+        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+        const config = loadOwnership(root)
+        assert.deepEqual(config.watches, [])
+    })
+})
 ```
 
 Se `loadOwnership`, `readFileSync` ou `existsSync` ainda não estiverem importados no arquivo, acrescente os imports.
@@ -1704,6 +1972,7 @@ Se `loadOwnership`, `readFileSync` ou `existsSync` ainda não estiverem importad
 ```bash
 docker compose exec toolkit node --test test/cli/init.test.ts
 ```
+
 Esperado: FAIL — `CONTRIBUTING.md deveria existir`.
 
 - [ ] **Step 3: Escrever os três templates**
@@ -1713,11 +1982,11 @@ Esperado: FAIL — `CONTRIBUTING.md deveria existir`.
 ```markdown
 ---
 title: Definition of Done
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
-  Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
-  de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
-last-reviewed: {{TODAY}}
+    Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
+    de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
+last-reviewed: { { TODAY } }
 ---
 
 # Definition of Done
@@ -1745,11 +2014,11 @@ definição de pronto.
 ```markdown
 ---
 title: Como se contribui aqui
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
-  Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
-  errou por falta de contexto que caberia nesta página.
-last-reviewed: {{TODAY}}
+    Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
+    errou por falta de contexto que caberia nesta página.
+last-reviewed: { { TODAY } }
 ---
 
 # Como se contribui
@@ -1770,14 +2039,14 @@ last-reviewed: {{TODAY}}
 
 ## Onde a verdade mora
 
-| Pergunta | Artefato |
-| --- | --- |
-| Qual é a regra de X | `docs/requirements/` |
-| Por que foi feito assim | `docs/decisions/adr/` |
-| O que ainda não foi decidido | `docs/open-decisions.md` |
-| O que se aceitou dever | `docs/decisions/debt/` |
-| Quem é dono de cada caminho | `docs/.ownership.yml` e `CODEOWNERS` |
-| Quando está pronto | `docs/definition-of-done.md` |
+| Pergunta                     | Artefato                             |
+| ---------------------------- | ------------------------------------ |
+| Qual é a regra de X          | `docs/requirements/`                 |
+| Por que foi feito assim      | `docs/decisions/adr/`                |
+| O que ainda não foi decidido | `docs/open-decisions.md`             |
+| O que se aceitou dever       | `docs/decisions/debt/`               |
+| Quem é dono de cada caminho  | `docs/.ownership.yml` e `CODEOWNERS` |
+| Quando está pronto           | `docs/definition-of-done.md`         |
 
 Nenhuma dessas respostas é copiada para outro lugar.
 
@@ -1860,36 +2129,56 @@ Depois de `REQUIREMENT_CITED_BY`, acrescente:
 
 ```typescript
 /** Acordos de trabalho (SK-6), instalados a partir do estágio `small-team` (spec §10). */
-const WORKING_AGREEMENTS: readonly { path: string; template: string }[] = Object.freeze([
-  { path: 'CONTRIBUTING.md', template: 'contributing.md' },
-  { path: 'docs/definition-of-done.md', template: 'definition-of-done.md' },
-]);
+const WORKING_AGREEMENTS: readonly { path: string; template: string }[] =
+    Object.freeze([
+        { path: 'CONTRIBUTING.md', template: 'contributing.md' },
+        {
+            path: 'docs/definition-of-done.md',
+            template: 'definition-of-done.md'
+        }
+    ])
 ```
 
 Troque `NOT_INSTALLED` por:
 
 ```typescript
 /** O que este estágio pede e a Fase 4 é que vai entregar (spec §10). */
-const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
-  solo: [],
-  'small-team': ['SK-1, SK-2, AG-2 (Fase 4) — não implementados nesta versão'],
-});
+const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
+    {
+        solo: [],
+        'small-team': [
+            'SK-1, SK-2, AG-2 (Fase 4) — não implementados nesta versão'
+        ]
+    }
+)
 ```
 
 Dentro de `runInit`, no bloco `if (options.stage !== 'solo')`, **depois** da escrita dos arquivos de requisito:
 
 ```typescript
-    for (const agreement of WORKING_AGREEMENTS) {
-      writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result);
-    }
+for (const agreement of WORKING_AGREEMENTS) {
+    writeIfAbsent(
+        root,
+        agreement.path,
+        template(agreement.template, values),
+        options,
+        result
+    )
+}
 
-    // O contrato do agente pode já existir com outro nome. Adotar, nunca duplicar
-    // (RF-0002): dois contratos é a garantia de que um deles está errado.
-    if (existsSync(join(root, 'AGENTS.md'))) {
-      result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' });
-    } else {
-      writeIfAbsent(root, 'CLAUDE.md', template('agent-contract.md', values), options, result);
-    }
+// O contrato do agente pode já existir com outro nome. Adotar, nunca duplicar
+// (RF-0002): dois contratos é a garantia de que um deles está errado.
+if (existsSync(join(root, 'AGENTS.md'))) {
+    result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' })
+} else {
+    writeIfAbsent(
+        root,
+        'CLAUDE.md',
+        template('agent-contract.md', values),
+        options,
+        result
+    )
+}
 ```
 
 E, em `values`, acrescente a chave nova:
@@ -1908,6 +2197,7 @@ docker compose exec toolkit node --test test/cli/init.test.ts
 docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 ```
+
 Esperado: PASS. Se um teste antigo de `init` quebrar por causa de `notInstalled`, ele estava afirmando que a Fase 3 não existia — atualize a asserção, é o ponto da task.
 
 - [ ] **Step 7: Conferir o comando de ponta a ponta num repositório descartável**
@@ -1917,6 +2207,7 @@ docker compose exec toolkit sh -c 'rm -rf /tmp/demo && mkdir -p /tmp/demo && cd 
   LIVING_DOCS_REPO_ROOT=/tmp/demo node /opt/living-docs/src/cli/index.ts init --stage small-team --owner @time && \
   ls -1 && cat docs/.ownership.yml | tail -20'
 ```
+
 Esperado: `CONTRIBUTING.md`, `CLAUDE.md`, `docs/` na listagem; `watches: []` com o bloco de comentário acima dele; a linha `não instalado  SK-1, SK-2, AG-2 (Fase 4)…` na saída, e **nenhuma** menção à Fase 3.
 
 - [ ] **Step 8: Commit**
@@ -1933,6 +2224,7 @@ git commit -m "feat(RF-0004): init --stage small-team instala os acordos de trab
 **Objetivo:** a fase só está entregue quando o próprio repositório vive sob ela. Aqui `watches` deixa de ser `[]`, o critério de aceite 5 ganha teste, a lacuna que a fase descobriu vira `DA-0002`, e os requisitos da Task 1 são promovidos — por uma pessoa.
 
 **Files:**
+
 - Modify: `docs/.ownership.yml` (preenche `watches`)
 - Modify: `docs/open-decisions.md` (acrescenta `DA-0002`)
 - Modify: `test/acceptance/spec-criteria.test.ts` (critério 5)
@@ -1940,10 +2232,12 @@ git commit -m "feat(RF-0004): init --stage small-team instala os acordos de trab
 - Modify: `docs/requirements/rules.md`, `docs/requirements/functional.md` (promoção `draft → active`)
 
 **Interfaces:**
+
 - Consome: tudo que as Tasks 2 a 8 produziram.
 - Produz: o repositório validando a si mesmo com a Fase 3 ativa.
 
 **Requisitos:**
+
 - Cada `watch` deste repositório aponta para um doc que **existe** e tem motivo escrito. Vínculo sem motivo é ruído — o `reason` é o que aparece na mensagem do hook.
 - `DA-0002` nasce `open` e **não** é resolvida aqui. Resolver exige um ADR, e o ADR exige a decisão, que é da Fase 7 (`CI-7`).
 - A promoção dos quatro requisitos para `active` é o **último** passo, e é humana. `CI-3` exige citação para requisito `active`; as citações já existem desde as Tasks 2 a 8.
@@ -1957,25 +2251,25 @@ Substitua o bloco `watches: []`:
 # Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
 # antes do commit. Na Fase 7, CI-7 lê daqui também.
 watches:
-  - code: "src/checks/**"
-    doc: docs/requirements/rules.md
-    reason: "check é regra executável — a RN vem antes, e é ela que o check verifica"
+    - code: 'src/checks/**'
+      doc: docs/requirements/rules.md
+      reason: 'check é regra executável — a RN vem antes, e é ela que o check verifica'
 
-  - code: "src/hooks/**"
-    doc: docs/requirements/rules.md
-    reason: "hook bloqueia ou pergunta em nome de uma regra; sem RN citada, o bloqueio não tem origem"
+    - code: 'src/hooks/**'
+      doc: docs/requirements/rules.md
+      reason: 'hook bloqueia ou pergunta em nome de uma regra; sem RN citada, o bloqueio não tem origem'
 
-  - code: "src/cli/**"
-    doc: docs/requirements/functional.md
-    reason: "o que o comando faz de observável é RF, não detalhe de implementação"
+    - code: 'src/cli/**'
+      doc: docs/requirements/functional.md
+      reason: 'o que o comando faz de observável é RF, não detalhe de implementação'
 
-  - code: "src/core/**"
-    doc: docs/requirements/non-functional.md
-    reason: "as duas raízes são propriedade do sistema (ADR-0003), não comportamento de comando"
+    - code: 'src/core/**'
+      doc: docs/requirements/non-functional.md
+      reason: 'as duas raízes são propriedade do sistema (ADR-0003), não comportamento de comando'
 
-  - code: "plugin/skills/**"
-    doc: CONTRIBUTING.md
-    reason: "skill nova ou alterada muda como se trabalha aqui"
+    - code: 'plugin/skills/**'
+      doc: CONTRIBUTING.md
+      reason: 'skill nova ou alterada muda como se trabalha aqui'
 ```
 
 - [ ] **Step 2: Abrir `DA-0002`**
@@ -1995,7 +2289,7 @@ Acrescente a linha em `docs/open-decisions.md`:
 Em `test/acceptance/spec-criteria.test.ts`, acrescente ao final (e importe `decideHk4`, `decideHk5` e `GitRunner`):
 
 ```typescript
-const NUL = String.fromCharCode(0);
+const NUL = String.fromCharCode(0)
 
 const WATCHED_CONFIG = `
 version: 1
@@ -2009,28 +2303,52 @@ watches:
   - code: "src/domain/**"
     doc: docs/requirements/rules.md
     reason: "comportamento novo exige regra com ID antes do código"
-`;
+`
 
 test('critério 5: alterar caminho vigiado sem tocar o doc dono é lembrado e perguntado', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: WATCHED_CONFIG }, (root) => {
-    const env = { root, hostRoots: [root] };
+    withTempRepo({ [OWNERSHIP_PATH]: WATCHED_CONFIG }, root => {
+        const env = { root, hostRoots: [root] }
 
-    // Metade 1 — logo depois da edição, HK-4 lembra.
-    const lembrete = decideHk4({ tool_name: 'Edit', tool_input: { file_path: 'src/domain/reembolso.ts' } }, env);
-    assert.equal(lembrete.action, 'remind');
+        // Metade 1 — logo depois da edição, HK-4 lembra.
+        const lembrete = decideHk4(
+            {
+                tool_name: 'Edit',
+                tool_input: { file_path: 'src/domain/reembolso.ts' }
+            },
+            env
+        )
+        assert.equal(lembrete.action, 'remind')
 
-    // Metade 2 — na hora do commit, HK-5 lista os pendentes e pergunta.
-    const staged: GitRunner = () => `src/domain/reembolso.ts${NUL}`;
-    const pergunta = decideHk5({ tool_name: 'Bash', tool_input: { command: 'git commit -m "feat: reembolso"' } }, env, staged);
-    assert.equal(pergunta.action, 'ask');
-    assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /docs\/requirements\/rules\.md/);
+        // Metade 2 — na hora do commit, HK-5 lista os pendentes e pergunta.
+        const staged: GitRunner = () => `src/domain/reembolso.ts${NUL}`
+        const pergunta = decideHk5(
+            {
+                tool_name: 'Bash',
+                tool_input: { command: 'git commit -m "feat: reembolso"' }
+            },
+            env,
+            staged
+        )
+        assert.equal(pergunta.action, 'ask')
+        assert.match(
+            pergunta.action === 'ask' ? pergunta.reason : '',
+            /docs\/requirements\/rules\.md/
+        )
 
-    // E com o doc no mesmo commit, o caminho fica livre.
-    const comDoc: GitRunner = () => `src/domain/reembolso.ts${NUL}docs/requirements/rules.md${NUL}`;
-    const livre = decideHk5({ tool_name: 'Bash', tool_input: { command: 'git commit -m "feat: reembolso"' } }, env, comDoc);
-    assert.equal(livre.action, 'allow');
-  });
-});
+        // E com o doc no mesmo commit, o caminho fica livre.
+        const comDoc: GitRunner = () =>
+            `src/domain/reembolso.ts${NUL}docs/requirements/rules.md${NUL}`
+        const livre = decideHk5(
+            {
+                tool_name: 'Bash',
+                tool_input: { command: 'git commit -m "feat: reembolso"' }
+            },
+            env,
+            comDoc
+        )
+        assert.equal(livre.action, 'allow')
+    })
+})
 ```
 
 - [ ] **Step 4: Rodar tudo, incluindo o próprio repositório**
@@ -2040,6 +2358,7 @@ docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts validate; echo "exit=$?"
 ```
+
 Esperado: PASS e `exit=0`. Os requisitos da Task 1 ainda estão em `draft`, então `CI-3` não os cobra.
 
 - [ ] **Step 5: Verificar os hooks com o `watches` real**
@@ -2051,6 +2370,7 @@ echo '{"tool_name":"Edit","tool_input":{"file_path":"src/checks/ci1-structure.ts
   | docker compose exec -T -e LIVING_DOCS_REPO_ROOT=/workspace toolkit \
     node /opt/living-docs/src/hooks/hk4-watch-reminder.ts
 ```
+
 Esperado: JSON com `"hookEventName":"PostToolUse"`, `additionalContext` citando `docs/requirements/rules.md` e `requirements-keeper`, e **sem** `permissionDecision`.
 
 ```bash
@@ -2059,6 +2379,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m teste"}}' \
   | docker compose exec -T -e LIVING_DOCS_REPO_ROOT=/workspace toolkit \
     node /opt/living-docs/src/hooks/hk5-commit-guard.ts
 ```
+
 Esperado: ou JSON com `"permissionDecision":"ask"` listando os docs pendentes, ou saída vazia se o índice estiver limpo. Se sair `deny` em qualquer um dos dois, pare: é violação de `RN-0009` e o código precisa voltar à Task 4/5.
 
 - [ ] **Step 6: Atualizar README e a descrição do plugin**
@@ -2116,6 +2437,7 @@ Depois de aceito por uma pessoa, troque `- **status:** draft` por `- **status:**
 docker compose exec toolkit npm test
 docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts validate; echo "exit=$?"
 ```
+
 Esperado: `exit=0`. Se `CI-3` acusar requisito `active` sem citação, o ID não aparece em nenhum arquivo sob `test/**` (ou `src/**`, para `RN`) — acrescente a citação ao teste que já cobre o comportamento, em vez de criar um teste só para satisfazer o check.
 
 - [ ] **Step 9: Commit final**
@@ -2129,16 +2451,16 @@ git commit -m "docs(RN-0008..RN-0010, RF-0004): requisitos da Fase 3 promovidos 
 
 ## Cobertura da spec
 
-| Peça da spec | Onde | Estado ao fim do plano |
-| --- | --- | --- |
-| `SK-6` `working-agreements-keeper` | Task 7 | Entregue, com os três artefatos e a semente para consumidores (Task 8) |
-| `HK-4` `PostToolUse` / `additionalContext` | Tasks 4 e 6 | Entregue |
-| `HK-5` `PreToolUse` / `Bash` / `ask` | Tasks 5 e 6 | Entregue |
-| `watches` deixa de ser `[]` | Tasks 2 e 9 | Entregue, com engine reutilizável por `CI-7` |
-| Definition of Done executável, fonte de `CI-7` | Task 7 | Escrita; o check que a lê é Fase 7 |
-| Critério de aceite 5 | Task 9 | Metade do hook entregue e testada; a metade do CI é `CI-7`, Fase 7 (declarado no README) |
-| Critério de aceite 9 | Tasks 7 e 9 | Contrato do agente existe e é índice; a verificação automática de duplicação é `CI-7` |
-| Estágio `small-team` da spec §10 | Task 8 | Passa a instalar as Fases 2 **e** 3; a Fase 4 continua declarada como não instalada |
+| Peça da spec                                   | Onde        | Estado ao fim do plano                                                                   |
+| ---------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------- |
+| `SK-6` `working-agreements-keeper`             | Task 7      | Entregue, com os três artefatos e a semente para consumidores (Task 8)                   |
+| `HK-4` `PostToolUse` / `additionalContext`     | Tasks 4 e 6 | Entregue                                                                                 |
+| `HK-5` `PreToolUse` / `Bash` / `ask`           | Tasks 5 e 6 | Entregue                                                                                 |
+| `watches` deixa de ser `[]`                    | Tasks 2 e 9 | Entregue, com engine reutilizável por `CI-7`                                             |
+| Definition of Done executável, fonte de `CI-7` | Task 7      | Escrita; o check que a lê é Fase 7                                                       |
+| Critério de aceite 5                           | Task 9      | Metade do hook entregue e testada; a metade do CI é `CI-7`, Fase 7 (declarado no README) |
+| Critério de aceite 9                           | Tasks 7 e 9 | Contrato do agente existe e é índice; a verificação automática de duplicação é `CI-7`    |
+| Estágio `small-team` da spec §10               | Task 8      | Passa a instalar as Fases 2 **e** 3; a Fase 4 continua declarada como não instalada      |
 
 ## O que este plano deliberadamente não faz
 
@@ -2156,3 +2478,4 @@ decision-adversary. Duas dependências a verificar antes de planejar: os estados
 `banned`/`renamed` de termo na máquina de estados de `src/docs/schema.ts`, e o
 formato de `agents/` num plugin do Claude Code — `AG-2` é o primeiro agent do
 toolkit.
+

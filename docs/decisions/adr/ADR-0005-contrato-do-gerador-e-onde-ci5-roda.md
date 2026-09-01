@@ -2,9 +2,9 @@
 id: ADR-0005
 title: O gerador imprime na saída padrão, e CI-5 roda num subcomando próprio
 status: accepted
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25
 relates-to: [RF-0006, RN-0012]
 supersedes: null
@@ -94,3 +94,4 @@ com o arquivo em disco; `CI-5` roda em `living-docs drift`. Escolhida.**
 - `CI-5` executa um comando declarado pelo repositório validado. Continua sendo
   execução de código de terceiro — o que muda é que ela acontece num comando
   que a pessoa digitou de propósito, não como efeito colateral de `validate`.
+

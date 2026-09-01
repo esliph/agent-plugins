@@ -6,14 +6,14 @@ stale-after-months: 6
 artifacts:
   - id-prefix: ADR
     path: docs/decisions/adr/
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: decision-recorder
     append-only: true
     mutable-fields: [status, superseded-by, last-reviewed]
 
   - id-prefix: DA
     path: docs/open-decisions.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: decision-recorder
     collection: table
     # A tabela é lida por gente, em português; o check pergunta pelo nome
@@ -26,35 +26,35 @@ artifacts:
 
   - id-prefix: TDR
     path: docs/decisions/debt/
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: decision-recorder
     append-only: true
     mutable-fields: [status, last-reviewed]
 
   - id-prefix: RF
     path: docs/requirements/functional.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: requirements-keeper
     collection: sections
     cited-by: ["test/**"]
 
   - id-prefix: RNF
     path: docs/requirements/non-functional.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: requirements-keeper
     collection: sections
     cited-by: ["test/**"]
 
   - id-prefix: RN
     path: docs/requirements/rules.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: requirements-keeper
     collection: sections
     cited-by: ["test/**", "src/**"]
 
   - id-prefix: REL
     path: docs/releases/
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: release-historian
     # Release note publicada é congelada por HK-1 (spec §5, SK-7, regra 4).
     # É por isso que REL tem família de IDs e CHANGELOG.md não: HK-1 só
@@ -74,42 +74,42 @@ generated:
 # CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.
 documents:
   - path: docs/.ownership.yml
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: living-docs-bootstrap
   - path: docs/ids-retired.txt
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: living-docs-bootstrap
   - path: CONTRIBUTING.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: working-agreements-keeper
   - path: docs/definition-of-done.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: working-agreements-keeper
     role: definition-of-done
   - path: CLAUDE.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: working-agreements-keeper
     role: agent-contract
   - path: docs/glossary.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: glossary-keeper
   - path: docs/charter/
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: charter-keeper
   - path: docs/contracts/errors.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: contract-keeper
   - path: docs/contracts/versioning-policy.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: contract-keeper
   - path: CHANGELOG.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: release-historian
   - path: docs/deprecations.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: release-historian
   - path: docs/migrations/
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
     skill: release-historian
 
   # Sem skill dona, e isso é informação: plano, spec e README têm dono e não têm
@@ -117,13 +117,13 @@ documents:
   # artefatos por ofício — reprovar o contrato do agente por causa de um plano
   # que o citou inverteria quem copiou de quem.
   - path: docs/superpowers/
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
   - path: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
   - path: docs/superpowers/research/2026-08-24-living-documentation.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
   - path: README.md
-    owner: "@dan"
+    owner: "@Danrley-Ruan-Saquetti"
 
 # Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
 # antes do commit. Na Fase 7, CI-7 lê daqui também.

@@ -1,9 +1,9 @@
 ---
 title: Product Vision
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Mudança de estratégia de produto — nunca como efeito colateral de outra
-  tarefa.
+    Mudança de estratégia de produto — nunca como efeito colateral de outra
+    tarefa.
 last-reviewed: 2026-08-25
 ---
 
@@ -21,3 +21,4 @@ que ninguém atualiza.
 **Métrica de sucesso:** `living-docs validate` roda em minutos no PR e falha
 antes de mesclar; toda `RN` `active` é citada por ao menos um teste (`CI-3`
 sem achado); nenhum ADR aceito foi reescrito retroativamente.
+

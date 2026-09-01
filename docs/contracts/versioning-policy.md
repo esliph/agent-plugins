@@ -1,9 +1,9 @@
 ---
 title: Política de versionamento
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Mudança na interface pública do CLI, dos checks ou do `.ownership.yml`;
-  decisão de depreciar algo publicado; mudança na própria política.
+    Mudança na interface pública do CLI, dos checks ou do `.ownership.yml`;
+    decisão de depreciar algo publicado; mudança na própria política.
 last-reviewed: 2026-08-25
 ---
 
@@ -53,3 +53,4 @@ Mudança quebra-compatibilidade passa por um ADR, com as alternativas e o que se
 aceita perder. Aceitar é ato humano (`RN-0005`).
 
 <!-- Skill dona: contract-keeper. -->
+

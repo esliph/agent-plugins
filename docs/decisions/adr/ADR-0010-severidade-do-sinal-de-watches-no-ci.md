@@ -2,9 +2,9 @@
 id: ADR-0010
 title: Com que severidade o CI sinaliza o caminho vigiado sem doc dono, e qual é a saída escrita
 status: accepted
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
 relates-to: [RN-0008, RN-0009, RNF-0001]
 supersedes: null
@@ -84,3 +84,4 @@ faz a coisa errada por ergonomia.
 `Docs: none — <razão>` também silencia o caminho vigiado que **deveria** ter
 levado o doc. Isso é o mesmo risco que `ADR-0006` aceitou para o `CHANGELOG`, e
 a defesa é a mesma: a razão fica no histórico, com nome de quem a escreveu.
+

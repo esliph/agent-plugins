@@ -1,9 +1,9 @@
 ---
 title: Requisitos não funcionais
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Antes de implementar qualquer comportamento desta família, e a toda regra nova
-  ou alterada.
+    Antes de implementar qualquer comportamento desta família, e a toda regra nova
+    ou alterada.
 last-reviewed: 2026-08-27
 ---
 
@@ -61,3 +61,4 @@ A spec exige que os checks rodem "em minutos, no PR". O teto é do **conjunto**,
 não de cada check — é o conjunto que roda no PR —, está declarado no código e é
 **medido** a cada execução, nunca estimado. Um orçamento que ninguém mede é uma
 intenção, e a primeira execução lenta o descobre em produção.
+

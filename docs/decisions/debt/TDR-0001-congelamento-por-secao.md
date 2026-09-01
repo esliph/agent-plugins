@@ -2,15 +2,15 @@
 id: TDR-0001
 title: HK-1 não congela seção revogada dentro de arquivo de coleção
 status: open
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável enquanto a dívida existir; o pagamento a marca como paid.
+    Nunca. Imutável enquanto a dívida existir; o pagamento a marca como paid.
 last-reviewed: 2026-08-24
 relates-to: [RN-0006]
 # Aspas simples: em YAML, aspas simples não processam `\`, e o padrão é regex.
 pay-when:
-  pattern: '^- \*\*status:\*\* revoked'
-  paths: ["docs/requirements/**"]
+    pattern: '^- \*\*status:\*\* revoked'
+    paths: ['docs/requirements/**']
 ---
 
 # TDR-0001 — HK-1 não congela seção revogada dentro de arquivo de coleção
@@ -41,3 +41,4 @@ custo de não proteger passa a ser real.
 Um requisito revogado pode ser reescrito retroativamente sem que hook nenhum
 reclame, e a única defesa vira a revisão humana do diff — exatamente a defesa
 que o mecanismo 5 existe para não depender.
+

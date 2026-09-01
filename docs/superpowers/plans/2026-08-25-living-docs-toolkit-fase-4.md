@@ -50,10 +50,10 @@ levantamento que este plano resolve.
 `docs/.ownership.yml` já tem `watches` preenchido desde a Fase 3, e duas
 entradas atingem quase todo commit deste plano:
 
-| Caminho vigiado | Doc dono exigido no mesmo commit | Tasks afetadas |
-| --- | --- | --- |
-| `src/cli/**` | `docs/requirements/functional.md` | 2 |
-| `plugin/skills/**` | `CONTRIBUTING.md` | 4, 5, 6 |
+| Caminho vigiado    | Doc dono exigido no mesmo commit  | Tasks afetadas |
+| ------------------ | --------------------------------- | -------------- |
+| `src/cli/**`       | `docs/requirements/functional.md` | 2              |
+| `plugin/skills/**` | `CONTRIBUTING.md`                 | 4, 5, 6        |
 
 `HK-5` **pergunta** (`ask`), nunca nega (`RN-0009`) — mas a pergunta chega, e
 responder no escuro é o hábito que o hook existe para não ensinar. Cada task
@@ -65,19 +65,19 @@ viaja no mesmo commit da skill, de propósito.
 
 ## Cobertura da spec
 
-| Peça | Task |
-| --- | --- |
-| `SK-2` glossary-keeper | 4 |
-| `docs/glossary.md` (formato / conteúdo real) | 2 / 3 |
-| `CM-4` `/term` | 4 |
-| `SK-1` charter-keeper | 5 |
+| Peça                                                                               | Task  |
+| ---------------------------------------------------------------------------------- | ----- |
+| `SK-2` glossary-keeper                                                             | 4     |
+| `docs/glossary.md` (formato / conteúdo real)                                       | 2 / 3 |
+| `CM-4` `/term`                                                                     | 4     |
+| `SK-1` charter-keeper                                                              | 5     |
 | `docs/charter/constitution.md`, `docs/charter/vision.md` (formato / conteúdo real) | 2 / 3 |
-| `AG-2` decision-adversary | 6 |
-| `init --stage small-team` semeando os três arquivos | 2 |
-| CODEOWNERS: dono de glossary e charter (semente / este repo) | 2 / 3 |
-| `CONTRIBUTING.md` aponta os artefatos novos | 4, 5 |
-| Índice (`CLAUDE.md`, `README.md`, `plugin.json`) | 7 |
-| Dogfooding + promoção humana | 3, 8 |
+| `AG-2` decision-adversary                                                          | 6     |
+| `init --stage small-team` semeando os três arquivos                                | 2     |
+| CODEOWNERS: dono de glossary e charter (semente / este repo)                       | 2 / 3 |
+| `CONTRIBUTING.md` aponta os artefatos novos                                        | 4, 5  |
+| Índice (`CLAUDE.md`, `README.md`, `plugin.json`)                                   | 7     |
+| Dogfooding + promoção humana                                                       | 3, 8  |
 
 A Fase 4 não fecha nenhum dos critérios de aceite **cenarizados** da spec §12
 (1 a 9): a tabela `Fases` da spec §10 não amarra critério a fase, e quem faz
@@ -101,15 +101,18 @@ requisitos que o resto do plano implementa — em `draft`, para promoção human
 no final (Task 8).
 
 **Files:**
+
 - Create: `docs/decisions/adr/ADR-0004-termo-do-glossary-identificado-pelo-nome.md`
 - Modify: `docs/requirements/functional.md` (`RF-0005`)
 - Modify: `docs/requirements/rules.md` (`RN-0011`)
 
 **Interfaces:**
+
 - Produz: os IDs `ADR-0004`, `RF-0005`, `RN-0011`, citados pelo código e
   pelos testes das Tasks 2–7.
 
 **Requisitos:**
+
 - Os três nascem em estado inicial da máquina (`draft`) — a promoção é a
   Task 8, e é humana (`RN-0005`).
 - `ADR-0004` não resolve `DA-0002`. Ela continua `open` em
@@ -124,9 +127,9 @@ Crie `docs/decisions/adr/ADR-0004-termo-do-glossary-identificado-pelo-nome.md`:
 id: ADR-0004
 title: Termo do glossary é identificado pelo nome, não por ID numerado
 status: draft
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25
 relates-to: [DA-0002, RN-0011]
 supersedes: null
@@ -219,7 +222,6 @@ aberta, sem ser resolvida por este ADR.
 No final de `docs/requirements/functional.md`, depois de `RF-0004`:
 
 ```markdown
-
 ## RF-0005 — `init --stage small-team` instala a moldura de linguagem e intenção
 
 - **status:** draft
@@ -237,7 +239,6 @@ artefatos: não recria o que existe, não reescreve conteúdo do usuário.
 No final de `docs/requirements/rules.md`, depois de `RN-0010`:
 
 ```markdown
-
 ## RN-0011 — Termo do glossary tem um significado só, identificado pelo nome
 
 - **status:** draft
@@ -287,6 +288,7 @@ Vision e a mudança em `src/cli/init.ts` que os semeia no estágio
 `CONTRIBUTING.md`/DoD desde a Fase 3.
 
 **Files:**
+
 - Create: `templates/glossary.md`
 - Create: `templates/constitution.md`
 - Create: `templates/vision.md`
@@ -294,13 +296,15 @@ Vision e a mudança em `src/cli/init.ts` que os semeia no estágio
 - Modify: `test/cli/init.test.ts`
 
 **Interfaces:**
+
 - Consome: `template()`, `writeIfAbsent()`, `InitOptions`, `InitResult` já
   existentes em `src/cli/init.ts`.
 - Produz: `docs/glossary.md`, `docs/charter/constitution.md`,
   `docs/charter/vision.md` no repositório validado, quando `--stage
-  small-team`.
+small-team`.
 
 **Requisitos:**
+
 - Idempotente: segunda execução não recria nem reescreve (mesmo contrato de
   `WORKING_AGREEMENTS`).
 - `NOT_INSTALLED['small-team']` deixa de prometer a Fase 4 — depois desta
@@ -317,43 +321,72 @@ Adicione ao final do arquivo:
 
 ```typescript
 test('RF-0005: small-team instala glossary e charter', () => {
-  withTempRepo({}, (root) => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
-    for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
-      assert.ok(existsSync(join(root, path)), `${path} deveria existir`);
-      assert.ok(result.created.includes(path), `${path} deveria constar como criado`);
-    }
-    assert.match(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), /@time/);
-  });
-});
+    withTempRepo({}, root => {
+        const result = runInit(root, {
+            owner: '@time',
+            dryRun: false,
+            stage: 'small-team'
+        })
+        for (const path of [
+            'docs/glossary.md',
+            'docs/charter/constitution.md',
+            'docs/charter/vision.md'
+        ]) {
+            assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
+            assert.ok(
+                result.created.includes(path),
+                `${path} deveria constar como criado`
+            )
+        }
+        assert.match(
+            readFileSync(join(root, 'docs/glossary.md'), 'utf8'),
+            /@time/
+        )
+    })
+})
 
 test('RF-0005: solo não instala glossary nem charter', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' });
-    for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
-      assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`);
-    }
-  });
-});
+    withTempRepo({}, root => {
+        runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
+        for (const path of [
+            'docs/glossary.md',
+            'docs/charter/constitution.md',
+            'docs/charter/vision.md'
+        ]) {
+            assert.equal(
+                existsSync(join(root, path)),
+                false,
+                `${path} não deveria existir no estágio solo`
+            )
+        }
+    })
+})
 
 test('RF-0005: glossary já escrito não é reescrito na segunda execução', () => {
-  withTempRepo({ 'docs/glossary.md': '# do jeito deles\n' }, (root) => {
-    const options = { owner: '@time', dryRun: false, stage: 'small-team' as const };
-    runInit(root, options);
-    const segunda = runInit(root, options);
-    assert.equal(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), '# do jeito deles\n');
-    assert.ok(segunda.skipped.includes('docs/glossary.md'));
-  });
-});
+    withTempRepo({ 'docs/glossary.md': '# do jeito deles\n' }, root => {
+        const options = {
+            owner: '@time',
+            dryRun: false,
+            stage: 'small-team' as const
+        }
+        runInit(root, options)
+        const segunda = runInit(root, options)
+        assert.equal(
+            readFileSync(join(root, 'docs/glossary.md'), 'utf8'),
+            '# do jeito deles\n'
+        )
+        assert.ok(segunda.skipped.includes('docs/glossary.md'))
+    })
+})
 
 test('RF-0005: o CODEOWNERS semeado dá dono a glossary e charter', () => {
-  withTempRepo({}, (root) => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' });
-    const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8');
-    assert.match(codeowners, /docs\/glossary\.md\s+@time/);
-    assert.match(codeowners, /docs\/charter\/\s+@time/);
-  });
-});
+    withTempRepo({}, root => {
+        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+        const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
+        assert.match(codeowners, /docs\/glossary\.md\s+@time/)
+        assert.match(codeowners, /docs\/charter\/\s+@time/)
+    })
+})
 ```
 
 Agora os dois testes de `RF-0003` que a Fase 4 invalida. **Substitua** o teste
@@ -366,30 +399,37 @@ o requisito passa a ser provado por uma asserção de lista vazia:
 
 ```typescript
 test('RF-0003: small-team não deixa nada de fora nesta versão — Fases 2, 3 e 4 completas', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, (root) => {
-    const result = runInit(root, SMALL_TEAM);
-    assert.deepEqual(result.notInstalled, []);
-  });
-});
+    withTempRepo({ 'README.md': '# projeto\n' }, root => {
+        const result = runInit(root, SMALL_TEAM)
+        assert.deepEqual(result.notInstalled, [])
+    })
+})
 
 test('RF-0003: quando algo realmente fica de fora, o resultado diz o que é', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, (root) => {
-    runInit(root, OPTIONS); // solo: o .ownership.yml nasce sem RF/RNF/RN
-    const file = join(root, OWNERSHIP_PATH);
-    // A linha some inteira, não vira outra chave: `generated` é opcional no
-    // parser, e uma chave estranha testaria o parser em vez da honestidade.
-    // Sem a âncora, subir de estágio não adivinha onde declarar os requisitos.
-    const sem = readFileSync(file, 'utf8').replace(/\ngenerated: \[\]\n/, '\n');
-    assert.notEqual(sem, readFileSync(file, 'utf8'), 'a âncora precisa ter sido removida de fato');
-    writeFileSync(file, sem, 'utf8');
+    withTempRepo({ 'README.md': '# projeto\n' }, root => {
+        runInit(root, OPTIONS) // solo: o .ownership.yml nasce sem RF/RNF/RN
+        const file = join(root, OWNERSHIP_PATH)
+        // A linha some inteira, não vira outra chave: `generated` é opcional no
+        // parser, e uma chave estranha testaria o parser em vez da honestidade.
+        // Sem a âncora, subir de estágio não adivinha onde declarar os requisitos.
+        const sem = readFileSync(file, 'utf8').replace(
+            /\ngenerated: \[\]\n/,
+            '\n'
+        )
+        assert.notEqual(
+            sem,
+            readFileSync(file, 'utf8'),
+            'a âncora precisa ter sido removida de fato'
+        )
+        writeFileSync(file, sem, 'utf8')
 
-    const result = runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner });
-    assert.ok(
-      result.notInstalled.some((item) => item.includes(OWNERSHIP_PATH)),
-      `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`,
-    );
-  });
-});
+        const result = runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner })
+        assert.ok(
+            result.notInstalled.some(item => item.includes(OWNERSHIP_PATH)),
+            `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`
+        )
+    })
+})
 ```
 
 **Remova** o teste `'RF-0003: small-team não promete mais a Fase 3 como
@@ -421,11 +461,11 @@ segura a metade de `RF-0003` que o Step 6 vai desligar.
 ```markdown
 ---
 title: Glossary
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
-  Termo de domínio novo em código, spec ou conversa; termo com dois
-  significados; renomeação de conceito.
-last-reviewed: {{TODAY}}
+    Termo de domínio novo em código, spec ou conversa; termo com dois
+    significados; renomeação de conceito.
+last-reviewed: { { TODAY } }
 ---
 
 # Glossary
@@ -436,8 +476,8 @@ last-reviewed: {{TODAY}}
 > exemplo pelo vocabulário real deste projeto; apagar o que sobra é parte do
 > trabalho.
 
-| Termo | Definição | Nome no código | Não confundir com | Fonte | Status |
-| --- | --- | --- | --- | --- | --- |
+| Termo         | Definição                     | Nome no código | Não confundir com               | Fonte   | Status |
+| ------------- | ----------------------------- | -------------- | ------------------------------- | ------- | ------ |
 | Termo exemplo | Substitua pela definição real | `nomeNoCodigo` | O que parece sinônimo mas não é | RN-nnnn | active |
 
 <!-- Termos entram como linhas acima. Skill dona: glossary-keeper. -->
@@ -448,10 +488,10 @@ last-reviewed: {{TODAY}}
 ```markdown
 ---
 title: Constitution
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
-  Emenda deliberada — nunca como efeito colateral de outra tarefa.
-last-reviewed: {{TODAY}}
+    Emenda deliberada — nunca como efeito colateral de outra tarefa.
+last-reviewed: { { TODAY } }
 version: 1
 ---
 
@@ -459,7 +499,7 @@ version: 1
 
 > Semente criada por `living-docs init`. Cada princípio precisa ser testável
 > e nomear o que o verifica — formato `<princípio> — verificado por <hook |
-> lint | teste | revisão | check>`. Princípio sem enforcement nomeado é
+lint | teste | revisão | check>`. Princípio sem enforcement nomeado é
 > slogan; a skill `charter-keeper` recusa e pede a versão verificável.
 > Substitua o exemplo pelos princípios reais deste projeto.
 
@@ -479,11 +519,11 @@ version: 1
 ```markdown
 ---
 title: Product Vision
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
-  Mudança de estratégia de produto — nunca como efeito colateral de outra
-  tarefa.
-last-reviewed: {{TODAY}}
+    Mudança de estratégia de produto — nunca como efeito colateral de outra
+    tarefa.
+last-reviewed: { { TODAY } }
 ---
 
 # Product Vision
@@ -506,21 +546,24 @@ Depois da declaração de `WORKING_AGREEMENTS` (linha ~50), acrescente:
 
 ```typescript
 /** Linguagem e intenção (SK-1, SK-2), instalados a partir do estágio `small-team` (spec §10, Fase 4). */
-const LANGUAGE_AND_INTENT: readonly { path: string; template: string }[] = Object.freeze([
-  { path: 'docs/glossary.md', template: 'glossary.md' },
-  { path: 'docs/charter/constitution.md', template: 'constitution.md' },
-  { path: 'docs/charter/vision.md', template: 'vision.md' },
-]);
+const LANGUAGE_AND_INTENT: readonly { path: string; template: string }[] =
+    Object.freeze([
+        { path: 'docs/glossary.md', template: 'glossary.md' },
+        { path: 'docs/charter/constitution.md', template: 'constitution.md' },
+        { path: 'docs/charter/vision.md', template: 'vision.md' }
+    ])
 ```
 
 Troque a constante `NOT_INSTALLED` (ela deixa de prometer a Fase 4):
 
 ```typescript
 /** O que este estágio pede. Vazio: `small-team` cobre as Fases 2, 3 e 4 por completo nesta versão. */
-const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
-  solo: [],
-  'small-team': [],
-});
+const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
+    {
+        solo: [],
+        'small-team': []
+    }
+)
 ```
 
 No objeto `values` dentro de `runInit`, troque o valor de `AGREEMENTS_CODEOWNERS`:
@@ -536,9 +579,15 @@ Logo depois do laço `for (const agreement of WORKING_AGREEMENTS) { ... }` dentr
 `if (options.stage !== 'solo') { ... }`, acrescente:
 
 ```typescript
-    for (const agreement of LANGUAGE_AND_INTENT) {
-      writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result);
-    }
+for (const agreement of LANGUAGE_AND_INTENT) {
+    writeIfAbsent(
+        root,
+        agreement.path,
+        template(agreement.template, values),
+        options,
+        result
+    )
+}
 ```
 
 - [ ] **Step 7: Rodar os testes e confirmar que passam**
@@ -578,6 +627,7 @@ próprio template deixa ("substitua o que não for verdade neste projeto").
 Implementa `RN-0011` com um teste de dogfooding.
 
 **Files:**
+
 - Create: `docs/glossary.md` (conteúdo real, não a semente)
 - Create: `docs/charter/constitution.md` (conteúdo real)
 - Create: `docs/charter/vision.md` (conteúdo real)
@@ -585,12 +635,14 @@ Implementa `RN-0011` com um teste de dogfooding.
 - Modify: `CODEOWNERS`
 
 **Interfaces:**
+
 - Consome: `docs/requirements/rules.md` (RN-0001 a RN-0011),
   `docs/requirements/non-functional.md` (RNF-0001 a RNF-0003) — fonte dos
   termos e dos princípios.
 - Produz: os três arquivos que as Tasks 4 e 5 (skills) vão ler e citar.
 
 **Requisitos:**
+
 - Nenhum termo ou princípio narra código — cada um é a verdade do domínio do
   toolkit, não uma descrição de função.
 - Todo termo tem `Fonte` preenchida — o ID (`RN`/`ADR`) que o origina, ou a
@@ -606,7 +658,7 @@ Implementa `RN-0011` com um teste de dogfooding.
 - [ ] **Step 1: Rodar `init --stage small-team` contra este repositório (dry-run primeiro)**
 
 ```bash
-docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @dan --stage small-team --dry-run
+docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @Danrley-Ruan-Saquetti --stage small-team --dry-run
 ```
 
 Esperado: `criado docs/glossary.md`, `criado docs/charter/constitution.md`,
@@ -617,11 +669,11 @@ sai como `mantido`, `CODEOWNERS` inclusive — daí o Step 6).
 - [ ] **Step 2: Rodar de verdade**
 
 ```bash
-docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @dan --stage small-team
+docker compose exec -w /workspace toolkit node /opt/living-docs/src/cli/index.ts init --owner @Danrley-Ruan-Saquetti --stage small-team
 ```
 
 Confirme que os três arquivos nasceram com o conteúdo da semente (Task 2,
-Steps 3–5) e `@dan` no lugar de `{{OWNER}}`.
+Steps 3–5) e `@Danrley-Ruan-Saquetti` no lugar de `{{OWNER}}`.
 
 - [ ] **Step 3: Escrever `test/docs/language-and-intent.test.ts`**
 
@@ -630,94 +682,136 @@ O teste vem antes do conteúdo real, e a semente é o que o faz falhar: ela traz
 que o teste mede o conteúdo, e não a existência do arquivo.
 
 ```typescript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { toolkitRoot } from '../../src/core/roots.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { toolkitRoot } from '../../src/core/roots.ts'
 
-const ROOT = toolkitRoot();
+const ROOT = toolkitRoot()
 
 /**
  * Linhas de uma tabela markdown, sem cabeçalho nem separador. Só o que começa
  * com `|` entra: prosa depois da tabela não pode virar um termo fantasma.
  */
 function rows(source: string, header: string): string[][] {
-  const start = source.indexOf(header);
-  assert.ok(start !== -1, `tabela não encontrada — esperava o cabeçalho ${header}`);
-  return source
-    .slice(start)
-    .split('\n')
-    .filter((line) => line.trim().startsWith('|'))
-    .slice(2) // cabeçalho + separador
-    .map((line) =>
-      line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((cell) => cell.trim()),
-    );
+    const start = source.indexOf(header)
+    assert.ok(
+        start !== -1,
+        `tabela não encontrada — esperava o cabeçalho ${header}`
+    )
+    return source
+        .slice(start)
+        .split('\n')
+        .filter(line => line.trim().startsWith('|'))
+        .slice(2) // cabeçalho + separador
+        .map(line =>
+            line
+                .trim()
+                .replace(/^\|/, '')
+                .replace(/\|$/, '')
+                .split('|')
+                .map(cell => cell.trim())
+        )
 }
 
-const GLOSSARY_HEADER = '| Termo |';
-const glossary = (): string => readFileSync(join(ROOT, 'docs/glossary.md'), 'utf8');
+const GLOSSARY_HEADER = '| Termo |'
+const glossary = (): string =>
+    readFileSync(join(ROOT, 'docs/glossary.md'), 'utf8')
 
 test('RN-0011: todo termo do glossary tem um nome único, e nenhum tem ID numerado', () => {
-  const source = glossary();
-  const entries = rows(source, GLOSSARY_HEADER);
+    const source = glossary()
+    const entries = rows(source, GLOSSARY_HEADER)
 
-  const nomes = entries.map((row) => row[0]);
-  assert.ok(nomes.length >= 5, `esperava ao menos 5 termos, achei ${nomes.length}`);
-  assert.equal(new Set(nomes).size, nomes.length, 'há termo com nome duplicado');
+    const nomes = entries.map(row => row[0])
+    assert.ok(
+        nomes.length >= 5,
+        `esperava ao menos 5 termos, achei ${nomes.length}`
+    )
+    assert.equal(
+        new Set(nomes).size,
+        nomes.length,
+        'há termo com nome duplicado'
+    )
 
-  const start = source.indexOf(GLOSSARY_HEADER);
-  const header = source.slice(start, source.indexOf('\n', start));
-  assert.doesNotMatch(
-    header,
-    /\|\s*ID\s*\|/i,
-    'a tabela não tem coluna de ID — o termo é identificado pelo nome (RN-0011)',
-  );
+    const start = source.indexOf(GLOSSARY_HEADER)
+    const header = source.slice(start, source.indexOf('\n', start))
+    assert.doesNotMatch(
+        header,
+        /\|\s*ID\s*\|/i,
+        'a tabela não tem coluna de ID — o termo é identificado pelo nome (RN-0011)'
+    )
 
-  for (const row of entries) {
-    const status = row[row.length - 1] ?? '';
-    // `renamed(para X)` é o estado com destino; a spec §4 o escreve assim.
-    assert.match(
-      status,
-      /^(active|banned|renamed(\(para .+\))?)$/,
-      `status "${status}" fora do ciclo de vida do termo (RN-0011)`,
-    );
-  }
-});
+    for (const row of entries) {
+        const status = row[row.length - 1] ?? ''
+        // `renamed(para X)` é o estado com destino; a spec §4 o escreve assim.
+        assert.match(
+            status,
+            /^(active|banned|renamed(\(para .+\))?)$/,
+            `status "${status}" fora do ciclo de vida do termo (RN-0011)`
+        )
+    }
+})
 
 test('RN-0011: todo termo aponta a fonte que o define', () => {
-  for (const row of rows(glossary(), GLOSSARY_HEADER)) {
-    assert.notEqual(row[4] ?? '', '', `termo "${row[0]}" sem fonte`);
-  }
-});
+    for (const row of rows(glossary(), GLOSSARY_HEADER)) {
+        assert.notEqual(row[4] ?? '', '', `termo "${row[0]}" sem fonte`)
+    }
+})
 
 test('a Constitution: todo princípio nomeia o que o verifica', () => {
-  const source = readFileSync(join(ROOT, 'docs/charter/constitution.md'), 'utf8');
-  const secao = source.slice(source.indexOf('## Princípios'), source.indexOf('## Log de emendas'));
-  const principios = secao.split('\n').filter((line) => /^\d+\./.test(line.trim()));
-  assert.ok(principios.length >= 3, `esperava ao menos 3 princípios, achei ${principios.length}`);
-  for (const principio of principios) {
-    assert.match(principio, /verificado por/, `princípio sem enforcement nomeado — ${principio}`);
-  }
-});
+    const source = readFileSync(
+        join(ROOT, 'docs/charter/constitution.md'),
+        'utf8'
+    )
+    const secao = source.slice(
+        source.indexOf('## Princípios'),
+        source.indexOf('## Log de emendas')
+    )
+    const principios = secao
+        .split('\n')
+        .filter(line => /^\d+\./.test(line.trim()))
+    assert.ok(
+        principios.length >= 3,
+        `esperava ao menos 3 princípios, achei ${principios.length}`
+    )
+    for (const principio of principios) {
+        assert.match(
+            principio,
+            /verificado por/,
+            `princípio sem enforcement nomeado — ${principio}`
+        )
+    }
+})
 
 test('a Constitution tem log de emendas — emenda é append, nunca reescrita no lugar', () => {
-  const source = readFileSync(join(ROOT, 'docs/charter/constitution.md'), 'utf8');
-  assert.match(source, /## Log de emendas/);
-});
+    const source = readFileSync(
+        join(ROOT, 'docs/charter/constitution.md'),
+        'utf8'
+    )
+    assert.match(source, /## Log de emendas/)
+})
 
 test('a Vision responde só as três perguntas da spec §5', () => {
-  const source = readFileSync(join(ROOT, 'docs/charter/vision.md'), 'utf8');
-  for (const pergunta of ['Que problema', 'Para quem', 'Métrica de sucesso']) {
-    assert.match(source, new RegExp(`\\*\\*${pergunta}:\\*\\*`), `Vision sem a pergunta "${pergunta}"`);
-  }
-});
+    const source = readFileSync(join(ROOT, 'docs/charter/vision.md'), 'utf8')
+    for (const pergunta of [
+        'Que problema',
+        'Para quem',
+        'Métrica de sucesso'
+    ]) {
+        assert.match(
+            source,
+            new RegExp(`\\*\\*${pergunta}:\\*\\*`),
+            `Vision sem a pergunta "${pergunta}"`
+        )
+    }
+})
 
 test('RN-0001: glossary e charter têm dono no CODEOWNERS, como todo artefato', () => {
-  const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8');
-  assert.match(codeowners, /^docs\/glossary\.md\s+@\S+$/m);
-  assert.match(codeowners, /^docs\/charter\/\s+@\S+$/m);
-});
+    const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
+    assert.match(codeowners, /^docs\/glossary\.md\s+@\S+$/m)
+    assert.match(codeowners, /^docs\/charter\/\s+@\S+$/m)
+})
 ```
 
 - [ ] **Step 4: Rodar e confirmar que falha**
@@ -737,10 +831,10 @@ e é assim que se quer — eles guardam o formato, não o conteúdo.
 ```markdown
 ---
 title: Glossary
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Termo de domínio novo em código, spec ou conversa; termo com dois
-  significados; renomeação de conceito.
+    Termo de domínio novo em código, spec ou conversa; termo com dois
+    significados; renomeação de conceito.
 last-reviewed: 2026-08-25
 ---
 
@@ -750,15 +844,15 @@ Vocabulário do próprio toolkit — o domínio dele é documentação viva, e a
 palavras abaixo são a verdade única para esse domínio dentro deste
 repositório.
 
-| Termo | Definição | Nome no código | Não confundir com | Fonte | Status |
-| --- | --- | --- | --- | --- | --- |
-| Artefato | Documento de documentação viva com dono, gatilho, frontmatter padrão e ciclo de vida | `ArtifactRule`, `ArtifactDoc` | "Arquivo" — nem todo arquivo markdown é artefato; só o que tem dono declarado | RN-0001 | active |
-| Dono | Pessoa ou time que responde por um artefato, declarado em `owner:` e espelhado no CODEOWNERS | `owner` | "Autor" — quem escreveu o texto, não necessariamente quem responde por ele depois | RN-0001 | active |
-| Caminho vigiado | Glob em `watches` cuja mudança exige o doc dono no mesmo commit | `WatchRule.code` | "Arquivo monitorado" por ferramenta de observabilidade externa — não é isso | RN-0008 | active |
-| Gatilho | Evento observável que exige atualizar um artefato; nunca uma data de calendário | `trigger` | "Prazo de revisão" — cadência é o anti-requisito que `CI-1` reprova | RN-0002 | active |
-| Item congelado | Item em estado terminal cujo corpo não aceita mais edição, salvo os campos da allowlist | `FROZEN_STATUSES`, `mutableFields` | "Arquivado" — sugere que não vale mais; item congelado continua sendo a verdade vigente | RN-0006 | active |
-| Lacuna | Comportamento sem regra escrita; vira `DA-nnnn` e para a implementação até decidir | `DA-nnnn` | "Bug" — lacuna é ausência de regra, não erro de código rodando | decision-recorder (SK-3) | active |
-| Termo | Entrada do glossary, identificada pelo nome — um significado só, nunca um ID numerado | linha da tabela em `docs/glossary.md` | "Requisito" (`RN`/`RF`/`RNF`) — o termo nomeia um conceito, o requisito afirma uma regra sobre ele | ADR-0004, RN-0011 | active |
+| Termo           | Definição                                                                                    | Nome no código                        | Não confundir com                                                                                  | Fonte                    | Status |
+| --------------- | -------------------------------------------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------ | ------ |
+| Artefato        | Documento de documentação viva com dono, gatilho, frontmatter padrão e ciclo de vida         | `ArtifactRule`, `ArtifactDoc`         | "Arquivo" — nem todo arquivo markdown é artefato; só o que tem dono declarado                      | RN-0001                  | active |
+| Dono            | Pessoa ou time que responde por um artefato, declarado em `owner:` e espelhado no CODEOWNERS | `owner`                               | "Autor" — quem escreveu o texto, não necessariamente quem responde por ele depois                  | RN-0001                  | active |
+| Caminho vigiado | Glob em `watches` cuja mudança exige o doc dono no mesmo commit                              | `WatchRule.code`                      | "Arquivo monitorado" por ferramenta de observabilidade externa — não é isso                        | RN-0008                  | active |
+| Gatilho         | Evento observável que exige atualizar um artefato; nunca uma data de calendário              | `trigger`                             | "Prazo de revisão" — cadência é o anti-requisito que `CI-1` reprova                                | RN-0002                  | active |
+| Item congelado  | Item em estado terminal cujo corpo não aceita mais edição, salvo os campos da allowlist      | `FROZEN_STATUSES`, `mutableFields`    | "Arquivado" — sugere que não vale mais; item congelado continua sendo a verdade vigente            | RN-0006                  | active |
+| Lacuna          | Comportamento sem regra escrita; vira `DA-nnnn` e para a implementação até decidir           | `DA-nnnn`                             | "Bug" — lacuna é ausência de regra, não erro de código rodando                                     | decision-recorder (SK-3) | active |
+| Termo           | Entrada do glossary, identificada pelo nome — um significado só, nunca um ID numerado        | linha da tabela em `docs/glossary.md` | "Requisito" (`RN`/`RF`/`RNF`) — o termo nomeia um conceito, o requisito afirma uma regra sobre ele | ADR-0004, RN-0011        | active |
 ```
 
 - [ ] **Step 6: Substituir `docs/charter/constitution.md` pela Constitution real**
@@ -766,9 +860,9 @@ repositório.
 ```markdown
 ---
 title: Constitution
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Emenda deliberada — nunca como efeito colateral de outra tarefa.
+    Emenda deliberada — nunca como efeito colateral de outra tarefa.
 last-reviewed: 2026-08-25
 version: 1
 ---
@@ -797,10 +891,10 @@ sem enforcement nomeado é slogan — nenhum entra aqui sem ele.
 ```markdown
 ---
 title: Product Vision
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Mudança de estratégia de produto — nunca como efeito colateral de outra
-  tarefa.
+    Mudança de estratégia de produto — nunca como efeito colateral de outra
+    tarefa.
 last-reviewed: 2026-08-25
 ---
 
@@ -827,8 +921,8 @@ pula o que existe. Acrescente as duas linhas depois de `CLAUDE.md`, seguindo o
 espaçamento que o arquivo já usa (quatro espaços):
 
 ```
-docs/glossary.md    @dan
-docs/charter/    @dan
+docs/glossary.md    @Danrley-Ruan-Saquetti
+docs/charter/    @Danrley-Ruan-Saquetti
 ```
 
 O `docs/charter/` é declarado como diretório, do mesmo jeito que
@@ -863,16 +957,19 @@ git commit -m "feat(RN-0011): glossary e Constitution/Vision deste repositório,
 que a aciona.
 
 **Files:**
+
 - Create: `plugin/skills/glossary-keeper/SKILL.md`
 - Create: `plugin/commands/term.md`
 - Modify: `test/plugin/authoring.test.ts`
 - Modify: `CONTRIBUTING.md`
 
 **Interfaces:**
+
 - Consome: `templates/glossary.md` (Task 2), `docs/glossary.md` (Task 3).
 - Produz: nada que outra task consuma — skill e comando são folha.
 
 **Requisitos:**
+
 - `description` > 120 caracteres, contém "Use" e os sintomas do gatilho da
   spec §5 (termo novo, dois significados, renomeação).
 - Seções na ordem exata da spec §11 (`test/plugin/authoring.test.ts` varre
@@ -891,33 +988,59 @@ acrescente as duas asserções de glossary-keeper:
 
 ```typescript
 test('os cinco comandos existem, têm description e não contêm lógica própria', () => {
-  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'term.md'];
-  const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort();
-  assert.deepEqual(encontrados, esperados.sort());
+    const esperados = [
+        'adr.md',
+        'open-decision.md',
+        'debt.md',
+        'docs-setup.md',
+        'term.md'
+    ]
+    const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort()
+    assert.deepEqual(encontrados, esperados.sort())
 
-  for (const nome of esperados) {
-    const source = readFileSync(join(ROOT, 'plugin/commands', nome), 'utf8');
-    const frontmatter = parseFrontmatter(source);
-    assert.ok(frontmatter, `${nome} sem frontmatter`);
-    assert.equal(typeof frontmatter.data.description, 'string');
-    assert.ok(source.split('\n').length < 25, `${nome} é longo demais para um atalho fino`);
-    assert.match(source, /decision-recorder|living-docs-bootstrap|glossary-keeper/, `${nome} deve apontar a skill que aciona`);
-  }
-});
+    for (const nome of esperados) {
+        const source = readFileSync(join(ROOT, 'plugin/commands', nome), 'utf8')
+        const frontmatter = parseFrontmatter(source)
+        assert.ok(frontmatter, `${nome} sem frontmatter`)
+        assert.equal(typeof frontmatter.data.description, 'string')
+        assert.ok(
+            source.split('\n').length < 25,
+            `${nome} é longo demais para um atalho fino`
+        )
+        assert.match(
+            source,
+            /decision-recorder|living-docs-bootstrap|glossary-keeper/,
+            `${nome} deve apontar a skill que aciona`
+        )
+    }
+})
 
 test('glossary-keeper: a description nomeia os sintomas de termo novo, ambíguo ou renomeado', () => {
-  const description = String(parseFrontmatter(skillSource('glossary-keeper'))?.data.description ?? '');
-  assert.match(description, /Use quando/i);
-  for (const sintoma of ['termo', 'renome']) {
-    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`);
-  }
-});
+    const description = String(
+        parseFrontmatter(skillSource('glossary-keeper'))?.data.description ?? ''
+    )
+    assert.match(description, /Use quando/i)
+    for (const sintoma of ['termo', 'renome']) {
+        assert.ok(
+            description.toLowerCase().includes(sintoma),
+            `a description deveria conter o sintoma "${sintoma}"`
+        )
+    }
+})
 
 test('glossary-keeper não duplica o formato da tabela que governa', () => {
-  const source = skillSource('glossary-keeper');
-  assert.doesNotMatch(source, /\| Termo exemplo \|/, 'a skill não deve conter a linha de exemplo do template');
-  assert.match(source, /templates\/glossary\.md/, 'ela deve apontar para o template, não copiá-lo');
-});
+    const source = skillSource('glossary-keeper')
+    assert.doesNotMatch(
+        source,
+        /\| Termo exemplo \|/,
+        'a skill não deve conter a linha de exemplo do template'
+    )
+    assert.match(
+        source,
+        /templates\/glossary\.md/,
+        'ela deve apontar para o template, não copiá-lo'
+    )
+})
 ```
 
 Remova o teste antigo `'os quatro comandos existem...'` (substituído pelo de
@@ -938,12 +1061,12 @@ Esperado: FAIL — `plugin/skills/glossary-keeper/SKILL.md` e
 ---
 name: glossary-keeper
 description: >
-  Use quando um termo de domínio novo aparecer em código, spec ou conversa,
-  quando a mesma palavra estiver sendo usada para duas coisas diferentes,
-  quando alguém perguntar "isso já tem um nome?", "que termo a gente usa pra
-  isso?", "isso é sinônimo do que já existe?", "por que o código chama de X e
-  o requisito chama de Y?" — ou quando um conceito for renomeado e o nome
-  antigo continuar aparecendo no código.
+    Use quando um termo de domínio novo aparecer em código, spec ou conversa,
+    quando a mesma palavra estiver sendo usada para duas coisas diferentes,
+    quando alguém perguntar "isso já tem um nome?", "que termo a gente usa pra
+    isso?", "isso é sinônimo do que já existe?", "por que o código chama de X e
+    o requisito chama de Y?" — ou quando um conceito for renomeado e o nome
+    antigo continuar aparecendo no código.
 ---
 
 # glossary-keeper — dono do vocabulário do domínio
@@ -959,8 +1082,8 @@ porque outros artefatos podem ter mudado de lugar.
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
+| Artefato           | O que é                                                                         | Forma                          |
+| ------------------ | ------------------------------------------------------------------------------- | ------------------------------ |
 | `docs/glossary.md` | O nome único de cada conceito do domínio, com definição, nome no código e fonte | Arquivo único, tabela, mutável |
 
 Formato da linha: `templates/glossary.md`. Não o reproduza aqui.
@@ -1003,12 +1126,12 @@ tabela que ninguém consegue ler inteira deixa de ser a fonte única de nome.
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| Nomear um conceito de domínio, com um significado só | Decidir a regra de negócio sobre esse conceito (→ `requirements-keeper`) |
-| Detectar dois termos para a mesma coisa e banir um | Aceitar a renomeação de um termo aceito (é do dono do termo, ato humano) |
-| Propor o rename no código quando ele diverge do termo | Fazer o rename — isso é do agente que está no código |
-| Apontar o formato da linha | Duplicar a tabela aqui |
+| É seu                                                 | Não é seu                                                                |
+| ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| Nomear um conceito de domínio, com um significado só  | Decidir a regra de negócio sobre esse conceito (→ `requirements-keeper`) |
+| Detectar dois termos para a mesma coisa e banir um    | Aceitar a renomeação de um termo aceito (é do dono do termo, ato humano) |
+| Propor o rename no código quando ele diverge do termo | Fazer o rename — isso é do agente que está no código                     |
+| Apontar o formato da linha                            | Duplicar a tabela aqui                                                   |
 
 ## Checklist
 
@@ -1025,7 +1148,7 @@ tabela que ninguém consegue ler inteira deixa de ser a fonte única de nome.
 ```markdown
 ---
 description: Registra ou atualiza um termo do glossary
-argument-hint: "[termo]"
+argument-hint: '[termo]'
 ---
 
 Use a skill `glossary-keeper` para registrar ou atualizar em `docs/glossary.md` o termo: $ARGUMENTS
@@ -1072,18 +1195,21 @@ git commit -m "feat(SK-2, RN-0011): glossary-keeper e /term"
 `docs/charter/vision.md`.
 
 **Files:**
+
 - Create: `plugin/skills/charter-keeper/SKILL.md`
 - Modify: `test/plugin/authoring.test.ts`
 - Modify: `CONTRIBUTING.md`
 
 **Interfaces:**
+
 - Consome: `templates/constitution.md`, `templates/vision.md` (Task 2),
   `docs/charter/` real (Task 3).
 - Produz: nada consumido por outra task.
 
 **Requisitos:** os mesmos da Task 4 (seções §11, checklist ≥6, `description`
+
 > 120 caracteres com "Use"), incluindo a linha de `CONTRIBUTING.md` no mesmo
-commit — `plugin/skills/**` é caminho vigiado.
+> commit — `plugin/skills/**` é caminho vigiado.
 
 - [ ] **Step 1: Escrever o teste que falha**
 
@@ -1091,22 +1217,43 @@ Acrescente a `test/plugin/authoring.test.ts`:
 
 ```typescript
 test('charter-keeper: a description nomeia princípio, visão e emenda', () => {
-  const description = String(parseFrontmatter(skillSource('charter-keeper'))?.data.description ?? '');
-  assert.match(description, /Use quando/i);
-  for (const sintoma of ['princípio', 'visão']) {
-    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`);
-  }
-});
+    const description = String(
+        parseFrontmatter(skillSource('charter-keeper'))?.data.description ?? ''
+    )
+    assert.match(description, /Use quando/i)
+    for (const sintoma of ['princípio', 'visão']) {
+        assert.ok(
+            description.toLowerCase().includes(sintoma),
+            `a description deveria conter o sintoma "${sintoma}"`
+        )
+    }
+})
 
 test('charter-keeper não duplica o conteúdo dos artefatos que governa', () => {
-  const source = skillSource('charter-keeper');
-  // Título de seção, não menção em prosa: é o corpo da Constitution que não
-  // pode ser copiado para cá, e é ele que começa a linha com `## `.
-  assert.doesNotMatch(source, /^## Log de emendas/m, 'a skill não deve conter o corpo da Constitution');
-  assert.doesNotMatch(source, /^## Princípios/m, 'a skill não deve conter os princípios deste repositório');
-  assert.match(source, /templates\/constitution\.md/, 'ela deve apontar para o template, não copiá-lo');
-  assert.match(source, /templates\/vision\.md/, 'os dois templates, porque são dois artefatos');
-});
+    const source = skillSource('charter-keeper')
+    // Título de seção, não menção em prosa: é o corpo da Constitution que não
+    // pode ser copiado para cá, e é ele que começa a linha com `## `.
+    assert.doesNotMatch(
+        source,
+        /^## Log de emendas/m,
+        'a skill não deve conter o corpo da Constitution'
+    )
+    assert.doesNotMatch(
+        source,
+        /^## Princípios/m,
+        'a skill não deve conter os princípios deste repositório'
+    )
+    assert.match(
+        source,
+        /templates\/constitution\.md/,
+        'ela deve apontar para o template, não copiá-lo'
+    )
+    assert.match(
+        source,
+        /templates\/vision\.md/,
+        'os dois templates, porque são dois artefatos'
+    )
+})
 ```
 
 O `SKILL.md` do Step 3 fala em "a seção **Log de emendas**" em negrito, não com
@@ -1125,13 +1272,13 @@ docker compose exec toolkit npm test -- --test-name-pattern="charter-keeper"
 ---
 name: charter-keeper
 description: >
-  Use quando alguém quiser emendar a Constitution ou a Product Vision, quando
-  perguntar "isso é um princípio nosso?", "isso está na nossa visão de
-  produto?", "quais são os valores invioláveis daqui?", "pra quem é esse
-  produto e qual problema ele resolve?" — nunca como efeito colateral de
-  outra tarefa. Também quando um princípio proposto não tiver enforcement
-  nomeado, ou uma emenda tentar reescrever um princípio no lugar em vez de
-  registrar a mudança no log de emendas.
+    Use quando alguém quiser emendar a Constitution ou a Product Vision, quando
+    perguntar "isso é um princípio nosso?", "isso está na nossa visão de
+    produto?", "quais são os valores invioláveis daqui?", "pra quem é esse
+    produto e qual problema ele resolve?" — nunca como efeito colateral de
+    outra tarefa. Também quando um princípio proposto não tiver enforcement
+    nomeado, ou uma emenda tentar reescrever um princípio no lugar em vez de
+    registrar a mudança no log de emendas.
 ---
 
 # charter-keeper — dono da Constitution e da Product Vision
@@ -1145,10 +1292,10 @@ mudança neles é rara o bastante para não precisar.
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
+| Artefato                       | O que é                                               | Forma                                                          |
+| ------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------- |
 | `docs/charter/constitution.md` | O que é inviolável, e como se verifica cada princípio | Arquivo único, seções estáveis, com log de emendas append-only |
-| `docs/charter/vision.md` | Que problema, para quem, e a métrica de sucesso | Arquivo único, três respostas |
+| `docs/charter/vision.md`       | Que problema, para quem, e a métrica de sucesso       | Arquivo único, três respostas                                  |
 
 Sementes: `templates/constitution.md` e `templates/vision.md`. Não reproduza
 o formato aqui.
@@ -1170,7 +1317,7 @@ regra do domínio.
    problema/público/métrica de sucesso → Vision. Se a mudança não altera
    nenhuma das três perguntas da Vision, não é mudança de Vision.
 2. **Todo princípio precisa de enforcement nomeado.** Formato: `<princípio> —
-   verificado por <hook | lint | teste | revisão | check>`. Sem isso, é
+verificado por <hook | lint | teste | revisão | check>`. Sem isso, é
    slogan — recuse e peça a versão verificável.
 3. **Emenda é append, nunca reescrita no lugar.** A seção **Log de emendas**
    recebe data, o que mudou, o porquê, e a versão sobe. Um princípio revogado
@@ -1185,12 +1332,12 @@ regra do domínio.
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
+| É seu                                  | Não é seu                                       |
+| -------------------------------------- | ----------------------------------------------- |
 | O que é inviolável, e como se verifica | Decisão técnica pontual (→ `decision-recorder`) |
-| Métrica de sucesso do produto | Regra de negócio (→ `requirements-keeper`) |
-| Rejeitar princípio não testável | Aceitar a emenda — isso é humano |
-| Registrar a emenda como append no log | Reescrever um princípio existente no lugar |
+| Métrica de sucesso do produto          | Regra de negócio (→ `requirements-keeper`)      |
+| Rejeitar princípio não testável        | Aceitar a emenda — isso é humano                |
+| Registrar a emenda como append no log  | Reescrever um princípio existente no lugar      |
 
 ## Checklist
 
@@ -1241,11 +1388,13 @@ nenhum teste resolve nome de agent (a varredura de
 inverter a ordem obrigaria a Task 5 a voltar atrás.
 
 **Files:**
+
 - Create: `plugin/agents/decision-adversary.md`
 - Modify: `plugin/skills/decision-recorder/SKILL.md`
 - Modify: `test/plugin/manifest.test.ts`
 
 **Interfaces:**
+
 - Consome: nenhum código — é um arquivo de prompt lido pelo runtime do
   Claude Code, no mesmo mecanismo que descobre `plugin/skills/*/SKILL.md` e
   `plugin/commands/*.md` (sem entrada em `plugin.json` — confirmado contra
@@ -1253,6 +1402,7 @@ inverter a ordem obrigaria a Task 5 a voltar atrás.
 - Produz: nada que outra task consuma.
 
 **Requisitos:**
+
 - Frontmatter `name: decision-adversary`, `description` (o gatilho),
   `tools:` sem `Edit` nem `Write` (spec §6: "aponta e para").
 - `decision-recorder` ganha um passo/checklist item citando o agent — spec
@@ -1269,38 +1419,65 @@ Acrescente a `test/plugin/manifest.test.ts`:
  * skills: um agent novo entra nas convenções no dia em que nasce, sem ninguém
  * lembrar de acrescentá-lo aqui.
  */
-const AGENTS = readdirSync(join(ROOT, 'plugin/agents')).filter((name) => name.endsWith('.md'));
+const AGENTS = readdirSync(join(ROOT, 'plugin/agents')).filter(name =>
+    name.endsWith('.md')
+)
 
 test('AG-2: o diretório de agents existe e traz decision-adversary', () => {
-  assert.ok(AGENTS.includes('decision-adversary.md'), `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`);
-});
+    assert.ok(
+        AGENTS.includes('decision-adversary.md'),
+        `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`
+    )
+})
 
 for (const file of AGENTS) {
-  test(`${file}: frontmatter com name casando o arquivo, description e tools declaradas`, () => {
-    const source = readFileSync(join(ROOT, 'plugin/agents', file), 'utf8');
-    const name = file.replace(/\.md$/, '');
+    test(`${file}: frontmatter com name casando o arquivo, description e tools declaradas`, () => {
+        const source = readFileSync(join(ROOT, 'plugin/agents', file), 'utf8')
+        const name = file.replace(/\.md$/, '')
 
-    assert.match(source, new RegExp(`^name:\\s*${name}\\s*$`, 'm'), `${file} declara outro name`);
-    assert.match(source, /^description:/m, `${file} sem description — é ela que diz quando usar`);
-    assert.notEqual(
-      source.match(/^tools:\s*(.+)$/m)?.[1] ?? '',
-      '',
-      `${file} precisa declarar tools explicitamente — agent sem allowlist herda tudo`,
-    );
-  });
+        assert.match(
+            source,
+            new RegExp(`^name:\\s*${name}\\s*$`, 'm'),
+            `${file} declara outro name`
+        )
+        assert.match(
+            source,
+            /^description:/m,
+            `${file} sem description — é ela que diz quando usar`
+        )
+        assert.notEqual(
+            source.match(/^tools:\s*(.+)$/m)?.[1] ?? '',
+            '',
+            `${file} precisa declarar tools explicitamente — agent sem allowlist herda tudo`
+        )
+    })
 }
 
 test('AG-2: decision-adversary aponta e para — sem Edit nem Write', () => {
-  const source = readFileSync(join(ROOT, 'plugin/agents/decision-adversary.md'), 'utf8');
-  const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? '';
-  assert.doesNotMatch(toolsLine, /\bEdit\b/, 'AG-2 aponta e para — nunca reescreve (spec §6)');
-  assert.doesNotMatch(toolsLine, /\bWrite\b/, 'AG-2 aponta e para — nunca reescreve (spec §6)');
-});
+    const source = readFileSync(
+        join(ROOT, 'plugin/agents/decision-adversary.md'),
+        'utf8'
+    )
+    const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? ''
+    assert.doesNotMatch(
+        toolsLine,
+        /\bEdit\b/,
+        'AG-2 aponta e para — nunca reescreve (spec §6)'
+    )
+    assert.doesNotMatch(
+        toolsLine,
+        /\bWrite\b/,
+        'AG-2 aponta e para — nunca reescreve (spec §6)'
+    )
+})
 
 test('decision-recorder referencia o agent decision-adversary antes da aceitação', () => {
-  const source = readFileSync(join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'), 'utf8');
-  assert.match(source, /decision-adversary/);
-});
+    const source = readFileSync(
+        join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'),
+        'utf8'
+    )
+    assert.match(source, /decision-adversary/)
+})
 ```
 
 - [ ] **Step 2: Rodar e confirmar que falha**
@@ -1322,10 +1499,10 @@ existir é parte do que o teste garante.
 ---
 name: decision-adversary
 description: >
-  Use este agent para tentar refutar UMA proposta — um ADR em draft, uma
-  emenda de Constitution, ou um TDR — antes de pedir a aceitação humana
-  dela. Isolado de propósito: quem propôs não deve revisar com o mesmo
-  raciocínio que produziu a proposta.
+    Use este agent para tentar refutar UMA proposta — um ADR em draft, uma
+    emenda de Constitution, ou um TDR — antes de pedir a aceitação humana
+    dela. Isolado de propósito: quem propôs não deve revisar com o mesmo
+    raciocínio que produziu a proposta.
 tools: Glob, Grep, Read
 model: inherit
 ---
@@ -1427,6 +1604,7 @@ git commit -m "feat(AG-2): decision-adversary, referenciado por decision-recorde
 — nunca copiar conteúdo (`RN-0010`).
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 - Modify: `README.md`
 - Modify: `plugin/.claude-plugin/plugin.json`
@@ -1436,11 +1614,13 @@ git commit -m "feat(AG-2): decision-adversary, referenciado por decision-recorde
 skills, nas Tasks 4 e 5, porque `plugin/skills/**` é caminho vigiado.
 
 **Interfaces:**
+
 - Consome: nada de código.
 - Produz: nada consumido por outra task — é a última peça visível antes da
   Task 8.
 
 **Requisitos:**
+
 - `CLAUDE.md` continua ≤60 linhas (`RN-0010`, já testado) e não copia
   nenhuma frase de `docs/glossary.md` ou `docs/charter/`.
 - O README não pode ficar afirmando o que deixou de ser verdade: a frase sobre
@@ -1454,15 +1634,15 @@ No teste `'RN-0010: o contrato do agente aponta para os artefatos donos'`,
 acrescente ao array `alvos`:
 
 ```typescript
-  const alvos = [
+const alvos = [
     'LIVING-DOCUMENTATION-TOOLKIT.md',
     'docs/.ownership.yml',
     'CONTRIBUTING.md',
     'docs/definition-of-done.md',
     'docs/requirements/',
     'docs/glossary.md',
-    'docs/charter/',
-  ];
+    'docs/charter/'
+]
 ```
 
 - [ ] **Step 2: Rodar e confirmar que falha**
@@ -1568,16 +1748,19 @@ promoção humana de `ADR-0004`, `RF-0005` e `RN-0011` — encerrando a fase do
 mesmo jeito que a Fase 3 encerrou a dela.
 
 **Files:**
+
 - Modify: `docs/decisions/adr/ADR-0004-termo-do-glossary-identificado-pelo-nome.md` (`status: accepted`)
 - Modify: `docs/requirements/functional.md` (`RF-0005` → `active`)
 - Modify: `docs/requirements/rules.md` (`RN-0011` → `active`)
 - Modify: `docs/superpowers/plans/BACKLOG-fases-3-7.md`
 
 **Interfaces:**
+
 - Consome: tudo que as Tasks 1–7 produziram.
 - Produz: o repositório validando a si mesmo com a Fase 4 ativa.
 
 **Requisitos:**
+
 - A promoção é o **último** passo, e é humana (`RN-0005`; `HK-3` intercepta
   qualquer tentativa de fazê-la sozinho).
 - `CI-3` exige citação para item `active`; as citações de `RN-0011` já
@@ -1637,7 +1820,7 @@ de cada um:
   check, e só dispara depois do `accepted`. O frontmatter escrito na Task 1 já
   traz `relates-to: [DA-0002, RN-0011]`; se o achado aparecer, o campo se
   perdeu numa edição. (`CI-2` não tem essa regra: ele cobra que toda citação
-  *resolva*, nunca que exista um mínimo delas.)
+  _resolva_, nunca que exista um mínimo delas.)
 - **`CI-3`, "`RN-0011` está `active` e não é citada em `test/**`, `src/**`"** —
   a citação está no nome dos testes de `test/docs/language-and-intent.test.ts`
   (Task 3). Confirme que o texto `RN-0011` aparece literalmente ali: a
@@ -1691,3 +1874,4 @@ git commit -m "docs(ADR-0004, RF-0005, RN-0011): decisão e requisitos da Fase 4
 - **Não inventa `CI-9`** para medir "um significado por termo" ou "princípio
   com enforcement nomeado" — ambos ficam com a skill e com o teste de
   dogfooding da Task 3, como o backlog recomendou.
+

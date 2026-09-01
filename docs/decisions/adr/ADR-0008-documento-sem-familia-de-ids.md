@@ -2,9 +2,9 @@
 id: ADR-0008
 title: Como um documento sem família de IDs ganha dono declarado
 status: accepted
-owner: "@dan"
+owner: '@Danrley-Ruan-Saquetti'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+    Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
 relates-to: [DA-0002, RN-0001]
 supersedes: null
@@ -59,15 +59,15 @@ conhecer (spec §3).
 
 ```yaml
 documents:
-  - path: CONTRIBUTING.md
-    owner: "@dan"
-    skill: working-agreements-keeper
-  - path: CLAUDE.md
-    owner: "@dan"
-    skill: working-agreements-keeper
-    role: agent-contract
-  - path: docs/superpowers/
-    owner: "@dan"
+    - path: CONTRIBUTING.md
+      owner: '@Danrley-Ruan-Saquetti'
+      skill: working-agreements-keeper
+    - path: CLAUDE.md
+      owner: '@Danrley-Ruan-Saquetti'
+      skill: working-agreements-keeper
+      role: agent-contract
+    - path: docs/superpowers/
+      owner: '@Danrley-Ruan-Saquetti'
 ```
 
 - `path` e `owner` são obrigatórios; `owner` começa com `@` e espelha o
@@ -109,3 +109,4 @@ Duas chaves passam a poder declarar o mesmo caminho (`artifacts:` e
 `documents:`). O parser recusa duplicata dentro de `documents:`, mas não cruza as
 duas listas; `CI-7` trata qualquer uma como "declarado", então o efeito de um
 engano aqui é silêncio, não erro.
+
