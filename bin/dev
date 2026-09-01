@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Caminho de execução conteinerizado, opcional (RNF-0006, ADR-0016). Roda
+# qualquer comando de manutenção dentro do container descrito por compose.yaml.
+#
+# Este wrapper não conhece comando nenhum: não tem subcomando, não valida argv e
+# não traduz nada. É essa ignorância que faz a paridade com o host existir sem
+# uma lista de comandos suportados para manter — a lista não existe.
+#
+# O caminho de registro continua sendo o node do host (RNF-0002, ADR-0015), e os
+# hooks nunca passam por aqui: plugin/hooks/run-hook.sh invoca node direto.
+set -euo pipefail
+
+CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-claude-plugins}"
+
+# Um nível acima de bin/ — mesma derivação que plugin/hooks/run-hook.sh faz com
+# dois níveis, porque aquele script está mais fundo (ADR-0003: a raiz sai do
+# caminho do próprio arquivo, nunca do diretório de trabalho de quem chamou).
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Garantir o container. Na primeira vez isto constrói a imagem; nas seguintes é
+# quase instantâneo. O efeito colateral é deliberado: em troca dele some o modo
+# de falha "container parado", que devolvia exit 2 sem fazer nada.
+if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null)" != "true" ]; then
+  docker compose -f "$ROOT/compose.yaml" up -d >&2
+fi
+
+# `-t` só quando stdin é um terminal: com um pipe na entrada, o docker exec
+# recusa a alocação. A expansão com `+` é o que mantém o array vazio compatível
+# com `set -u`.
+TTY=()
+if [ -t 0 ]; then TTY=(-t); fi
+
+# Sem argumentos, o wrapper é o workspace: um shell dentro do container.
+if [ "$#" -eq 0 ]; then
+  exec docker exec -i ${TTY[@]+"${TTY[@]}"} -w /opt/living-docs "$CONTAINER" bash
+fi
+
+# O bootstrap acontece dentro do mesmo exec, sem round-trip extra: compose.yaml
+# monta node_modules como volume nomeado e nada o popula, então mesmo com o
+# container de pé o CLI quebraria por falta de `yaml` e `picomatch`.
+#
+# O `>&2` não é cosmético: a saída do npm ci não pode contaminar o stdout de um
+# comando cuja saída alguém lê.
+#
+# O working dir é /opt/living-docs porque é onde npm faz sentido. O CLI continua
+# validando /workspace porque LIVING_DOCS_REPO_ROOT vem do compose.yaml — a
+# separação de ADR-0003 segue vindo de variável de ambiente, nunca do cwd.
+exec docker exec -i ${TTY[@]+"${TTY[@]}"} -w /opt/living-docs "$CONTAINER" \
+  bash -c '[ -d node_modules/yaml ] || npm ci >&2; exec "$@"' -- "$@"
