@@ -1,7 +1,7 @@
 ---
 id: ADR-0016
 title: Caminho de execução conteinerizado opcional, paridade por delegação
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
