@@ -1,37 +1,75 @@
 # @esliph/claude-plugins
 
-Documentação viva com dono, gatilho e enforcement — Fases 0–7 da spec
-`docs/superpowers/research/2026-08-24-living-documentation-toolkit.md`: ADR, Open Decisions, Debt Register e
-requisitos com ID estável; os oito checks `CI-1` a `CI-8`; os sete hooks `HK-1`
-a `HK-7`; os acordos de trabalho (`SK-6`); o vocabulário do domínio e os
-princípios invioláveis (`SK-2`, `SK-1`); o contrato público, com a metade gerada
-que ninguém edita à mão (`SK-5`); o rastro histórico voltado a quem consome
-(`SK-7`); e a manutenção contínua — inventário no início da sessão, staleness,
-cobertura de propriedade, links, e o auditor de divergência em contexto isolado.
+Toolkit de **documentação viva** e plugin do Claude Code. Mantém a documentação
+de um repositório — decisões (ADR), decisões em aberto, dívida técnica,
+requisitos, glossário, princípios, contratos e histórico de versões — com **dono
+declarado**, **gatilho** (quando cada documento precisa mudar) e **verificação
+automática**, para que ela não apodreça por falta de responsável ou de momento
+certo para atualizar.
 
-**Nada roda no host além de Docker.**
+## Como funciona
 
-## Uso
+Um arquivo por repositório, `docs/.ownership.yml`, diz de quem é cada documento e
+o que dispara sua atualização. Em cima disso, duas camadas de verificação:
+
+- **Ganchos de git locais** (pelo plugin do Claude Code): lembram, perguntam ou
+  bloqueiam no momento da edição e do commit.
+- **Checagens de CI**: rodam no pipeline em segundos e continuam valendo mesmo
+  para edições feitas direto pelo navegador, sem ninguém por perto.
+
+Todo o trabalho acontece dentro de um container. O host não executa Node —
+`./bin/living-docs` é só uma ponte para o container.
+
+## Pré-requisitos
+
+- Docker e Docker Compose.
+- Claude Code, para usar a parte de plugin (skills, comandos e ganchos).
+
+## Instalação e primeiro uso
 
 ```bash
-docker compose up -d                    # dogfooding: valida este próprio repositório
-./bin/living-docs init --stage solo     # cria a moldura (SK-0)
-./bin/living-docs validate              # roda CI-1, CI-2, CI-3, CI-4, CI-7 e CI-8
-./bin/living-docs validate --base origin/master   # + a metade de CI-7 que lê o diff da branch
-./bin/living-docs drift                 # roda CI-5: o contrato gerado ainda bate com o gerador?
-./bin/living-docs changelog --base origin/master   # roda CI-6: a mudança visível ao consumidor levou entrada?
+docker compose up -d                     # sobe o container
+./bin/living-docs init --stage solo      # cria a estrutura inicial de pastas e arquivos
+./bin/living-docs validate               # verifica a documentação do repositório
 ```
 
-Para regerar `docs/contracts/checks.gen.md` deste repositório (nunca `Write`/`Edit`
-— `HK-2` bloqueia; o comando é o mesmo que `generated[].command` declara em
-`docs/.ownership.yml`, aqui rodado dentro do container):
+Sem a variável `LIVING_DOCS_TARGET`, o container valida **este próprio
+checkout** — o toolkit usa a si mesmo como teste.
 
-```bash
-docker compose exec -w /workspace toolkit sh -c 'node /opt/living-docs/src/tools/gen-checks.ts > docs/contracts/checks.gen.md'
-```
+Comandos disponíveis:
 
-Para validar **outro** projeto — a fonte do toolkit e o repositório validado são
-raízes distintas (`ADR-0003`):
+| Comando | O que faz |
+| --- | --- |
+| `./bin/living-docs init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou. |
+| `./bin/living-docs validate` | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono. |
+| `./bin/living-docs validate --base <ref>` | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
+| `./bin/living-docs drift` | Confere se cada documento gerado ainda bate com o comando que o gera. |
+| `./bin/living-docs changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit. |
+
+Opções de `init`: `--owner <@time>` define o dono declarado nos documentos
+criados; `--dry-run` mostra o que seria criado sem escrever; `--id-separator` e
+`--id-padding` ajustam a forma escrita dos IDs ao que o repositório já usa;
+`--invoke` define o comando que roda o CLI no seu pipeline.
+
+## Estágios de maturidade
+
+O `init` instala só o conjunto que cada estágio pede, e cada estágio inclui os
+anteriores:
+
+| Estágio | Acrescenta |
+| --- | --- |
+| `solo` | Decisões (ADR), decisões em aberto e dívida técnica. |
+| `small-team` | Requisitos (funcionais, não funcionais e regras de negócio), acordos de trabalho (`CONTRIBUTING.md`, definição de pronto), glossário e princípios. |
+| `production` | Contratos (catálogo de erros e política de versionamento) e histórico de versões (`CHANGELOG.md`, notas de release, depreciações e guias de migração). |
+| `multi-team` | A verificação de CI que compara com o diff da branch — documento e código que precisam mudar juntos, e mudança visível a quem consome sem registro no histórico. |
+
+Todo documento criado é declarado em `docs/.ownership.yml`: documento sem dono é
+reprovado na verificação.
+
+## Validar outro projeto
+
+A fonte do toolkit e o repositório validado são pastas separadas dentro do
+container:
 
 ```bash
 LIVING_DOCS_TARGET=/caminho/do/projeto docker compose up -d
@@ -39,74 +77,49 @@ LIVING_DOCS_TARGET=/caminho/do/projeto docker compose up -d
 ./bin/living-docs validate
 ```
 
-Estágios de maturidade (`--stage`): `solo` instala decisões, lacunas e dívida;
-`small-team` acrescenta a moldura de requisitos (`RF`, `RNF`, `RN`), os acordos
-de trabalho, o glossary e o charter; `production` acrescenta a moldura de
-contratos (catálogo de erros e política de versionamento) **e** o rastro
-histórico (CHANGELOG, release notes, depreciações e guias de migração). Em todos
-eles, o `init` declara em `documents:` o que criou — documento sem dono reprova
-em `CI-7`.
+## O plugin do Claude Code
 
-**Não existe `--stage multi-team`**, e a razão é que a Fase 7 não instala
-artefato nenhum: ela instala enforcement, e enforcement não é arquivo que o
-`init` escreve — são os checks que já vêm com o toolkit e os hooks que já vêm
-com o plugin. Um estágio com o mesmo conjunto de arquivos que `production` seria
-um rótulo sem nada atrás.
+`plugin/` traz skills, comandos e ganchos.
 
-Desenvolvimento:
+**Skills e comandos:**
+
+| Comando | Skill | Papel |
+| --- | --- | --- |
+| `/adr`, `/open-decision`, `/debt` | `decision-recorder` | Registra decisões, decisões em aberto e dívida técnica. |
+| `/docs-setup` | `living-docs-bootstrap` | Prepara o `docs/.ownership.yml` e a estrutura. |
+| `/term` | `glossary-keeper` | Mantém o vocabulário do domínio. |
+| `/release` | `release-historian` | Mantém `CHANGELOG.md`, notas de release, depreciações e migrações. |
+| `/docs-audit` | `docs-divergence-auditor` | Aponta o que um diff deveria ter atualizado e não atualizou. |
+| — | `requirements-keeper`, `working-agreements-keeper`, `charter-keeper`, `contract-keeper` | Selecionadas pela descrição, sem comando próprio. |
+
+**Ganchos:** bloqueiam a edição de um documento já aceito; exigem aprovação de
+uma pessoa para promover o estado de uma decisão; depois de você editar um trecho
+de código vigiado, lembram do documento dono; antes de um commit que leva código
+sem o documento dono, perguntam; lembram quando um atalho novo (`TODO`, `FIXME`,
+supressão de tipo ou de lint, teste ignorado) fica sem registro de dívida por
+perto; e, no início da sessão, injetam um inventário do que está declarado e
+ausente, das decisões em aberto, das dívidas com gatilho cumprido e dos
+documentos vencidos. Os ganchos que lembram e perguntam nunca bloqueiam; com o
+container parado, nenhum gancho bloqueia nada — a camada que sobrevive a isso é
+o CI.
+
+**Agentes** (contexto isolado, sem permissão de editar): um tenta refutar um
+ADR, uma emenda de princípios ou um registro de dívida antes da aprovação
+humana; o outro recebe um escopo e responde o que aquele diff deixou de
+atualizar, apontando o documento dono de cada achado.
+
+## O que está fora
+
+Camadas deliberadamente não cobertas: C4/ERD/threat model, runbooks/SLO/
+postmortems, catálogo de eventos, RFC longo e feature specs por feature. O
+caminho para adicioná-las é o mesmo ponto de extensão: uma entrada em
+`docs/.ownership.yml` e uma skill dona.
+
+## Desenvolvimento
 
 ```bash
 docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 ```
 
-## Plugin do Claude Code
-
-`plugin/` traz as skills `decision-recorder` (`/adr`, `/open-decision`, `/debt`),
-`living-docs-bootstrap` (`/docs-setup`), `requirements-keeper` e
-`working-agreements-keeper` (as duas sem comando: são selecionadas pela
-`description`), e os hooks `HK-1` (bloqueia editar item congelado), `HK-3`
-(promoção de estado exige ato humano), `HK-4` (lembra o doc dono depois de
-editar caminho vigiado) e `HK-5` (pergunta antes do commit que leva código sem
-o doc). `HK-4` e `HK-5` nunca negam: lembram e perguntam. Os hooks falham
-abertos: com o container parado, eles não bloqueiam nada — o enforcement que
-sobrevive a isso é o CI.
-
-As skills `glossary-keeper` (`/term`) e `charter-keeper` completam o estágio
-`small-team`, e `plugin/agents/decision-adversary.md` (`AG-2`) é o primeiro
-agent do plugin — contexto isolado, sem `Edit`/`Write`, que tenta refutar um
-ADR, uma emenda de Constitution ou um TDR antes da aceitação humana.
-
-`contract-keeper` (`SK-5`) é dona do contrato público, e `HK-2` nega editar
-artefato gerado à mão apontando a fonte e o comando do gerador.
-
-`release-historian` (`/release`) é dona do rastro histórico —
-`CHANGELOG.md`, `docs/releases/`, `docs/deprecations.md` e
-`docs/migrations/` — e `HK-7` lembra quando um atalho novo (`TODO`, `FIXME`,
-supressão de tipo ou de lint, teste ignorado) fica sem `TDR-nnnn` por perto.
-`HK-7`, como `HK-4` e `HK-5`, nunca nega: só lembra.
-
-`HK-6` injeta o inventário no início da sessão — o que está declarado e ausente,
-as decisões abertas, as dívidas com gatilho cumprido e os documentos vencidos —,
-e nunca bloqueia. `plugin/agents/docs-divergence-auditor.md` (`AG-1`, comando
-`/docs-audit`) é o segundo agent: recebe um escopo, responde o que aquele diff
-deveria ter atualizado e não atualizou, e aponta o artefato dono de cada achado.
-Como `AG-2`, ele não tem `Edit` nem `Write`.
-
-## O que está fora
-
-Nada das Fases 0–7 da spec. As camadas que a spec §"Escopo" deixa
-deliberadamente fora — C4/ERD/threat model, runbooks/SLO/postmortems, event
-catalog, RFC longo, feature specs — continuam fora, e o caminho para elas é o
-mesmo ponto de extensão: uma entrada em `docs/.ownership.yml` e uma skill dona.
-
-Os dez critérios de aceite da spec §12 estão cobertos. O critério 5 fecha nas
-duas metades desde a Fase 7: `HK-5` pergunta antes do commit, e
-`living-docs validate --base <ref>` reprova no PR, com `Docs: none — <razão>`
-como única saída escrita.
-
-Dívida conhecida: `TDR-0001` — `HK-1` congela por arquivo, não por seção, então
-um requisito `revoked` dentro de `docs/requirements/` não tem o corpo protegido
-pelo hook. `CI-3` fecha a outra metade, e o gatilho de pagamento agora é
-verificável: o `pay-when` do TDR procura `status: revoked` em
-`docs/requirements/**`, e `CI-4` reprova no dia em que isso acontecer.
+Para contribuir, veja `CONTRIBUTING.md`.
