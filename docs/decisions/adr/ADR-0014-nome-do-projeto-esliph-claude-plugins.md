@@ -1,12 +1,12 @@
 ---
 id: ADR-0014
 title: Nome do projeto — @esliph/claude-plugins
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
     Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-09-01
-relates-to: []
+relates-to: [RN-0010]
 supersedes: null
 superseded-by: null
 ---
