@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { toolkitRoot } from '../../src/core/roots.ts';
@@ -54,12 +55,20 @@ test('hooks.json registra os oito hooks nos eventos e matchers da spec §7', () 
   }
 });
 
-test('RNF-0002: o wrapper existe, é executável e falha aberta — o host só empresta o Docker', () => {
-  const wrapper = join(ROOT, 'plugin/hooks/run-hook.sh');
+test('RNF-0002: o wrapper existe, é executável e roda o node do host, falhando aberta', () => {
+  const relative = 'plugin/hooks/run-hook.sh';
+  const wrapper = join(ROOT, relative);
   assert.ok(existsSync(wrapper));
-  assert.ok((statSync(wrapper).mode & 0o111) !== 0, 'run-hook.sh precisa ser executável');
+
+  // O bit de execução vem do índice do git, não do sistema de arquivos: um
+  // checkout Windows não tem modo POSIX, e o que chega a quem instala é o modo
+  // versionado.
+  const entry = execFileSync('git', ['ls-files', '-s', '--', relative], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(entry.split(/\s+/)[0], '100755', `${relative} precisa estar versionado como executável`);
 
   const source = readFileSync(wrapper, 'utf8');
+  assert.match(source, /\bnode\b/, 'o hook roda no node do host (RNF-0002)');
+  assert.doesNotMatch(source, /docker/i, 'não existe mais ponte para container nenhum');
   assert.match(source, /timeout 5/, 'precisa respeitar o teto de 5s da spec §7');
   assert.match(source, /exit 0/, 'precisa falhar aberta');
   assert.doesNotMatch(source, /set -e\b/, 'set -e mataria a falha aberta');
@@ -134,10 +143,10 @@ test('o nome no frontmatter de cada skill casa com o diretório', () => {
   }
 });
 
-test('RNF-0002: nenhum script executável carrega CR — o runtime é Linux (ADR-0001)', () => {
+test('RNF-0002: nenhum script executável carrega CR — o wrapper roda em bash', () => {
   for (const relative of ['bin/living-docs', 'plugin/hooks/run-hook.sh']) {
     const source = readFileSync(join(ROOT, relative), 'utf8');
-    assert.equal(source.includes('\r'), false, `${relative} com CRLF: o shebang quebra dentro do container`);
+    assert.equal(source.includes('\r'), false, `${relative} com CRLF: o shebang quebra com "bad interpreter"`);
   }
 });
 
