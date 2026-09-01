@@ -68,7 +68,7 @@ generated:
   # mesmo instante em que a reporta (ADR-0005). HK-2 bloqueia editar `path` à
   # mão; CI-5 (`living-docs drift`) compara.
   - path: docs/contracts/checks.gen.md
-    command: node /opt/living-docs/src/tools/gen-checks.ts
+    command: node src/tools/gen-checks.ts
 
 # Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).
 # CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.
