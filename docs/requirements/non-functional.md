@@ -16,19 +16,20 @@ Cada requisito é uma seção com ID citável. Formato: `templates/requirements.
 - **status:** active
 - **fora de escopo:** o CI, que falha fechado de propósito
 
-Qualquer erro na execução de um hook — configuração ilegível, container fora do
-ar, timeout — resulta em deixar passar. O enforcement que sobrevive a hook
+Qualquer erro na execução de um hook — configuração ilegível, dependência
+ausente, timeout — resulta em deixar passar. O enforcement que sobrevive a hook
 quebrado é o CI; hook quebrado que trava o trabalho é removido pelo usuário no
 primeiro dia, e aí não há enforcement nenhum.
 
-## RNF-0002 — Nada roda no host além de Docker
+## RNF-0002 — O toolkit roda no Node do host, sem passo de build
 
 - **status:** active
-- **relates-to:** ADR-0001
-- **fora de escopo:** o próprio Docker e o `git`
+- **relates-to:** ADR-0015
+- **fora de escopo:** o `git`, e como o toolkit chega ao repositório de quem o consome (`DA-0003`)
 
-Nenhum comando `node`, `npm` ou `npx` é executado fora do container. O host
-empresta apenas o daemon.
+Node 24 ou maior, e o npm que vem com ele, são o único toolchain exigido de quem
+clona este repositório. `npm ci` instala as dependências; `node` executa a fonte
+TypeScript direto, sem artefato compilado no meio.
 
 ## RNF-0003 — A raiz do toolkit e a do repositório validado são independentes
 
