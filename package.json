@@ -6,7 +6,7 @@
   "engines": { "node": ">=24" },
   "bin": { "living-docs": "./src/cli/index.ts" },
   "scripts": {
-    "test": "node --test 'test/**/*.test.ts'",
+    "test": "node --test \"test/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
