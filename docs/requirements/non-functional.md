@@ -25,7 +25,7 @@ primeiro dia, e aí não há enforcement nenhum.
 
 - **status:** active
 - **relates-to:** ADR-0015
-- **fora de escopo:** o `git`, e como o toolkit chega ao repositório de quem o consome (`DA-0003`)
+- **fora de escopo:** o `git`; o caminho conteinerizado opcional de `RNF-0006`, que é alternativa e não exigência; e como o toolkit chega ao repositório de quem o consome (`DA-0003`)
 
 Node 24 ou maior, e o npm que vem com ele, são o único toolchain exigido de quem
 clona este repositório. `npm ci` instala as dependências; `node` executa a fonte
@@ -63,3 +63,17 @@ não de cada check — é o conjunto que roda no PR —, está declarado no cód
 **medido** a cada execução, nunca estimado. Um orçamento que ninguém mede é uma
 intenção, e a primeira execução lenta o descobre em produção.
 
+## RNF-0006 — Existe um caminho de execução conteinerizado, opcional e em paridade com o host
+
+- **status:** draft
+- **relates-to:** ADR-0016
+- **fora de escopo:** os hooks, que rodam sempre no host (`RNF-0001`)
+
+Quem não quer instalar Node no host consegue rodar qualquer comando de
+manutenção do toolkit dentro de um container. O conjunto de comandos que funciona
+por esse caminho é o mesmo que funciona no host, e é assim porque o ponto de
+entrada não conhece comando nenhum: ele repassa o que recebeu. Uma lista de
+comandos suportados não existe, e o que não existe não diverge.
+
+O caminho de registro continua sendo o host (`RNF-0002`): é ele que o CI
+reproduz em todo PR e é ele que a Definition of Done mede.
