@@ -190,7 +190,7 @@ watches:
     consumer-visible: true
     reason: "é o que `init` escreve no repositório de quem instala"
 
-  - code: "bin/living-docs"
+  - code: "bin/**"
     doc: CHANGELOG.md
     consumer-visible: true
     reason: "o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa"
@@ -201,5 +201,5 @@ consumer-visible-paths:
   - "src/config/ownership.ts"
   - "plugin/**"
   - "templates/**"
-  - "bin/living-docs"
+  - "bin/**"
   - ".github/workflows/**"
