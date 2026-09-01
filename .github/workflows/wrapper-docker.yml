@@ -1,0 +1,41 @@
+name: wrapper-docker
+
+# Arquivo separado de living-docs.yml de propósito: o filtro `paths` do GitHub
+# Actions é por workflow e não por job, e condicionar um job dentro do workflow
+# existente exigiria uma action de terceiros para nada (ADR-0016).
+#
+# O efeito no PR comum é zero: nenhum build de imagem, nenhum minuto a mais. O
+# caminho conteinerizado só é exercitado quando alguém toca no que pode
+# quebrá-lo (RNF-0006).
+on:
+  push:
+    paths: &wrapper-paths
+      - 'Dockerfile'
+      - 'compose.yaml'
+      - '.dockerignore'
+      - 'bin/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/wrapper-docker.yml'
+  pull_request:
+    paths: *wrapper-paths
+
+jobs:
+  wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A primeira invocação de bin/dev subiria o container sozinha (E-2). Subir
+      # aqui, em passo próprio, mantém o tempo de build atribuível: uma falha de
+      # imagem não se disfarça de falha de teste.
+      - name: Subir o container
+        run: docker compose up -d
+
+      # Pelo wrapper, o que o host já roda. Nenhum dos dois comandos está escrito
+      # dentro de bin/dev — é essa a paridade que RNF-0006 enuncia.
+      - name: Testes, pelo wrapper
+        run: bin/dev npm test
+
+      - name: CI-1 a CI-4, CI-7, CI-8 e CI-10 — documentação viva, pelo wrapper
+        run: bin/dev node src/cli/index.ts validate
