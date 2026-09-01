@@ -3,8 +3,8 @@ title: Constitution
 owner: '@esliph/engineering'
 trigger: >
     Emenda deliberada — nunca como efeito colateral de outra tarefa.
-last-reviewed: 2026-08-25
-version: 1
+last-reviewed: 2026-09-01
+version: 2
 ---
 
 # Constitution
@@ -19,9 +19,10 @@ sem enforcement nomeado é slogan — nenhum entra aqui sem ele.
 3. Nenhum item aceito se corrige no corpo — supersede — verificado por `HK-1`.
 4. Nenhum agente promove sozinho um estado que significa aceitação — verificado por `HK-3`.
 5. Caminho vigiado e o doc dono viajam no mesmo commit — verificado por `HK-4` (lembra) e `HK-5` (pergunta).
-6. Nada roda no host além de Docker — verificado por `test/plugin/manifest.test.ts` (`RNF-0002`) e por revisão humana de `Dockerfile`/`compose.yaml`.
+6. O toolkit roda no Node do host, sem passo de build — verificado por `test/plugin/manifest.test.ts` (`RNF-0002`) e pelo workflow, que instala Node e npm e nada além.
 
 ## Log de emendas
 
 - 2026-08-25 — v1 — Criação inicial, seis princípios refletindo `RN-0001`–`RN-0010` e `RNF-0002` — humana, dogfooding da Fase 4.
+- 2026-09-01 — v2 — Princípio 6 passa a afirmar a execução no Node do host, acompanhando `ADR-0015`, que supersede `ADR-0001` — humana, migração da execução para o host.
 
