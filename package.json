@@ -1,5 +1,5 @@
 {
-  "name": "living-docs-toolkit",
+  "name": "@esliph/claude-plugins",
   "version": "0.1.0",
   "private": true,
   "type": "module",

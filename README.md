@@ -1,4 +1,4 @@
-# living-docs-toolkit
+# @esliph/claude-plugins
 
 Documentação viva com dono, gatilho e enforcement — Fases 0–7 da spec
 `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md`: ADR, Open Decisions, Debt Register e

@@ -1,4 +1,4 @@
-# Contrato do agente — living-docs-toolkit
+# Contrato do agente — @esliph/claude-plugins
 
 Índice e política. **Nenhuma afirmação factual mora aqui**: cada uma vive no
 artefato dono e é lida de lá (`RN-0010`).

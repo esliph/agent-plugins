@@ -87,6 +87,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- O nome do pacote passa a ser `@esliph/claude-plugins` e o container Docker do
+  repositório passa a se chamar `esliph-claude-plugins` (era `living-docs-toolkit`
+  nos dois). Quem sobe o ambiente com `docker compose` ou invoca `./bin/living-docs`
+  sem `LIVING_DOCS_CONTAINER` definido passa a falar com o container pelo nome
+  novo; o comando `living-docs` em si não muda. Registrado em `ADR-0014`.
 - `CI-7` ganha uma sexta classe de achado: com `--base <ref>`, o diff que toca
   caminho reivindicado por uma decisão aberta reprova. A saída continua sendo
   `Docs: none — <razão>`.

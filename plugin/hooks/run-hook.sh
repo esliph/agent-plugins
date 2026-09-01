@@ -9,7 +9,7 @@
 # o código do **toolkit** (/opt/living-docs). ADR-0003.
 
 HOOK="${1:-}"
-CONTAINER="${LIVING_DOCS_CONTAINER:-living-docs-toolkit}"
+CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-claude-plugins}"
 HOST_ROOT="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 [ -n "$HOOK" ] || exit 0

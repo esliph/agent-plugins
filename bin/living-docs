@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Ponte host -> container. O host não executa Node: todo trabalho acontece dentro
-# de `living-docs-toolkit`. A fonte do toolkit está em /opt/living-docs e o
+# de `esliph-claude-plugins`. A fonte do toolkit está em /opt/living-docs e o
 # repositório validado em /workspace — raízes distintas por ADR-0003.
 set -euo pipefail
 
-CONTAINER="${LIVING_DOCS_CONTAINER:-living-docs-toolkit}"
+CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-claude-plugins}"
 
 if ! docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -q true; then
   echo "living-docs: o container '$CONTAINER' não está rodando. Suba com: docker compose up -d" >&2
