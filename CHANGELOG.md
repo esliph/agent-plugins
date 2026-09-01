@@ -87,6 +87,13 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- O toolkit passa a rodar no Node do host: os ganchos do plugin invocam `node`
+  direto, e o workflow de CI deste repositório instala Node e npm em vez de
+  construir uma imagem. Quem clona precisa de Node 24 ou maior e de um `npm ci`
+  antes do primeiro comando; em troca, os ganchos param de calar quando o
+  container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
+  continuam no repositório, mas nada mais os invoca — registrado em `ADR-0015` e
+  `TDR-0002`.
 - O nome do pacote passa a ser `@esliph/claude-plugins` e o container Docker do
   repositório passa a se chamar `esliph-claude-plugins` (era `living-docs-toolkit`
   nos dois). Quem sobe o ambiente com `docker compose` ou invoca `./bin/living-docs`
