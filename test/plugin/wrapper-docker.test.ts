@@ -1,12 +1,12 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { test } from 'node:test';
 import picomatch from 'picomatch';
-import { toolkitRoot } from '../../src/core/roots.ts';
 import { loadOwnership } from '../../src/config/ownership.ts';
 import { watchesFor } from '../../src/config/watches.ts';
+import { toolkitRoot } from '../../src/core/roots.ts';
 
 const ROOT = toolkitRoot();
 
@@ -48,7 +48,7 @@ test('RNF-0006: bin/dev deriva a raiz do próprio caminho e respeita LIVING_DOCS
 
   assert.match(
     wrapper,
-    /LIVING_DOCS_CONTAINER:-esliph-claude-plugins/,
+    /LIVING_DOCS_CONTAINER:-esliph-living-docs/,
     'o nome do container vem do ambiente, com o padrão que bin/living-docs já publica',
   );
   assert.match(

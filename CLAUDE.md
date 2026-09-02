@@ -1,4 +1,4 @@
-# Contrato do agente — @esliph/claude-plugins
+# Contrato do agente — @esliph/living-docs
 
 Índice e política. **Nenhuma afirmação factual mora aqui**: cada uma vive no
 artefato dono e é lida de lá (`RN-0010`).
@@ -51,3 +51,4 @@ artefato dono e é lida de lá (`RN-0010`).
 - Criar artefato de documentação fora de `docs/` ou fora do controle de versão.
 - Bumpar `last-reviewed` em massa.
 - Copiar para cá o conteúdo de qualquer artefato acima.
+

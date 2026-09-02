@@ -79,7 +79,7 @@ para este desenho, e essa é a razão de a entrega ser pequena.
 Três responsabilidades, nesta ordem, e nada além delas.
 
 **Garantir o container.** O nome vem de `LIVING_DOCS_CONTAINER`, com
-`esliph-claude-plugins` como padrão — o mesmo contrato que `bin/living-docs` já
+`esliph-living-docs` como padrão — o mesmo contrato que `bin/living-docs` já
 publica hoje. Se `docker inspect -f '{{.State.Running}}'` não devolver `true`, o
 wrapper roda `docker compose up -d` a partir da raiz do repositório, que ele
 deriva do caminho do próprio script — um nível acima de `bin/`, pelo mesmo padrão

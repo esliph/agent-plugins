@@ -1132,7 +1132,7 @@ git commit -m "docs(TDR-0002): registra o wrapper Docker órfão com gatilho de 
 
 - [ ] **Step 1: Escrever a entrada**
 
-Em `CHANGELOG.md`, como **primeiro** item de `### Changed` dentro de `## [Unreleased]` (acima da entrada que começa com "O nome do pacote passa a ser `@esliph/claude-plugins`"):
+Em `CHANGELOG.md`, como **primeiro** item de `### Changed` dentro de `## [Unreleased]` (acima da entrada que começa com "O nome do pacote passa a ser `@esliph/living-docs`"):
 
 ```markdown
 - O toolkit passa a rodar no Node do host: os ganchos do plugin invocam `node`

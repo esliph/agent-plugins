@@ -1,6 +1,6 @@
 ---
 id: ADR-0014
-title: Nome do projeto — @esliph/claude-plugins
+title: Nome do projeto — @esliph/living-docs
 status: accepted
 owner: '@esliph/engineering'
 trigger: >
@@ -11,7 +11,7 @@ supersedes: null
 superseded-by: null
 ---
 
-# ADR-0014 — Nome do projeto — @esliph/claude-plugins
+# ADR-0014 — Nome do projeto — @esliph/living-docs
 
 ## Contexto
 
@@ -20,12 +20,12 @@ concordar entre si: `package.json` e `package-lock.json` (identidade do pacote),
 `compose.yaml` (`container_name`), e o default de `LIVING_DOCS_CONTAINER` em
 `bin/living-docs` e `plugin/hooks/run-hook.sh` — os wrappers só acham o container
 que `docker compose up` subiu se os dois nomes baterem. A decisão de adotar o
-escopo `@esliph` e o nome `claude-plugins` obriga a mexer nas cinco de uma vez;
+escopo `@esliph` e o nome `living-docs` obriga a mexer nas cinco de uma vez;
 metade renomeada é um estado quebrado, não um passo intermediário.
 
 ## Alternativas consideradas
 
-- **Manter `living-docs-toolkit` e adicionar `@esliph/claude-plugins` como alias
+- **Manter `living-docs-toolkit` e adicionar `@esliph/living-docs` como alias
   ou campo secundário.** Descartada: dois nomes para a mesma coisa é a
   ambiguidade que `RN-0010` combate — um `grep` pelo nome passaria a devolver
   dois, e nenhum seria "o" nome.
@@ -33,9 +33,9 @@ metade renomeada é um estado quebrado, não um passo intermediário.
   antigo.** Descartada: o default dos wrappers tem de casar com o `container_name`
   do compose; deixar essa metade no nome velho faz `./bin/living-docs` procurar
   um container que não existe.
-- **Usar `@esliph/claude-plugins` literalmente também como `container_name`.**
+- **Usar `@esliph/living-docs` literalmente também como `container_name`.**
   Descartada: `@` e `/` não são caracteres válidos em nome de container Docker.
-  `esliph-claude-plugins` é a forma mais próxima que o Docker aceita.
+  `esliph-living-docs` é a forma mais próxima que o Docker aceita.
 - **Renomear tudo, inclusive ADR-0001 e os planos em `docs/superpowers/plans/`.**
   Descartada: ADR-0001 é congelado por convenção (`trigger`: "Imutável após
   aceito") e os planos são registro datado. Reescrever o nome dentro deles
@@ -44,9 +44,9 @@ metade renomeada é um estado quebrado, não um passo intermediário.
 
 ## Decisão
 
-O nome do projeto e do pacote passa a ser **`@esliph/claude-plugins`**. O
+O nome do projeto e do pacote passa a ser **`@esliph/living-docs`**. O
 container Docker e o default de `LIVING_DOCS_CONTAINER` passam a ser
-**`esliph-claude-plugins`**. O comando de CLI continua `living-docs` (arquivo
+**`esliph-living-docs`**. O comando de CLI continua `living-docs` (arquivo
 `bin/living-docs` e a chave `bin` do `package.json` intactos). Artefato congelado
 (ADR-0001) e registro histórico (planos) mantêm o nome antigo.
 
@@ -64,7 +64,7 @@ A identidade do repositório fica presa ao escopo `@esliph`: trocar de escopo de
 novo repete este trabalho nas mesmas cinco camadas. ADR-0001 e os planos passam a
 citar um nome (`living-docs-toolkit`) que não existe mais em nenhum lugar
 executável — quem lê esses documentos precisa saber que ele corresponde a
-`esliph-claude-plugins` no container. E `package-lock.json` teve o campo `name`
+`esliph-living-docs` no container. E `package-lock.json` teve o campo `name`
 editado à mão; o próximo `npm install` dentro do container reescreve o arquivo, e
 é ele a fonte de verdade do lock.
 

@@ -1,10 +1,14 @@
 {
-  "name": "@esliph/claude-plugins",
+  "name": "@esliph/living-docs",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
-  "bin": { "living-docs": "./src/cli/index.ts" },
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "living-docs": "./src/cli/index.ts"
+  },
   "scripts": {
     "test": "node --test \"test/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"

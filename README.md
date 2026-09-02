@@ -1,4 +1,4 @@
-# @esliph/claude-plugins
+# @esliph/living-docs
 
 Toolkit de **documentação viva** e plugin do Claude Code. Mantém a documentação
 de um repositório — decisões (ADR), decisões em aberto, dívida técnica,

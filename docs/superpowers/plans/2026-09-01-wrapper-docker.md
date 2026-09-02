@@ -287,7 +287,7 @@ Claude-Session: https://claude.ai/code/session_01J9EWhngovR8oYumsGik53a"
 
 **Interfaces:**
 - Consumes: `RNF-0006` e `ADR-0016` (Task 1), citados nos comentários e nos testes.
-- Produces: o contrato de `bin/dev` — `bin/dev <comando> [args…]` executa `<comando>` dentro do container com working dir `/opt/living-docs`, e `bin/dev` sem argumentos abre `bash` interativo. O código de saída do comando é o código de saída do wrapper. A variável de ambiente `LIVING_DOCS_CONTAINER` escolhe o container, com `esliph-claude-plugins` como padrão. A Task 3 depende deste contrato.
+- Produces: o contrato de `bin/dev` — `bin/dev <comando> [args…]` executa `<comando>` dentro do container com working dir `/opt/living-docs`, e `bin/dev` sem argumentos abre `bash` interativo. O código de saída do comando é o código de saída do wrapper. A variável de ambiente `LIVING_DOCS_CONTAINER` escolhe o container, com `esliph-living-docs` como padrão. A Task 3 depende deste contrato.
 
 - [ ] **Step 1: Escrever os dois primeiros testes de estrutura**
 
@@ -341,7 +341,7 @@ test('RNF-0006: bin/dev deriva a raiz do próprio caminho e respeita LIVING_DOCS
 
   assert.match(
     wrapper,
-    /LIVING_DOCS_CONTAINER:-esliph-claude-plugins/,
+    /LIVING_DOCS_CONTAINER:-esliph-living-docs/,
     'o nome do container vem do ambiente, com o padrão que bin/living-docs já publica',
   );
   assert.match(
@@ -375,7 +375,7 @@ Conteúdo completo do arquivo:
 # hooks nunca passam por aqui: plugin/hooks/run-hook.sh invoca node direto.
 set -euo pipefail
 
-CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-claude-plugins}"
+CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-living-docs}"
 
 # Um nível acima de bin/ — mesma derivação que plugin/hooks/run-hook.sh faz com
 # dois níveis, porque aquele script está mais fundo (ADR-0003: a raiz sai do

@@ -1,7 +1,7 @@
 services:
   toolkit:
     build: .
-    container_name: esliph-claude-plugins
+    container_name: esliph-living-docs
     working_dir: /opt/living-docs
     user: node
     init: true

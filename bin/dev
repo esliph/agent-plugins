@@ -10,7 +10,7 @@
 # hooks nunca passam por aqui: plugin/hooks/run-hook.sh invoca node direto.
 set -euo pipefail
 
-CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-claude-plugins}"
+CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-living-docs}"
 
 # Um nível acima de bin/ — mesma derivação que plugin/hooks/run-hook.sh faz com
 # dois níveis, porque aquele script está mais fundo (ADR-0003: a raiz sai do

@@ -99,8 +99,8 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
   continuam no repositório, agora como o caminho de execução opcional descrito
   acima — registrado em `ADR-0015` e `ADR-0016`.
-- O nome do pacote passa a ser `@esliph/claude-plugins` e o container Docker do
-  repositório passa a se chamar `esliph-claude-plugins` (era `living-docs-toolkit`
+- O nome do pacote passa a ser `@esliph/living-docs` e o container Docker do
+  repositório passa a se chamar `esliph-living-docs` (era `living-docs-toolkit`
   nos dois). Quem sobe o ambiente com `docker compose` ou invoca `./bin/living-docs`
   sem `LIVING_DOCS_CONTAINER` definido passa a falar com o container pelo nome
   novo; o comando `living-docs` em si não muda. Registrado em `ADR-0014`.
@@ -161,3 +161,4 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   congelado na forma do estágio anterior, e os documentos recém-instalados
   nasciam sem quem os revise — o que `CI-7` agora reprova. Linha que já está lá
   não é reescrita.
+
