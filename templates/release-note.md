@@ -2,10 +2,10 @@
 id: REL-0001
 title: v0.0.0
 status: draft
-owner: '{{OWNER}}'
+owner: "{{OWNER}}"
 trigger: >
   Nunca. Congelada depois de publicada; uma versão nova nasce ao lado.
-last-reviewed: { { TODAY } }
+last-reviewed: {{TODAY}}
 relates-to: []
 ---
 

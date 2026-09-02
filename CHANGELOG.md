@@ -139,6 +139,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Fixed
 
+- Os templates que `living-docs init` semeia voltam a trazer os placeholders
+  `{{ID}}`, `{{TITLE}}` e `{{TODAY}}` na forma que o `init` substitui. Um
+  formatador de código os havia reescrito como `{ { ID } }` — o YAML os lê como
+  mapa, e o repositório recém-instalado nascia com `last-reviewed` inválido,
+  reprovando no próprio `CI-1` na primeira execução. `templates/` e o contrato
+  gerado passam a ficar fora do formatador.
 - `living-docs --help` passa a listar `multi-team` entre os estágios de
   `--stage`; o CLI já o aceitava.
 - `living-docs init` passa a reconhecer `docs/decisoes-em-aberto.md` entre os

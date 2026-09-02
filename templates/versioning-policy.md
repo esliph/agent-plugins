@@ -1,10 +1,10 @@
 ---
 title: Política de versionamento
-owner: '{{OWNER}}'
+owner: "{{OWNER}}"
 trigger: >
   Mudança de interface pública; decisão de depreciar algo publicado; mudança
   na própria política.
-last-reviewed: { { TODAY } }
+last-reviewed: {{TODAY}}
 ---
 
 # Política de versionamento

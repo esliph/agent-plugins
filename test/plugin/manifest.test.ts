@@ -213,7 +213,9 @@ test('o manifesto de marketplace aponta para o plugin deste repositório', () =>
   const marketplace = readJson('.claude-plugin/marketplace.json')
   const plugins = marketplace.plugins as { name: string; source: string; version: string }[]
 
-  assert.equal(marketplace.name, 'living-docs')
+  // O marketplace identifica quem distribui; o plugin, o que se instala. Os dois
+  // com o mesmo nome davam `living-docs@living-docs` no comando de instalação.
+  assert.equal(marketplace.name, 'esliph')
   assert.equal(plugins.length, 1)
   assert.equal(plugins[0]?.name, 'living-docs')
   assert.equal(plugins[0]?.source, './plugin')

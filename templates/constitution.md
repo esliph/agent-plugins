@@ -1,9 +1,9 @@
 ---
 title: Constitution
-owner: '{{OWNER}}'
+owner: "{{OWNER}}"
 trigger: >
   Emenda deliberada — nunca como efeito colateral de outra tarefa.
-last-reviewed: { { TODAY } }
+last-reviewed: {{TODAY}}
 version: 1
 ---
 
@@ -11,7 +11,7 @@ version: 1
 
 > Semente criada por `living-docs init`. Cada princípio precisa ser testável
 > e nomear o que o verifica — formato `<princípio> — verificado por <hook |
-lint | teste | revisão | check>`. Princípio sem enforcement nomeado é
+> lint | teste | revisão | check>`. Princípio sem enforcement nomeado é
 > slogan; a skill `charter-keeper` recusa e pede a versão verificável.
 > Substitua o exemplo pelos princípios reais deste projeto.
 

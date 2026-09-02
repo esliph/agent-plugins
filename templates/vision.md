@@ -1,10 +1,10 @@
 ---
 title: Product Vision
-owner: '{{OWNER}}'
+owner: "{{OWNER}}"
 trigger: >
   Mudança de estratégia de produto — nunca como efeito colateral de outra
   tarefa.
-last-reviewed: { { TODAY } }
+last-reviewed: {{TODAY}}
 ---
 
 # Product Vision

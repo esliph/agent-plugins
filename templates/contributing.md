@@ -1,10 +1,10 @@
 ---
 title: Como se contribui aqui
-owner: '{{OWNER}}'
+owner: "{{OWNER}}"
 trigger: >
   Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
   errou por falta de contexto que caberia nesta página.
-last-reviewed: { { TODAY } }
+last-reviewed: {{TODAY}}
 ---
 
 # Como se contribui
@@ -25,14 +25,14 @@ last-reviewed: { { TODAY } }
 
 ## Onde a verdade mora
 
-| Pergunta                     | Artefato                             |
-| ---------------------------- | ------------------------------------ |
-| Qual é a regra de X          | `docs/requirements/`                 |
-| Por que foi feito assim      | `docs/decisions/adr/`                |
-| O que ainda não foi decidido | `docs/open-decisions.md`             |
-| O que se aceitou dever       | `docs/decisions/debt/`               |
-| Quem é dono de cada caminho  | `docs/.ownership.yml` e `CODEOWNERS` |
-| Quando está pronto           | `docs/definition-of-done.md`         |
+| Pergunta | Artefato |
+| --- | --- |
+| Qual é a regra de X | `docs/requirements/` |
+| Por que foi feito assim | `docs/decisions/adr/` |
+| O que ainda não foi decidido | `docs/open-decisions.md` |
+| O que se aceitou dever | `docs/decisions/debt/` |
+| Quem é dono de cada caminho | `docs/.ownership.yml` e `CODEOWNERS` |
+| Quando está pronto | `docs/definition-of-done.md` |
 
 Nenhuma dessas respostas é copiada para outro lugar.
 

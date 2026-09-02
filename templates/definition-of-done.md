@@ -1,10 +1,10 @@
 ---
 title: Definition of Done
-owner: '{{OWNER}}'
+owner: "{{OWNER}}"
 trigger: >
   Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
   de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
-last-reviewed: { { TODAY } }
+last-reviewed: {{TODAY}}
 ---
 
 # Definition of Done
