@@ -1,5 +1,5 @@
 {
-  "name": "living-docs",
+  "name": "esliph",
   "description": "Toolkit de documentação viva: ADR, decisões abertas, dívida registrada, requisitos com ID estável, contrato gerado e o enforcement que os mantém vivos.",
   "owner": {
     "name": "Dan Ruan",
