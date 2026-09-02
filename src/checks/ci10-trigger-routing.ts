@@ -1,20 +1,20 @@
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-import type { Check, CheckContext, Finding } from '../core/types.ts';
-import { normalizeProse } from '../docs/markdown.ts';
-import { parseFrontmatter } from '../frontmatter/parse.ts';
-import { toolkitRoot } from '../core/roots.ts';
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import type { Check, CheckContext, Finding } from '../core/types.ts'
+import { normalizeProse } from '../docs/markdown.ts'
+import { parseFrontmatter } from '../frontmatter/parse.ts'
+import { toolkitRoot } from '../core/roots.ts'
 
-const RULE = 'CI-10';
+const RULE = 'CI-10'
 
 /** Palavra curta não é raiz: "toda", "com" e "que" casariam com tudo (`ADR-0009`). */
-export const ROOT_FLOOR = 5;
+export const ROOT_FLOOR = 5
 
 /**
  * O truncamento é o que faz "alterada" encontrar "alterar" sem que o toolkit
  * aprenda português (`ADR-0013`).
  */
-export const ROOT_LENGTH = 6;
+export const ROOT_LENGTH = 6
 
 /**
  * Quantas raízes o `trigger` e a `description` precisam compartilhar
@@ -22,21 +22,22 @@ export const ROOT_LENGTH = 6;
  * calibrado: a correção de um falso positivo é um ADR novo, nunca uma exceção
  * local.
  */
-export const SHARED_ROOTS_FLOOR = 2;
+export const SHARED_ROOTS_FLOOR = 2
 
 export function rootsOf(text: string): Set<string> {
   return new Set(
     normalizeProse(text)
       .split(' ')
-      .filter((word) => word.length >= ROOT_FLOOR)
-      .map((word) => word.slice(0, ROOT_LENGTH)),
-  );
+      .filter(word => word.length >= ROOT_FLOOR)
+      .map(word => word.slice(0, ROOT_LENGTH)),
+  )
 }
 
 /** As raízes que os dois textos têm em comum, na ordem do primeiro. */
 export function sharedRoots(trigger: string, description: string): string[] {
-  const other = rootsOf(description);
-  return [...rootsOf(trigger)].filter((root) => other.has(root));
+  const other = rootsOf(description)
+
+  return [...rootsOf(trigger)].filter(root => other.has(root))
 }
 
 /**
@@ -47,50 +48,59 @@ export function sharedRoots(trigger: string, description: string): string[] {
  * mapa vazio vira aviso — nunca falha.
  */
 export function loadSkillDescriptions(root: string = toolkitRoot()): Map<string, string> {
-  const dir = join(root, 'plugin', 'skills');
-  const found = new Map<string, string>();
+  const dir = join(root, 'plugin', 'skills')
+  const found = new Map<string, string>()
 
-  let names: string[];
+  let names: string[]
+
   try {
-    names = readdirSync(dir);
+    names = readdirSync(dir)
   } catch {
-    return found;
+    return found
   }
 
   for (const name of names) {
-    let source: string;
+    let source: string
+
     try {
-      source = readFileSync(join(dir, name, 'SKILL.md'), 'utf8');
+      source = readFileSync(join(dir, name, 'SKILL.md'), 'utf8')
     } catch {
-      continue;
+      continue
     }
 
-    let description: unknown;
+    let description: unknown
+
     try {
-      description = parseFrontmatter(source)?.data.description;
+      description = parseFrontmatter(source)?.data.description
     } catch {
-      continue; // SKILL.md com frontmatter quebrado é achado de `authoring`, não daqui
+      continue // SKILL.md com frontmatter quebrado é achado de `authoring`, não daqui
     }
-    if (typeof description === 'string') found.set(name, description);
+    if (typeof description === 'string') {
+      found.set(name, description)
+    }
   }
 
-  return found;
+  return found
 }
 
 export interface RoutedDoc {
-  file: string;
-  line: number;
-  skill: string;
-  trigger: string;
+  file: string
+  line: number
+  skill: string
+  trigger: string
 }
 
 function triggerOf(frontmatter: { data: Record<string, unknown>; lines: Record<string, number> } | null): {
-  trigger: string;
-  line: number;
+  trigger: string
+  line: number
 } | null {
-  const value = frontmatter?.data.trigger;
-  if (typeof value !== 'string' || value.trim() === '') return null;
-  return { trigger: value, line: frontmatter?.lines.trigger ?? 1 };
+  const value = frontmatter?.data.trigger
+
+  if (typeof value !== 'string' || value.trim() === '') {
+    return null
+  }
+
+  return { trigger: value, line: frontmatter?.lines.trigger ?? 1 }
 }
 
 /**
@@ -102,23 +112,33 @@ function triggerOf(frontmatter: { data: Record<string, unknown>; lines: Record<s
  * `documents:` que declaram skill.
  */
 export function routedDocs(context: CheckContext): RoutedDoc[] {
-  const routed: RoutedDoc[] = [];
+  const routed: RoutedDoc[] = []
 
   for (const doc of context.docs) {
-    if (doc.rule.collection === 'per-file') continue;
-    const found = triggerOf(doc.frontmatter);
-    if (found === null) continue;
-    routed.push({ file: doc.file, line: found.line, skill: doc.rule.skill, trigger: found.trigger });
+    if (doc.rule.collection === 'per-file') {
+      continue
+    }
+    const found = triggerOf(doc.frontmatter)
+
+    if (found === null) {
+      continue
+    }
+    routed.push({ file: doc.file, line: found.line, skill: doc.rule.skill, trigger: found.trigger })
   }
 
   for (const document of context.documents) {
-    if (document.rule.skill === null) continue;
-    const found = triggerOf(document.frontmatter);
-    if (found === null) continue;
-    routed.push({ file: document.file, line: found.line, skill: document.rule.skill, trigger: found.trigger });
+    if (document.rule.skill === null) {
+      continue
+    }
+    const found = triggerOf(document.frontmatter)
+
+    if (found === null) {
+      continue
+    }
+    routed.push({ file: document.file, line: found.line, skill: document.rule.skill, trigger: found.trigger })
   }
 
-  return routed;
+  return routed
 }
 
 /**
@@ -133,17 +153,15 @@ export function routedDocs(context: CheckContext): RoutedDoc[] {
  * As descrições entram por injeção, como o executor em `CI-5` e o diff em
  * `CI-7`: o padrão lê a raiz do toolkit, e o teste passa um mapa.
  */
-export function ci10TriggerRouting(
-  descriptions: ReadonlyMap<string, string> = loadSkillDescriptions(),
-): Check {
+export function ci10TriggerRouting(descriptions: ReadonlyMap<string, string> = loadSkillDescriptions()): Check {
   return {
     id: RULE,
     name: 'trigger routing',
     run(context: CheckContext): Finding[] {
-      const findings: Finding[] = [];
+      const findings: Finding[] = []
 
       for (const routed of routedDocs(context)) {
-        const description = descriptions.get(routed.skill);
+        const description = descriptions.get(routed.skill)
 
         // Aviso, não falha: um projeto pode declarar skill própria, e reprovar
         // por isso seria exigir que todo dono fosse do plugin (`RN-0029`).
@@ -159,12 +177,15 @@ export function ci10TriggerRouting(
             fix:
               `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
               'confira o nome em `plugin/skills/` (`RN-0029`).',
-          });
-          continue;
+          })
+          continue
         }
 
-        const shared = sharedRoots(routed.trigger, description);
-        if (shared.length >= SHARED_ROOTS_FLOOR) continue;
+        const shared = sharedRoots(routed.trigger, description)
+
+        if (shared.length >= SHARED_ROOTS_FLOOR) {
+          continue
+        }
 
         findings.push({
           ruleId: RULE,
@@ -179,10 +200,10 @@ export function ci10TriggerRouting(
             'Reescreva um dos dois para nomear o mesmo evento — quem mantém o documento e quem roteia a skill ' +
             'precisam estar falando da mesma coisa, senão o documento declara um gatilho que nada dispara ' +
             `(\`RN-0029\`, \`ADR-0013\`; skill dona: ${routed.skill}).`,
-        });
+        })
       }
 
-      return findings;
+      return findings
     },
-  };
+  }
 }

@@ -1,12 +1,12 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import type { Check, CheckContext, Finding } from '../core/types.ts';
-import type { CommandRunner } from '../exec/command.ts';
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import type { Check, CheckContext, Finding } from '../core/types.ts'
+import type { CommandRunner } from '../exec/command.ts'
 
-const RULE = 'CI-5';
+const RULE = 'CI-5'
 
 function error(file: string, line: number, message: string, fix: string): Finding {
-  return { ruleId: RULE, file, line, severity: 'error', message, fix };
+  return { ruleId: RULE, file, line, severity: 'error', message, fix }
 }
 
 /**
@@ -15,25 +15,30 @@ function error(file: string, line: number, message: string, fix: string): Findin
  * Qualquer outra diferença é deriva de contrato (ADR-0005).
  */
 function normalize(source: string): string {
-  return source.replace(/\r\n/g, '\n').replace(/\n+$/, '\n');
+  return source.replace(/\r\n/g, '\n').replace(/\n+$/, '\n')
 }
 
 /** Primeira linha 1-indexed em que os dois textos divergem; 0 se não divergem. */
 export function firstDifferentLine(actual: string, expected: string): number {
-  const a = normalize(actual).split('\n');
-  const b = normalize(expected).split('\n');
-  const limit = Math.max(a.length, b.length);
+  const a = normalize(actual).split('\n')
+  const b = normalize(expected).split('\n')
+  const limit = Math.max(a.length, b.length)
+
   for (let i = 0; i < limit; i++) {
-    if (a[i] !== b[i]) return i + 1;
+    if (a[i] !== b[i]) {
+      return i + 1
+    }
   }
-  return 0;
+
+  return 0
 }
 
 /** A primeira linha útil do erro do gerador: stderr se houver, mensagem se não. */
 function reasonOf(err: unknown): string {
-  const stderr = (err as { stderr?: unknown }).stderr;
-  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err));
-  return text.split('\n')[0] ?? text;
+  const stderr = (err as { stderr?: unknown }).stderr
+  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
+
+  return text.split('\n')[0] ?? text
 }
 
 /**
@@ -46,12 +51,13 @@ export function ci5ContractDrift(exec: CommandRunner): Check {
     id: RULE,
     name: 'contract drift',
     run(context: CheckContext): Finding[] {
-      const findings: Finding[] = [];
+      const findings: Finding[] = []
 
       for (const rule of context.config.generated) {
-        let expected: string;
+        let expected: string
+
         try {
-          expected = exec(rule.command, context.root);
+          expected = exec(rule.command, context.root)
         } catch (err) {
           findings.push(
             error(
@@ -61,13 +67,14 @@ export function ci5ContractDrift(exec: CommandRunner): Check {
               'Um gerador que não roda deixa o contrato sem fonte. Conserte o comando declarado em ' +
                 '`generated[].command` no docs/.ownership.yml (skill dona: contract-keeper).',
             ),
-          );
-          continue;
+          )
+          continue
         }
 
-        let actual: string;
+        let actual: string
+
         try {
-          actual = readFileSync(join(context.root, rule.path), 'utf8');
+          actual = readFileSync(join(context.root, rule.path), 'utf8')
         } catch {
           findings.push(
             error(
@@ -76,25 +83,25 @@ export function ci5ContractDrift(exec: CommandRunner): Check {
               'Artefato gerado declarado em `generated[]` e ausente do repositório.',
               `Gere-o e versione o resultado: \`${rule.command} > ${rule.path}\` (spec §3).`,
             ),
-          );
-          continue;
+          )
+          continue
         }
 
-        const line = firstDifferentLine(actual, expected);
+        const line = firstDifferentLine(actual, expected)
+
         if (line !== 0) {
           findings.push(
             error(
               rule.path,
               line,
               'O artefato gerado diverge da saída do gerador — o contrato em disco não é o que a fonte produz.',
-              `Regenere: \`${rule.command} > ${rule.path}\`. Nunca edite o arquivo à mão ` +
-                '(`HK-2` bloqueia; regra de origem: spec §5, SK-5, regra 1).',
+              `Regenere: \`${rule.command} > ${rule.path}\`. Nunca edite o arquivo à mão ` + '(`HK-2` bloqueia; regra de origem: spec §5, SK-5, regra 1).',
             ),
-          );
+          )
         }
       }
 
-      return findings;
+      return findings
     },
-  };
+  }
 }

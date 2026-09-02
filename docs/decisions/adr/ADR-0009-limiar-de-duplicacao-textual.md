@@ -4,7 +4,7 @@ title: O limiar que distingue vocabulário compartilhado de conteúdo copiado
 status: accepted
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
 relates-to: [RN-0010]
 supersedes: null
@@ -82,4 +82,3 @@ concreto anexado — não uma exceção local dentro do check.
 O corpus depende de `skill:` estar declarado. Um documento que devesse estar no
 corpus e não declare skill fica fora, e a duplicata dele passa. É o preço de não
 ter uma segunda lista de "quem entra no corpus".
-

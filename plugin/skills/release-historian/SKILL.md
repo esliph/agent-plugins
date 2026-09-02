@@ -29,12 +29,12 @@ diz o que é visível ao consumidor neste projeto, e a regra de `watches` marcad
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
-| `CHANGELOG.md` | O que mudou, para quem consome | Arquivo único, Keep a Changelog, `Unreleased` no topo |
-| `docs/releases/` | A moldura de cada versão publicada | Um arquivo por versão, `REL-nnnn`, congelado depois de publicado |
-| `docs/deprecations.md` | O que foi anunciado para remoção | Arquivo único, tabela, mutável |
-| `docs/migrations/` | Como atravessar cada quebra | Um arquivo por migração |
+| Artefato               | O que é                            | Forma                                                            |
+| ---------------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| `CHANGELOG.md`         | O que mudou, para quem consome     | Arquivo único, Keep a Changelog, `Unreleased` no topo            |
+| `docs/releases/`       | A moldura de cada versão publicada | Um arquivo por versão, `REL-nnnn`, congelado depois de publicado |
+| `docs/deprecations.md` | O que foi anunciado para remoção   | Arquivo único, tabela, mutável                                   |
+| `docs/migrations/`     | Como atravessar cada quebra        | Um arquivo por migração                                          |
 
 As sementes estão em `templates/changelog.md`, `templates/release-note.md`,
 `templates/deprecations.md` e `templates/migration.md`. Não reproduza o
@@ -79,14 +79,14 @@ legível é humano.
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| A entrada de CHANGELOG e a subseção dela | Decidir o que é público (é `contract-keeper`) |
-| A release note e o congelamento dela | Promover para `published` (é humano) |
-| A tabela de depreciações | A política de versionamento (é `contract-keeper`) |
-| O guia de migração | O ADR que decidiu a quebra (é `decision-recorder`) |
-| Recusar depreciação incompleta | Bloquear a mudança que não tem entrada (`CI-6` falha, você não nega) |
-| Apontar `Changelog: none` como saída | Escrever a razão no lugar de quem decidiu |
+| É seu                                    | Não é seu                                                            |
+| ---------------------------------------- | -------------------------------------------------------------------- |
+| A entrada de CHANGELOG e a subseção dela | Decidir o que é público (é `contract-keeper`)                        |
+| A release note e o congelamento dela     | Promover para `published` (é humano)                                 |
+| A tabela de depreciações                 | A política de versionamento (é `contract-keeper`)                    |
+| O guia de migração                       | O ADR que decidiu a quebra (é `decision-recorder`)                   |
+| Recusar depreciação incompleta           | Bloquear a mudança que não tem entrada (`CI-6` falha, você não nega) |
+| Apontar `Changelog: none` como saída     | Escrever a razão no lugar de quem decidiu                            |
 
 ## Checklist
 

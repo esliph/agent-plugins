@@ -32,26 +32,24 @@ Valem para **toda** task; os requisitos de cada uma as incluem implicitamente.
 
 Não são surpresas: são efeitos previstos, e cada task diz o que esperar.
 
-1. **`CI-4` passa a reprovar entre a Task 5 e a Task 7.** O `pay-when` de `TDR-0002` é o padrão `bin/living-docs` nos caminhos `README.md`, `CONTRIBUTING.md`, `docs/definition-of-done.md` e `.github/workflows/**`. Quando a Task 6 escreve a prosa, o gatilho se cumpre e `node src/cli/index.ts validate` reprova com *"TDR-0002 está `open` e o gatilho de pagamento já aconteceu"*. É **esperado**, e é a Task 7 que o resolve. Nenhuma task anterior deve tentar silenciar isso.
+1. **`CI-4` passa a reprovar entre a Task 5 e a Task 7.** O `pay-when` de `TDR-0002` é o padrão `bin/living-docs` nos caminhos `README.md`, `CONTRIBUTING.md`, `docs/definition-of-done.md` e `.github/workflows/**`. Quando a Task 6 escreve a prosa, o gatilho se cumpre e `node src/cli/index.ts validate` reprova com _"TDR-0002 está `open` e o gatilho de pagamento já aconteceu"_. É **esperado**, e é a Task 7 que o resolve. Nenhuma task anterior deve tentar silenciar isso.
 2. **A branch inteira precisa terminar na Task 7** antes de ir para revisão. Uma branch entregue na Task 6 tem CI vermelho por construção.
 
 ### Uma divergência deliberada da spec, e por quê
 
-`M-6` diz, literalmente: *"Em `consumer-visible-paths`, `bin/dev` é somado a `bin/living-docs`"*. Isso não pode ser feito ao pé da letra, e o motivo já está travado num teste que existe hoje — `test/docs/release-history.test.ts`:
+`M-6` diz, literalmente: _"Em `consumer-visible-paths`, `bin/dev` é somado a `bin/living-docs`"_. Isso não pode ser feito ao pé da letra, e o motivo já está travado num teste que existe hoje — `test/docs/release-history.test.ts`:
 
 ```ts
 test('ADR-0006: as duas listas do mecanismo concordam, e um teste as impede de derivar', () => {
-  const gatilhos = new Set(config.consumerVisiblePaths);
-  const vigiados = new Set(
-    config.watches.filter((watch) => watch.consumerVisible).map((watch) => watch.code),
-  );
-  assert.deepEqual([...vigiados].sort(), [...gatilhos].sort(), '…');
-});
+  const gatilhos = new Set(config.consumerVisiblePaths)
+  const vigiados = new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code))
+  assert.deepEqual([...vigiados].sort(), [...gatilhos].sort(), '…')
+})
 ```
 
 As duas listas são comparadas por **igualdade textual de conjunto**. Se `watches` passa a `bin/**` (como `M-6` também manda) e `consumer-visible-paths` fica com `bin/living-docs` + `bin/dev`, o teste reprova.
 
-**O que este plano faz:** as duas listas ficam com `bin/**`. É a leitura que satisfaz o propósito de `M-6` e a redação de `M-8` (*"cobre `bin/dev`"* — cobertura, não igualdade literal), porque as duas listas são casadas por glob, com `picomatch`, tanto em `src/config/watches.ts` quanto em `src/checks/ci6-changelog-required.ts`. Verificado:
+**O que este plano faz:** as duas listas ficam com `bin/**`. É a leitura que satisfaz o propósito de `M-6` e a redação de `M-8` (_"cobre `bin/dev`"_ — cobertura, não igualdade literal), porque as duas listas são casadas por glob, com `picomatch`, tanto em `src/config/watches.ts` quanto em `src/checks/ci6-changelog-required.ts`. Verificado:
 
 ```
 picomatch('bin/**')('bin/dev')          → true
@@ -64,20 +62,20 @@ O efeito colateral é positivo e vale registrar: um wrapper futuro em `bin/` nas
 
 ## File Structure
 
-| Arquivo | Responsabilidade | Task |
-| --- | --- | --- |
-| `docs/requirements/non-functional.md` | `RNF-0006` nasce; `RNF-0002` ganha uma linha em *fora de escopo* | 1 |
-| `docs/decisions/adr/ADR-0016-caminho-de-execucao-conteinerizado-opcional.md` | A decisão, carregando `ADR-0015` em vez de supersedê-lo | 1 |
-| `bin/dev` | Wrapper genérico: garante o container, garante as dependências, repassa `"$@"` | 2 |
-| `bin/living-docs` | Delegação de uma linha para `bin/dev` — nenhuma lógica própria | 3 |
-| `test/plugin/wrapper-docker.test.ts` | Trava a delegação e a invariante da §2, no host, em todo PR | 2, 3, 4 |
-| `test/plugin/manifest.test.ts` | Passa a cobrir `bin/dev` na varredura de CRLF que já existe | 2 |
-| `docs/.ownership.yml` | `bin/**` vigiado nos dois lugares | 4 |
-| `.github/workflows/wrapper-docker.yml` | Exercita o caminho Docker quando alguém toca no que pode quebrá-lo | 5 |
-| `docs/charter/constitution.md` | Princípio 6 emendado; `version: 3` | 6 |
-| `README.md`, `CONTRIBUTING.md` | Os dois caminhos, host primeiro, Docker rotulado como opcional | 6 |
-| `CHANGELOG.md` | A entrada de `## [Unreleased]` | 6 |
-| `docs/decisions/debt/TDR-0002-wrapper-docker-orfao.md` | `status: paid` — a última coisa a mudar | 7 |
+| Arquivo                                                                      | Responsabilidade                                                               | Task    |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------- |
+| `docs/requirements/non-functional.md`                                        | `RNF-0006` nasce; `RNF-0002` ganha uma linha em _fora de escopo_               | 1       |
+| `docs/decisions/adr/ADR-0016-caminho-de-execucao-conteinerizado-opcional.md` | A decisão, carregando `ADR-0015` em vez de supersedê-lo                        | 1       |
+| `bin/dev`                                                                    | Wrapper genérico: garante o container, garante as dependências, repassa `"$@"` | 2       |
+| `bin/living-docs`                                                            | Delegação de uma linha para `bin/dev` — nenhuma lógica própria                 | 3       |
+| `test/plugin/wrapper-docker.test.ts`                                         | Trava a delegação e a invariante da §2, no host, em todo PR                    | 2, 3, 4 |
+| `test/plugin/manifest.test.ts`                                               | Passa a cobrir `bin/dev` na varredura de CRLF que já existe                    | 2       |
+| `docs/.ownership.yml`                                                        | `bin/**` vigiado nos dois lugares                                              | 4       |
+| `.github/workflows/wrapper-docker.yml`                                       | Exercita o caminho Docker quando alguém toca no que pode quebrá-lo             | 5       |
+| `docs/charter/constitution.md`                                               | Princípio 6 emendado; `version: 3`                                             | 6       |
+| `README.md`, `CONTRIBUTING.md`                                               | Os dois caminhos, host primeiro, Docker rotulado como opcional                 | 6       |
+| `CHANGELOG.md`                                                               | A entrada de `## [Unreleased]`                                                 | 6       |
+| `docs/decisions/debt/TDR-0002-wrapper-docker-orfao.md`                       | `status: paid` — a última coisa a mudar                                        | 7       |
 
 `docs/definition-of-done.md` **não muda**: o que o CI reproduz em todo PR é o host, e transformar o caminho Docker em critério de pronto criaria uma segunda barra que ninguém mede. `CODEOWNERS` **não muda**: ele espelha o campo `owner` dos artefatos de documentação, e `bin/**` é caminho vigiado, não artefato.
 
@@ -88,10 +86,12 @@ O efeito colateral é positivo e vale registrar: um wrapper futuro em `bin/` nas
 A regra vem antes do código (`CLAUDE.md`). Nada nesta task toca `bin/`.
 
 **Files:**
-- Modify: `docs/requirements/non-functional.md` (acrescenta `RNF-0006` ao fim; edita a linha *fora de escopo* de `RNF-0002`)
+
+- Modify: `docs/requirements/non-functional.md` (acrescenta `RNF-0006` ao fim; edita a linha _fora de escopo_ de `RNF-0002`)
 - Create: `docs/decisions/adr/ADR-0016-caminho-de-execucao-conteinerizado-opcional.md`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces: os IDs `RNF-0006` e `ADR-0016`, citados por todas as tasks seguintes — nos testes (Task 2–4), nos comentários dos scripts (Task 2–3), no workflow (Task 5) e no charter (Task 6).
 
@@ -100,6 +100,7 @@ A regra vem antes do código (`CLAUDE.md`). Nada nesta task toca `bin/`.
 Nenhum ID é reciclado. `docs/ids-retired.txt` é a lista de retirados, e o maior ADR existente é o `0015`.
 
 Run:
+
 ```bash
 cat docs/ids-retired.txt
 ls docs/decisions/adr/
@@ -129,7 +130,7 @@ O caminho de registro continua sendo o host (`RNF-0002`): é ele que o CI
 reproduz em todo PR e é ele que a Definition of Done mede.
 ```
 
-- [ ] **Step 3: Emendar a linha *fora de escopo* de `RNF-0002`**
+- [ ] **Step 3: Emendar a linha _fora de escopo_ de `RNF-0002`**
 
 Em `docs/requirements/non-functional.md`, dentro da seção `## RNF-0002 …`, substitua **exatamente** esta linha:
 
@@ -143,7 +144,7 @@ por:
 - **fora de escopo:** o `git`; o caminho conteinerizado opcional de `RNF-0006`, que é alternativa e não exigência; e como o toolkit chega ao repositório de quem o consome (`DA-0003`)
 ```
 
-O enunciado de `RNF-0002` **não é reescrito** e não muda de sentido: a palavra que carrega a frase continua sendo *exigido*.
+O enunciado de `RNF-0002` **não é reescrito** e não muda de sentido: a palavra que carrega a frase continua sendo _exigido_.
 
 - [ ] **Step 4: Escrever `docs/decisions/adr/ADR-0016-caminho-de-execucao-conteinerizado-opcional.md`**
 
@@ -156,7 +157,7 @@ title: Caminho de execução conteinerizado opcional, paridade por delegação
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-09-01
 relates-to: [ADR-0015, ADR-0003, RNF-0006]
 supersedes: null
@@ -254,6 +255,7 @@ que alguém tocar naquela lista.
 - [ ] **Step 5: Rodar os testes e a validação**
 
 Run:
+
 ```bash
 npm test
 npm run typecheck
@@ -281,11 +283,13 @@ Claude-Session: https://claude.ai/code/session_01J9EWhngovR8oYumsGik53a"
 ## Task 2: `bin/dev` — o wrapper genérico
 
 **Files:**
+
 - Create: `bin/dev`
 - Create: `test/plugin/wrapper-docker.test.ts`
 - Modify: `test/plugin/manifest.test.ts:147` (a varredura de CRLF passa a cobrir `bin/dev`)
 
 **Interfaces:**
+
 - Consumes: `RNF-0006` e `ADR-0016` (Task 1), citados nos comentários e nos testes.
 - Produces: o contrato de `bin/dev` — `bin/dev <comando> [args…]` executa `<comando>` dentro do container com working dir `/opt/living-docs`, e `bin/dev` sem argumentos abre `bash` interativo. O código de saída do comando é o código de saída do wrapper. A variável de ambiente `LIVING_DOCS_CONTAINER` escolhe o container, com `esliph-living-docs` como padrão. A Task 3 depende deste contrato.
 
@@ -294,17 +298,17 @@ Claude-Session: https://claude.ai/code/session_01J9EWhngovR8oYumsGik53a"
 Crie `test/plugin/wrapper-docker.test.ts`. Nesta task ele nasce com **dois** testes; o terceiro chega na Task 4.
 
 ```ts
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { toolkitRoot } from '../../src/core/roots.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { toolkitRoot } from '../../src/core/roots.ts'
 
-const ROOT = toolkitRoot();
+const ROOT = toolkitRoot()
 
 function source(relative: string): string {
-  return readFileSync(join(ROOT, relative), 'utf8');
+  return readFileSync(join(ROOT, relative), 'utf8')
 }
 
 /**
@@ -313,43 +317,31 @@ function source(relative: string): string {
  * versionado. Mesma escolha de `test/plugin/manifest.test.ts`.
  */
 function gitMode(relative: string): string {
-  const entry = execFileSync('git', ['ls-files', '-s', '--', relative], { cwd: ROOT, encoding: 'utf8' });
-  return entry.split(/\s+/)[0] ?? '';
+  const entry = execFileSync('git', ['ls-files', '-s', '--', relative], { cwd: ROOT, encoding: 'utf8' })
+  return entry.split(/\s+/)[0] ?? ''
 }
 
 test('RNF-0006: bin/dev é executável e não enumera comando nenhum', () => {
-  assert.equal(gitMode('bin/dev'), '100755', 'bin/dev precisa estar versionado como executável');
+  assert.equal(gitMode('bin/dev'), '100755', 'bin/dev precisa estar versionado como executável')
 
-  const wrapper = source('bin/dev');
+  const wrapper = source('bin/dev')
 
-  assert.match(wrapper, /"\$@"/, 'o wrapper repassa os argumentos que recebeu');
-  assert.match(wrapper, /exec\s+docker\s+exec/, 'o comando substitui o wrapper — é assim que o código de saída é o do comando');
+  assert.match(wrapper, /"\$@"/, 'o wrapper repassa os argumentos que recebeu')
+  assert.match(wrapper, /exec\s+docker\s+exec/, 'o comando substitui o wrapper — é assim que o código de saída é o do comando')
 
   // A invariante da spec §2, verificada em vez de prometida: uma tabela de
   // subcomandos é exatamente o que não pode existir aqui, porque é ela que
   // divergiria da lista do host.
-  assert.doesNotMatch(wrapper, /\bcase\s+"?\$\{?[1@]/, 'tabela de subcomandos: a lista que diverge do host começa assim');
-  assert.doesNotMatch(
-    wrapper,
-    /src\/cli\/index\.ts/,
-    'bin/dev não conhece o CLI — quem o conhece é bin/living-docs',
-  );
-});
+  assert.doesNotMatch(wrapper, /\bcase\s+"?\$\{?[1@]/, 'tabela de subcomandos: a lista que diverge do host começa assim')
+  assert.doesNotMatch(wrapper, /src\/cli\/index\.ts/, 'bin/dev não conhece o CLI — quem o conhece é bin/living-docs')
+})
 
 test('RNF-0006: bin/dev deriva a raiz do próprio caminho e respeita LIVING_DOCS_CONTAINER', () => {
-  const wrapper = source('bin/dev');
+  const wrapper = source('bin/dev')
 
-  assert.match(
-    wrapper,
-    /LIVING_DOCS_CONTAINER:-esliph-living-docs/,
-    'o nome do container vem do ambiente, com o padrão que bin/living-docs já publica',
-  );
-  assert.match(
-    wrapper,
-    /BASH_SOURCE\[0\]/,
-    'a raiz do repositório sai do caminho do próprio script (ADR-0003), nunca do diretório de trabalho',
-  );
-});
+  assert.match(wrapper, /LIVING_DOCS_CONTAINER:-esliph-living-docs/, 'o nome do container vem do ambiente, com o padrão que bin/living-docs já publica')
+  assert.match(wrapper, /BASH_SOURCE\[0\]/, 'a raiz do repositório sai do caminho do próprio script (ADR-0003), nunca do diretório de trabalho')
+})
 ```
 
 - [ ] **Step 2: Rodar os testes para vê-los falhar**
@@ -419,6 +411,7 @@ exec docker exec -i ${TTY[@]+"${TTY[@]}"} -w /opt/living-docs "$CONTAINER" \
 O teste lê o modo versionado, não o do sistema de arquivos. Num checkout Windows, escrever o arquivo não basta.
 
 Run:
+
 ```bash
 git add bin/dev
 git update-index --chmod=+x bin/dev
@@ -444,6 +437,7 @@ por:
 - [ ] **Step 6: Rodar os testes para vê-los passar**
 
 Run:
+
 ```bash
 node --test "test/plugin/wrapper-docker.test.ts" "test/plugin/manifest.test.ts"
 npm test
@@ -469,10 +463,12 @@ Claude-Session: https://claude.ai/code/session_01J9EWhngovR8oYumsGik53a"
 É por conserto, não por remoção, que `TDR-0002` será pago: o wrapper deixa de exigir container previamente subido, deixa de sair com código 2, e volta a ser invocável.
 
 **Files:**
+
 - Modify: `bin/living-docs` (o arquivo inteiro é substituído)
 - Modify: `test/plugin/wrapper-docker.test.ts` (acrescenta o teste da delegação)
 
 **Interfaces:**
+
 - Consumes: o contrato de `bin/dev` da Task 2 — `bin/dev <comando> [args…]` executa dentro do container, com working dir `/opt/living-docs`.
 - Produces: `bin/living-docs [args…]` roda `node src/cli/index.ts [args…]` dentro do container. O contrato público não muda; muda o que acontece quando o container não está de pé.
 
@@ -482,26 +478,22 @@ Acrescente ao fim de `test/plugin/wrapper-docker.test.ts`:
 
 ```ts
 test('RNF-0006: bin/living-docs delega a bin/dev, sem lógica de container própria', () => {
-  assert.equal(gitMode('bin/living-docs'), '100755', 'bin/living-docs precisa continuar executável');
+  assert.equal(gitMode('bin/living-docs'), '100755', 'bin/living-docs precisa continuar executável')
 
-  const wrapper = source('bin/living-docs');
+  const wrapper = source('bin/living-docs')
 
-  assert.match(wrapper, /\/dev\b/, 'o wrapper do CLI invoca bin/dev');
-  assert.match(wrapper, /node\s+src\/cli\/index\.ts/, 'e é ele, não bin/dev, que conhece o CLI');
+  assert.match(wrapper, /\/dev\b/, 'o wrapper do CLI invoca bin/dev')
+  assert.match(wrapper, /node\s+src\/cli\/index\.ts/, 'e é ele, não bin/dev, que conhece o CLI')
 
   // O teste que impede a duplicação de lógica voltar: toda conversa com o
   // daemon mora em bin/dev, e um segundo lugar que a tenha é um segundo lugar
   // para divergir.
-  assert.doesNotMatch(
-    wrapper,
-    /docker\s+(exec|inspect|compose)/,
-    'lógica de container duplicada — ela pertence a bin/dev (ADR-0016)',
-  );
+  assert.doesNotMatch(wrapper, /docker\s+(exec|inspect|compose)/, 'lógica de container duplicada — ela pertence a bin/dev (ADR-0016)')
 
   // O modo de falha que TDR-0002 descreveu: sair 2 porque o container não está
   // de pé. bin/dev sobe o container; ninguém mais precisa recusar-se a rodar.
-  assert.doesNotMatch(wrapper, /exit\s+2\b/, 'o container ausente deixou de ser modo de falha (E-2)');
-});
+  assert.doesNotMatch(wrapper, /exit\s+2\b/, 'o container ausente deixou de ser modo de falha (E-2)')
+})
 ```
 
 - [ ] **Step 2: Rodar o teste para vê-lo falhar**
@@ -530,6 +522,7 @@ Sem `set -euo pipefail`: a linha é um `exec`, e não há nada depois dele para 
 - [ ] **Step 4: Rodar os testes para vê-los passar**
 
 Run:
+
 ```bash
 node --test "test/plugin/wrapper-docker.test.ts"
 npm test
@@ -559,49 +552,48 @@ Claude-Session: https://claude.ai/code/session_01J9EWhngovR8oYumsGik53a"
 ## Task 4: O mapa de propriedade
 
 **Files:**
+
 - Modify: `docs/.ownership.yml:193` (a regra de `watches`) e `:204` (a lista `consumer-visible-paths`)
 - Modify: `test/plugin/wrapper-docker.test.ts` (o terceiro teste)
 
 **Interfaces:**
+
 - Consumes: `bin/dev` (Task 2) e `bin/living-docs` (Task 3), que precisam existir para a cobertura significar alguma coisa.
 - Produces: `bin/**` vigiado nos dois lugares — o que faz `HK-4`, `HK-5`, `CI-6` e `CI-7` cobrarem `CHANGELOG.md` de qualquer mudança em `bin/`. A Task 6 depende disso: é essa regra que exige a entrada de `## [Unreleased]`.
 
-**Leia antes:** a seção *"Uma divergência deliberada da spec, e por quê"*, no topo deste plano. As duas listas vão para `bin/**`, não para `bin/living-docs` + `bin/dev`.
+**Leia antes:** a seção _"Uma divergência deliberada da spec, e por quê"_, no topo deste plano. As duas listas vão para `bin/**`, não para `bin/living-docs` + `bin/dev`.
 
 - [ ] **Step 1: Escrever o teste de cobertura**
 
 Acrescente ao fim de `test/plugin/wrapper-docker.test.ts`. Note os imports novos no topo do arquivo — acrescente-os junto:
 
 ```ts
-import picomatch from 'picomatch';
-import { loadOwnership } from '../../src/config/ownership.ts';
-import { watchesFor } from '../../src/config/watches.ts';
+import picomatch from 'picomatch'
+import { loadOwnership } from '../../src/config/ownership.ts'
+import { watchesFor } from '../../src/config/watches.ts'
 ```
 
 E o teste:
 
 ```ts
 test('RNF-0006: docs/.ownership.yml cobre bin/dev em watches e em consumer-visible-paths', () => {
-  const config = loadOwnership(ROOT);
+  const config = loadOwnership(ROOT)
 
   // Mecanismo 1: quem toca bin/dev leva o doc dono no mesmo commit.
-  const matches = watchesFor(config, ['bin/dev']);
+  const matches = watchesFor(config, ['bin/dev'])
   assert.deepEqual(
-    matches.map((match) => match.doc),
+    matches.map(match => match.doc),
     ['CHANGELOG.md'],
     'bin/dev é ponto de entrada público e precisa de doc dono declarado',
-  );
-  assert.equal(matches[0]?.consumerVisible, true, 'a mudança é visível a quem consome (CI-6)');
+  )
+  assert.equal(matches[0]?.consumerVisible, true, 'a mudança é visível a quem consome (CI-6)')
 
   // A mesma cobertura pelo lado de CI-6, que lê a lista de globs.
-  assert.ok(
-    picomatch(config.consumerVisiblePaths)('bin/dev'),
-    'bin/dev fora de consumer-visible-paths: CI-6 não cobraria a entrada de CHANGELOG',
-  );
+  assert.ok(picomatch(config.consumerVisiblePaths)('bin/dev'), 'bin/dev fora de consumer-visible-paths: CI-6 não cobraria a entrada de CHANGELOG')
 
   // E o wrapper que já existia não pode ter sido descoberto no caminho.
-  assert.ok(picomatch(config.consumerVisiblePaths)('bin/living-docs'));
-});
+  assert.ok(picomatch(config.consumerVisiblePaths)('bin/living-docs'))
+})
 ```
 
 - [ ] **Step 2: Rodar o teste para vê-lo falhar**
@@ -615,19 +607,19 @@ Expected: FAIL em `RNF-0006: docs/.ownership.yml cobre bin/dev …`, com `Assert
 Em `docs/.ownership.yml`, substitua **exatamente** este bloco:
 
 ```yaml
-  - code: "bin/living-docs"
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: "o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa"
+- code: 'bin/living-docs'
+  doc: CHANGELOG.md
+  consumer-visible: true
+  reason: 'o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa'
 ```
 
 por:
 
 ```yaml
-  - code: "bin/**"
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: "o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa"
+- code: 'bin/**'
+  doc: CHANGELOG.md
+  consumer-visible: true
+  reason: 'o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa'
 ```
 
 A `reason` não muda: o motivo escrito ali vale igual para `bin/dev`.
@@ -637,13 +629,13 @@ A `reason` não muda: o motivo escrito ali vale igual para `bin/dev`.
 No mesmo arquivo, na lista `consumer-visible-paths`, substitua **exatamente**:
 
 ```yaml
-  - "bin/living-docs"
+- 'bin/living-docs'
 ```
 
 por:
 
 ```yaml
-  - "bin/**"
+- 'bin/**'
 ```
 
 As duas listas precisam ser o mesmo conjunto, palavra por palavra: `test/docs/release-history.test.ts` compara `consumer-visible-paths` com os `code` das regras marcadas `consumer-visible: true` por igualdade de conjunto, e é esse teste que as impede de derivar.
@@ -651,6 +643,7 @@ As duas listas precisam ser o mesmo conjunto, palavra por palavra: `test/docs/re
 - [ ] **Step 5: Rodar os testes para vê-los passar**
 
 Run:
+
 ```bash
 node --test "test/plugin/wrapper-docker.test.ts" "test/docs/release-history.test.ts" "test/config/ownership.test.ts"
 npm test
@@ -677,9 +670,11 @@ Claude-Session: https://claude.ai/code/session_01J9EWhngovR8oYumsGik53a"
 Os testes das tasks 2 a 4 cobrem a **estrutura**, no host, em todo PR. Este workflow cobre a **execução**, e só quando ela pode ter quebrado. Os dois se completam.
 
 **Files:**
+
 - Create: `.github/workflows/wrapper-docker.yml`
 
 **Interfaces:**
+
 - Consumes: `bin/dev` (Task 2) e o contrato dele — working dir `/opt/living-docs`, `LIVING_DOCS_REPO_ROOT=/workspace` vindo do `compose.yaml`.
 - Produces: nada que outra task consuma. Mas cumpre metade do gatilho de pagamento de `TDR-0002` (`.github/workflows/**` é um dos caminhos do `pay-when`) — o que a Task 7 fecha.
 
@@ -736,6 +731,7 @@ Se o âncora YAML (`&wrapper-paths` / `*wrapper-paths`) for recusado pelo parser
 - [ ] **Step 2: Conferir que o workflow é YAML válido e que a lista de caminhos casa**
 
 Run:
+
 ```bash
 node -e "const {parse}=require('yaml');const {readFileSync}=require('fs');const w=parse(readFileSync('.github/workflows/wrapper-docker.yml','utf8'));console.log(JSON.stringify(w.on,null,2));console.log(w.jobs.wrapper.steps.map(s=>s.run??s.uses));"
 ```
@@ -745,6 +741,7 @@ Expected: `on.push.paths` e `on.pull_request.paths` saem com as mesmas seis entr
 - [ ] **Step 3: Rodar os testes e a validação**
 
 Run:
+
 ```bash
 npm test
 npm run typecheck
@@ -768,12 +765,14 @@ Claude-Session: https://claude.ai/code/session_01J9EWhngovR8oYumsGik53a"
 ## Task 6: O charter, a prosa e o `CHANGELOG`
 
 **Files:**
+
 - Modify: `docs/charter/constitution.md` (princípio 6, `version: 3`, log de emendas)
 - Modify: `CONTRIBUTING.md` (bloco irmão sob `## O ambiente`)
 - Modify: `README.md` (bloco irmão sob `## Desenvolvimento`)
 - Modify: `CHANGELOG.md` (`## [Unreleased]`: uma entrada em `### Added`, uma em `### Changed`, e a correção de uma entrada que esta mudança tornou falsa)
 
 **Interfaces:**
+
 - Consumes: `bin/dev` e `bin/living-docs` (Tasks 2–3), `RNF-0006` e `ADR-0016` (Task 1), e a regra `bin/**` de `watches` (Task 4), que é quem exige a entrada de `CHANGELOG.md`.
 - Produces: o gatilho de pagamento de `TDR-0002` cumprido — o padrão `bin/living-docs` passa a aparecer em `README.md` e `CONTRIBUTING.md`. A Task 7 depende disso.
 
@@ -821,7 +820,7 @@ Ao fim de `## Log de emendas`, acrescente:
 
 - [ ] **Step 3: Acrescentar o bloco irmão a `CONTRIBUTING.md`**
 
-Em `CONTRIBUTING.md`, na seção `## O ambiente`, **abaixo** do parágrafo que termina em *"não é o ambiente que está errado."* e **acima** de `## O ciclo`, acrescente:
+Em `CONTRIBUTING.md`, na seção `## O ambiente`, **abaixo** do parágrafo que termina em _"não é o ambiente que está errado."_ e **acima** de `## O ciclo`, acrescente:
 
 ````markdown
 ### Opcional: rodar pelo container
@@ -850,7 +849,7 @@ já declarou.
 
 - [ ] **Step 4: Acrescentar o bloco irmão a `README.md`**
 
-Em `README.md`, na seção `## Desenvolvimento`, **abaixo** da linha *"Para contribuir, veja `CONTRIBUTING.md`."*, acrescente:
+Em `README.md`, na seção `## Desenvolvimento`, **abaixo** da linha _"Para contribuir, veja `CONTRIBUTING.md`."_, acrescente:
 
 ````markdown
 ### Opcional: sem Node no host
@@ -893,20 +892,20 @@ Ao fim de `### Changed`, acrescente:
 
 - [ ] **Step 6: Corrigir a entrada de `### Changed` que esta mudança tornou falsa**
 
-Ainda em `## [Unreleased]`, na entrada que começa por *"O toolkit passa a rodar no Node do host"*, substitua **exatamente** este trecho:
+Ainda em `## [Unreleased]`, na entrada que começa por _"O toolkit passa a rodar no Node do host"_, substitua **exatamente** este trecho:
 
 ```markdown
-  container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
-  continuam no repositório, mas nada mais os invoca — registrado em `ADR-0015` e
-  `TDR-0002`.
+container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
+continuam no repositório, mas nada mais os invoca — registrado em `ADR-0015` e
+`TDR-0002`.
 ```
 
 por:
 
 ```markdown
-  container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
-  continuam no repositório, agora como o caminho de execução opcional descrito
-  acima — registrado em `ADR-0015` e `ADR-0016`.
+container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
+continuam no repositório, agora como o caminho de execução opcional descrito
+acima — registrado em `ADR-0015` e `ADR-0016`.
 ```
 
 A entrada ainda está em `## [Unreleased]`, então corrigi-la não é reescrever história publicada: é impedir que a mesma release afirme duas coisas contraditórias sobre o mesmo arquivo.
@@ -914,6 +913,7 @@ A entrada ainda está em `## [Unreleased]`, então corrigi-la não é reescrever
 - [ ] **Step 7: Rodar os testes e a validação, e confirmar o achado esperado**
 
 Run:
+
 ```bash
 npm test
 npm run typecheck
@@ -947,15 +947,17 @@ Claude-Session: https://claude.ai/code/session_01J9EWhngovR8oYumsGik53a"
 **Esta é a última mudança, e é deliberadamente a última.** Marcar a dívida como paga antes de o wrapper funcionar seria registrar como fato algo que ainda não é.
 
 **Files:**
+
 - Modify: `docs/decisions/debt/TDR-0002-wrapper-docker-orfao.md` (só o frontmatter)
 
 **Interfaces:**
+
 - Consumes: tudo. O wrapper funciona (Tasks 2–3), é ensinado (Task 6) e é executado por um workflow (Task 5).
 - Produces: `validate` limpo — o estado em que a branch pode ir para revisão.
 
 - [ ] **Step 1: Parar e pedir a confirmação humana**
 
-`paid` é estado congelado (`FROZEN_STATUSES` em `src/docs/schema.ts`), e `CLAUDE.md` é explícito: *"Você não aceita decisão. Skill escreve `draft`/`open`; promover é ato humano."*
+`paid` é estado congelado (`FROZEN_STATUSES` em `src/docs/schema.ts`), e `CLAUDE.md` é explícito: _"Você não aceita decisão. Skill escreve `draft`/`open`; promover é ato humano."_
 
 Se você é um agente executando este plano, **pare aqui** e pergunte, em texto, algo com este conteúdo:
 
@@ -988,6 +990,7 @@ Os campos `relates-to` também não mudam: `[ADR-0015, RNF-0002]` descreve o con
 - [ ] **Step 3: Rodar tudo e confirmar que o achado sumiu**
 
 Run:
+
 ```bash
 npm test
 npm run typecheck

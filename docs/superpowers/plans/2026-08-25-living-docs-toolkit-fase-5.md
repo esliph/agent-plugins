@@ -160,7 +160,7 @@ title: O gerador imprime na saída padrão, e CI-5 roda num subcomando próprio
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25
 relates-to: [RF-0006, RN-0012]
 supersedes: null
@@ -355,9 +355,9 @@ gerador.
   `toRepoPath` (`src/hooks/lib/paths.ts`); `denyOutput`, `emit`, `hookEnv`,
   `readPayload`, `HookEnv`, `HookPayload` (`src/hooks/lib/io.ts`).
 - Produz:
-    - `export type Hk2Decision = { action: 'allow' } | { action: 'deny'; reason: string }`
-    - `export function decideHk2(payload: HookPayload, env: HookEnv): Hk2Decision`
-    - `export function findGeneratedRule(rules: readonly GeneratedRule[], repoPath: string): GeneratedRule | null`
+  - `export type Hk2Decision = { action: 'allow' } | { action: 'deny'; reason: string }`
+  - `export function decideHk2(payload: HookPayload, env: HookEnv): Hk2Decision`
+  - `export function findGeneratedRule(rules: readonly GeneratedRule[], repoPath: string): GeneratedRule | null`
 
 **Requisitos:**
 
@@ -386,10 +386,8 @@ import type { HookEnv } from '../../src/hooks/lib/io.ts'
 import type { Hk2Decision } from '../../src/hooks/hk2-generated-artifact.ts'
 
 /** Narrowing tipado: sem isto, `decision.reason` não existe para o TypeScript. */
-function assertDeny(
-    decision: Hk2Decision
-): asserts decision is { action: 'deny'; reason: string } {
-    assert.equal(decision.action, 'deny')
+function assertDeny(decision: Hk2Decision): asserts decision is { action: 'deny'; reason: string } {
+  assert.equal(decision.action, 'deny')
 }
 
 const CONFIG = `
@@ -406,136 +404,97 @@ generated:
 
 const GENERATED = 'docs/contracts/openapi.gen.yaml'
 
-function decide(
-    files: Record<string, string>,
-    toolInput: Record<string, unknown>
-): Hk2Decision {
-    let decision: Hk2Decision = { action: 'allow' }
-    withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
-        const env: HookEnv = { root, hostRoots: [root] }
-        decision = decideHk2({ tool_name: 'Edit', tool_input: toolInput }, env)
-    })
-    return decision
+function decide(files: Record<string, string>, toolInput: Record<string, unknown>): Hk2Decision {
+  let decision: Hk2Decision = { action: 'allow' }
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
+    const env: HookEnv = { root, hostRoots: [root] }
+    decision = decideHk2({ tool_name: 'Edit', tool_input: toolInput }, env)
+  })
+  return decision
 }
 
 test('RN-0012: nega editar artefato declarado em generated[] — critério de aceite 6', () => {
-    const decision = decide(
-        { [GENERATED]: 'openapi: 3.1.0\n' },
-        { file_path: GENERATED, old_string: '3.1.0', new_string: '3.0.0' }
-    )
-    assertDeny(decision)
-    assert.match(
-        decision.reason,
-        /node tools\/gen-openapi\.js/,
-        'a mensagem precisa nomear o comando do gerador'
-    )
-    assert.match(
-        decision.reason,
-        /contract-keeper/,
-        'a mensagem precisa nomear a skill dona'
-    )
-    assert.match(decision.reason, /openapi\.gen\.yaml/)
+  const decision = decide({ [GENERATED]: 'openapi: 3.1.0\n' }, { file_path: GENERATED, old_string: '3.1.0', new_string: '3.0.0' })
+  assertDeny(decision)
+  assert.match(decision.reason, /node tools\/gen-openapi\.js/, 'a mensagem precisa nomear o comando do gerador')
+  assert.match(decision.reason, /contract-keeper/, 'a mensagem precisa nomear a skill dona')
+  assert.match(decision.reason, /openapi\.gen\.yaml/)
 })
 
 test('RN-0012: nega criar à mão o artefato gerado que ainda não existe', () => {
-    const decision = decide(
-        {},
-        { file_path: GENERATED, content: 'openapi: 3.1.0\n' }
-    )
-    assertDeny(decision)
+  const decision = decide({}, { file_path: GENERATED, content: 'openapi: 3.1.0\n' })
+  assertDeny(decision)
 })
 
 test('RN-0012: o marcador vale sozinho — arquivo não declarado, mas autodeclarado gerado', () => {
-    const file = 'docs/contracts/errors.gen.md'
-    const decision = decide(
-        { [file]: '<!-- generated: do not edit -->\n\n# Erros\n' },
-        { file_path: file, old_string: '# Erros', new_string: '# Erros!' }
-    )
-    assertDeny(decision)
-    assert.match(
-        decision.reason,
-        /generated\[\]/,
-        'a mensagem precisa pedir a declaração que falta'
-    )
+  const file = 'docs/contracts/errors.gen.md'
+  const decision = decide({ [file]: '<!-- generated: do not edit -->\n\n# Erros\n' }, { file_path: file, old_string: '# Erros', new_string: '# Erros!' })
+  assertDeny(decision)
+  assert.match(decision.reason, /generated\[\]/, 'a mensagem precisa pedir a declaração que falta')
 })
 
 test('o marcador só conta no topo do arquivo — prosa sobre o assunto não congela um doc', () => {
-    const file = 'docs/requirements/rules.md'
-    const corpo = `${'linha de prosa\n'.repeat(400)}o marcador \`generated: do not edit\` é da spec §2\n`
-    const decision = decide(
-        { [file]: corpo },
-        { file_path: file, content: 'outra coisa' }
-    )
-    assert.equal(decision.action, 'allow')
+  const file = 'docs/requirements/rules.md'
+  const corpo = `${'linha de prosa\n'.repeat(400)}o marcador \`generated: do not edit\` é da spec §2\n`
+  const decision = decide({ [file]: corpo }, { file_path: file, content: 'outra coisa' })
+  assert.equal(decision.action, 'allow')
 })
 
 test('caminho comum passa — HK-2 só conhece o que é gerado', () => {
-    assert.equal(
-        decide(
-            { 'src/index.ts': 'x' },
-            { file_path: 'src/index.ts', content: 'y' }
-        ).action,
-        'allow'
-    )
+  assert.equal(decide({ 'src/index.ts': 'x' }, { file_path: 'src/index.ts', content: 'y' }).action, 'allow')
 })
 
 test('RNF-0001: falha aberta — .ownership.yml ilegível permite', () => {
-    let decision: Hk2Decision = { action: 'deny', reason: 'não deveria' }
-    withTempRepo({ [GENERATED]: 'openapi: 3.1.0\n' }, root => {
-        decision = decideHk2(
-            {
-                tool_name: 'Write',
-                tool_input: { file_path: GENERATED, content: 'x' }
-            },
-            { root, hostRoots: [root] }
-        )
-    })
-    assert.equal(decision.action, 'allow')
+  let decision: Hk2Decision = { action: 'deny', reason: 'não deveria' }
+  withTempRepo({ [GENERATED]: 'openapi: 3.1.0\n' }, root => {
+    decision = decideHk2(
+      {
+        tool_name: 'Write',
+        tool_input: { file_path: GENERATED, content: 'x' },
+      },
+      { root, hostRoots: [root] },
+    )
+  })
+  assert.equal(decision.action, 'allow')
 })
 
 test('payload sem file_path permite', () => {
-    assert.equal(decide({ [GENERATED]: 'x' }, { content: 'y' }).action, 'allow')
+  assert.equal(decide({ [GENERATED]: 'x' }, { content: 'y' }).action, 'allow')
 })
 
 test('aceita file_path absoluto do host', () => {
-    let decision: Hk2Decision = { action: 'allow' }
-    withTempRepo(
-        { [OWNERSHIP_PATH]: CONFIG, [GENERATED]: 'openapi: 3.1.0\n' },
-        root => {
-            decision = decideHk2(
-                {
-                    tool_name: 'Write',
-                    tool_input: {
-                        file_path: `${root}/${GENERATED}`,
-                        content: 'x'
-                    }
-                },
-                { root, hostRoots: [root] }
-            )
-        }
+  let decision: Hk2Decision = { action: 'allow' }
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [GENERATED]: 'openapi: 3.1.0\n' }, root => {
+    decision = decideHk2(
+      {
+        tool_name: 'Write',
+        tool_input: {
+          file_path: `${root}/${GENERATED}`,
+          content: 'x',
+        },
+      },
+      { root, hostRoots: [root] },
     )
-    assert.equal(decision.action, 'deny')
+  })
+  assert.equal(decision.action, 'deny')
 })
 
 test('diretório declarado em generated[] cobre o que está dentro dele', () => {
-    const config = CONFIG.replace(
-        'path: docs/contracts/openapi.gen.yaml',
-        'path: docs/contracts/gen/'
+  const config = CONFIG.replace('path: docs/contracts/openapi.gen.yaml', 'path: docs/contracts/gen/')
+  let decision: Hk2Decision = { action: 'allow' }
+  withTempRepo({ [OWNERSHIP_PATH]: config }, root => {
+    decision = decideHk2(
+      {
+        tool_name: 'Write',
+        tool_input: {
+          file_path: 'docs/contracts/gen/schema.json',
+          content: '{}',
+        },
+      },
+      { root, hostRoots: [root] },
     )
-    let decision: Hk2Decision = { action: 'allow' }
-    withTempRepo({ [OWNERSHIP_PATH]: config }, root => {
-        decision = decideHk2(
-            {
-                tool_name: 'Write',
-                tool_input: {
-                    file_path: 'docs/contracts/gen/schema.json',
-                    content: '{}'
-                }
-            },
-            { root, hostRoots: [root] }
-        )
-    })
-    assert.equal(decision.action, 'deny')
+  })
+  assert.equal(decision.action, 'deny')
 })
 ```
 
@@ -544,22 +503,14 @@ Troque o objeto `esperado` e a contagem final:
 
 ```typescript
 const esperado: Record<string, string[]> = {
-    'PreToolUse:Edit|Write': [
-        'hk1-append-only',
-        'hk2-generated-artifact',
-        'hk3-state-promotion'
-    ],
-    'PreToolUse:Bash': ['hk5-commit-guard'],
-    'PostToolUse:Edit|Write': ['hk4-watch-reminder']
+  'PreToolUse:Edit|Write': ['hk1-append-only', 'hk2-generated-artifact', 'hk3-state-promotion'],
+  'PreToolUse:Bash': ['hk5-commit-guard'],
+  'PostToolUse:Edit|Write': ['hk4-watch-reminder'],
 }
 ```
 
 ```typescript
-assert.equal(
-    vistos,
-    5,
-    'a varredura deveria ver os cinco hooks das Fases 1, 3 e 5'
-)
+assert.equal(vistos, 5, 'a varredura deveria ver os cinco hooks das Fases 1, 3 e 5')
 ```
 
 Renomeie também o título do primeiro: `'hooks.json registra os cinco hooks nos
@@ -593,9 +544,7 @@ import { toRepoPath } from './lib/paths.ts'
 import { denyOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk2Decision =
-    | { action: 'allow' }
-    | { action: 'deny'; reason: string }
+export type Hk2Decision = { action: 'allow' } | { action: 'deny'; reason: string }
 
 const ALLOW: Hk2Decision = { action: 'allow' }
 
@@ -607,87 +556,76 @@ const MARKER = /generated:\s*do not edit/i
 const MARKER_WINDOW = 4096
 
 function normalize(path: string): string {
-    return path.replace(/\\/g, '/').replace(/^\.\//, '')
+  return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 /** Regra de `generated[]` que cobre este caminho; diretório cobre o que está dentro. */
-export function findGeneratedRule(
-    rules: readonly GeneratedRule[],
-    repoPath: string
-): GeneratedRule | null {
-    const target = normalize(repoPath)
-    for (const rule of rules) {
-        const declared = normalize(rule.path)
-        if (
-            declared.endsWith('/')
-                ? target.startsWith(declared)
-                : target === declared
-        )
-            return rule
-    }
-    return null
+export function findGeneratedRule(rules: readonly GeneratedRule[], repoPath: string): GeneratedRule | null {
+  const target = normalize(repoPath)
+  for (const rule of rules) {
+    const declared = normalize(rule.path)
+    if (declared.endsWith('/') ? target.startsWith(declared) : target === declared) return rule
+  }
+  return null
 }
 
 export function decideHk2(payload: HookPayload, env: HookEnv): Hk2Decision {
-    const filePath = payload.tool_input?.file_path
-    if (typeof filePath !== 'string') return ALLOW
+  const filePath = payload.tool_input?.file_path
+  if (typeof filePath !== 'string') return ALLOW
 
-    const repoPath = toRepoPath(filePath, env.hostRoots)
-    if (repoPath === null) return ALLOW
+  const repoPath = toRepoPath(filePath, env.hostRoots)
+  if (repoPath === null) return ALLOW
 
-    let config
-    try {
-        config = loadOwnership(env.root)
-    } catch {
-        return ALLOW // falha aberta (RNF-0001)
-    }
+  let config
+  try {
+    config = loadOwnership(env.root)
+  } catch {
+    return ALLOW // falha aberta (RNF-0001)
+  }
 
-    // Caminho declarado nega mesmo com o arquivo ausente: criar à mão o que um
-    // gerador produz é exatamente o que RN-0012 proíbe.
-    const rule = findGeneratedRule(config.generated, repoPath)
-    if (rule) {
-        return {
-            action: 'deny',
-            reason:
-                `HK-2 bloqueou: \`${repoPath}\` é artefato gerado, declarado em \`generated[]\` no docs/.ownership.yml. ` +
-                'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §5 (SK-5, regra 1) — se pode ser gerado, não se escreve; ' +
-                'uma edição à mão vive até a próxima execução do gerador e mente até lá. ' +
-                `Caminho válido: mude a fonte anotada e rode \`${rule.command} > ${rule.path}\`. ` +
-                'Skill dona: contract-keeper; `living-docs drift` (CI-5) verifica a deriva no PR.'
-        }
-    }
-
-    let head: string
-    try {
-        head = readFileSync(join(env.root, repoPath), 'utf8').slice(
-            0,
-            MARKER_WINDOW
-        )
-    } catch {
-        return ALLOW // arquivo que não existe não carrega marcador
-    }
-    if (!MARKER.test(head)) return ALLOW
-
+  // Caminho declarado nega mesmo com o arquivo ausente: criar à mão o que um
+  // gerador produz é exatamente o que RN-0012 proíbe.
+  const rule = findGeneratedRule(config.generated, repoPath)
+  if (rule) {
     return {
-        action: 'deny',
-        reason:
-            `HK-2 bloqueou: \`${repoPath}\` abre com o marcador \`generated: do not edit\` (spec §2). ` +
-            'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §5 (SK-5, regra 1) — o que é gerado muda pela fonte, não pelo arquivo. ' +
-            'Caminho válido: mude a fonte anotada e rode o gerador. ' +
-            'Este arquivo não está em `generated[]` no docs/.ownership.yml — declare-o lá, com o comando do gerador, ' +
-            'para que `CI-5` (`living-docs drift`) também o cubra. Skill dona: contract-keeper.'
+      action: 'deny',
+      reason:
+        `HK-2 bloqueou: \`${repoPath}\` é artefato gerado, declarado em \`generated[]\` no docs/.ownership.yml. ` +
+        'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §5 (SK-5, regra 1) — se pode ser gerado, não se escreve; ' +
+        'uma edição à mão vive até a próxima execução do gerador e mente até lá. ' +
+        `Caminho válido: mude a fonte anotada e rode \`${rule.command} > ${rule.path}\`. ` +
+        'Skill dona: contract-keeper; `living-docs drift` (CI-5) verifica a deriva no PR.',
     }
+  }
+
+  let head: string
+  try {
+    head = readFileSync(join(env.root, repoPath), 'utf8').slice(0, MARKER_WINDOW)
+  } catch {
+    return ALLOW // arquivo que não existe não carrega marcador
+  }
+  if (!MARKER.test(head)) return ALLOW
+
+  return {
+    action: 'deny',
+    reason:
+      `HK-2 bloqueou: \`${repoPath}\` abre com o marcador \`generated: do not edit\` (spec §2). ` +
+      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §5 (SK-5, regra 1) — o que é gerado muda pela fonte, não pelo arquivo. ' +
+      'Caminho válido: mude a fonte anotada e rode o gerador. ' +
+      'Este arquivo não está em `generated[]` no docs/.ownership.yml — declare-o lá, com o comando do gerador, ' +
+      'para que `CI-5` (`living-docs drift`) também o cubra. Skill dona: contract-keeper.',
+  }
 }
 
 async function main(): Promise<void> {
-    const payload = await readPayload()
-    if (!payload) return // falha aberta
-    const decision = decideHk2(payload, hookEnv())
-    emit(decision.action === 'deny' ? denyOutput(decision.reason) : null)
+  const payload = await readPayload()
+  if (!payload) return // falha aberta
+  const decision = decideHk2(payload, hookEnv())
+  emit(decision.action === 'deny' ? denyOutput(decision.reason) : null)
 }
 
 if (process.argv[1]?.endsWith('hk2-generated-artifact.ts')) {
-    main().catch(() => process.exit(0)) // falha aberta, sempre
+  main().catch(() => process.exit(0)) // falha aberta, sempre
 }
 ```
 
@@ -752,14 +690,14 @@ a saída do gerador com o arquivo em disco, e o subcomando que o roda.
   `Check`, `CheckContext`, `Finding` (`src/core/types.ts`); `formatFindings`
   (`src/cli/report.ts`).
 - Produz:
-    - `export type CommandRunner = (command: string, cwd: string) => string`
-    - `export const runCommand: CommandRunner`
-    - `export function ci5ContractDrift(exec: CommandRunner): Check`
-    - `export function firstDifferentLine(actual: string, expected: string): number`
-    - `export function driftChecks(exec?: CommandRunner): readonly Check[]`
-    - `export interface DriftResult { findings: Finding[]; checked: number; exitCode: number }`
-    - `export function runDrift(root: string, exec?: CommandRunner): DriftResult`
-    - `ValidateResult` ganha o campo `generated: number`.
+  - `export type CommandRunner = (command: string, cwd: string) => string`
+  - `export const runCommand: CommandRunner`
+  - `export function ci5ContractDrift(exec: CommandRunner): Check`
+  - `export function firstDifferentLine(actual: string, expected: string): number`
+  - `export function driftChecks(exec?: CommandRunner): readonly Check[]`
+  - `export interface DriftResult { findings: Finding[]; checked: number; exitCode: number }`
+  - `export function runDrift(root: string, exec?: CommandRunner): DriftResult`
+  - `ValidateResult` ganha o campo `generated: number`.
 
 **Requisitos:**
 
@@ -780,10 +718,7 @@ Crie `test/checks/ci5-contract-drift.test.ts`:
 ```typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    ci5ContractDrift,
-    firstDifferentLine
-} from '../../src/checks/ci5-contract-drift.ts'
+import { ci5ContractDrift, firstDifferentLine } from '../../src/checks/ci5-contract-drift.ts'
 import { parseOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import type { CommandRunner } from '../../src/exec/command.ts'
@@ -805,61 +740,52 @@ const GENERATED = 'docs/contracts/checks.gen.md'
 const CONTENT = '<!-- generated: do not edit -->\n\n| ID |\n| --- |\n| CI-1 |\n'
 
 function run(files: Record<string, string>, exec: CommandRunner): Finding[] {
-    let findings: Finding[] = []
-    withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
-        const config = parseOwnership(CONFIG)
-        findings = ci5ContractDrift(exec).run({ root, config, docs: [] })
-    })
-    return findings
+  let findings: Finding[] = []
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
+    const config = parseOwnership(CONFIG)
+    findings = ci5ContractDrift(exec).run({ root, config, docs: [] })
+  })
+  return findings
 }
 
 test('RF-0006: arquivo igual à saída do gerador não produz achado', () => {
-    const findings = run({ [GENERATED]: CONTENT }, () => CONTENT)
-    assert.deepEqual(findings, [])
+  const findings = run({ [GENERATED]: CONTENT }, () => CONTENT)
+  assert.deepEqual(findings, [])
 })
 
 test('RF-0006: diferença de conteúdo é erro, e a finding aponta a primeira linha divergente', () => {
-    const findings = run({ [GENERATED]: CONTENT }, () =>
-        CONTENT.replace('CI-1', 'CI-9')
-    )
-    assert.equal(findings.length, 1)
-    assert.equal(findings[0]?.ruleId, 'CI-5')
-    assert.equal(findings[0]?.severity, 'error')
-    assert.equal(findings[0]?.file, GENERATED)
-    assert.equal(findings[0]?.line, 5, 'a linha da tabela que mudou')
-    assert.match(findings[0]?.fix ?? '', /node tools\/gen\.js/)
+  const findings = run({ [GENERATED]: CONTENT }, () => CONTENT.replace('CI-1', 'CI-9'))
+  assert.equal(findings.length, 1)
+  assert.equal(findings[0]?.ruleId, 'CI-5')
+  assert.equal(findings[0]?.severity, 'error')
+  assert.equal(findings[0]?.file, GENERATED)
+  assert.equal(findings[0]?.line, 5, 'a linha da tabela que mudou')
+  assert.match(findings[0]?.fix ?? '', /node tools\/gen\.js/)
 })
 
 test('RF-0006: CR do checkout e quebra final a mais não são deriva de contrato', () => {
-    const findings = run(
-        { [GENERATED]: CONTENT.replaceAll('\n', '\r\n') + '\n' },
-        () => CONTENT
-    )
-    assert.deepEqual(findings, [])
+  const findings = run({ [GENERATED]: CONTENT.replaceAll('\n', '\r\n') + '\n' }, () => CONTENT)
+  assert.deepEqual(findings, [])
 })
 
 test('RF-0006: gerador que falha é erro — CI-5 não se cala como um hook', () => {
-    const findings = run({ [GENERATED]: CONTENT }, () => {
-        throw new Error('gen.js: Cannot find module')
-    })
-    assert.equal(findings.length, 1)
-    assert.match(findings[0]?.message ?? '', /Cannot find module/)
+  const findings = run({ [GENERATED]: CONTENT }, () => {
+    throw new Error('gen.js: Cannot find module')
+  })
+  assert.equal(findings.length, 1)
+  assert.match(findings[0]?.message ?? '', /Cannot find module/)
 })
 
 test('RF-0006: artefato declarado e ausente é erro, não silêncio', () => {
-    const findings = run({}, () => CONTENT)
-    assert.equal(findings.length, 1)
-    assert.match(findings[0]?.message ?? '', /ausente/i)
+  const findings = run({}, () => CONTENT)
+  assert.equal(findings.length, 1)
+  assert.match(findings[0]?.message ?? '', /ausente/i)
 })
 
 test('firstDifferentLine devolve 0 quando não há divergência', () => {
-    assert.equal(firstDifferentLine('a\nb\n', 'a\nb\n'), 0)
-    assert.equal(firstDifferentLine('a\nb\n', 'a\nc\n'), 2)
-    assert.equal(
-        firstDifferentLine('a\n', 'a\nb\n'),
-        2,
-        'linha a mais na saída também é divergência'
-    )
+  assert.equal(firstDifferentLine('a\nb\n', 'a\nb\n'), 0)
+  assert.equal(firstDifferentLine('a\nb\n', 'a\nc\n'), 2)
+  assert.equal(firstDifferentLine('a\n', 'a\nb\n'), 2, 'linha a mais na saída também é divergência')
 })
 ```
 
@@ -888,56 +814,52 @@ const WITH_GENERATED = `${BASE}generated:
 `
 
 test('RF-0006: sem artefato gerado declarado, drift sai com 0 e diz que não checou nada', () => {
-    withTempRepo({ [OWNERSHIP_PATH]: BASE }, root => {
-        const result = runDrift(root, () => '')
-        assert.deepEqual(result.findings, [])
-        assert.equal(result.checked, 0)
-        assert.equal(result.exitCode, 0)
-    })
+  withTempRepo({ [OWNERSHIP_PATH]: BASE }, root => {
+    const result = runDrift(root, () => '')
+    assert.deepEqual(result.findings, [])
+    assert.equal(result.checked, 0)
+    assert.equal(result.exitCode, 0)
+  })
 })
 
 test('RF-0006: deriva leva a exit 1', () => {
-    withTempRepo(
-        {
-            [OWNERSHIP_PATH]: WITH_GENERATED,
-            'docs/contracts/checks.gen.md': 'antigo\n'
-        },
-        root => {
-            const result = runDrift(root, () => 'novo\n')
-            assert.equal(result.checked, 1)
-            assert.equal(result.exitCode, 1)
-            assert.equal(result.findings[0]?.ruleId, 'CI-5')
-        }
-    )
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: WITH_GENERATED,
+      'docs/contracts/checks.gen.md': 'antigo\n',
+    },
+    root => {
+      const result = runDrift(root, () => 'novo\n')
+      assert.equal(result.checked, 1)
+      assert.equal(result.exitCode, 1)
+      assert.equal(result.findings[0]?.ruleId, 'CI-5')
+    },
+  )
 })
 
 test('RF-0006: validate não roda o gerador, e conta o que deixou para o drift', () => {
-    withTempRepo(
-        {
-            [OWNERSHIP_PATH]: WITH_GENERATED,
-            'docs/contracts/checks.gen.md': 'qualquer coisa\n'
-        },
-        root => {
-            const result = runValidate(root)
-            assert.equal(
-                result.generated,
-                1,
-                'validate precisa saber que há o que checar em outro lugar'
-            )
-            assert.equal(
-                result.findings.some(finding => finding.ruleId === 'CI-5'),
-                false,
-                'CI-5 não roda em validate (ADR-0005)'
-            )
-            assert.equal(result.exitCode, 0)
-        }
-    )
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: WITH_GENERATED,
+      'docs/contracts/checks.gen.md': 'qualquer coisa\n',
+    },
+    root => {
+      const result = runValidate(root)
+      assert.equal(result.generated, 1, 'validate precisa saber que há o que checar em outro lugar')
+      assert.equal(
+        result.findings.some(finding => finding.ruleId === 'CI-5'),
+        false,
+        'CI-5 não roda em validate (ADR-0005)',
+      )
+      assert.equal(result.exitCode, 0)
+    },
+  )
 })
 
 test('.ownership.yml ausente propaga OwnershipError', () => {
-    withTempRepo({ 'README.md': '' }, root => {
-        assert.throws(() => runDrift(root, () => ''), OwnershipError)
-    })
+  withTempRepo({ 'README.md': '' }, root => {
+    assert.throws(() => runDrift(root, () => ''), OwnershipError)
+  })
 })
 ```
 
@@ -970,14 +892,14 @@ export type CommandRunner = (command: string, cwd: string) => string
 export const TIMEOUT_MS = 60_000
 
 export const runCommand: CommandRunner = (command, cwd) =>
-    execSync(command, {
-        cwd,
-        encoding: 'utf8',
-        timeout: TIMEOUT_MS,
-        maxBuffer: 16 * 1024 * 1024,
-        // stderr capturado, não herdado: ele vira a mensagem da finding.
-        stdio: ['ignore', 'pipe', 'pipe']
-    })
+  execSync(command, {
+    cwd,
+    encoding: 'utf8',
+    timeout: TIMEOUT_MS,
+    maxBuffer: 16 * 1024 * 1024,
+    // stderr capturado, não herdado: ele vira a mensagem da finding.
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
 ```
 
 - [ ] **Step 4: Criar `src/checks/ci5-contract-drift.ts`**
@@ -990,13 +912,8 @@ import type { CommandRunner } from '../exec/command.ts'
 
 const RULE = 'CI-5'
 
-function error(
-    file: string,
-    line: number,
-    message: string,
-    fix: string
-): Finding {
-    return { ruleId: RULE, file, line, severity: 'error', message, fix }
+function error(file: string, line: number, message: string, fix: string): Finding {
+  return { ruleId: RULE, file, line, severity: 'error', message, fix }
 }
 
 /**
@@ -1005,27 +922,25 @@ function error(
  * Qualquer outra diferença é deriva de contrato (ADR-0005).
  */
 function normalize(source: string): string {
-    return source.replace(/\r\n/g, '\n').replace(/\n+$/, '\n')
+  return source.replace(/\r\n/g, '\n').replace(/\n+$/, '\n')
 }
 
 /** Primeira linha 1-indexed em que os dois textos divergem; 0 se não divergem. */
 export function firstDifferentLine(actual: string, expected: string): number {
-    const a = normalize(actual).split('\n')
-    const b = normalize(expected).split('\n')
-    const limit = Math.max(a.length, b.length)
-    for (let i = 0; i < limit; i++) {
-        if (a[i] !== b[i]) return i + 1
-    }
-    return 0
+  const a = normalize(actual).split('\n')
+  const b = normalize(expected).split('\n')
+  const limit = Math.max(a.length, b.length)
+  for (let i = 0; i < limit; i++) {
+    if (a[i] !== b[i]) return i + 1
+  }
+  return 0
 }
 
 /** A primeira linha útil do erro do gerador: stderr se houver, mensagem se não. */
 function reasonOf(err: unknown): string {
-    const stderr = (err as { stderr?: unknown }).stderr
-    const text =
-        String(stderr ?? '').trim() ||
-        (err instanceof Error ? err.message : String(err))
-    return text.split('\n')[0] ?? text
+  const stderr = (err as { stderr?: unknown }).stderr
+  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
+  return text.split('\n')[0] ?? text
 }
 
 /**
@@ -1034,61 +949,60 @@ function reasonOf(err: unknown): string {
  * outros três compartilham (ADR-0005).
  */
 export function ci5ContractDrift(exec: CommandRunner): Check {
-    return {
-        id: RULE,
-        name: 'contract drift',
-        run(context: CheckContext): Finding[] {
-            const findings: Finding[] = []
+  return {
+    id: RULE,
+    name: 'contract drift',
+    run(context: CheckContext): Finding[] {
+      const findings: Finding[] = []
 
-            for (const rule of context.config.generated) {
-                let expected: string
-                try {
-                    expected = exec(rule.command, context.root)
-                } catch (err) {
-                    findings.push(
-                        error(
-                            rule.path,
-                            0,
-                            `O gerador falhou: \`${rule.command}\` — ${reasonOf(err)}`,
-                            'Um gerador que não roda deixa o contrato sem fonte. Conserte o comando declarado em ' +
-                                '`generated[].command` no docs/.ownership.yml (skill dona: contract-keeper).'
-                        )
-                    )
-                    continue
-                }
-
-                let actual: string
-                try {
-                    actual = readFileSync(join(context.root, rule.path), 'utf8')
-                } catch {
-                    findings.push(
-                        error(
-                            rule.path,
-                            0,
-                            'Artefato gerado declarado em `generated[]` e ausente do repositório.',
-                            `Gere-o e versione o resultado: \`${rule.command} > ${rule.path}\` (spec §3).`
-                        )
-                    )
-                    continue
-                }
-
-                const line = firstDifferentLine(actual, expected)
-                if (line !== 0) {
-                    findings.push(
-                        error(
-                            rule.path,
-                            line,
-                            'O artefato gerado diverge da saída do gerador — o contrato em disco não é o que a fonte produz.',
-                            `Regenere: \`${rule.command} > ${rule.path}\`. Nunca edite o arquivo à mão ` +
-                                '(`HK-2` bloqueia; regra de origem: spec §5, SK-5, regra 1).'
-                        )
-                    )
-                }
-            }
-
-            return findings
+      for (const rule of context.config.generated) {
+        let expected: string
+        try {
+          expected = exec(rule.command, context.root)
+        } catch (err) {
+          findings.push(
+            error(
+              rule.path,
+              0,
+              `O gerador falhou: \`${rule.command}\` — ${reasonOf(err)}`,
+              'Um gerador que não roda deixa o contrato sem fonte. Conserte o comando declarado em ' +
+                '`generated[].command` no docs/.ownership.yml (skill dona: contract-keeper).',
+            ),
+          )
+          continue
         }
-    }
+
+        let actual: string
+        try {
+          actual = readFileSync(join(context.root, rule.path), 'utf8')
+        } catch {
+          findings.push(
+            error(
+              rule.path,
+              0,
+              'Artefato gerado declarado em `generated[]` e ausente do repositório.',
+              `Gere-o e versione o resultado: \`${rule.command} > ${rule.path}\` (spec §3).`,
+            ),
+          )
+          continue
+        }
+
+        const line = firstDifferentLine(actual, expected)
+        if (line !== 0) {
+          findings.push(
+            error(
+              rule.path,
+              line,
+              'O artefato gerado diverge da saída do gerador — o contrato em disco não é o que a fonte produz.',
+              `Regenere: \`${rule.command} > ${rule.path}\`. Nunca edite o arquivo à mão ` + '(`HK-2` bloqueia; regra de origem: spec §5, SK-5, regra 1).',
+            ),
+          )
+        }
+      }
+
+      return findings
+    },
+  }
 }
 ```
 
@@ -1113,10 +1027,8 @@ export const CHECKS: readonly Check[] = [ci1Structure, ci2Ids, ci3Traceability]
  * repositório validado (ADR-0005). O executor entra por injeção para que o
  * teste não precise de um gerador de verdade.
  */
-export function driftChecks(
-    exec: CommandRunner = runCommand
-): readonly Check[] {
-    return [ci5ContractDrift(exec)]
+export function driftChecks(exec: CommandRunner = runCommand): readonly Check[] {
+  return [ci5ContractDrift(exec)]
 }
 ```
 
@@ -1130,28 +1042,25 @@ import type { CommandRunner } from '../exec/command.ts'
 import type { Finding } from '../core/types.ts'
 
 export interface DriftResult {
-    findings: Finding[]
-    /** Quantos artefatos gerados foram comparados. Zero significa "nada declarado". */
-    checked: number
-    exitCode: number
+  findings: Finding[]
+  /** Quantos artefatos gerados foram comparados. Zero significa "nada declarado". */
+  checked: number
+  exitCode: number
 }
 
-export function runDrift(
-    root: string,
-    exec: CommandRunner = runCommand
-): DriftResult {
-    const config = loadOwnership(root)
-    // `docs: []` de propósito: CI-5 não lê artefato nenhum — ele compara o arquivo
-    // gerado com a saída do gerador.
-    const context = { root, config, docs: [] }
+export function runDrift(root: string, exec: CommandRunner = runCommand): DriftResult {
+  const config = loadOwnership(root)
+  // `docs: []` de propósito: CI-5 não lê artefato nenhum — ele compara o arquivo
+  // gerado com a saída do gerador.
+  const context = { root, config, docs: [] }
 
-    const findings = driftChecks(exec).flatMap(check => check.run(context))
+  const findings = driftChecks(exec).flatMap(check => check.run(context))
 
-    return {
-        findings,
-        checked: config.generated.length,
-        exitCode: findings.some(finding => finding.severity === 'error') ? 1 : 0
-    }
+  return {
+    findings,
+    checked: config.generated.length,
+    exitCode: findings.some(finding => finding.severity === 'error') ? 1 : 0,
+  }
 }
 ```
 
@@ -1161,22 +1070,22 @@ Em `src/cli/validate.ts`, acrescente o campo à interface e ao retorno:
 
 ```typescript
 export interface ValidateResult {
-    findings: Finding[]
-    errors: number
-    warnings: number
-    exitCode: number
-    /** Artefatos gerados declarados — checados por `living-docs drift`, não aqui (ADR-0005). */
-    generated: number
+  findings: Finding[]
+  errors: number
+  warnings: number
+  exitCode: number
+  /** Artefatos gerados declarados — checados por `living-docs drift`, não aqui (ADR-0005). */
+  generated: number
 }
 ```
 
 ```typescript
 return {
-    findings,
-    errors,
-    warnings: findings.length - errors,
-    exitCode: errors > 0 ? 1 : 0,
-    generated: config.generated.length
+  findings,
+  errors,
+  warnings: findings.length - errors,
+  exitCode: errors > 0 ? 1 : 0,
+  generated: config.generated.length,
 }
 ```
 
@@ -1208,16 +1117,16 @@ No bloco `validate`, depois de escrever as findings:
 
 ```typescript
 if (command === 'validate') {
-    const result = runValidate(root)
-    process.stdout.write(`${formatFindings(result.findings)}\n`)
-    // Ponteiro, não achado: validate não executa gerador nenhum (ADR-0005), e
-    // ficar calado sobre isso seria fingir cobertura que ele não tem.
-    if (result.generated > 0) {
-        process.stdout.write(
-            `living-docs: ${result.generated} artefato(s) gerado(s) declarado(s) — a deriva de contrato é verificada por \`living-docs drift\` (CI-5).\n`
-        )
-    }
-    return result.exitCode
+  const result = runValidate(root)
+  process.stdout.write(`${formatFindings(result.findings)}\n`)
+  // Ponteiro, não achado: validate não executa gerador nenhum (ADR-0005), e
+  // ficar calado sobre isso seria fingir cobertura que ele não tem.
+  if (result.generated > 0) {
+    process.stdout.write(
+      `living-docs: ${result.generated} artefato(s) gerado(s) declarado(s) — a deriva de contrato é verificada por \`living-docs drift\` (CI-5).\n`,
+    )
+  }
+  return result.exitCode
 }
 ```
 
@@ -1227,15 +1136,13 @@ E, logo depois desse bloco e **dentro do mesmo `try`** — é ele que traduz
 
 ```typescript
 if (command === 'drift') {
-    const result = runDrift(root)
-    if (result.checked === 0) {
-        process.stdout.write(
-            'living-docs: nenhum artefato gerado declarado em `generated[]` — nada a comparar.\n'
-        )
-        return 0
-    }
-    process.stdout.write(`${formatFindings(result.findings)}\n`)
-    return result.exitCode
+  const result = runDrift(root)
+  if (result.checked === 0) {
+    process.stdout.write('living-docs: nenhum artefato gerado declarado em `generated[]` — nada a comparar.\n')
+    return 0
+  }
+  process.stdout.write(`${formatFindings(result.findings)}\n`)
+  return result.exitCode
 }
 ```
 
@@ -1305,44 +1212,26 @@ Crie `test/checks/registry.test.ts`:
 ```typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    CHECKS,
-    CHECK_CATALOG,
-    driftChecks
-} from '../../src/checks/registry.ts'
+import { CHECKS, CHECK_CATALOG, driftChecks } from '../../src/checks/registry.ts'
 
 test('RF-0006: o catálogo cobre exatamente os checks que existem, com os mesmos nomes', () => {
-    const reais = [...CHECKS, ...driftChecks(() => '')].map(
-        check => `${check.id}|${check.name}`
-    )
-    const catalogados = CHECK_CATALOG.map(entry => `${entry.id}|${entry.name}`)
-    assert.deepEqual(
-        catalogados,
-        reais,
-        'catálogo e registry divergiram — o contrato gerado mentiria'
-    )
+  const reais = [...CHECKS, ...driftChecks(() => '')].map(check => `${check.id}|${check.name}`)
+  const catalogados = CHECK_CATALOG.map(entry => `${entry.id}|${entry.name}`)
+  assert.deepEqual(catalogados, reais, 'catálogo e registry divergiram — o contrato gerado mentiria')
 })
 
 test('RF-0006: todo item do catálogo diz quando falha e por qual comando roda', () => {
-    for (const entry of CHECK_CATALOG) {
-        assert.ok(
-            entry.failsWhen.length > 20,
-            `${entry.id} sem condição de falha escrita`
-        )
-        assert.match(
-            entry.command,
-            /^living-docs (validate|drift)$/,
-            `${entry.id} com comando estranho`
-        )
-    }
+  for (const entry of CHECK_CATALOG) {
+    assert.ok(entry.failsWhen.length > 20, `${entry.id} sem condição de falha escrita`)
+    assert.match(entry.command, /^living-docs (validate|drift)$/, `${entry.id} com comando estranho`)
+  }
 })
 
 test('ADR-0005: só CI-5 roda fora do validate', () => {
-    for (const entry of CHECK_CATALOG) {
-        const esperado =
-            entry.id === 'CI-5' ? 'living-docs drift' : 'living-docs validate'
-        assert.equal(entry.command, esperado, `${entry.id} no comando errado`)
-    }
+  for (const entry of CHECK_CATALOG) {
+    const esperado = entry.id === 'CI-5' ? 'living-docs drift' : 'living-docs validate'
+    assert.equal(entry.command, esperado, `${entry.id} no comando errado`)
+  }
 })
 ```
 
@@ -1360,36 +1249,17 @@ const ROOT = repoRoot()
 const GENERATED = 'docs/contracts/checks.gen.md'
 
 test('RF-0006: o contrato gerado deste repositório não derivou — dogfooding com o gerador de verdade', () => {
-    const result = runDrift(ROOT)
-    assert.ok(
-        result.checked >= 1,
-        'este repositório precisa declarar ao menos um artefato gerado'
-    )
-    assert.deepEqual(
-        result.findings,
-        [],
-        JSON.stringify(result.findings, null, 2)
-    )
-    assert.equal(result.exitCode, 0)
+  const result = runDrift(ROOT)
+  assert.ok(result.checked >= 1, 'este repositório precisa declarar ao menos um artefato gerado')
+  assert.deepEqual(result.findings, [], JSON.stringify(result.findings, null, 2))
+  assert.equal(result.exitCode, 0)
 })
 
 test('RN-0012: o artefato gerado se declara gerado, e não finge ser artefato editável', () => {
-    const source = readFileSync(join(ROOT, GENERATED), 'utf8')
-    assert.match(
-        source.split('\n')[0] ?? '',
-        /generated: do not edit/,
-        'o marcador abre o arquivo (spec §2)'
-    )
-    assert.doesNotMatch(
-        source,
-        /^---$/m,
-        'artefato gerado não tem frontmatter editável (spec §2)'
-    )
-    assert.match(
-        source,
-        /src\/checks\/registry\.ts/,
-        'o arquivo precisa nomear a própria fonte'
-    )
+  const source = readFileSync(join(ROOT, GENERATED), 'utf8')
+  assert.match(source.split('\n')[0] ?? '', /generated: do not edit/, 'o marcador abre o arquivo (spec §2)')
+  assert.doesNotMatch(source, /^---$/m, 'artefato gerado não tem frontmatter editável (spec §2)')
+  assert.match(source, /src\/checks\/registry\.ts/, 'o arquivo precisa nomear a própria fonte')
 })
 ```
 
@@ -1408,12 +1278,12 @@ No final do arquivo, depois de `driftChecks`:
 
 ```typescript
 export interface CatalogEntry {
-    id: string
-    name: string
-    /** O comando do CLI que roda este check. */
-    command: string
-    /** A condição de falha — a coluna "Falha quando" da spec §9. */
-    failsWhen: string
+  id: string
+  name: string
+  /** O comando do CLI que roda este check. */
+  command: string
+  /** A condição de falha — a coluna "Falha quando" da spec §9. */
+  failsWhen: string
 }
 
 /**
@@ -1422,34 +1292,31 @@ export interface CatalogEntry {
  * (`CI-5`). Para mudar o contrato, mude aqui e regere — nunca o contrário.
  */
 export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
-    {
-        id: 'CI-1',
-        name: 'structure lint',
-        command: 'living-docs validate',
-        failsWhen:
-            'Frontmatter ausente ou inválido; `status` fora da máquina de estados; `owner` vazio ou sem `@`; `trigger` ausente ou descrevendo cadência.'
-    },
-    {
-        id: 'CI-2',
-        name: 'ID lint',
-        command: 'living-docs validate',
-        failsWhen:
-            'ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente.'
-    },
-    {
-        id: 'CI-3',
-        name: 'traceability',
-        command: 'living-docs validate',
-        failsWhen:
-            'Par bidirecional aberto; requisito `active` sem citação nos caminhos de `cited-by`; ADR `accepted` sem `relates-to`; decisão aberta `resolved` sem o ADR que a fechou.'
-    },
-    {
-        id: 'CI-5',
-        name: 'contract drift',
-        command: 'living-docs drift',
-        failsWhen:
-            'A saída do gerador difere do artefato versionado; o gerador falha; ou o artefato declarado em `generated[]` não existe.'
-    }
+  {
+    id: 'CI-1',
+    name: 'structure lint',
+    command: 'living-docs validate',
+    failsWhen: 'Frontmatter ausente ou inválido; `status` fora da máquina de estados; `owner` vazio ou sem `@`; `trigger` ausente ou descrevendo cadência.',
+  },
+  {
+    id: 'CI-2',
+    name: 'ID lint',
+    command: 'living-docs validate',
+    failsWhen: 'ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente.',
+  },
+  {
+    id: 'CI-3',
+    name: 'traceability',
+    command: 'living-docs validate',
+    failsWhen:
+      'Par bidirecional aberto; requisito `active` sem citação nos caminhos de `cited-by`; ADR `accepted` sem `relates-to`; decisão aberta `resolved` sem o ADR que a fechou.',
+  },
+  {
+    id: 'CI-5',
+    name: 'contract drift',
+    command: 'living-docs drift',
+    failsWhen: 'A saída do gerador difere do artefato versionado; o gerador falha; ou o artefato declarado em `generated[]` não existe.',
+  },
 ])
 ```
 
@@ -1485,13 +1352,10 @@ pela Definition of Done de quem usa o toolkit, e não mudam de significado
 
 /** `|` numa célula quebraria a tabela — escapar é do gerador, não de quem escreve. */
 function cell(value: string): string {
-    return value.replaceAll('|', '\\|')
+  return value.replaceAll('|', '\\|')
 }
 
-const rows = CHECK_CATALOG.map(
-    entry =>
-        `| ${cell(entry.id)} | ${cell(entry.name)} | ${cell(entry.failsWhen)} | \`${cell(entry.command)}\` |`
-).join('\n')
+const rows = CHECK_CATALOG.map(entry => `| ${cell(entry.id)} | ${cell(entry.name)} | ${cell(entry.failsWhen)} | \`${cell(entry.command)}\` |`).join('\n')
 
 process.stdout.write(`${HEADER}${rows}\n`)
 ```
@@ -1502,12 +1366,12 @@ Troque a linha `generated: []` por:
 
 ```yaml
 generated:
-    # O comando IMPRIME o conteúdo esperado na saída padrão e não escreve arquivo
-    # nenhum: um check que reescreve o que está checando apaga a evidência no
-    # mesmo instante em que a reporta (ADR-0005). HK-2 bloqueia editar `path` à
-    # mão; CI-5 (`living-docs drift`) compara.
-    - path: docs/contracts/checks.gen.md
-      command: node /opt/living-docs/src/tools/gen-checks.ts
+  # O comando IMPRIME o conteúdo esperado na saída padrão e não escreve arquivo
+  # nenhum: um check que reescreve o que está checando apaga a evidência no
+  # mesmo instante em que a reporta (ADR-0005). HK-2 bloqueia editar `path` à
+  # mão; CI-5 (`living-docs drift`) compara.
+  - path: docs/contracts/checks.gen.md
+    command: node /opt/living-docs/src/tools/gen-checks.ts
 ```
 
 E acrescente, no bloco `watches`, logo depois da entrada de `src/checks/**` que
@@ -1632,104 +1496,71 @@ Acrescente ao final de `test/cli/init.test.ts`:
 
 ```typescript
 const PRODUCTION = {
-    owner: '@time',
-    dryRun: false,
-    stage: 'production' as const
+  owner: '@time',
+  dryRun: false,
+  stage: 'production' as const,
 }
-const CONTRACT_FILES = [
-    'docs/contracts/errors.md',
-    'docs/contracts/versioning-policy.md'
-]
+const CONTRACT_FILES = ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md']
 
 test('RF-0007: production instala a moldura de contratos, e tudo que small-team instala', () => {
-    withTempRepo({}, root => {
-        const result = runInit(root, PRODUCTION)
-        for (const path of CONTRACT_FILES) {
-            assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
-            assert.ok(
-                result.created.includes(path),
-                `${path} deveria constar como criado`
-            )
-        }
-        // O estágio é cumulativo: nada do small-team pode ter sumido.
-        for (const path of [
-            'CONTRIBUTING.md',
-            'docs/glossary.md',
-            'docs/requirements/rules.md'
-        ]) {
-            assert.ok(
-                existsSync(join(root, path)),
-                `${path} pertence a production também`
-            )
-        }
-        assert.match(
-            readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'),
-            /@time/
-        )
-        assert.equal(
-            runValidate(root).exitCode,
-            0,
-            JSON.stringify(runValidate(root).findings, null, 2)
-        )
-    })
+  withTempRepo({}, root => {
+    const result = runInit(root, PRODUCTION)
+    for (const path of CONTRACT_FILES) {
+      assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
+      assert.ok(result.created.includes(path), `${path} deveria constar como criado`)
+    }
+    // O estágio é cumulativo: nada do small-team pode ter sumido.
+    for (const path of ['CONTRIBUTING.md', 'docs/glossary.md', 'docs/requirements/rules.md']) {
+      assert.ok(existsSync(join(root, path)), `${path} pertence a production também`)
+    }
+    assert.match(readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'), /@time/)
+    assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
+  })
 })
 
 test('RF-0007: small-team não instala contrato nenhum', () => {
-    withTempRepo({}, root => {
-        runInit(root, SMALL_TEAM)
-        for (const path of CONTRACT_FILES) {
-            assert.equal(
-                existsSync(join(root, path)),
-                false,
-                `${path} não pertence ao estágio small-team`
-            )
-        }
-    })
+  withTempRepo({}, root => {
+    runInit(root, SMALL_TEAM)
+    for (const path of CONTRACT_FILES) {
+      assert.equal(existsSync(join(root, path)), false, `${path} não pertence ao estágio small-team`)
+    }
+  })
 })
 
 test('RF-0007: production diz que a Fase 6 ainda não vem junto', () => {
-    withTempRepo({}, root => {
-        const result = runInit(root, PRODUCTION)
-        assert.ok(
-            result.notInstalled.some(item => /Fase 6/.test(item)),
-            `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`
-        )
-    })
+  withTempRepo({}, root => {
+    const result = runInit(root, PRODUCTION)
+    assert.ok(
+      result.notInstalled.some(item => /Fase 6/.test(item)),
+      `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`,
+    )
+  })
 })
 
 test('RF-0007: o init não inventa gerador — `generated[]` nasce vazio', () => {
-    withTempRepo({}, root => {
-        runInit(root, PRODUCTION)
-        assert.deepEqual(loadOwnership(root).generated, [])
-        // ...e o exemplo comentado precisa estar lá, senão ninguém descobre o formato.
-        assert.match(
-            readFileSync(join(root, OWNERSHIP_PATH), 'utf8'),
-            /#\s+- path: docs\/contracts\/openapi\.gen\.yaml/
-        )
-    })
+  withTempRepo({}, root => {
+    runInit(root, PRODUCTION)
+    assert.deepEqual(loadOwnership(root).generated, [])
+    // ...e o exemplo comentado precisa estar lá, senão ninguém descobre o formato.
+    assert.match(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), /#\s+- path: docs\/contracts\/openapi\.gen\.yaml/)
+  })
 })
 
 test('RF-0007: contrato já escrito não é reescrito na segunda execução', () => {
-    withTempRepo({ 'docs/contracts/errors.md': '# do jeito deles\n' }, root => {
-        runInit(root, PRODUCTION)
-        const segunda = runInit(root, PRODUCTION)
-        assert.equal(
-            readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'),
-            '# do jeito deles\n'
-        )
-        assert.ok(segunda.skipped.includes('docs/contracts/errors.md'))
-        assert.deepEqual(segunda.created, [])
-    })
+  withTempRepo({ 'docs/contracts/errors.md': '# do jeito deles\n' }, root => {
+    runInit(root, PRODUCTION)
+    const segunda = runInit(root, PRODUCTION)
+    assert.equal(readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'), '# do jeito deles\n')
+    assert.ok(segunda.skipped.includes('docs/contracts/errors.md'))
+    assert.deepEqual(segunda.created, [])
+  })
 })
 
 test('RF-0007: o CODEOWNERS semeado dá dono aos contratos', () => {
-    withTempRepo({}, root => {
-        runInit(root, PRODUCTION)
-        assert.match(
-            readFileSync(join(root, 'CODEOWNERS'), 'utf8'),
-            /docs\/contracts\/\s+@time/
-        )
-    })
+  withTempRepo({}, root => {
+    runInit(root, PRODUCTION)
+    assert.match(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), /docs\/contracts\/\s+@time/)
+  })
 })
 ```
 
@@ -1752,8 +1583,8 @@ e executa, então `NOT_INSTALLED['production']` é `undefined` e
 title: Catálogo de erros
 owner: '{{OWNER}}'
 trigger: >
-    Código de erro novo; código que muda de status; mudança no que um código
-    significa para quem consome a interface pública.
+  Código de erro novo; código que muda de status; mudança no que um código
+  significa para quem consome a interface pública.
 last-reviewed: { { TODAY } }
 ---
 
@@ -1780,8 +1611,8 @@ parte do contrato. Skill dona: contract-keeper. -->
 title: Política de versionamento
 owner: '{{OWNER}}'
 trigger: >
-    Mudança de interface pública; decisão de depreciar algo publicado; mudança
-    na própria política.
+  Mudança de interface pública; decisão de depreciar algo publicado; mudança
+  na própria política.
 last-reviewed: { { TODAY } }
 ---
 
@@ -1860,11 +1691,11 @@ Depois da declaração de `LANGUAGE_AND_INTENT` (linha ~57), acrescente:
 ```typescript
 /** Contratos (SK-5), instalados a partir do estágio `production` (spec §10, Fase 5). */
 const CONTRACTS: readonly { path: string; template: string }[] = Object.freeze([
-    { path: 'docs/contracts/errors.md', template: 'errors.md' },
-    {
-        path: 'docs/contracts/versioning-policy.md',
-        template: 'versioning-policy.md'
-    }
+  { path: 'docs/contracts/errors.md', template: 'errors.md' },
+  {
+    path: 'docs/contracts/versioning-policy.md',
+    template: 'versioning-policy.md',
+  },
 ])
 ```
 
@@ -1876,15 +1707,11 @@ Troque a constante `NOT_INSTALLED`:
  * saem vazios: as Fases 0–4 estão completas. `production` cobre as Fases 5 e 6
  * na spec §10, e a 6 não existe aqui.
  */
-const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
-    {
-        solo: [],
-        'small-team': [],
-        production: [
-            'Fase 6 — CHANGELOG, release notes, depreciações e guias de migração (SK-7, CI-6, HK-7)'
-        ]
-    }
-)
+const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
+  solo: [],
+  'small-team': [],
+  production: ['Fase 6 — CHANGELOG, release notes, depreciações e guias de migração (SK-7, CI-6, HK-7)'],
+})
 ```
 
 No objeto `values` dentro de `runInit`, acrescente a chave nova depois de
@@ -1900,15 +1727,9 @@ dentro do `if (options.stage !== 'solo') { ... }`:
 
 ```typescript
 if (options.stage === 'production') {
-    for (const contract of CONTRACTS) {
-        writeIfAbsent(
-            root,
-            contract.path,
-            template(contract.template, values),
-            options,
-            result
-        )
-    }
+  for (const contract of CONTRACTS) {
+    writeIfAbsent(root, contract.path, template(contract.template, values), options, result)
+  }
 }
 ```
 
@@ -2004,89 +1825,55 @@ const ROOT = toolkitRoot()
 
 /** Linhas de uma tabela markdown, sem cabeçalho nem separador. */
 function rows(source: string, header: string): string[][] {
-    const start = source.indexOf(header)
-    assert.ok(
-        start !== -1,
-        `tabela não encontrada — esperava o cabeçalho ${header}`
+  const start = source.indexOf(header)
+  assert.ok(start !== -1, `tabela não encontrada — esperava o cabeçalho ${header}`)
+  return source
+    .slice(start)
+    .split('\n')
+    .filter(line => line.trim().startsWith('|'))
+    .slice(2)
+    .map(line =>
+      line
+        .trim()
+        .replace(/^\|/, '')
+        .replace(/\|$/, '')
+        .split('|')
+        .map(cell => cell.trim()),
     )
-    return source
-        .slice(start)
-        .split('\n')
-        .filter(line => line.trim().startsWith('|'))
-        .slice(2)
-        .map(line =>
-            line
-                .trim()
-                .replace(/^\|/, '')
-                .replace(/\|$/, '')
-                .split('|')
-                .map(cell => cell.trim())
-        )
 }
 
-const errors = (): string =>
-    readFileSync(join(ROOT, 'docs/contracts/errors.md'), 'utf8')
+const errors = (): string => readFileSync(join(ROOT, 'docs/contracts/errors.md'), 'utf8')
 
 test('o catálogo de erros lista códigos reais, cada um com significado, gatilho e status', () => {
-    const entries = rows(errors(), '| Código |')
-    assert.ok(
-        entries.length >= 4,
-        `esperava ao menos 4 códigos, achei ${entries.length}`
-    )
+  const entries = rows(errors(), '| Código |')
+  assert.ok(entries.length >= 4, `esperava ao menos 4 códigos, achei ${entries.length}`)
 
-    const codigos = entries.map(row => row[0])
-    assert.equal(
-        new Set(codigos).size,
-        codigos.length,
-        'há código duplicado — um código, um significado'
-    )
+  const codigos = entries.map(row => row[0])
+  assert.equal(new Set(codigos).size, codigos.length, 'há código duplicado — um código, um significado')
 
-    for (const row of entries) {
-        assert.notEqual(row[1] ?? '', '', `código "${row[0]}" sem significado`)
-        assert.notEqual(
-            row[2] ?? '',
-            '',
-            `código "${row[0]}" sem "quando ocorre"`
-        )
-        const status = row[row.length - 1] ?? ''
-        assert.match(
-            status,
-            /^(active|deprecated|removed)/,
-            `status "${status}" fora do ciclo de vida (spec §4)`
-        )
-    }
+  for (const row of entries) {
+    assert.notEqual(row[1] ?? '', '', `código "${row[0]}" sem significado`)
+    assert.notEqual(row[2] ?? '', '', `código "${row[0]}" sem "quando ocorre"`)
+    const status = row[row.length - 1] ?? ''
+    assert.match(status, /^(active|deprecated|removed)/, `status "${status}" fora do ciclo de vida (spec §4)`)
+  }
 })
 
 test('o catálogo de erros não duplica a tabela de checks — ela é gerada e mora em outro arquivo', () => {
-    assert.doesNotMatch(
-        errors(),
-        /\bCI-1\b.*\bstructure lint\b/,
-        'os IDs de check moram em docs/contracts/checks.gen.md'
-    )
-    assert.match(
-        errors(),
-        /checks\.gen\.md/,
-        'e este arquivo deve apontar para lá'
-    )
+  assert.doesNotMatch(errors(), /\bCI-1\b.*\bstructure lint\b/, 'os IDs de check moram em docs/contracts/checks.gen.md')
+  assert.match(errors(), /checks\.gen\.md/, 'e este arquivo deve apontar para lá')
 })
 
 test('a política de versionamento responde o que é público, o que não muda e como se deprecia', () => {
-    const source = readFileSync(
-        join(ROOT, 'docs/contracts/versioning-policy.md'),
-        'utf8'
-    )
-    for (const secao of [
-        '## O que é público',
-        '## O que nunca muda de significado',
-        '## Como se deprecia'
-    ]) {
-        assert.ok(source.includes(secao), `política sem a seção "${secao}"`)
-    }
+  const source = readFileSync(join(ROOT, 'docs/contracts/versioning-policy.md'), 'utf8')
+  for (const secao of ['## O que é público', '## O que nunca muda de significado', '## Como se deprecia']) {
+    assert.ok(source.includes(secao), `política sem a seção "${secao}"`)
+  }
 })
 
 test('RN-0001: os contratos têm dono no CODEOWNERS, como todo artefato', () => {
-    const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
-    assert.match(codeowners, /^docs\/contracts\/\s+@\S+$/m)
+  const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
+  assert.match(codeowners, /^docs\/contracts\/\s+@\S+$/m)
 })
 ```
 
@@ -2114,8 +1901,8 @@ formato, não o conteúdo.
 title: Catálogo de erros
 owner: '@esliph/engineering'
 trigger: >
-    Código de saída novo ou com significado alterado; classe de falha nova na
-    linha de comando; mudança no que um código significa para quem consome o CLI.
+  Código de saída novo ou com significado alterado; classe de falha nova na
+  linha de comando; mudança no que um código significa para quem consome o CLI.
 last-reviewed: 2026-08-25
 ---
 
@@ -2152,8 +1939,8 @@ consertar o lugar errado.
 title: Política de versionamento
 owner: '@esliph/engineering'
 trigger: >
-    Mudança na interface pública do CLI, dos checks ou do `.ownership.yml`;
-    decisão de depreciar algo publicado; mudança na própria política.
+  Mudança na interface pública do CLI, dos checks ou do `.ownership.yml`;
+  decisão de depreciar algo publicado; mudança na própria política.
 last-reviewed: 2026-08-25
 ---
 
@@ -2276,40 +2063,19 @@ Acrescente a `test/plugin/authoring.test.ts`:
 
 ```typescript
 test('contract-keeper: a description nomeia interface pública, erro novo e versionamento', () => {
-    const description = String(
-        parseFrontmatter(skillSource('contract-keeper'))?.data.description ?? ''
-    )
-    assert.match(description, /Use quando/i)
-    for (const sintoma of ['contrato', 'erro', 'gerad']) {
-        assert.ok(
-            description.toLowerCase().includes(sintoma),
-            `a description deveria conter o sintoma "${sintoma}"`
-        )
-    }
+  const description = String(parseFrontmatter(skillSource('contract-keeper'))?.data.description ?? '')
+  assert.match(description, /Use quando/i)
+  for (const sintoma of ['contrato', 'erro', 'gerad']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
+  }
 })
 
 test('contract-keeper não duplica o conteúdo dos artefatos que governa', () => {
-    const source = skillSource('contract-keeper')
-    assert.match(
-        source,
-        /templates\/errors\.md/,
-        'ela deve apontar para o template, não copiá-lo'
-    )
-    assert.match(
-        source,
-        /templates\/versioning-policy\.md/,
-        'os dois templates, porque são dois artefatos'
-    )
-    assert.doesNotMatch(
-        source,
-        /^\| EXIT-\d/m,
-        'a skill não deve conter o catálogo deste repositório'
-    )
-    assert.doesNotMatch(
-        source,
-        /^## O que é público/m,
-        'nem a política deste repositório'
-    )
+  const source = skillSource('contract-keeper')
+  assert.match(source, /templates\/errors\.md/, 'ela deve apontar para o template, não copiá-lo')
+  assert.match(source, /templates\/versioning-policy\.md/, 'os dois templates, porque são dois artefatos')
+  assert.doesNotMatch(source, /^\| EXIT-\d/m, 'a skill não deve conter o catálogo deste repositório')
+  assert.doesNotMatch(source, /^## O que é público/m, 'nem a política deste repositório')
 })
 ```
 
@@ -2330,13 +2096,13 @@ diretório nascer vazio ou incompleto.
 ---
 name: contract-keeper
 description: >
-    Use quando a interface pública mudar — endpoint, payload, formato de saída,
-    código de saída, nome de campo —, quando aparecer um código de erro novo, ou
-    quando alguém perguntar "isso é público?", "posso mudar esse campo?", "esse
-    erro significa o quê?", "quem depende disso?", "posso editar esse arquivo
-    gerado?", "por que o CI reclamou de contrato?". Também quando for preciso
-    depreciar algo publicado, ou decidir o que um consumidor pode ou não assumir
-    como estável.
+  Use quando a interface pública mudar — endpoint, payload, formato de saída,
+  código de saída, nome de campo —, quando aparecer um código de erro novo, ou
+  quando alguém perguntar "isso é público?", "posso mudar esse campo?", "esse
+  erro significa o quê?", "quem depende disso?", "posso editar esse arquivo
+  gerado?", "por que o CI reclamou de contrato?". Também quando for preciso
+  depreciar algo publicado, ou decidir o que um consumidor pode ou não assumir
+  como estável.
 ---
 
 # contract-keeper — dono do contrato público
@@ -2521,48 +2287,37 @@ generated:
 `
 
 test('critério 6: HK-2 nega editar o contrato gerado, e CI-5 falha se passar por fora', () => {
-    const GERADO = 'docs/contracts/api.gen.md'
-    const VERDADE =
-        '<!-- generated: do not edit -->\n\n# API\n\n- GET /pedidos\n'
+  const GERADO = 'docs/contracts/api.gen.md'
+  const VERDADE = '<!-- generated: do not edit -->\n\n# API\n\n- GET /pedidos\n'
 
-    withTempRepo(
-        { [OWNERSHIP_PATH]: GENERATED_CONFIG, [GERADO]: VERDADE },
-        root => {
-            const env = { root, hostRoots: [root] }
+  withTempRepo({ [OWNERSHIP_PATH]: GENERATED_CONFIG, [GERADO]: VERDADE }, root => {
+    const env = { root, hostRoots: [root] }
 
-            // Metade 1 — pelo agente, HK-2 nega e ensina o caminho certo.
-            const negado = decideHk2(
-                {
-                    tool_name: 'Edit',
-                    tool_input: {
-                        file_path: GERADO,
-                        old_string: 'GET',
-                        new_string: 'POST'
-                    }
-                },
-                env
-            )
-            assert.equal(negado.action, 'deny')
-            assert.match(
-                negado.action === 'deny' ? negado.reason : '',
-                /node tools\/gen\.js/
-            )
-
-            // Metade 2 — editado por fora do agente, CI-5 falha.
-            writeFileSync(
-                join(root, GERADO),
-                VERDADE.replace('GET', 'POST'),
-                'utf8'
-            )
-            const derivou = runDrift(root, () => VERDADE)
-            assert.equal(derivou.exitCode, 1)
-            assert.equal(derivou.findings[0]?.ruleId, 'CI-5')
-
-            // E com o arquivo igual à saída do gerador, o caminho fica livre.
-            writeFileSync(join(root, GERADO), VERDADE, 'utf8')
-            assert.equal(runDrift(root, () => VERDADE).exitCode, 0)
-        }
+    // Metade 1 — pelo agente, HK-2 nega e ensina o caminho certo.
+    const negado = decideHk2(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: GERADO,
+          old_string: 'GET',
+          new_string: 'POST',
+        },
+      },
+      env,
     )
+    assert.equal(negado.action, 'deny')
+    assert.match(negado.action === 'deny' ? negado.reason : '', /node tools\/gen\.js/)
+
+    // Metade 2 — editado por fora do agente, CI-5 falha.
+    writeFileSync(join(root, GERADO), VERDADE.replace('GET', 'POST'), 'utf8')
+    const derivou = runDrift(root, () => VERDADE)
+    assert.equal(derivou.exitCode, 1)
+    assert.equal(derivou.findings[0]?.ruleId, 'CI-5')
+
+    // E com o arquivo igual à saída do gerador, o caminho fica livre.
+    writeFileSync(join(root, GERADO), VERDADE, 'utf8')
+    assert.equal(runDrift(root, () => VERDADE).exitCode, 0)
+  })
 })
 ```
 
@@ -2610,8 +2365,8 @@ Em `.github/workflows/living-docs.yml`, depois do passo de `validate`:
 ```yaml
 - name: CI-5 — deriva de contrato gerado
   run: >
-      docker compose run --rm -w /workspace toolkit
-      node /opt/living-docs/src/cli/index.ts drift
+    docker compose run --rm -w /workspace toolkit
+    node /opt/living-docs/src/cli/index.ts drift
 ```
 
 É o passo que impede `ADR-0005` de virar promessa: um check que só roda quando
@@ -2821,4 +2576,3 @@ escreva no backlog o estado real ("`ADR-0005` segue `draft`").
 - **Não muda `run-hook.sh` nem `src/core/types.ts`.** O wrapper já distribui por
   nome de hook, e o executor de comando é dependência do check, não do
   contexto. Mexer nos dois seria melhoria de graça em código que funciona.
-

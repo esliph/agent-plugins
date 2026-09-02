@@ -28,12 +28,12 @@ Os caminhos vêm de `docs/.ownership.yml` (`generated[]` e o dono de
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
-| A *pipeline* que gera o contrato | A fonte anotada + o comando declarado em `generated[].command` | Código, não documento |
-| O artefato gerado (`*.gen.*`) | O contrato em si | Gerado; nunca editado à mão (`HK-2`) |
-| `docs/contracts/errors.md` | Catálogo de erros: código, significado, quando ocorre, transporte, se é público | Arquivo único, tabela, mutável |
-| `docs/contracts/versioning-policy.md` | O que é público, o que nunca muda de significado, como se deprecia | Arquivo único, seções |
+| Artefato                              | O que é                                                                         | Forma                                |
+| ------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------ |
+| A _pipeline_ que gera o contrato      | A fonte anotada + o comando declarado em `generated[].command`                  | Código, não documento                |
+| O artefato gerado (`*.gen.*`)         | O contrato em si                                                                | Gerado; nunca editado à mão (`HK-2`) |
+| `docs/contracts/errors.md`            | Catálogo de erros: código, significado, quando ocorre, transporte, se é público | Arquivo único, tabela, mutável       |
+| `docs/contracts/versioning-policy.md` | O que é público, o que nunca muda de significado, como se deprecia              | Arquivo único, seções                |
 
 As sementes estão em `templates/errors.md` e
 `templates/versioning-policy.md`. Não reproduza o conteúdo delas aqui.
@@ -79,13 +79,13 @@ publicar o que não precisava ser público é dívida que ninguém registrou.
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| A pipeline que gera o contrato, e a fonte anotada | Editar o arquivo gerado — `HK-2` nega, e ele está certo |
-| A política em volta: versionamento, depreciação, estabilidade | O contrato em si, quando ele pode ser gerado |
-| O catálogo de erros: código, significado, status | A mensagem exibível, que não é contrato |
-| Declarar o que é público | Decidir quebrar compatibilidade (é ADR, e ato humano) |
-| Exigir substituto antes de depreciar | Escrever o guia de migração (é `release-historian`, Fase 6) |
+| É seu                                                         | Não é seu                                                   |
+| ------------------------------------------------------------- | ----------------------------------------------------------- |
+| A pipeline que gera o contrato, e a fonte anotada             | Editar o arquivo gerado — `HK-2` nega, e ele está certo     |
+| A política em volta: versionamento, depreciação, estabilidade | O contrato em si, quando ele pode ser gerado                |
+| O catálogo de erros: código, significado, status              | A mensagem exibível, que não é contrato                     |
+| Declarar o que é público                                      | Decidir quebrar compatibilidade (é ADR, e ato humano)       |
+| Exigir substituto antes de depreciar                          | Escrever o guia de migração (é `release-historian`, Fase 6) |
 
 ## Checklist
 

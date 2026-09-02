@@ -4,7 +4,7 @@ title: O estágio parametriza os checks do workflow; os hooks entram como peça 
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28
 relates-to: [RF-0013, RN-0025]
 supersedes: null
@@ -66,4 +66,3 @@ valor que o CLI rejeita.
 silêncio for real, e é por isso que o silêncio é testado: cada hook tem teste que
 prova que ele se cala sem a configuração dele. No dia em que um hook falar sem
 configuração, esta decisão é que está errada — não o teste.
-

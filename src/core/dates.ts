@@ -6,14 +6,14 @@
  * mudaria sozinho com o passar do tempo, e o único teste possível seria o que
  * passa hoje e reprova em seis meses.
  */
-export type Clock = () => Date;
+export type Clock = () => Date
 
 /** Hoje, em ISO (`YYYY-MM-DD`), em UTC. */
 export function todayIso(clock: Clock = () => new Date()): string {
-  return clock().toISOString().slice(0, 10);
+  return clock().toISOString().slice(0, 10)
 }
 
-const ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
+const ISO = /^(\d{4})-(\d{2})-(\d{2})$/
 
 /**
  * O valor como data ISO, ou `null` quando não é data.
@@ -25,11 +25,14 @@ const ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
  */
 export function asIsoDate(value: unknown): string | null {
   if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value.toISOString().slice(0, 10);
+    return Number.isNaN(value.getTime()) ? null : value.toISOString().slice(0, 10)
   }
-  if (typeof value !== 'string') return null;
-  const trimmed = value.trim();
-  return ISO.test(trimmed) ? trimmed : null;
+  if (typeof value !== 'string') {
+    return null
+  }
+  const trimmed = value.trim()
+
+  return ISO.test(trimmed) ? trimmed : null
 }
 
 /**
@@ -40,14 +43,22 @@ export function asIsoDate(value: unknown): string | null {
  * declara, e precisão de dia não muda nenhuma decisão que o aviso provoca.
  */
 export function monthsBetween(from: string, to: string): number | null {
-  const start = ISO.exec(from.trim());
-  const end = ISO.exec(to.trim());
-  if (!start || !end) return null;
+  const start = ISO.exec(from.trim())
+  const end = ISO.exec(to.trim())
 
-  let months = (Number(end[1]) - Number(start[1])) * 12 + (Number(end[2]) - Number(start[2]));
-  const startDay = Number(start[3]);
-  const endDay = Number(end[3]);
-  if (months > 0 && endDay < startDay) months -= 1;
-  else if (months < 0 && endDay > startDay) months += 1;
-  return months;
+  if (!start || !end) {
+    return null
+  }
+
+  let months = (Number(end[1]) - Number(start[1])) * 12 + (Number(end[2]) - Number(start[2]))
+  const startDay = Number(start[3])
+  const endDay = Number(end[3])
+
+  if (months > 0 && endDay < startDay) {
+    months -= 1
+  } else if (months < 0 && endDay > startDay) {
+    months += 1
+  }
+
+  return months
 }

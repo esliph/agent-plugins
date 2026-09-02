@@ -1,63 +1,79 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import picomatch from 'picomatch';
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import picomatch from 'picomatch'
 
 /** Onde o CODEOWNERS pode morar, na ordem em que se procura por ele. */
-export const CODEOWNERS_PATHS: readonly string[] = ['CODEOWNERS', '.github/CODEOWNERS', 'docs/CODEOWNERS'];
+export const CODEOWNERS_PATHS: readonly string[] = ['CODEOWNERS', '.github/CODEOWNERS', 'docs/CODEOWNERS']
 
 export interface CodeownersEntry {
-  pattern: string;
+  pattern: string
   /** Só handles (`@…`); um padrão sem handle não declara dono. */
-  owners: string[];
+  owners: string[]
   /** Linha 1-indexed. */
-  line: number;
+  line: number
 }
 
 export interface Codeowners {
   /** Caminho do arquivo encontrado, relativo à raiz. */
-  file: string;
-  entries: CodeownersEntry[];
+  file: string
+  entries: CodeownersEntry[]
 }
 
 export function parseCodeowners(source: string): CodeownersEntry[] {
-  const entries: CodeownersEntry[] = [];
-  const lines = source.replace(/\r\n/g, '\n').split('\n');
+  const entries: CodeownersEntry[] = []
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
 
   for (let i = 0; i < lines.length; i++) {
-    const line = (lines[i] ?? '').trim();
-    if (line === '' || line.startsWith('#')) continue;
+    const line = (lines[i] ?? '').trim()
 
-    const [pattern, ...rest] = line.split(/\s+/);
-    if (pattern === undefined) continue;
+    if (line === '' || line.startsWith('#')) {
+      continue
+    }
 
-    entries.push({ pattern, owners: rest.filter((owner) => owner.startsWith('@')), line: i + 1 });
+    const [pattern, ...rest] = line.split(/\s+/)
+
+    if (pattern === undefined) {
+      continue
+    }
+
+    entries.push({ pattern, owners: rest.filter(owner => owner.startsWith('@')), line: i + 1 })
   }
 
-  return entries;
+  return entries
 }
 
 export function loadCodeowners(root: string): Codeowners | null {
   for (const candidate of CODEOWNERS_PATHS) {
-    let source: string;
+    let source: string
+
     try {
-      source = readFileSync(join(root, candidate), 'utf8');
+      source = readFileSync(join(root, candidate), 'utf8')
     } catch {
-      continue;
+      continue
     }
-    return { file: candidate, entries: parseCodeowners(source) };
+
+    return { file: candidate, entries: parseCodeowners(source) }
   }
-  return null;
+
+  return null
 }
 
 function matcherFor(pattern: string): (repoPath: string) => boolean {
-  const clean = pattern.replace(/\\/g, '/').replace(/^\//, '');
-  if (clean === '*' || clean === '**') return () => true;
-  if (clean.endsWith('/')) return (repoPath) => repoPath.startsWith(clean);
-  if (clean.includes('*')) {
-    const isMatch = picomatch([clean, `${clean}/**`]);
-    return (repoPath) => isMatch(repoPath);
+  const clean = pattern.replace(/\\/g, '/').replace(/^\//, '')
+
+  if (clean === '*' || clean === '**') {
+    return () => true
   }
-  return (repoPath) => repoPath === clean || repoPath.startsWith(`${clean}/`);
+  if (clean.endsWith('/')) {
+    return repoPath => repoPath.startsWith(clean)
+  }
+  if (clean.includes('*')) {
+    const isMatch = picomatch([clean, `${clean}/**`])
+
+    return repoPath => isMatch(repoPath)
+  }
+
+  return repoPath => repoPath === clean || repoPath.startsWith(`${clean}/`)
 }
 
 /**
@@ -70,14 +86,18 @@ function matcherFor(pattern: string): (repoPath: string) => boolean {
  * precisão que este check não tem.
  */
 export function ownersOf(codeowners: Codeowners, repoPath: string): string[] | null {
-  const target = repoPath.replace(/\\/g, '/').replace(/^\.\//, '');
-  let owners: string[] | null = null;
+  const target = repoPath.replace(/\\/g, '/').replace(/^\.\//, '')
+  let owners: string[] | null = null
 
   // A última regra que casa ganha — é assim que o CODEOWNERS é lido.
   for (const entry of codeowners.entries) {
-    if (entry.owners.length === 0) continue;
-    if (matcherFor(entry.pattern)(target)) owners = entry.owners;
+    if (entry.owners.length === 0) {
+      continue
+    }
+    if (matcherFor(entry.pattern)(target)) {
+      owners = entry.owners
+    }
   }
 
-  return owners;
+  return owners
 }

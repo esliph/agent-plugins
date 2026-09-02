@@ -101,7 +101,7 @@ title: Raiz do toolkit e raiz do repositório validado são distintas
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24
 relates-to: [DA-0001, ADR-0002]
 supersedes: null
@@ -232,8 +232,8 @@ import { join, resolve } from 'node:path'
  * Regra de origem: ADR-0003.
  */
 export function toolkitRoot(): string {
-    const override = process.env.LIVING_DOCS_TOOLKIT_ROOT
-    return resolve(override ?? join(import.meta.dirname, '..', '..'))
+  const override = process.env.LIVING_DOCS_TOOLKIT_ROOT
+  return resolve(override ?? join(import.meta.dirname, '..', '..'))
 }
 
 /**
@@ -241,12 +241,12 @@ export function toolkitRoot(): string {
  * artefatos. Nunca derivada do toolkit — é o outro lado de ADR-0003.
  */
 export function repoRoot(): string {
-    return resolve(process.env.LIVING_DOCS_REPO_ROOT ?? process.cwd())
+  return resolve(process.env.LIVING_DOCS_REPO_ROOT ?? process.cwd())
 }
 
 /** Diretório dos templates que `living-docs init` escreve. Sempre do toolkit. */
 export function templatesDir(): string {
-    return join(toolkitRoot(), 'templates')
+  return join(toolkitRoot(), 'templates')
 }
 ```
 
@@ -260,58 +260,47 @@ import { join } from 'node:path'
 import { repoRoot, templatesDir, toolkitRoot } from '../../src/core/roots.ts'
 
 test('toolkitRoot aponta para o checkout do toolkit', () => {
-    assert.ok(existsSync(join(toolkitRoot(), 'package.json')))
-    assert.ok(existsSync(join(templatesDir(), 'adr.md')))
+  assert.ok(existsSync(join(toolkitRoot(), 'package.json')))
+  assert.ok(existsSync(join(templatesDir(), 'adr.md')))
 })
 
 test('repoRoot respeita LIVING_DOCS_REPO_ROOT e não move toolkitRoot', () => {
-    const antes = toolkitRoot()
-    const anterior = process.env.LIVING_DOCS_REPO_ROOT
-    process.env.LIVING_DOCS_REPO_ROOT = '/tmp/outro-projeto'
-    try {
-        assert.equal(repoRoot(), '/tmp/outro-projeto')
-        assert.equal(
-            toolkitRoot(),
-            antes,
-            'a raiz do toolkit não pode seguir a do repositório (ADR-0003)'
-        )
-    } finally {
-        if (anterior === undefined) delete process.env.LIVING_DOCS_REPO_ROOT
-        else process.env.LIVING_DOCS_REPO_ROOT = anterior
-    }
+  const antes = toolkitRoot()
+  const anterior = process.env.LIVING_DOCS_REPO_ROOT
+  process.env.LIVING_DOCS_REPO_ROOT = '/tmp/outro-projeto'
+  try {
+    assert.equal(repoRoot(), '/tmp/outro-projeto')
+    assert.equal(toolkitRoot(), antes, 'a raiz do toolkit não pode seguir a do repositório (ADR-0003)')
+  } finally {
+    if (anterior === undefined) delete process.env.LIVING_DOCS_REPO_ROOT
+    else process.env.LIVING_DOCS_REPO_ROOT = anterior
+  }
 })
 
 test('nenhum caminho absoluto de container está embutido em src/ ou test/', () => {
-    const proibidos = ['/app', '/workspace', '/opt/living-docs']
-    const ofensas: string[] = []
+  const proibidos = ['/app', '/workspace', '/opt/living-docs']
+  const ofensas: string[] = []
 
-    const walk = (dir: string): void => {
-        for (const entry of readdirSync(join(toolkitRoot(), dir))) {
-            const relative = `${dir}/${entry}`
-            if (statSync(join(toolkitRoot(), relative)).isDirectory()) {
-                walk(relative)
-                continue
-            }
-            if (!entry.endsWith('.ts')) continue
-            const source = readFileSync(join(toolkitRoot(), relative), 'utf8')
-            for (const proibido of proibidos) {
-                if (
-                    source.includes(`'${proibido}`) ||
-                    source.includes(`"${proibido}`)
-                ) {
-                    ofensas.push(`${relative}: ${proibido}`)
-                }
-            }
+  const walk = (dir: string): void => {
+    for (const entry of readdirSync(join(toolkitRoot(), dir))) {
+      const relative = `${dir}/${entry}`
+      if (statSync(join(toolkitRoot(), relative)).isDirectory()) {
+        walk(relative)
+        continue
+      }
+      if (!entry.endsWith('.ts')) continue
+      const source = readFileSync(join(toolkitRoot(), relative), 'utf8')
+      for (const proibido of proibidos) {
+        if (source.includes(`'${proibido}`) || source.includes(`"${proibido}`)) {
+          ofensas.push(`${relative}: ${proibido}`)
         }
+      }
     }
+  }
 
-    walk('src')
-    walk('test')
-    assert.deepEqual(
-        ofensas,
-        [],
-        'caminho de container só pode aparecer em Dockerfile, compose e wrappers (ADR-0003)'
-    )
+  walk('src')
+  walk('test')
+  assert.deepEqual(ofensas, [], 'caminho de container só pode aparecer em Dockerfile, compose e wrappers (ADR-0003)')
 })
 ```
 
@@ -323,9 +312,9 @@ test('nenhum caminho absoluto de container está embutido em src/ ou test/', () 
 import { repoRoot } from '../../core/roots.ts'
 
 export function hookEnv(): HookEnv {
-    const root = repoRoot()
-    const host = process.env.LIVING_DOCS_HOST_ROOT
-    return { root, hostRoots: host ? [root, host] : [root] }
+  const root = repoRoot()
+  const host = process.env.LIVING_DOCS_HOST_ROOT
+  return { root, hostRoots: host ? [root, host] : [root] }
 }
 ```
 
@@ -397,26 +386,26 @@ CMD ["sleep", "infinity"]
 
 ```yaml
 services:
-    toolkit:
-        build: .
-        container_name: living-docs-toolkit
-        working_dir: /opt/living-docs
-        user: node
-        init: true
-        volumes:
-            # A fonte do toolkit, sem build step (ADR-0001).
-            - .:/opt/living-docs
-            # O repositório validado. Sem LIVING_DOCS_TARGET, é este mesmo checkout:
-            # dogfooding pelos dois caminhos, com a separação exercitada de verdade.
-            - ${LIVING_DOCS_TARGET:-.}:/workspace
-            - node_modules:/opt/living-docs/node_modules
-        environment:
-            LIVING_DOCS_TOOLKIT_ROOT: /opt/living-docs
-            LIVING_DOCS_REPO_ROOT: /workspace
-        command: ['sleep', 'infinity']
+  toolkit:
+    build: .
+    container_name: living-docs-toolkit
+    working_dir: /opt/living-docs
+    user: node
+    init: true
+    volumes:
+      # A fonte do toolkit, sem build step (ADR-0001).
+      - .:/opt/living-docs
+      # O repositório validado. Sem LIVING_DOCS_TARGET, é este mesmo checkout:
+      # dogfooding pelos dois caminhos, com a separação exercitada de verdade.
+      - ${LIVING_DOCS_TARGET:-.}:/workspace
+      - node_modules:/opt/living-docs/node_modules
+    environment:
+      LIVING_DOCS_TOOLKIT_ROOT: /opt/living-docs
+      LIVING_DOCS_REPO_ROOT: /workspace
+    command: ['sleep', 'infinity']
 
 volumes:
-    node_modules:
+  node_modules:
 ```
 
 - [ ] **Step 3: `bin/living-docs`**
@@ -479,8 +468,8 @@ O passo de `validate` passa a rodar com o diretório de trabalho no repositório
 ```yaml
 - name: CI-1, CI-2 e CI-3 — documentação viva
   run: >
-      docker compose run --rm -w /workspace toolkit
-      node /opt/living-docs/src/cli/index.ts validate
+    docker compose run --rm -w /workspace toolkit
+    node /opt/living-docs/src/cli/index.ts validate
 ```
 
 Os passos de `npm ci`, `npm test` e `npm run typecheck` continuam como estão: o `working_dir` do serviço já é `/opt/living-docs`.
@@ -529,13 +518,7 @@ git commit -m "feat(ADR-0003): container com /opt/living-docs e /workspace separ
 ```typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    existsSync,
-    readFileSync,
-    writeFileSync,
-    mkdirSync,
-    readdirSync
-} from 'node:fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { runInit } from '../../src/cli/init.ts'
 import { runValidate } from '../../src/cli/validate.ts'
@@ -546,95 +529,87 @@ import { withTempRepo } from '../helpers/tmp.ts'
 const OPTIONS = { owner: '@consumidor', dryRun: false, stage: 'solo' as const }
 
 test('DA-0001: init escreve no repositório validado, nunca no toolkit', () => {
-    const antes = readdirSync(toolkitRoot()).sort()
+  const antes = readdirSync(toolkitRoot()).sort()
 
-    withTempRepo({ 'README.md': '# projeto alheio\n' }, root => {
-        assert.notEqual(root, toolkitRoot())
+  withTempRepo({ 'README.md': '# projeto alheio\n' }, root => {
+    assert.notEqual(root, toolkitRoot())
 
-        const result = runInit(root, OPTIONS)
-        assert.ok(result.created.includes('docs/.ownership.yml'))
-        assert.ok(existsSync(join(root, 'docs/.ownership.yml')))
-        assert.ok(existsSync(join(root, 'docs/open-decisions.md')))
+    const result = runInit(root, OPTIONS)
+    assert.ok(result.created.includes('docs/.ownership.yml'))
+    assert.ok(existsSync(join(root, 'docs/.ownership.yml')))
+    assert.ok(existsSync(join(root, 'docs/open-decisions.md')))
 
-        // os templates vieram do toolkit, e o toolkit não ganhou arquivo nenhum
-        assert.ok(
-            readFileSync(join(root, 'docs/.ownership.yml'), 'utf8').includes(
-                '@consumidor'
-            )
-        )
-        assert.deepEqual(readdirSync(toolkitRoot()).sort(), antes)
-    })
+    // os templates vieram do toolkit, e o toolkit não ganhou arquivo nenhum
+    assert.ok(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8').includes('@consumidor'))
+    assert.deepEqual(readdirSync(toolkitRoot()).sort(), antes)
+  })
 })
 
 test('DA-0001: validate roda contra a configuração do repositório validado', () => {
-    withTempRepo({}, root => {
-        runInit(root, OPTIONS)
-        assert.equal(runValidate(root).exitCode, 0)
+  withTempRepo({}, root => {
+    runInit(root, OPTIONS)
+    assert.equal(runValidate(root).exitCode, 0)
 
-        // uma violação plantada lá aparece lá, com o caminho relativo àquele repo
-        mkdirSync(join(root, 'docs/decisions/adr'), { recursive: true })
-        writeFileSync(
-            join(root, 'docs/decisions/adr/ADR-0001-x.md'),
-            [
-                '---',
-                'id: ADR-0001',
-                'title: X',
-                'status: draft',
-                'owner: "@consumidor"',
-                'trigger: revisar trimestralmente',
-                'last-reviewed: 2026-08-24',
-                '---',
-                '',
-                'corpo'
-            ].join('\n'),
-            'utf8'
-        )
+    // uma violação plantada lá aparece lá, com o caminho relativo àquele repo
+    mkdirSync(join(root, 'docs/decisions/adr'), { recursive: true })
+    writeFileSync(
+      join(root, 'docs/decisions/adr/ADR-0001-x.md'),
+      [
+        '---',
+        'id: ADR-0001',
+        'title: X',
+        'status: draft',
+        'owner: "@consumidor"',
+        'trigger: revisar trimestralmente',
+        'last-reviewed: 2026-08-24',
+        '---',
+        '',
+        'corpo',
+      ].join('\n'),
+      'utf8',
+    )
 
-        const result = runValidate(root)
-        assert.equal(result.exitCode, 1)
-        assert.ok(
-            result.findings.some(
-                f => f.file === 'docs/decisions/adr/ADR-0001-x.md'
-            )
-        )
-    })
+    const result = runValidate(root)
+    assert.equal(result.exitCode, 1)
+    assert.ok(result.findings.some(f => f.file === 'docs/decisions/adr/ADR-0001-x.md'))
+  })
 })
 
 test('DA-0001: o hook decide pela configuração do repositório validado', () => {
-    withTempRepo({}, root => {
-        runInit(root, OPTIONS)
-        const file = 'docs/decisions/adr/ADR-0001-congelado.md'
-        mkdirSync(join(root, 'docs/decisions/adr'), { recursive: true })
-        writeFileSync(
-            join(root, file),
-            [
-                '---',
-                'id: ADR-0001',
-                'title: Congelado',
-                'status: accepted',
-                'owner: "@consumidor"',
-                'trigger: Nunca.',
-                'last-reviewed: 2026-08-24',
-                '---',
-                '',
-                'corpo original'
-            ].join('\n'),
-            'utf8'
-        )
+  withTempRepo({}, root => {
+    runInit(root, OPTIONS)
+    const file = 'docs/decisions/adr/ADR-0001-congelado.md'
+    mkdirSync(join(root, 'docs/decisions/adr'), { recursive: true })
+    writeFileSync(
+      join(root, file),
+      [
+        '---',
+        'id: ADR-0001',
+        'title: Congelado',
+        'status: accepted',
+        'owner: "@consumidor"',
+        'trigger: Nunca.',
+        'last-reviewed: 2026-08-24',
+        '---',
+        '',
+        'corpo original',
+      ].join('\n'),
+      'utf8',
+    )
 
-        const decision = decideHk1(
-            {
-                tool_name: 'Edit',
-                tool_input: {
-                    file_path: file,
-                    old_string: 'corpo original',
-                    new_string: 'outro'
-                }
-            },
-            { root, hostRoots: [root] }
-        )
-        assert.equal(decision.action, 'deny')
-    })
+    const decision = decideHk1(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: file,
+          old_string: 'corpo original',
+          new_string: 'outro',
+        },
+      },
+      { root, hostRoots: [root] },
+    )
+    assert.equal(decision.action, 'deny')
+  })
 })
 ```
 
@@ -670,34 +645,24 @@ git commit -m "test(DA-0001): repositório consumidor separado do checkout do to
  * que check e hook não precisem saber qual dos dois estão lendo.
  */
 export interface DocItem {
-    id: string
-    status: string
-    /** Linha 1-indexed no arquivo inteiro. */
-    line: number
-    /** Tudo que o item declara, por chave normalizada. */
-    fields: Record<string, string>
+  id: string
+  status: string
+  /** Linha 1-indexed no arquivo inteiro. */
+  line: number
+  /** Tudo que o item declara, por chave normalizada. */
+  fields: Record<string, string>
 }
 
 /** Chave comparável: minúscula, sem espaço nas pontas, sem `:` final. */
 export function normalizeKey(key: string): string {
-    return key.trim().replace(/:$/, '').trim().toLowerCase()
+  return key.trim().replace(/:$/, '').trim().toLowerCase()
 }
 
 /** Marcadores de "vazio" usados em tabela de markdown. */
-const EMPTY = new Set([
-    '',
-    '-',
-    '—',
-    '–',
-    'n/a',
-    'na',
-    'null',
-    'nenhum',
-    'nenhuma'
-])
+const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na', 'null', 'nenhum', 'nenhuma'])
 
 export function isEmptyValue(value: string): boolean {
-    return EMPTY.has(value.trim().toLowerCase())
+  return EMPTY.has(value.trim().toLowerCase())
 }
 ```
 
@@ -708,23 +673,23 @@ Troque `TableItem` por `DocItem` e preencha `fields` com **todas** as colunas:
 ```typescript
 const items: DocItem[] = []
 for (let j = i + 2; j < lines.length; j++) {
-    const row = cells(lines[j] ?? '')
-    if (row.length === 0) break
-    const id = row[idColumn] ?? ''
-    if (!parseId(id)) continue
+  const row = cells(lines[j] ?? '')
+  if (row.length === 0) break
+  const id = row[idColumn] ?? ''
+  if (!parseId(id)) continue
 
-    const fields: Record<string, string> = {}
-    for (let c = 0; c < header.length; c++) {
-        const key = normalizeKey(header[c] ?? '')
-        if (key !== '') fields[key] = (row[c] ?? '').trim()
-    }
+  const fields: Record<string, string> = {}
+  for (let c = 0; c < header.length; c++) {
+    const key = normalizeKey(header[c] ?? '')
+    if (key !== '') fields[key] = (row[c] ?? '').trim()
+  }
 
-    items.push({
-        id,
-        status: row[statusColumn] ?? '',
-        line: startLine + j,
-        fields
-    })
+  items.push({
+    id,
+    status: row[statusColumn] ?? '',
+    line: startLine + j,
+    fields,
+  })
 }
 ```
 
@@ -745,16 +710,12 @@ No `parseArtifact`:
 const fieldMapRaw = item['field-map']
 const fieldMap: Record<string, string> = {}
 if (fieldMapRaw !== undefined && fieldMapRaw !== null) {
-    for (const [canonical, real] of Object.entries(
-        asRecord(fieldMapRaw, `${where}.field-map`)
-    )) {
-        if (typeof real !== 'string' || real.trim() === '') {
-            throw new OwnershipError(
-                `${OWNERSHIP_PATH}: ${where}.field-map.${canonical} precisa ser uma string não vazia.`
-            )
-        }
-        fieldMap[normalizeKey(canonical)] = normalizeKey(real)
+  for (const [canonical, real] of Object.entries(asRecord(fieldMapRaw, `${where}.field-map`))) {
+    if (typeof real !== 'string' || real.trim() === '') {
+      throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.field-map.${canonical} precisa ser uma string não vazia.`)
     }
+    fieldMap[normalizeKey(canonical)] = normalizeKey(real)
+  }
 }
 ```
 
@@ -765,16 +726,11 @@ E a leitura, no mesmo arquivo (é config, não check):
  * Valor de um campo canônico do item, respeitando o `field-map` do artefato.
  * Devolve null para célula vazia — `CI-3` trata "vazio" e "ausente" igual.
  */
-export function fieldOf(
-    rule: ArtifactRule,
-    item: DocItem,
-    canonical: string
-): string | null {
-    const key =
-        rule.fieldMap[normalizeKey(canonical)] ?? normalizeKey(canonical)
-    const value = item.fields[key]
-    if (value === undefined || isEmptyValue(value)) return null
-    return value.trim()
+export function fieldOf(rule: ArtifactRule, item: DocItem, canonical: string): string | null {
+  const key = rule.fieldMap[normalizeKey(canonical)] ?? normalizeKey(canonical)
+  const value = item.fields[key]
+  if (value === undefined || isEmptyValue(value)) return null
+  return value.trim()
 }
 ```
 
@@ -792,7 +748,7 @@ Em `docs/.ownership.yml` e `templates/ownership.yml`, no artefato `DA`:
   # canônico. O mapeamento mora aqui porque é a única coisa específica do
   # projeto (spec §3).
   field-map:
-      resolved-by: 'Resolvida por'
+    resolved-by: 'Resolvida por'
 ```
 
 - [ ] **Step 5: Testes — `test/docs/table.test.ts` e `test/config/ownership.test.ts`**
@@ -801,48 +757,40 @@ Acrescente:
 
 ```typescript
 test('o item traz todas as colunas, normalizadas', () => {
-    const items = parseItemTable(
-        [
-            '| ID | Lacuna | Status | Resolvida por |',
-            '| --- | --- | --- | --- |',
-            '| DA-0001 | X | resolved | ADR-0007 |'
-        ].join('\n'),
-        1
-    )
-    assert.equal(items[0]?.fields['resolvida por'], 'ADR-0007')
-    assert.equal(items[0]?.fields['lacuna'], 'X')
+  const items = parseItemTable(['| ID | Lacuna | Status | Resolvida por |', '| --- | --- | --- | --- |', '| DA-0001 | X | resolved | ADR-0007 |'].join('\n'), 1)
+  assert.equal(items[0]?.fields['resolvida por'], 'ADR-0007')
+  assert.equal(items[0]?.fields['lacuna'], 'X')
 })
 
 test('fieldOf traduz o nome canônico pelo field-map e trata vazio como ausente', () => {
-    const config =
-        parseOwnership(/* ... com field-map: { resolved-by: "Resolvida por" } ... */)
-    const rule = config.artifacts[0]!
-    assert.equal(
-        fieldOf(
-            rule,
-            {
-                id: 'DA-0001',
-                status: 'resolved',
-                line: 1,
-                fields: { 'resolvida por': 'ADR-0007' }
-            },
-            'resolved-by'
-        ),
-        'ADR-0007'
-    )
-    assert.equal(
-        fieldOf(
-            rule,
-            {
-                id: 'DA-0002',
-                status: 'open',
-                line: 2,
-                fields: { 'resolvida por': '—' }
-            },
-            'resolved-by'
-        ),
-        null
-    )
+  const config = parseOwnership(/* ... com field-map: { resolved-by: "Resolvida por" } ... */)
+  const rule = config.artifacts[0]!
+  assert.equal(
+    fieldOf(
+      rule,
+      {
+        id: 'DA-0001',
+        status: 'resolved',
+        line: 1,
+        fields: { 'resolvida por': 'ADR-0007' },
+      },
+      'resolved-by',
+    ),
+    'ADR-0007',
+  )
+  assert.equal(
+    fieldOf(
+      rule,
+      {
+        id: 'DA-0002',
+        status: 'open',
+        line: 2,
+        fields: { 'resolvida por': '—' },
+      },
+      'resolved-by',
+    ),
+    null,
+  )
 })
 ```
 
@@ -890,40 +838,37 @@ const FIELD = /^[-*]\s+\*\*([^*]+?)\*\*\s*:?\s*(.*)$/
  *
  *     Enunciado.
  */
-export function parseItemSections(
-    source: string,
-    startLine: number
-): DocItem[] {
-    const lines = source.replace(/\r\n/g, '\n').split('\n')
-    const items: DocItem[] = []
+export function parseItemSections(source: string, startLine: number): DocItem[] {
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
+  const items: DocItem[] = []
 
-    for (let i = 0; i < lines.length; i++) {
-        const heading = HEADING.exec((lines[i] ?? '').trim())
-        if (!heading?.[1] || !parseId(heading[1])) continue
+  for (let i = 0; i < lines.length; i++) {
+    const heading = HEADING.exec((lines[i] ?? '').trim())
+    if (!heading?.[1] || !parseId(heading[1])) continue
 
-        const fields: Record<string, string> = {}
-        if (heading[2] !== undefined && heading[2].trim() !== '') {
-            fields.title = heading[2].trim()
-        }
-
-        for (let j = i + 1; j < lines.length; j++) {
-            const line = (lines[j] ?? '').trim()
-            if (line === '') continue
-            if (HEADING.test(line) || line.startsWith('#')) break
-            const field = FIELD.exec(line)
-            if (!field?.[1]) break
-            fields[normalizeKey(field[1])] = (field[2] ?? '').trim()
-        }
-
-        items.push({
-            id: heading[1],
-            status: fields.status ?? '',
-            line: startLine + i,
-            fields
-        })
+    const fields: Record<string, string> = {}
+    if (heading[2] !== undefined && heading[2].trim() !== '') {
+      fields.title = heading[2].trim()
     }
 
-    return items
+    for (let j = i + 1; j < lines.length; j++) {
+      const line = (lines[j] ?? '').trim()
+      if (line === '') continue
+      if (HEADING.test(line) || line.startsWith('#')) break
+      const field = FIELD.exec(line)
+      if (!field?.[1]) break
+      fields[normalizeKey(field[1])] = (field[2] ?? '').trim()
+    }
+
+    items.push({
+      id: heading[1],
+      status: fields.status ?? '',
+      line: startLine + i,
+      fields,
+    })
+  }
+
+  return items
 }
 ```
 
@@ -935,46 +880,43 @@ import assert from 'node:assert/strict'
 import { parseItemSections } from '../../src/docs/sections.ts'
 
 const SOURCE = [
-    '# Regras de negócio',
-    '',
-    '## RN-0001 — Todo artefato tem exatamente um dono',
-    '',
-    '- **status:** active',
-    '- **relates-to:** ADR-0002',
-    '',
-    'Enunciado da regra.',
-    '',
-    '## RN-0002 — Regra revogada',
-    '',
-    '- **status:** revoked',
-    '- **revoked-by:** RN-0001',
-    ''
+  '# Regras de negócio',
+  '',
+  '## RN-0001 — Todo artefato tem exatamente um dono',
+  '',
+  '- **status:** active',
+  '- **relates-to:** ADR-0002',
+  '',
+  'Enunciado da regra.',
+  '',
+  '## RN-0002 — Regra revogada',
+  '',
+  '- **status:** revoked',
+  '- **revoked-by:** RN-0001',
+  '',
 ].join('\n')
 
 test('lê id, título, status e campos de cada seção', () => {
-    const items = parseItemSections(SOURCE, 1)
-    assert.equal(items.length, 2)
-    assert.equal(items[0]?.id, 'RN-0001')
-    assert.equal(items[0]?.status, 'active')
-    assert.equal(items[0]?.fields.title, 'Todo artefato tem exatamente um dono')
-    assert.equal(items[0]?.fields['relates-to'], 'ADR-0002')
-    assert.equal(items[1]?.fields['revoked-by'], 'RN-0001')
+  const items = parseItemSections(SOURCE, 1)
+  assert.equal(items.length, 2)
+  assert.equal(items[0]?.id, 'RN-0001')
+  assert.equal(items[0]?.status, 'active')
+  assert.equal(items[0]?.fields.title, 'Todo artefato tem exatamente um dono')
+  assert.equal(items[0]?.fields['relates-to'], 'ADR-0002')
+  assert.equal(items[1]?.fields['revoked-by'], 'RN-0001')
 })
 
 test('a linha aponta o título da seção, deslocada por startLine', () => {
-    assert.equal(parseItemSections(SOURCE, 10)[0]?.line, 12)
+  assert.equal(parseItemSections(SOURCE, 10)[0]?.line, 12)
 })
 
 test('seção sem status devolve status vazio — quem reclama é CI-1', () => {
-    const items = parseItemSections('## RN-0009 — Sem metadados\n\nCorpo.\n', 1)
-    assert.equal(items[0]?.status, '')
+  const items = parseItemSections('## RN-0009 — Sem metadados\n\nCorpo.\n', 1)
+  assert.equal(items[0]?.status, '')
 })
 
 test('título que não começa com ID é ignorado', () => {
-    assert.deepEqual(
-        parseItemSections('## Introdução\n\n- **status:** active\n', 1),
-        []
-    )
+  assert.deepEqual(parseItemSections('## Introdução\n\n- **status:** active\n', 1), [])
 })
 ```
 
@@ -988,14 +930,8 @@ e a validação:
 
 ```typescript
 const collectionRaw = item.collection ?? 'per-file'
-if (
-    collectionRaw !== 'per-file' &&
-    collectionRaw !== 'table' &&
-    collectionRaw !== 'sections'
-) {
-    throw new OwnershipError(
-        `${OWNERSHIP_PATH}: ${where}.collection precisa ser "per-file", "table" ou "sections".`
-    )
+if (collectionRaw !== 'per-file' && collectionRaw !== 'table' && collectionRaw !== 'sections') {
+  throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.collection precisa ser "per-file", "table" ou "sections".`)
 }
 ```
 
@@ -1004,29 +940,19 @@ if (
 A escolha de parser vira uma função, e `items` deixa de ser exclusivo de tabela:
 
 ```typescript
-function parseItems(
-    rule: ArtifactRule,
-    source: string,
-    body: string | null,
-    bodyStart: number
-): DocItem[] {
-    const text = body ?? source
-    const start = body === null ? 1 : bodyStart
-    if (rule.collection === 'table') return parseItemTable(text, start)
-    if (rule.collection === 'sections') return parseItemSections(text, start)
-    return []
+function parseItems(rule: ArtifactRule, source: string, body: string | null, bodyStart: number): DocItem[] {
+  const text = body ?? source
+  const start = body === null ? 1 : bodyStart
+  if (rule.collection === 'table') return parseItemTable(text, start)
+  if (rule.collection === 'sections') return parseItemSections(text, start)
+  return []
 }
 ```
 
 e em `readDoc`:
 
 ```typescript
-const items = parseItems(
-    rule,
-    source,
-    frontmatter ? frontmatter.body : null,
-    frontmatter ? frontmatter.bodyStartLine : 1
-)
+const items = parseItems(rule, source, frontmatter ? frontmatter.body : null, frontmatter ? frontmatter.bodyStartLine : 1)
 ```
 
 - [ ] **Step 5: `CI-1` — container é qualquer coleção**
@@ -1041,15 +967,10 @@ O bloco final que valida `status` de item (`if (isContainer && states)`) passa a
 
 ```typescript
 if (item.status === '') {
-    findings.push(
-        error(
-            doc.file,
-            item.line,
-            `Item ${item.id} não declara \`status\`.`,
-            `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título (spec §4).`
-        )
-    )
-    continue
+  findings.push(
+    error(doc.file, item.line, `Item ${item.id} não declara \`status\`.`, `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título (spec §4).`),
+  )
+  continue
 }
 ```
 
@@ -1063,18 +984,15 @@ Em `findPromotion`, generalize o ramo de tabela:
 
 ```typescript
 if (rule.collection !== 'per-file') {
-    const parse = (source: string): DocItem[] =>
-        rule.collection === 'table'
-            ? parseItemTable(source, 1)
-            : parseItemSections(source, 1)
-    const previous = new Map(parse(before).map(item => [item.id, item.status]))
-    for (const item of parse(after)) {
-        const from = previous.get(item.id)
-        if (from !== undefined && isHumanPromotion(from, item.status)) {
-            return { id: item.id, from, to: item.status }
-        }
+  const parse = (source: string): DocItem[] => (rule.collection === 'table' ? parseItemTable(source, 1) : parseItemSections(source, 1))
+  const previous = new Map(parse(before).map(item => [item.id, item.status]))
+  for (const item of parse(after)) {
+    const from = previous.get(item.id)
+    if (from !== undefined && isHumanPromotion(from, item.status)) {
+      return { id: item.id, from, to: item.status }
     }
-    return null
+  }
+  return null
 }
 ```
 
@@ -1102,32 +1020,23 @@ git commit -m "feat(SK-4): collection sections para requisitos com ID"
 - [ ] **Step 1: `src/docs/schema.ts`**
 
 ```typescript
-export const STATUS_MACHINE: Readonly<Record<string, readonly string[]>> =
-    Object.freeze({
-        ADR: ['draft', 'accepted', 'superseded'],
-        DA: ['open', 'resolved', 'dropped'],
-        TDR: ['open', 'paid', 'accepted-permanently'],
-        RF: ['draft', 'active', 'revoked'],
-        RNF: ['draft', 'active', 'revoked'],
-        RN: ['draft', 'active', 'revoked']
-    })
+export const STATUS_MACHINE: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  ADR: ['draft', 'accepted', 'superseded'],
+  DA: ['open', 'resolved', 'dropped'],
+  TDR: ['open', 'paid', 'accepted-permanently'],
+  RF: ['draft', 'active', 'revoked'],
+  RNF: ['draft', 'active', 'revoked'],
+  RN: ['draft', 'active', 'revoked'],
+})
 
-export const FROZEN_STATUSES: ReadonlySet<string> = new Set([
-    'accepted',
-    'superseded',
-    'deprecated',
-    'published',
-    'paid',
-    'revoked'
+export const FROZEN_STATUSES: ReadonlySet<string> = new Set(['accepted', 'superseded', 'deprecated', 'published', 'paid', 'revoked'])
+
+export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.freeze([
+  { from: 'draft', to: 'accepted' },
+  { from: 'open', to: 'resolved' },
+  { from: 'draft', to: 'active' },
+  { from: 'active', to: 'revoked' },
 ])
-
-export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] =
-    Object.freeze([
-        { from: 'draft', to: 'accepted' },
-        { from: 'open', to: 'resolved' },
-        { from: 'draft', to: 'active' },
-        { from: 'active', to: 'revoked' }
-    ])
 ```
 
 - [ ] **Step 2: Teste — a promoção de requisito também pergunta**
@@ -1145,7 +1054,7 @@ title: HK-1 não congela seção revogada dentro de arquivo de coleção
 status: open
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável enquanto a dívida existir; o pagamento a marca como paid.
+  Nunca. Imutável enquanto a dívida existir; o pagamento a marca como paid.
 last-reviewed: 2026-08-24
 relates-to: [RN-0006]
 ---
@@ -1213,87 +1122,77 @@ import picomatch from 'picomatch'
 import { findCitations } from './citations.ts'
 
 /** Diretórios que nunca contêm citação escrita por gente. */
-const SKIP_DIRS = new Set([
-    '.git',
-    'node_modules',
-    'dist',
-    'coverage',
-    '.next',
-    '.cache'
-])
+const SKIP_DIRS = new Set(['.git', 'node_modules', 'dist', 'coverage', '.next', '.cache'])
 
 /** Acima disto, é dado, não texto — e ler custa mais do que vale. */
 const MAX_BYTES = 512 * 1024
 
 export interface CitationSite {
-    /** Caminho relativo à raiz do repositório, sempre com `/`. */
-    file: string
-    /** Linha 1-indexed. */
-    line: number
+  /** Caminho relativo à raiz do repositório, sempre com `/`. */
+  file: string
+  /** Linha 1-indexed. */
+  line: number
 }
 
 /** Byte NUL é o sinal barato de "isto é dado binário, não texto". */
 function isProbablyText(content: string): boolean {
-    return content.indexOf(String.fromCharCode(0)) === -1
+  return content.indexOf(String.fromCharCode(0)) === -1
 }
 
 function walk(root: string, relative: string, out: string[]): void {
-    let entries: string[]
-    try {
-        entries = readdirSync(join(root, relative))
-    } catch {
-        return
-    }
+  let entries: string[]
+  try {
+    entries = readdirSync(join(root, relative))
+  } catch {
+    return
+  }
 
-    for (const entry of entries) {
-        if (SKIP_DIRS.has(entry)) continue
-        const path = relative === '' ? entry : `${relative}/${entry}`
-        let isDirectory: boolean
-        try {
-            isDirectory = statSync(join(root, path)).isDirectory()
-        } catch {
-            continue
-        }
-        if (isDirectory) walk(root, path, out)
-        else out.push(path)
+  for (const entry of entries) {
+    if (SKIP_DIRS.has(entry)) continue
+    const path = relative === '' ? entry : `${relative}/${entry}`
+    let isDirectory: boolean
+    try {
+      isDirectory = statSync(join(root, path)).isDirectory()
+    } catch {
+      continue
     }
+    if (isDirectory) walk(root, path, out)
+    else out.push(path)
+  }
 }
 
 /**
  * Onde cada ID aparece, restrito aos caminhos de `globs`.
  * Chave: o ID exatamente como escrito no texto — a canonização é de quem compara.
  */
-export function scanCitations(
-    root: string,
-    globs: readonly string[]
-): Map<string, CitationSite[]> {
-    const sites = new Map<string, CitationSite[]>()
-    if (globs.length === 0) return sites
+export function scanCitations(root: string, globs: readonly string[]): Map<string, CitationSite[]> {
+  const sites = new Map<string, CitationSite[]>()
+  if (globs.length === 0) return sites
 
-    const matches = picomatch([...globs])
-    const files: string[] = []
-    walk(root, '', files)
+  const matches = picomatch([...globs])
+  const files: string[] = []
+  walk(root, '', files)
 
-    for (const file of files) {
-        if (!matches(file)) continue
+  for (const file of files) {
+    if (!matches(file)) continue
 
-        let content: string
-        try {
-            if (statSync(join(root, file)).size > MAX_BYTES) continue
-            content = readFileSync(join(root, file), 'utf8')
-        } catch {
-            continue
-        }
-        if (!isProbablyText(content)) continue
-
-        for (const citation of findCitations(content)) {
-            const list = sites.get(citation.id) ?? []
-            list.push({ file, line: citation.line })
-            sites.set(citation.id, list)
-        }
+    let content: string
+    try {
+      if (statSync(join(root, file)).size > MAX_BYTES) continue
+      content = readFileSync(join(root, file), 'utf8')
+    } catch {
+      continue
     }
+    if (!isProbablyText(content)) continue
 
-    return sites
+    for (const citation of findCitations(content)) {
+      const list = sites.get(citation.id) ?? []
+      list.push({ file, line: citation.line })
+      sites.set(citation.id, list)
+    }
+  }
+
+  return sites
 }
 ```
 
@@ -1306,32 +1205,31 @@ import { scanCitations } from '../../src/ids/coverage.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 test('encontra citações só nos caminhos declarados', () => {
-    withTempRepo(
-        {
-            'test/regra.test.ts':
-                "// cobre RN-0001\ntest('RN-0001', () => {});\n",
-            'src/app.ts': 'export const x = 1; // RN-0002\n',
-            'notas.md': 'RN-0003 mencionada fora do escopo\n'
-        },
-        root => {
-            const sites = scanCitations(root, ['test/**', 'src/**'])
-            assert.equal(sites.get('RN-0001')?.length, 2)
-            assert.equal(sites.get('RN-0002')?.[0]?.file, 'src/app.ts')
-            assert.equal(sites.has('RN-0003'), false)
-        }
-    )
+  withTempRepo(
+    {
+      'test/regra.test.ts': "// cobre RN-0001\ntest('RN-0001', () => {});\n",
+      'src/app.ts': 'export const x = 1; // RN-0002\n',
+      'notas.md': 'RN-0003 mencionada fora do escopo\n',
+    },
+    root => {
+      const sites = scanCitations(root, ['test/**', 'src/**'])
+      assert.equal(sites.get('RN-0001')?.length, 2)
+      assert.equal(sites.get('RN-0002')?.[0]?.file, 'src/app.ts')
+      assert.equal(sites.has('RN-0003'), false)
+    },
+  )
 })
 
 test('sem globs, não varre nada', () => {
-    withTempRepo({ 'src/a.ts': 'RN-0001\n' }, root => {
-        assert.equal(scanCitations(root, []).size, 0)
-    })
+  withTempRepo({ 'src/a.ts': 'RN-0001\n' }, root => {
+    assert.equal(scanCitations(root, []).size, 0)
+  })
 })
 
 test('ignora node_modules', () => {
-    withTempRepo({ 'node_modules/pacote/index.js': 'RN-0001\n' }, root => {
-        assert.equal(scanCitations(root, ['**/*.js']).size, 0)
-    })
+  withTempRepo({ 'node_modules/pacote/index.js': 'RN-0001\n' }, root => {
+    assert.equal(scanCitations(root, ['**/*.js']).size, 0)
+  })
 })
 ```
 
@@ -1381,238 +1279,201 @@ const RULE = 'CI-3'
 
 /** Pares que precisam fechar dos dois lados (spec §8). */
 const PAIRS: readonly { from: string; to: string }[] = Object.freeze([
-    { from: 'supersedes', to: 'superseded-by' },
-    { from: 'revokes', to: 'revoked-by' }
+  { from: 'supersedes', to: 'superseded-by' },
+  { from: 'revokes', to: 'revoked-by' },
 ])
 
 interface Entry {
-    id: string
-    file: string
-    line: number
-    status: string
-    rule: ArtifactRule
-    /** Leitura de um campo canônico, seja frontmatter ou item de coleção. */
-    read(canonical: string): string | null
+  id: string
+  file: string
+  line: number
+  status: string
+  rule: ArtifactRule
+  /** Leitura de um campo canônico, seja frontmatter ou item de coleção. */
+  read(canonical: string): string | null
 }
 
-function error(
-    file: string,
-    line: number,
-    message: string,
-    fix: string
-): Finding {
-    return { ruleId: RULE, file, line, severity: 'error', message, fix }
+function error(file: string, line: number, message: string, fix: string): Finding {
+  return { ruleId: RULE, file, line, severity: 'error', message, fix }
 }
 
 /** IDs canônicos citados dentro de um valor, qualquer que seja a forma dele. */
 function idsIn(value: string | null): string[] {
-    if (value === null) return []
-    return findCitations(value)
-        .map(citation => parseId(citation.id))
-        .filter(
-            (parsed): parsed is { prefix: string; number: number } =>
-                parsed !== null
-        )
-        .map(canonicalId)
+  if (value === null) return []
+  return findCitations(value)
+    .map(citation => parseId(citation.id))
+    .filter((parsed): parsed is { prefix: string; number: number } => parsed !== null)
+    .map(canonicalId)
 }
 
 function entriesOf(context: CheckContext): Entry[] {
-    const entries: Entry[] = []
+  const entries: Entry[] = []
 
-    for (const doc of context.docs) {
-        if (doc.rule.collection === 'per-file') {
-            const data = doc.frontmatter?.data
-            const id = data?.id
-            if (typeof id !== 'string' || !parseId(id)) continue
-            entries.push({
-                id,
-                file: doc.file,
-                line: doc.frontmatter?.lines.id ?? 1,
-                status: typeof data?.status === 'string' ? data.status : '',
-                rule: doc.rule,
-                read: canonical => {
-                    const value = data?.[canonical]
-                    if (value === undefined || value === null) return null
-                    const text = Array.isArray(value)
-                        ? value.join(', ')
-                        : String(value)
-                    return text.trim() === '' || text === 'null' ? null : text
-                }
-            })
-            continue
-        }
-
-        for (const item of doc.items) {
-            entries.push({
-                id: item.id,
-                file: doc.file,
-                line: item.line,
-                status: item.status,
-                rule: doc.rule,
-                read: canonical => fieldOf(doc.rule, item, canonical)
-            })
-        }
+  for (const doc of context.docs) {
+    if (doc.rule.collection === 'per-file') {
+      const data = doc.frontmatter?.data
+      const id = data?.id
+      if (typeof id !== 'string' || !parseId(id)) continue
+      entries.push({
+        id,
+        file: doc.file,
+        line: doc.frontmatter?.lines.id ?? 1,
+        status: typeof data?.status === 'string' ? data.status : '',
+        rule: doc.rule,
+        read: canonical => {
+          const value = data?.[canonical]
+          if (value === undefined || value === null) return null
+          const text = Array.isArray(value) ? value.join(', ') : String(value)
+          return text.trim() === '' || text === 'null' ? null : text
+        },
+      })
+      continue
     }
 
-    return entries
+    for (const item of doc.items) {
+      entries.push({
+        id: item.id,
+        file: doc.file,
+        line: item.line,
+        status: item.status,
+        rule: doc.rule,
+        read: canonical => fieldOf(doc.rule, item, canonical),
+      })
+    }
+  }
+
+  return entries
 }
 
 export const ci3Traceability: Check = {
-    id: RULE,
-    name: 'traceability',
-    run(context: CheckContext): Finding[] {
-        const findings: Finding[] = []
-        const entries = entriesOf(context)
-        const byId = new Map(
-            entries.map(entry => [canonicalId(parseId(entry.id)!), entry])
+  id: RULE,
+  name: 'traceability',
+  run(context: CheckContext): Finding[] {
+    const findings: Finding[] = []
+    const entries = entriesOf(context)
+    const byId = new Map(entries.map(entry => [canonicalId(parseId(entry.id)!), entry]))
+
+    // 1 e 2 — pares bidirecionais.
+    for (const entry of entries) {
+      for (const pair of PAIRS) {
+        for (const side of [pair, { from: pair.to, to: pair.from }]) {
+          for (const targetId of idsIn(entry.read(side.from))) {
+            const target = byId.get(targetId)
+            if (!target) {
+              findings.push(
+                error(
+                  entry.file,
+                  entry.line,
+                  `${entry.id} declara \`${side.from}: ${targetId}\`, que não existe.`,
+                  'Cite um ID existente, ou remova o campo (spec §8).',
+                ),
+              )
+              continue
+            }
+            const back = idsIn(target.read(side.to))
+            if (!back.includes(canonicalId(parseId(entry.id)!))) {
+              findings.push(
+                error(
+                  target.file,
+                  target.line,
+                  `Par aberto: ${entry.id} declara \`${side.from}: ${target.id}\`, mas ${target.id} não declara \`${side.to}: ${entry.id}\`.`,
+                  `Acrescente \`${side.to}: ${entry.id}\` em ${target.file}:${target.line} — o par fecha dos dois lados (spec §8).`,
+                ),
+              )
+            }
+          }
+        }
+      }
+
+      // 3 — revogação sem quem revogou.
+      if (entry.status === 'revoked' && entry.read('revoked-by') === null) {
+        findings.push(
+          error(
+            entry.file,
+            entry.line,
+            `${entry.id} está \`revoked\` sem declarar \`revoked-by\`.`,
+            'Regra removida é revogada, não deletada — aponte o ID que a substituiu (spec §5, SK-4).',
+          ),
         )
+      }
 
-        // 1 e 2 — pares bidirecionais.
-        for (const entry of entries) {
-            for (const pair of PAIRS) {
-                for (const side of [pair, { from: pair.to, to: pair.from }]) {
-                    for (const targetId of idsIn(entry.read(side.from))) {
-                        const target = byId.get(targetId)
-                        if (!target) {
-                            findings.push(
-                                error(
-                                    entry.file,
-                                    entry.line,
-                                    `${entry.id} declara \`${side.from}: ${targetId}\`, que não existe.`,
-                                    'Cite um ID existente, ou remova o campo (spec §8).'
-                                )
-                            )
-                            continue
-                        }
-                        const back = idsIn(target.read(side.to))
-                        if (!back.includes(canonicalId(parseId(entry.id)!))) {
-                            findings.push(
-                                error(
-                                    target.file,
-                                    target.line,
-                                    `Par aberto: ${entry.id} declara \`${side.from}: ${target.id}\`, mas ${target.id} não declara \`${side.to}: ${entry.id}\`.`,
-                                    `Acrescente \`${side.to}: ${entry.id}\` em ${target.file}:${target.line} — o par fecha dos dois lados (spec §8).`
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 3 — revogação sem quem revogou.
-            if (
-                entry.status === 'revoked' &&
-                entry.read('revoked-by') === null
-            ) {
-                findings.push(
-                    error(
-                        entry.file,
-                        entry.line,
-                        `${entry.id} está \`revoked\` sem declarar \`revoked-by\`.`,
-                        'Regra removida é revogada, não deletada — aponte o ID que a substituiu (spec §5, SK-4).'
-                    )
-                )
-            }
-
-            // 4 e 5 — DA resolvida aponta o ADR, e o ADR aponta de volta.
-            if (entry.status === 'resolved') {
-                const resolvers = idsIn(entry.read('resolved-by'))
-                if (resolvers.length === 0) {
-                    findings.push(
-                        error(
-                            entry.file,
-                            entry.line,
-                            `${entry.id} está \`resolved\` sem dizer o que a resolveu.`,
-                            'Toda decisão aberta fechada aponta o ADR que a fechou (spec §5, SK-3, regra 7).'
-                        )
-                    )
-                }
-                for (const resolverId of resolvers) {
-                    const resolver = byId.get(resolverId)
-                    if (!resolver) {
-                        findings.push(
-                            error(
-                                entry.file,
-                                entry.line,
-                                `${entry.id} aponta ${resolverId}, que não existe.`,
-                                'Crie o ADR ou corrija a referência.'
-                            )
-                        )
-                        continue
-                    }
-                    if (
-                        !idsIn(resolver.read('relates-to')).includes(
-                            canonicalId(parseId(entry.id)!)
-                        )
-                    ) {
-                        findings.push(
-                            error(
-                                resolver.file,
-                                resolver.line,
-                                `${resolver.id} resolve ${entry.id}, mas não a cita em \`relates-to\`.`,
-                                `Acrescente ${entry.id} a \`relates-to\` — CI-3 verifica os dois lados (spec §5, SK-3, regra 7).`
-                            )
-                        )
-                    }
-                }
-            }
-
-            // 6 — ADR aceito sem ligação.
-            if (
-                entry.status === 'accepted' &&
-                idsIn(entry.read('relates-to')).length === 0
-            ) {
-                findings.push(
-                    error(
-                        entry.file,
-                        entry.line,
-                        `${entry.id} está \`accepted\` sem \`relates-to\`.`,
-                        'Um ADR aceito cita ao menos um requisito, decisão aberta ou princípio — decisão que não se liga a nada é sinal de contexto faltando (spec §8).'
-                    )
-                )
-            }
+      // 4 e 5 — DA resolvida aponta o ADR, e o ADR aponta de volta.
+      if (entry.status === 'resolved') {
+        const resolvers = idsIn(entry.read('resolved-by'))
+        if (resolvers.length === 0) {
+          findings.push(
+            error(
+              entry.file,
+              entry.line,
+              `${entry.id} está \`resolved\` sem dizer o que a resolveu.`,
+              'Toda decisão aberta fechada aponta o ADR que a fechou (spec §5, SK-3, regra 7).',
+            ),
+          )
         }
-
-        // 7 — cobertura por citação, uma varredura por conjunto distinto de globs.
-        const scans = new Map<
-            string,
-            Map<string, { file: string; line: number }[]>
-        >()
-        for (const entry of entries) {
-            if (entry.status !== 'active' || entry.rule.citedBy.length === 0)
-                continue
-
-            const key = entry.rule.citedBy.join('0000')
-            let sites = scans.get(key)
-            if (!sites) {
-                sites = scanCitations(context.root, entry.rule.citedBy)
-                scans.set(key, sites)
-            }
-
-            const canonical = canonicalId(parseId(entry.id)!)
-            const found = [...sites.entries()].some(([id, places]) => {
-                const parsed = parseId(id)
-                return (
-                    parsed !== null &&
-                    canonicalId(parsed) === canonical &&
-                    places.some(place => place.file !== entry.file)
-                )
-            })
-
-            if (!found) {
-                findings.push(
-                    error(
-                        entry.file,
-                        entry.line,
-                        `${entry.id} está \`active\` e não é citada em nenhum de ${entry.rule.citedBy.join(', ')}.`,
-                        `Cite ${entry.id} no teste que a cobre — rastreabilidade fecha nos dois lados (spec §5, SK-4, regra 6).`
-                    )
-                )
-            }
+        for (const resolverId of resolvers) {
+          const resolver = byId.get(resolverId)
+          if (!resolver) {
+            findings.push(error(entry.file, entry.line, `${entry.id} aponta ${resolverId}, que não existe.`, 'Crie o ADR ou corrija a referência.'))
+            continue
+          }
+          if (!idsIn(resolver.read('relates-to')).includes(canonicalId(parseId(entry.id)!))) {
+            findings.push(
+              error(
+                resolver.file,
+                resolver.line,
+                `${resolver.id} resolve ${entry.id}, mas não a cita em \`relates-to\`.`,
+                `Acrescente ${entry.id} a \`relates-to\` — CI-3 verifica os dois lados (spec §5, SK-3, regra 7).`,
+              ),
+            )
+          }
         }
+      }
 
-        return findings
+      // 6 — ADR aceito sem ligação.
+      if (entry.status === 'accepted' && idsIn(entry.read('relates-to')).length === 0) {
+        findings.push(
+          error(
+            entry.file,
+            entry.line,
+            `${entry.id} está \`accepted\` sem \`relates-to\`.`,
+            'Um ADR aceito cita ao menos um requisito, decisão aberta ou princípio — decisão que não se liga a nada é sinal de contexto faltando (spec §8).',
+          ),
+        )
+      }
     }
+
+    // 7 — cobertura por citação, uma varredura por conjunto distinto de globs.
+    const scans = new Map<string, Map<string, { file: string; line: number }[]>>()
+    for (const entry of entries) {
+      if (entry.status !== 'active' || entry.rule.citedBy.length === 0) continue
+
+      const key = entry.rule.citedBy.join('0000')
+      let sites = scans.get(key)
+      if (!sites) {
+        sites = scanCitations(context.root, entry.rule.citedBy)
+        scans.set(key, sites)
+      }
+
+      const canonical = canonicalId(parseId(entry.id)!)
+      const found = [...sites.entries()].some(([id, places]) => {
+        const parsed = parseId(id)
+        return parsed !== null && canonicalId(parsed) === canonical && places.some(place => place.file !== entry.file)
+      })
+
+      if (!found) {
+        findings.push(
+          error(
+            entry.file,
+            entry.line,
+            `${entry.id} está \`active\` e não é citada em nenhum de ${entry.rule.citedBy.join(', ')}.`,
+            `Cite ${entry.id} no teste que a cobre — rastreabilidade fecha nos dois lados (spec §5, SK-4, regra 6).`,
+          ),
+        )
+      }
+    }
+
+    return findings
+  },
 }
 ```
 
@@ -1671,13 +1532,13 @@ git commit -m "feat(CI-3): traceability — pares bidirecionais e cobertura de R
 ---
 name: requirements-keeper
 description: >
-    Use antes de implementar qualquer comportamento, e sempre que alguém
-    perguntar "qual é a regra disso?", "o que o sistema deve fazer quando…",
-    "isso está especificado?", "esse caso está previsto?", "pode arredondar?",
-    "e se o valor for negativo?" — ou quando uma regra de negócio mudar, for
-    revogada, ou precisar de um ID para ser citada por teste, commit ou ADR.
-    Também quando um requisito existente estiver ambíguo e alguém estiver prestes
-    a decidir por conta própria o que ele quis dizer.
+  Use antes de implementar qualquer comportamento, e sempre que alguém
+  perguntar "qual é a regra disso?", "o que o sistema deve fazer quando…",
+  "isso está especificado?", "esse caso está previsto?", "pode arredondar?",
+  "e se o valor for negativo?" — ou quando uma regra de negócio mudar, for
+  revogada, ou precisar de um ID para ser citada por teste, commit ou ADR.
+  Também quando um requisito existente estiver ambíguo e alguém estiver prestes
+  a decidir por conta própria o que ele quis dizer.
 ---
 
 # requirements-keeper — dono dos requisitos com ID estável
@@ -1770,27 +1631,17 @@ Troque a constante `SKILL` por uma varredura de `plugin/skills/*/SKILL.md`, e ro
 
 ```typescript
 test('requirements-keeper: a description fala em sintoma, não em categoria', () => {
-    const description = String(
-        parseFrontmatter(skillSource('requirements-keeper'))?.data
-            .description ?? ''
-    )
-    assert.ok(description.length > 120)
-    for (const sintoma of ['qual é a regra', 'deve fazer', 'especificad']) {
-        assert.ok(
-            description.toLowerCase().includes(sintoma),
-            `description sem o sintoma "${sintoma}"`
-        )
-    }
+  const description = String(parseFrontmatter(skillSource('requirements-keeper'))?.data.description ?? '')
+  assert.ok(description.length > 120)
+  for (const sintoma of ['qual é a regra', 'deve fazer', 'especificad']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `description sem o sintoma "${sintoma}"`)
+  }
 })
 
 test('requirements-keeper não duplica o formato do requisito', () => {
-    const source = skillSource('requirements-keeper')
-    assert.match(source, /templates\/requirements\.md/)
-    assert.doesNotMatch(
-        source,
-        /^- \*\*status:\*\*/m,
-        'a skill não deve conter o template do requisito'
-    )
+  const source = skillSource('requirements-keeper')
+  assert.match(source, /templates\/requirements\.md/)
+  assert.doesNotMatch(source, /^- \*\*status:\*\*/m, 'a skill não deve conter o template do requisito')
 })
 ```
 
@@ -1825,8 +1676,8 @@ git commit -m "feat(SK-4): skill requirements-keeper e teste de autoria sobre to
 title: { { TITLE } }
 owner: '{{OWNER}}'
 trigger: >
-    Antes de implementar qualquer comportamento desta família, e a toda regra nova
-    ou alterada.
+  Antes de implementar qualquer comportamento desta família, e a toda regra nova
+  ou alterada.
 last-reviewed: { { TODAY } }
 ---
 
@@ -1887,9 +1738,9 @@ export const STAGES = ['solo', 'small-team'] as const
 export type Stage = (typeof STAGES)[number]
 
 export interface InitOptions {
-    owner: string
-    dryRun: boolean
-    stage: Stage
+  owner: string
+  dryRun: boolean
+  stage: Stage
 }
 ```
 
@@ -1903,10 +1754,8 @@ export interface InitOptions {
 const stageIndex = argv.indexOf('--stage')
 const stage = stageIndex === -1 ? 'solo' : (argv[stageIndex + 1] ?? '')
 if (stageIndex !== -1 && !STAGES.includes(stage as Stage)) {
-    process.stderr.write(
-        `living-docs: estágio "${stage}" desconhecido. Válidos: ${STAGES.join(', ')}.\n`
-    )
-    return 2
+  process.stderr.write(`living-docs: estágio "${stage}" desconhecido. Válidos: ${STAGES.join(', ')}.\n`)
+  return 2
 }
 ```
 
@@ -1914,7 +1763,7 @@ E, ao final, a lista honesta:
 
 ```typescript
 for (const item of result.notInstalled) {
-    process.stdout.write(`não instalado  ${item}\n`)
+  process.stdout.write(`não instalado  ${item}\n`)
 }
 ```
 
@@ -2390,4 +2239,3 @@ real de falso positivo. Vale um ADR sobre o limiar antes de implementar.
 - **`--stage production` e `--stage multi-team`** não existem porque as fases que
   eles instalariam não existem. Acrescente cada estágio junto com a fase, não
   antes: estágio que instala moldura vazia é a "wiki morta" nascendo de fábrica.
-

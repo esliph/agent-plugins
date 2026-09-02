@@ -1,9 +1,9 @@
 ---
 title: Open Decisions
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
   Toda vez que alguém trombou numa lacuna — comportamento sem regra escrita.
-last-reviewed: {{TODAY}}
+last-reviewed: { { TODAY } }
 ---
 
 # Open Decisions
@@ -15,5 +15,5 @@ A coluna **Bloqueia** é opcional: quando preenchida com os caminhos que a lacun
 impede de implementar, `HK-8` pergunta na edição e `CI-7` reprova no diff. Vazia
 (`—`), a decisão continua válida e não bloqueia nada.
 
-| ID | Lacuna | Status | Resolvida por | Bloqueia | Aberta em |
-| --- | --- | --- | --- | --- | --- |
+| ID  | Lacuna | Status | Resolvida por | Bloqueia | Aberta em |
+| --- | ------ | ------ | ------------- | -------- | --------- |

@@ -2,8 +2,8 @@
 title: Requisitos funcionais
 owner: '@esliph/engineering'
 trigger: >
-    Antes de implementar qualquer comportamento desta família, e a toda regra nova
-    ou alterada.
+  Antes de implementar qualquer comportamento desta família, e a toda regra nova
+  ou alterada.
 last-reviewed: 2026-08-27
 ---
 
@@ -193,4 +193,3 @@ recusa: o enforcement é o que faz a regra valer.
 relata qual forma encontrou e quantos itens leu naquela forma. Declarar a forma é
 ato de quem instala, não do inventário: adoção silenciosa de formato é a mesma
 classe de erro que adoção silenciosa de caminho, e a `SK-0` já recusa a segunda.
-

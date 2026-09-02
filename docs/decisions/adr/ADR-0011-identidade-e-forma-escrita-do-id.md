@@ -4,7 +4,7 @@ title: Identidade de um ID e a forma escrita dele são coisas diferentes
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28
 relates-to: [RN-0003, RN-0024]
 supersedes: null
@@ -80,4 +80,3 @@ identidade não depende de zeros à esquerda.
 **Separador é vocabulário fechado** (`-`, `_`, `.`, `:` ou vazio). Separador
 arbitrário viraria um padrão de expressão regular vindo de configuração, que é
 uma superfície que este toolkit não quer.
-

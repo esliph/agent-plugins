@@ -2,8 +2,8 @@
 title: Depreciações
 owner: '@esliph/engineering'
 trigger: >
-    Quando algo publicado é anunciado para remoção, e quando uma depreciação
-    anunciada é de fato removida.
+  Quando algo publicado é anunciado para remoção, e quando uma depreciação
+  anunciada é de fato removida.
 last-reviewed: 2026-08-26
 ---
 
@@ -24,4 +24,3 @@ Nenhuma depreciação anunciada até aqui. A tabela vazia é informação: nada 
 que é público mudou de significado desde a primeira versão.
 
 <!-- Skill dona: release-historian. -->
-

@@ -1,4 +1,4 @@
-import { join, resolve } from 'node:path';
+import { join, resolve } from 'node:path'
 
 /**
  * Raiz do **toolkit**: onde moram `src/`, `templates/` e `plugin/`.
@@ -10,8 +10,9 @@ import { join, resolve } from 'node:path';
  * Regra de origem: ADR-0003.
  */
 export function toolkitRoot(): string {
-  const override = process.env.LIVING_DOCS_TOOLKIT_ROOT;
-  return resolve(override ?? join(import.meta.dirname, '..', '..'));
+  const override = process.env.LIVING_DOCS_TOOLKIT_ROOT
+
+  return resolve(override ?? join(import.meta.dirname, '..', '..'))
 }
 
 /**
@@ -19,10 +20,10 @@ export function toolkitRoot(): string {
  * artefatos. Nunca derivada do toolkit — é o outro lado de ADR-0003.
  */
 export function repoRoot(): string {
-  return resolve(process.env.LIVING_DOCS_REPO_ROOT ?? process.cwd());
+  return resolve(process.env.LIVING_DOCS_REPO_ROOT ?? process.cwd())
 }
 
 /** Diretório dos templates que `living-docs init` escreve. Sempre do toolkit. */
 export function templatesDir(): string {
-  return join(toolkitRoot(), 'templates');
+  return join(toolkitRoot(), 'templates')
 }

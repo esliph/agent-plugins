@@ -1,75 +1,73 @@
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import type { Check, CheckContext, Finding } from '../core/types.ts';
-import type { DiffFacts } from './ci6-changelog-required.ts';
-import { exceptionReasonFor } from './exception-label.ts';
-import {
-  OWNERSHIP_PATH,
-  documentWithRole,
-  findArtifactRule,
-  findDocumentRule,
-} from '../config/ownership.ts';
-import { loadCodeowners, ownersOf } from '../config/codeowners.ts';
-import { pendingDocs } from '../config/watches.ts';
-import { blockedClaims, claimsFor } from '../docs/blocked.ts';
-import { documentationFiles } from '../docs/corpus.ts';
-import { normalizeProse, sentencesOf, stripCode, stripFences } from '../docs/markdown.ts';
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import type { Check, CheckContext, Finding } from '../core/types.ts'
+import type { DiffFacts } from './ci6-changelog-required.ts'
+import { exceptionReasonFor } from './exception-label.ts'
+import { OWNERSHIP_PATH, documentWithRole, findArtifactRule, findDocumentRule } from '../config/ownership.ts'
+import { loadCodeowners, ownersOf } from '../config/codeowners.ts'
+import { pendingDocs } from '../config/watches.ts'
+import { blockedClaims, claimsFor } from '../docs/blocked.ts'
+import { documentationFiles } from '../docs/corpus.ts'
+import { normalizeProse, sentencesOf, stripCode, stripFences } from '../docs/markdown.ts'
 
-const RULE = 'CI-7';
+const RULE = 'CI-7'
 
 /** Piso de palavras da comparação de frases (`ADR-0009`). */
-export const WORD_FLOOR = 12;
+export const WORD_FLOOR = 12
 
 /**
  * Vocabulário de verificação de um item de Definition of Done (`RN-0017`).
  * Um ID do toolkit, ou a palavra que marca verificação humana — em português ou
  * em inglês, porque um check genérico não pode exigir o idioma do projeto.
  */
-const VERIFICATION = /\b(?:CI|HK|AG|SK)-\d+\b|\bhumana?\b|\bhuman\b/i;
+const VERIFICATION = /\b(?:CI|HK|AG|SK)-\d+\b|\bhumana?\b|\bhuman\b/i
 
-const DOD_ITEM = /^\s*[-*+]\s+\[[ xX]\]\s+\S/;
+const DOD_ITEM = /^\s*[-*+]\s+\[[ xX]\]\s+\S/
 
 export interface Duplication {
   /** A frase como está escrita no contrato. */
-  sentence: string;
-  line: number;
+  sentence: string
+  line: number
   /** O artefato dono onde ela reaparece. */
-  source: string;
+  source: string
 }
 
 function error(file: string, line: number, message: string, fix: string): Finding {
-  return { ruleId: RULE, file, line, severity: 'error', message, fix };
+  return { ruleId: RULE, file, line, severity: 'error', message, fix }
 }
 
 function normalizePath(path: string): string {
-  return path.replace(/\\/g, '/').replace(/^\.\//, '');
+  return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 /** O rótulo que libera a metade do diff (`ADR-0010`). */
 export function docsExceptionReason(messages: readonly string[]): string | null {
-  return exceptionReasonFor('Docs', messages);
+  return exceptionReasonFor('Docs', messages)
 }
 
 /** Frases do contrato do agente que reaparecem, palavra por palavra, num artefato dono. */
-export function duplicatedSentences(
-  contract: string,
-  corpus: readonly { file: string; source: string }[],
-): Duplication[] {
-  const normalized = corpus.map((entry) => ({
+export function duplicatedSentences(contract: string, corpus: readonly { file: string; source: string }[]): Duplication[] {
+  const normalized = corpus.map(entry => ({
     file: entry.file,
     text: normalizeProse(stripCode(entry.source)),
-  }));
-  const found: Duplication[] = [];
+  }))
+  const found: Duplication[] = []
 
   for (const sentence of sentencesOf(contract)) {
-    const prose = normalizeProse(sentence.text);
-    if (prose.split(' ').filter(Boolean).length < WORD_FLOOR) continue;
+    const prose = normalizeProse(sentence.text)
 
-    const hit = normalized.find((entry) => entry.text.includes(prose));
-    if (hit) found.push({ sentence: sentence.text, line: sentence.line, source: hit.file });
+    if (prose.split(' ').filter(Boolean).length < WORD_FLOOR) {
+      continue
+    }
+
+    const hit = normalized.find(entry => entry.text.includes(prose))
+
+    if (hit) {
+      found.push({ sentence: sentence.text, line: sentence.line, source: hit.file })
+    }
   }
 
-  return found;
+  return found
 }
 
 /**
@@ -82,17 +80,22 @@ export function duplicatedSentences(
  * causa do exemplo.
  */
 export function dodItemsWithoutVerification(source: string): { text: string; line: number }[] {
-  const lines = stripFences(source).split('\n');
-  const found: { text: string; line: number }[] = [];
+  const lines = stripFences(source).split('\n')
+  const found: { text: string; line: number }[] = []
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? '';
-    if (!DOD_ITEM.test(line)) continue;
-    if (VERIFICATION.test(line)) continue;
-    found.push({ text: line.trim(), line: i + 1 });
+    const line = lines[i] ?? ''
+
+    if (!DOD_ITEM.test(line)) {
+      continue
+    }
+    if (VERIFICATION.test(line)) {
+      continue
+    }
+    found.push({ text: line.trim(), line: i + 1 })
   }
 
-  return found;
+  return found
 }
 
 /**
@@ -115,15 +118,16 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
     id: RULE,
     name: 'ownership coverage',
     run(context: CheckContext): Finding[] {
-      const findings: Finding[] = [];
-      const { config, root } = context;
+      const findings: Finding[] = []
+      const { config, root } = context
 
       const isDeclared = (file: string): boolean =>
         findArtifactRule(config, file) !== null ||
         findDocumentRule(config, file) !== null ||
-        config.generated.some((generated) => normalizePath(generated.path) === file);
+        config.generated.some(generated => normalizePath(generated.path) === file)
 
-      const codeowners = loadCodeowners(root);
+      const codeowners = loadCodeowners(root)
+
       if (codeowners === null) {
         findings.push(
           error(
@@ -133,7 +137,7 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
             'Crie `CODEOWNERS` na raiz (ou em `.github/`), espelhando o campo `owner` de cada entrada de ' +
               '`docs/.ownership.yml` (`RN-0016`; `living-docs init` o escreve).',
           ),
-        );
+        )
       }
 
       // 1 — todo documento do corpus tem dono nos dois lugares.
@@ -148,7 +152,7 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
                 'não tem IDs) ou em `generated:` (se é gerado) — `RN-0016`, `ADR-0008`. Documento sem dono é o ' +
                 'anti-requisito da spec §13.',
             ),
-          );
+          )
         }
 
         if (codeowners !== null && ownersOf(codeowners, file) === null) {
@@ -160,13 +164,14 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               `Acrescente \`${file}    @dono\` (ou um padrão de diretório que o cubra) espelhando o \`owner\` do ` +
                 '`.ownership.yml` — os dois lugares, porque um deles diz qual skill responde e o outro quem revisa.',
             ),
-          );
+          )
         }
       }
 
       // 2 — todo vínculo de watches aponta um doc que existe e tem dono.
       for (const watch of config.watches) {
-        const doc = normalizePath(watch.doc);
+        const doc = normalizePath(watch.doc)
+
         if (!existsSync(join(root, doc))) {
           findings.push(
             error(
@@ -176,8 +181,8 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               'Crie o documento, ou corrija o `doc` da regra. Vínculo que aponta para o vazio faz `HK-4` e `HK-5` ' +
                 'pedirem um documento que ninguém pode atualizar (`RN-0008`).',
             ),
-          );
-          continue;
+          )
+          continue
         }
         if (!isDeclared(doc)) {
           findings.push(
@@ -185,54 +190,53 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               OWNERSHIP_PATH,
               0,
               `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse documento não tem dono declarado.`,
-              `Declare \`${doc}\` em \`artifacts:\` ou \`documents:\` — o vínculo código→doc só é cobrável se o doc ` +
-                'tiver dono (`RN-0016`, `RN-0008`).',
+              `Declare \`${doc}\` em \`artifacts:\` ou \`documents:\` — o vínculo código→doc só é cobrável se o doc ` + 'tiver dono (`RN-0016`, `RN-0008`).',
             ),
-          );
+          )
         }
       }
 
       // 3 — o contrato do agente repetindo texto de artefato dono.
-      const contract = documentWithRole(config, 'agent-contract');
+      const contract = documentWithRole(config, 'agent-contract')
+
       if (contract !== null) {
-        const contractPath = normalizePath(contract.path);
-        const source =
-          context.documents.find((document) => document.file === contractPath)?.source ?? null;
+        const contractPath = normalizePath(contract.path)
+        const source = context.documents.find(document => document.file === contractPath)?.source ?? null
 
         if (source !== null) {
           // Corpus: quem tem skill dona. Plano, spec e README citam por ofício, e
           // reprovar o contrato por causa de quem o citou inverteria quem copiou
           // de quem (`ADR-0009`).
           const corpus = [
-            ...context.docs.map((doc) => ({ file: doc.file, source: doc.source, skill: doc.rule.skill })),
-            ...context.documents.map((document) => ({
+            ...context.docs.map(doc => ({ file: doc.file, source: doc.source, skill: doc.rule.skill })),
+            ...context.documents.map(document => ({
               file: document.file,
               source: document.source,
               skill: document.rule.skill,
             })),
-          ].filter((entry) => entry.skill !== null && entry.file !== contractPath && entry.file.endsWith('.md'));
+          ].filter(entry => entry.skill !== null && entry.file !== contractPath && entry.file.endsWith('.md'))
 
           for (const duplication of duplicatedSentences(source, corpus)) {
             findings.push(
               error(
                 contractPath,
                 duplication.line,
-                `O contrato do agente repete, palavra por palavra, uma frase de \`${duplication.source}\`: ` +
-                  `"${duplication.sentence.slice(0, 120)}".`,
+                `O contrato do agente repete, palavra por palavra, uma frase de \`${duplication.source}\`: ` + `"${duplication.sentence.slice(0, 120)}".`,
                 'Apague a frase e deixe o ponteiro para o artefato dono. O contrato do agente é índice e política, ' +
                   'não conteúdo (`RN-0010`, `RN-0020`; skill dona: working-agreements-keeper) — e o limiar não se ' +
                   'baixa: mudá-lo é `ADR-0009` novo.',
               ),
-            );
+            )
           }
         }
       }
 
       // 4 — item de Definition of Done sem verificação nomeada.
-      const dod = documentWithRole(config, 'definition-of-done');
+      const dod = documentWithRole(config, 'definition-of-done')
+
       if (dod !== null) {
-        const dodPath = normalizePath(dod.path);
-        const source = context.documents.find((document) => document.file === dodPath)?.source ?? null;
+        const dodPath = normalizePath(dod.path)
+        const source = context.documents.find(document => document.file === dodPath)?.source ?? null
 
         if (source !== null) {
           for (const item of dodItemsWithoutVerification(source)) {
@@ -244,7 +248,7 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
                 'Nomeie o que verifica o item — um `CI-n`, um `HK-n`, ou a palavra que marca verificação humana. ' +
                   'Item que ninguém verifica é intenção, e intenção não é definição de pronto (`RN-0017`).',
               ),
-            );
+            )
           }
         }
       }
@@ -252,28 +256,23 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
       // 5 — a metade do diff (critério 5, metade 2; `ADR-0010`).
       if (diff !== null && docsExceptionReason(diff.messages) === null) {
         for (const pending of pendingDocs(config, diff.changed)) {
-          const gatilho =
-            pending.matched.slice(0, 5).join(', ') +
-            (pending.matched.length > 5 ? `, … (+${pending.matched.length - 5})` : '');
+          const gatilho = pending.matched.slice(0, 5).join(', ') + (pending.matched.length > 5 ? `, … (+${pending.matched.length - 5})` : '')
 
           findings.push(
             error(
               pending.doc,
               0,
-              `O diff \`${diff.base}...HEAD\` toca caminho vigiado (${gatilho}) e \`${pending.doc}\` não está entre ` +
-                'os caminhos alterados.',
+              `O diff \`${diff.base}...HEAD\` toca caminho vigiado (${gatilho}) e \`${pending.doc}\` não está entre ` + 'os caminhos alterados.',
               `Atualize \`${pending.doc}\`${
                 pending.skill === null ? '' : ` (skill dona: ${pending.skill})`
-              } no mesmo PR — ou escreva a razão numa mensagem de commit, no formato \`Docs: none — <razão>\` ` +
-                '(`RN-0021`, `ADR-0010`).',
+              } no mesmo PR — ou escreva a razão numa mensagem de commit, no formato \`Docs: none — <razão>\` ` + '(`RN-0021`, `ADR-0010`).',
             ),
-          );
+          )
         }
 
         // 6 — caminho reivindicado por decisão aberta (`RN-0026`).
         for (const { claim, matched } of claimsFor(blockedClaims(context.docs), diff.changed)) {
-          const levados =
-            matched.slice(0, 5).join(', ') + (matched.length > 5 ? `, … (+${matched.length - 5})` : '');
+          const levados = matched.slice(0, 5).join(', ') + (matched.length > 5 ? `, … (+${matched.length - 5})` : '')
 
           findings.push(
             error(
@@ -286,11 +285,11 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
                 'regra que falta, escreva a razão numa mensagem de commit, no formato `Docs: none — <razão>` ' +
                 '(`RN-0026`, `ADR-0010`).',
             ),
-          );
+          )
         }
       }
 
-      return findings;
+      return findings
     },
-  };
+  }
 }

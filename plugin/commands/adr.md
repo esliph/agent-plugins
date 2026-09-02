@@ -1,6 +1,6 @@
 ---
 description: Registra uma decisão arquitetural (ADR) em draft, ou supersede uma existente
-argument-hint: "[assunto da decisão]"
+argument-hint: '[assunto da decisão]'
 ---
 
 Use a skill `decision-recorder` para registrar um ADR sobre: $ARGUMENTS

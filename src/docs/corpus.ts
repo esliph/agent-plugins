@@ -1,8 +1,8 @@
-import { existsSync } from 'node:fs';
-import { join, posix } from 'node:path';
-import { OWNERSHIP_PATH } from '../config/ownership.ts';
-import type { OwnershipConfig } from '../config/ownership.ts';
-import { listFiles } from '../core/files.ts';
+import { existsSync } from 'node:fs'
+import { join, posix } from 'node:path'
+import { OWNERSHIP_PATH } from '../config/ownership.ts'
+import type { OwnershipConfig } from '../config/ownership.ts'
+import { listFiles } from '../core/files.ts'
 
 /**
  * A raiz da documentação: o diretório onde o `.ownership.yml` mora.
@@ -13,20 +13,20 @@ import { listFiles } from '../core/files.ts';
  * caminho nenhum".
  */
 export function docsRoot(): string {
-  return posix.dirname(OWNERSHIP_PATH.replace(/\\/g, '/'));
+  return posix.dirname(OWNERSHIP_PATH.replace(/\\/g, '/'))
 }
 
 function normalize(path: string): string {
-  return path.replace(/\\/g, '/').replace(/^\.\//, '');
+  return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 /** Todo caminho que o `.ownership.yml` declara, em qualquer das três chaves. */
 export function declaredPaths(config: OwnershipConfig): string[] {
   return [
-    ...config.artifacts.map((artifact) => artifact.path),
-    ...config.documents.map((document) => document.path),
-    ...config.generated.map((generated) => generated.path),
-  ].map(normalize);
+    ...config.artifacts.map(artifact => artifact.path),
+    ...config.documents.map(document => document.path),
+    ...config.generated.map(generated => generated.path),
+  ].map(normalize)
 }
 
 /**
@@ -39,17 +39,23 @@ export function declaredPaths(config: OwnershipConfig): string[] {
  * toolkit não decide que a raiz do repositório é documentação.
  */
 export function documentationFiles(root: string, config: OwnershipConfig): string[] {
-  const files = new Set(listFiles(root, [`${docsRoot()}/**`]));
-  const prefix = `${docsRoot()}/`;
+  const files = new Set(listFiles(root, [`${docsRoot()}/**`]))
+  const prefix = `${docsRoot()}/`
 
   for (const declared of declaredPaths(config)) {
-    if (declared.startsWith(prefix)) continue;
-    if (declared.endsWith('/')) {
-      for (const file of listFiles(root, [`${declared}**`])) files.add(file);
-      continue;
+    if (declared.startsWith(prefix)) {
+      continue
     }
-    if (existsSync(join(root, declared))) files.add(declared);
+    if (declared.endsWith('/')) {
+      for (const file of listFiles(root, [`${declared}**`])) {
+        files.add(file)
+      }
+      continue
+    }
+    if (existsSync(join(root, declared))) {
+      files.add(declared)
+    }
   }
 
-  return [...files].sort();
+  return [...files].sort()
 }

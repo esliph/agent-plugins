@@ -22,8 +22,8 @@ porque outros artefatos podem ter mudado de lugar.
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
+| Artefato           | O que é                                                                         | Forma                          |
+| ------------------ | ------------------------------------------------------------------------------- | ------------------------------ |
 | `docs/glossary.md` | O nome único de cada conceito do domínio, com definição, nome no código e fonte | Arquivo único, tabela, mutável |
 
 Formato da linha: `templates/glossary.md`. Não o reproduza aqui.
@@ -66,12 +66,12 @@ tabela que ninguém consegue ler inteira deixa de ser a fonte única de nome.
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| Nomear um conceito de domínio, com um significado só | Decidir a regra de negócio sobre esse conceito (→ `requirements-keeper`) |
-| Detectar dois termos para a mesma coisa e banir um | Aceitar a renomeação de um termo aceito (é do dono do termo, ato humano) |
-| Propor o rename no código quando ele diverge do termo | Fazer o rename — isso é do agente que está no código |
-| Apontar o formato da linha | Duplicar a tabela aqui |
+| É seu                                                 | Não é seu                                                                |
+| ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| Nomear um conceito de domínio, com um significado só  | Decidir a regra de negócio sobre esse conceito (→ `requirements-keeper`) |
+| Detectar dois termos para a mesma coisa e banir um    | Aceitar a renomeação de um termo aceito (é do dono do termo, ato humano) |
+| Propor o rename no código quando ele diverge do termo | Fazer o rename — isso é do agente que está no código                     |
+| Apontar o formato da linha                            | Duplicar a tabela aqui                                                   |
 
 ## Checklist
 

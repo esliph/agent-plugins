@@ -1,9 +1,9 @@
 ---
 title: Migração — <de> para <para>
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
   Quando uma mudança quebra compatibilidade, no mesmo PR que a decide.
-last-reviewed: {{TODAY}}
+last-reviewed: { { TODAY } }
 ---
 
 # Migração — <de> para <para>

@@ -1,6 +1,6 @@
 ---
 description: Registra uma dívida técnica assumida de propósito, com gatilho de pagamento
-argument-hint: "[o atalho assumido]"
+argument-hint: '[o atalho assumido]'
 ---
 
 Use a skill `decision-recorder` para registrar um TDR sobre: $ARGUMENTS

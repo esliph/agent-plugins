@@ -21,7 +21,7 @@
 - **ADR novo nasce `status: draft`.** Promover para `accepted` é ato humano; `HK-3` intercepta. Nenhuma tarefa deste plano promove estado.
 - **Mensagem de commit em português, no formato `tipo(ID): assunto`**, citando o ID afetado (`CI-9`).
 - **Idioma:** identificadores, nomes de arquivo e IDs em inglês/neutro; prosa e comentários em português.
-- **Ocorrências de "container" em `src/` que nomeiam o *arquivo-container de uma coleção*** (`CONTAINER_REQUIRED_FIELDS`, `isContainer`, os comentários de `src/checks/ci1-structure.ts`, `src/checks/ci4-staleness.ts`, `src/checks/ci10-trigger-routing.ts`, `src/docs/schema.ts`) **são outra palavra e ficam.**
+- **Ocorrências de "container" em `src/` que nomeiam o _arquivo-container de uma coleção_** (`CONTAINER_REQUIRED_FIELDS`, `isContainer`, os comentários de `src/checks/ci1-structure.ts`, `src/checks/ci4-staleness.ts`, `src/checks/ci10-trigger-routing.ts`, `src/docs/schema.ts`) **são outra palavra e ficam.**
 - **`CI-6` compara `<base>...HEAD`**, o diff inteiro da branch. A entrada de `CHANGELOG.md` da Tarefa 11 cobre os commits de todas as tarefas anteriores que tocam `plugin/**` e `.github/workflows/**` — ela não precisa vir antes deles, precisa vir **na mesma branch**.
 
 ## Linha de base medida no host (2026-09-01)
@@ -36,12 +36,12 @@ Antes de qualquer mudança, com `npm ci` já rodado e o glob de `npm test` corri
 
 As quatro falhas, e qual tarefa fecha cada uma:
 
-| Teste que falha | Arquivo | Fechado por |
-| --- | --- | --- |
-| `RF-0006: o contrato gerado deste repositório não derivou` | `test/contracts/drift.test.ts:11` | Tarefa 5 (`M-6`) |
-| `RNF-0003: repoRoot respeita LIVING_DOCS_REPO_ROOT e não move toolkitRoot` | `test/core/roots.test.ts:12` | Tarefa 2 (falha de plataforma, não prevista pela spec) |
-| `RNF-0003: o container declara as duas raízes, e elas são distintas` | `test/core/roots.test.ts:53` | Tarefa 2 (`M-8`) |
-| `RNF-0002: o wrapper existe, é executável e falha aberta` | `test/plugin/manifest.test.ts:57` | Tarefa 3 (`M-1`/`M-8`) |
+| Teste que falha                                                            | Arquivo                           | Fechado por                                            |
+| -------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------ |
+| `RF-0006: o contrato gerado deste repositório não derivou`                 | `test/contracts/drift.test.ts:11` | Tarefa 5 (`M-6`)                                       |
+| `RNF-0003: repoRoot respeita LIVING_DOCS_REPO_ROOT e não move toolkitRoot` | `test/core/roots.test.ts:12`      | Tarefa 2 (falha de plataforma, não prevista pela spec) |
+| `RNF-0003: o container declara as duas raízes, e elas são distintas`       | `test/core/roots.test.ts:53`      | Tarefa 2 (`M-8`)                                       |
+| `RNF-0002: o wrapper existe, é executável e falha aberta`                  | `test/plugin/manifest.test.ts:57` | Tarefa 3 (`M-1`/`M-8`)                                 |
 
 `npm run typecheck`, `node src/cli/index.ts validate` e `node src/cli/index.ts changelog --base origin/master` **já passam** no host sem nenhuma mudança. `node src/cli/index.ts drift` falha com `O gerador falhou: node /opt/living-docs/src/tools/gen-checks.ts`.
 
@@ -51,44 +51,46 @@ Três itens entram no plano sem estarem na tabela das onze mudanças. Cada um es
 
 1. **`package.json`: o glob de `npm test`** (Tarefa 1). Medido: `node --test 'test/**/*.test.ts'` sob `cmd.exe` não casa arquivo nenhum e sai com `ℹ tests 0` e código 0 — passa por vacuidade. A §5 exige que `npm test` passe no host; sem isso a prova é vazia, e pior que vazia: é verde.
 2. **`RNF-0001`: a frase "container fora do ar"** (Tarefa 7). A §5, prova 1, varre `docs/requirements/` inteiro. `RNF-0001` está lá e menciona container. A tabela das onze mudanças só nomeia `RNF-0002`.
-3. **`plugin/skills/working-agreements-keeper/SKILL.md` e `templates/workflow.yml`** (Tarefa 12). Nenhum dos dois está na lista de varredura da §5, e os dois afirmam o container: a skill ensina como exemplo de boa linha *"nunca rode `npm` fora do container"*, e o template instalado no repositório do consumidor diz *"o toolkit roda em container no repositório dele"*. São documentos vivos que passam a mentir. Tarefa separada, e a última.
+3. **`plugin/skills/working-agreements-keeper/SKILL.md` e `templates/workflow.yml`** (Tarefa 12). Nenhum dos dois está na lista de varredura da §5, e os dois afirmam o container: a skill ensina como exemplo de boa linha _"nunca rode `npm` fora do container"_, e o template instalado no repositório do consumidor diz _"o toolkit roda em container no repositório dele"_. São documentos vivos que passam a mentir. Tarefa separada, e a última.
 
 ## Estrutura de arquivos
 
 **Criados:**
 
-| Arquivo | Responsabilidade |
-| --- | --- |
-| `docs/decisions/adr/ADR-0015-execucao-no-node-do-host.md` | A decisão que supersede `ADR-0001`, preservando a metade não-Docker dela |
-| `docs/decisions/debt/TDR-0002-wrapper-docker-orfao.md` | O atalho de `E-1`: `bin/living-docs` sem invocador, com gatilho de pagamento de máquina |
+| Arquivo                                                   | Responsabilidade                                                                        |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `docs/decisions/adr/ADR-0015-execucao-no-node-do-host.md` | A decisão que supersede `ADR-0001`, preservando a metade não-Docker dela                |
+| `docs/decisions/debt/TDR-0002-wrapper-docker-orfao.md`    | O atalho de `E-1`: `bin/living-docs` sem invocador, com gatilho de pagamento de máquina |
 
 **Modificados:**
 
-| Arquivo | O que muda |
-| --- | --- |
-| `package.json` | O glob de `npm test` passa a sobreviver ao shell do Windows |
-| `plugin/hooks/run-hook.sh` | `docker exec` vira `node`; a raiz do toolkit sai do caminho do script |
-| `.github/workflows/living-docs.yml` | `docker compose` vira `actions/setup-node` + `npm ci` |
-| `docs/.ownership.yml` | `generated[].command` relativo; o `reason` do watch de `bin/living-docs` |
-| `docs/requirements/non-functional.md` | `RNF-0001` sem "container"; `RNF-0002` reescrito no lugar |
-| `docs/decisions/adr/ADR-0001-runtime-em-container-sem-build.md` | Só `status` e `superseded-by` — campos mutáveis, corpo intacto |
-| `docs/charter/constitution.md` | Princípio 6, `version: 2`, linha no log de emendas |
-| `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`, `docs/definition-of-done.md`, `.gitattributes` | Prosa host-first |
-| `test/core/roots.test.ts` | Duas asserções passam do container para o host |
-| `test/plugin/manifest.test.ts` | O teste do wrapper exige `node` e proíbe `docker`; o bit de execução vem do git |
-| `test/checks/ci7-ownership-coverage.test.ts` | A fixture de frase curta troca de frase |
-| `test/cli/init-enforcement.test.ts` | A mensagem de erro deixa de atribuir a regra a `RNF-0002` |
-| `CHANGELOG.md` | Entrada em `## [Unreleased] / ### Changed` |
-| `plugin/skills/working-agreements-keeper/SKILL.md`, `templates/workflow.yml` | Tarefa 12, fora das onze mudanças |
+| Arquivo                                                                                     | O que muda                                                                      |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `package.json`                                                                              | O glob de `npm test` passa a sobreviver ao shell do Windows                     |
+| `plugin/hooks/run-hook.sh`                                                                  | `docker exec` vira `node`; a raiz do toolkit sai do caminho do script           |
+| `.github/workflows/living-docs.yml`                                                         | `docker compose` vira `actions/setup-node` + `npm ci`                           |
+| `docs/.ownership.yml`                                                                       | `generated[].command` relativo; o `reason` do watch de `bin/living-docs`        |
+| `docs/requirements/non-functional.md`                                                       | `RNF-0001` sem "container"; `RNF-0002` reescrito no lugar                       |
+| `docs/decisions/adr/ADR-0001-runtime-em-container-sem-build.md`                             | Só `status` e `superseded-by` — campos mutáveis, corpo intacto                  |
+| `docs/charter/constitution.md`                                                              | Princípio 6, `version: 2`, linha no log de emendas                              |
+| `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`, `docs/definition-of-done.md`, `.gitattributes` | Prosa host-first                                                                |
+| `test/core/roots.test.ts`                                                                   | Duas asserções passam do container para o host                                  |
+| `test/plugin/manifest.test.ts`                                                              | O teste do wrapper exige `node` e proíbe `docker`; o bit de execução vem do git |
+| `test/checks/ci7-ownership-coverage.test.ts`                                                | A fixture de frase curta troca de frase                                         |
+| `test/cli/init-enforcement.test.ts`                                                         | A mensagem de erro deixa de atribuir a regra a `RNF-0002`                       |
+| `CHANGELOG.md`                                                                              | Entrada em `## [Unreleased] / ### Changed`                                      |
+| `plugin/skills/working-agreements-keeper/SKILL.md`, `templates/workflow.yml`                | Tarefa 12, fora das onze mudanças                                               |
 
 ---
 
 ## Task 1: Dependências no host e um `npm test` que de fato roda
 
 **Files:**
+
 - Modify: `package.json:9`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces: `npm test` executando os 520 testes do repositório no host, com as quatro falhas de linha de base. Toda tarefa seguinte depende disso.
 
@@ -140,10 +142,12 @@ git commit -m "test(RNF-0002): faz o glob de npm test sobreviver ao shell do Win
 ## Task 2: As duas raízes deixam de ser afirmadas pelo container
 
 **Files:**
+
 - Modify: `test/core/roots.test.ts:1-5` (imports), `:12-23` (teste da variável), `:53-62` (teste do container)
 - Test: `test/core/roots.test.ts`
 
 **Interfaces:**
+
 - Consumes: `repoRoot()`, `toolkitRoot()`, `templatesDir()` de `src/core/roots.ts` — assinaturas inalteradas, `() => string`.
 - Produces: nada que outra tarefa consuma.
 
@@ -169,12 +173,12 @@ Esperado: FAIL em dois testes —
 Substitua as linhas 1-5 de `test/core/roots.test.ts` por:
 
 ```ts
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
-import { repoRoot, templatesDir, toolkitRoot } from '../../src/core/roots.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import { repoRoot, templatesDir, toolkitRoot } from '../../src/core/roots.ts'
 ```
 
 - [ ] **Step 3: Tornar o teste da variável neutro de plataforma**
@@ -183,20 +187,20 @@ Substitua o teste inteiro das linhas 12-23 por:
 
 ```ts
 test('RNF-0003: repoRoot respeita LIVING_DOCS_REPO_ROOT e não move toolkitRoot', () => {
-  const antes = toolkitRoot();
-  const anterior = process.env.LIVING_DOCS_REPO_ROOT;
+  const antes = toolkitRoot()
+  const anterior = process.env.LIVING_DOCS_REPO_ROOT
   // Caminho derivado do sistema, não escrito à mão: `repoRoot()` resolve, e um
   // caminho POSIX literal vira `C:\...` no Windows.
-  const outro = join(tmpdir(), 'outro-projeto');
-  process.env.LIVING_DOCS_REPO_ROOT = outro;
+  const outro = join(tmpdir(), 'outro-projeto')
+  process.env.LIVING_DOCS_REPO_ROOT = outro
   try {
-    assert.equal(repoRoot(), resolve(outro));
-    assert.equal(toolkitRoot(), antes, 'a raiz do toolkit não pode seguir a do repositório (ADR-0003)');
+    assert.equal(repoRoot(), resolve(outro))
+    assert.equal(toolkitRoot(), antes, 'a raiz do toolkit não pode seguir a do repositório (ADR-0003)')
   } finally {
-    if (anterior === undefined) delete process.env.LIVING_DOCS_REPO_ROOT;
-    else process.env.LIVING_DOCS_REPO_ROOT = anterior;
+    if (anterior === undefined) delete process.env.LIVING_DOCS_REPO_ROOT
+    else process.env.LIVING_DOCS_REPO_ROOT = anterior
   }
-});
+})
 ```
 
 - [ ] **Step 4: Trocar a afirmação do container pela afirmação do host**
@@ -209,20 +213,20 @@ test('RNF-0003: sem variável nenhuma, cada raiz vem da sua própria fonte', () 
   // do ambiente duas variáveis que só existiam porque o compose as injetava.
   // O que ADR-0003 de fato exige sobrevive à saída do container: o toolkit se
   // acha pelo próprio arquivo, e o repositório validado é o cwd de quem chamou.
-  const anteriorRepo = process.env.LIVING_DOCS_REPO_ROOT;
-  const anteriorToolkit = process.env.LIVING_DOCS_TOOLKIT_ROOT;
-  delete process.env.LIVING_DOCS_REPO_ROOT;
-  delete process.env.LIVING_DOCS_TOOLKIT_ROOT;
+  const anteriorRepo = process.env.LIVING_DOCS_REPO_ROOT
+  const anteriorToolkit = process.env.LIVING_DOCS_TOOLKIT_ROOT
+  delete process.env.LIVING_DOCS_REPO_ROOT
+  delete process.env.LIVING_DOCS_TOOLKIT_ROOT
   try {
     // Este arquivo está dois níveis abaixo da raiz, exatamente como
     // `src/core/roots.ts`: a derivação é a mesma, e é ela que se afirma.
-    assert.equal(toolkitRoot(), resolve(join(import.meta.dirname, '..', '..')));
-    assert.equal(repoRoot(), resolve(process.cwd()));
+    assert.equal(toolkitRoot(), resolve(join(import.meta.dirname, '..', '..')))
+    assert.equal(repoRoot(), resolve(process.cwd()))
   } finally {
-    if (anteriorRepo !== undefined) process.env.LIVING_DOCS_REPO_ROOT = anteriorRepo;
-    if (anteriorToolkit !== undefined) process.env.LIVING_DOCS_TOOLKIT_ROOT = anteriorToolkit;
+    if (anteriorRepo !== undefined) process.env.LIVING_DOCS_REPO_ROOT = anteriorRepo
+    if (anteriorToolkit !== undefined) process.env.LIVING_DOCS_TOOLKIT_ROOT = anteriorToolkit
   }
-});
+})
 ```
 
 - [ ] **Step 5: Rodar o arquivo**
@@ -245,11 +249,13 @@ git commit -m "test(RNF-0003): afirma as duas raízes pela derivação, não pel
 ## Task 3: O wrapper de hooks chama o Node do host (`M-1`)
 
 **Files:**
+
 - Modify: `test/plugin/manifest.test.ts:1-5` (imports), `:57-66` (teste do wrapper), `:137-142` (comentário e mensagem do teste de CRLF)
 - Modify: `plugin/hooks/run-hook.sh` (arquivo inteiro)
 - Test: `test/plugin/manifest.test.ts`
 
 **Interfaces:**
+
 - Consumes: `toolkitRoot()` de `src/core/roots.ts`.
 - Produces: `plugin/hooks/run-hook.sh <nome-do-hook>`, lendo o payload do hook em stdin e escrevendo a decisão em stdout. Contrato inalterado: teto de 5 s, saída vazia e `exit 0` em qualquer erro. `plugin/hooks/hooks.json` continua invocando `"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh" <hook>` e **não muda**.
 
@@ -264,12 +270,12 @@ O teste do bit de execução muda de fonte: `statSync(...).mode & 0o111` é semp
 Substitua as linhas 1-5 de `test/plugin/manifest.test.ts` por:
 
 ```ts
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { toolkitRoot } from '../../src/core/roots.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import { toolkitRoot } from '../../src/core/roots.ts'
 ```
 
 `statSync` continua importado: outros testes do arquivo o usam.
@@ -280,23 +286,23 @@ Substitua o teste inteiro das linhas 57-66 (`RNF-0002: o wrapper existe, é exec
 
 ```ts
 test('RNF-0002: o wrapper existe, é executável e roda o node do host, falhando aberta', () => {
-  const relative = 'plugin/hooks/run-hook.sh';
-  const wrapper = join(ROOT, relative);
-  assert.ok(existsSync(wrapper));
+  const relative = 'plugin/hooks/run-hook.sh'
+  const wrapper = join(ROOT, relative)
+  assert.ok(existsSync(wrapper))
 
   // O bit de execução vem do índice do git, não do sistema de arquivos: um
   // checkout Windows não tem modo POSIX, e o que chega a quem instala é o modo
   // versionado.
-  const entry = execFileSync('git', ['ls-files', '-s', '--', relative], { cwd: ROOT, encoding: 'utf8' });
-  assert.equal(entry.split(/\s+/)[0], '100755', `${relative} precisa estar versionado como executável`);
+  const entry = execFileSync('git', ['ls-files', '-s', '--', relative], { cwd: ROOT, encoding: 'utf8' })
+  assert.equal(entry.split(/\s+/)[0], '100755', `${relative} precisa estar versionado como executável`)
 
-  const source = readFileSync(wrapper, 'utf8');
-  assert.match(source, /\bnode\b/, 'o hook roda no node do host (RNF-0002)');
-  assert.doesNotMatch(source, /docker/i, 'não existe mais ponte para container nenhum');
-  assert.match(source, /timeout 5/, 'precisa respeitar o teto de 5s da spec §7');
-  assert.match(source, /exit 0/, 'precisa falhar aberta');
-  assert.doesNotMatch(source, /set -e\b/, 'set -e mataria a falha aberta');
-});
+  const source = readFileSync(wrapper, 'utf8')
+  assert.match(source, /\bnode\b/, 'o hook roda no node do host (RNF-0002)')
+  assert.doesNotMatch(source, /docker/i, 'não existe mais ponte para container nenhum')
+  assert.match(source, /timeout 5/, 'precisa respeitar o teto de 5s da spec §7')
+  assert.match(source, /exit 0/, 'precisa falhar aberta')
+  assert.doesNotMatch(source, /set -e\b/, 'set -e mataria a falha aberta')
+})
 ```
 
 - [ ] **Step 3: Rodar para ver falhar**
@@ -358,10 +364,10 @@ O teste de CRLF **fica**: `run-hook.sh` roda em bash e um CR no shebang continua
 ```ts
 test('RNF-0002: nenhum script executável carrega CR — o wrapper roda em bash', () => {
   for (const relative of ['bin/living-docs', 'plugin/hooks/run-hook.sh']) {
-    const source = readFileSync(join(ROOT, relative), 'utf8');
-    assert.equal(source.includes('\r'), false, `${relative} com CRLF: o shebang quebra com "bad interpreter"`);
+    const source = readFileSync(join(ROOT, relative), 'utf8')
+    assert.equal(source.includes('\r'), false, `${relative} com CRLF: o shebang quebra com "bad interpreter"`)
   }
-});
+})
 ```
 
 - [ ] **Step 7: Rodar para ver passar**
@@ -384,9 +390,11 @@ git commit -m "feat(RNF-0002): o wrapper de hooks passa a executar no node do ho
 ## Task 4: O CI troca Docker por Node (`M-2`)
 
 **Files:**
+
 - Modify: `.github/workflows/living-docs.yml` (arquivo inteiro)
 
 **Interfaces:**
+
 - Consumes: `npm test` corrigido pela Tarefa 1; os subcomandos `validate`, `drift` e `changelog` de `node src/cli/index.ts`, inalterados.
 - Produces: nada que outra tarefa consuma.
 
@@ -479,10 +487,12 @@ git commit -m "ci(RNF-0002): o workflow instala Node e npm em vez de construir a
 ## Task 5: O comando do gerador deixa de ser caminho de container (`M-6`)
 
 **Files:**
+
 - Modify: `docs/.ownership.yml:71`
 - Test: `test/contracts/drift.test.ts` (já existe; hoje falha)
 
 **Interfaces:**
+
 - Consumes: `runCommand` de `src/exec/command.ts`, que executa com `cwd` na raiz do repositório validado — por isso um caminho relativo resolve.
 - Produces: `generated[].command` igual a `node src/tools/gen-checks.ts`.
 
@@ -501,7 +511,7 @@ Esperado: FAIL em `RF-0006: o contrato gerado deste repositório não derivou`, 
 Em `docs/.ownership.yml`, na chave `generated`, substitua a linha 71:
 
 ```yaml
-    command: node src/tools/gen-checks.ts
+command: node src/tools/gen-checks.ts
 ```
 
 O bloco fica assim (os comentários acima dele não mudam):
@@ -545,10 +555,12 @@ git commit -m "fix(CI-5): o comando do gerador passa a ser relativo à raiz do r
 ## Task 6: `ADR-0015` nasce e supersede `ADR-0001` (`M-3`)
 
 **Files:**
+
 - Create: `docs/decisions/adr/ADR-0015-execucao-no-node-do-host.md`
 - Modify: `docs/decisions/adr/ADR-0001-runtime-em-container-sem-build.md:4` (`status`), `:11` (`superseded-by`)
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces: o ID `ADR-0015`, citável por `RNF-0002` (Tarefa 7), pela Constitution (Tarefa 8) e pelo `TDR-0002` (Tarefa 10).
 
@@ -567,7 +579,7 @@ title: Execução no Node do host, TypeScript sem build step
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-09-01
 relates-to: [RNF-0002, RNF-0003]
 supersedes: ADR-0001
@@ -650,11 +662,13 @@ em `TDR-0002`.
 Em `docs/decisions/adr/ADR-0001-runtime-em-container-sem-build.md`, **só no frontmatter**:
 
 Linha 4:
+
 ```yaml
 status: superseded
 ```
 
 Linha 11:
+
 ```yaml
 superseded-by: ADR-0015
 ```
@@ -683,9 +697,11 @@ git commit -m "docs(ADR-0015): registra a execução no node do host e supersede
 ## Task 7: `RNF-0002` reescrito no lugar, e `RNF-0001` sem "container" (`M-4`)
 
 **Files:**
+
 - Modify: `docs/requirements/non-functional.md:19-21` (corpo de `RNF-0001`), `:24-31` (`RNF-0002` inteiro)
 
 **Interfaces:**
+
 - Consumes: o ID `ADR-0015` criado na Tarefa 6.
 - Produces: `RNF-0002` com enunciado novo e o mesmo ID, citado por `test/plugin/manifest.test.ts`.
 
@@ -752,9 +768,11 @@ git commit -m "docs(RNF-0002): a regra passa a enunciar a execução no Node do 
 ## Task 8: O princípio 6 da Constitution é emendado (`M-5`)
 
 **Files:**
+
 - Modify: `docs/charter/constitution.md:7` (`version`), `:22` (princípio 6), `:26` (log de emendas)
 
 **Interfaces:**
+
 - Consumes: `ADR-0015` (Tarefa 6) e o novo `RNF-0002` (Tarefa 7).
 - Produces: nada que outra tarefa consuma.
 
@@ -811,11 +829,13 @@ git commit -m "docs(ADR-0015): emenda o princípio 6 da Constitution para a exec
 ## Task 9: A prosa e as fixtures passam a host-first (`M-7` e `M-9`)
 
 **Files:**
+
 - Modify: `CLAUDE.md`, `CONTRIBUTING.md:15-30`, `README.md`, `docs/definition-of-done.md:30`, `.gitattributes:1-2`, `docs/.ownership.yml:196`
 - Modify: `test/checks/ci7-ownership-coverage.test.ts:217`, `test/cli/init-enforcement.test.ts:36`
 - Test: `test/docs/agent-contract.test.ts`, `test/checks/ci7-ownership-coverage.test.ts`, `test/cli/init-enforcement.test.ts`
 
 **Interfaces:**
+
 - Consumes: `RNF-0002` reescrito (Tarefa 7).
 - Produces: `CONTRIBUTING.md` e `README.md` sem nenhuma menção a `bin/living-docs` — pré-condição do `pay-when` do `TDR-0002` (Tarefa 10). Se você mudar a redação abaixo, confira o `paths` daquele gatilho.
 
@@ -840,7 +860,7 @@ Na seção `## Política`, substitua o primeiro bullet inteiro:
 
 Substitua a seção `## O ambiente` inteira (linhas 15-30) por:
 
-`````markdown
+````markdown
 ## O ambiente
 
 Node 24 ou maior e o npm que vem com ele — nada além disso (`RNF-0002`). As
@@ -856,7 +876,7 @@ node src/cli/index.ts validate --base origin/master
 
 Comando que falha com `ERR_MODULE_NOT_FOUND` é comando rodado antes do
 `npm ci` — não é o ambiente que está errado.
-`````
+````
 
 - [ ] **Step 3: `README.md` — os quatro trechos**
 
@@ -892,18 +912,18 @@ da raiz deste checkout, ele valida a si mesmo: o toolkit usa-se como teste.
 
 Comandos disponíveis:
 
-| Comando | O que faz |
-| --- | --- |
-| `node src/cli/index.ts init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou. |
-| `node src/cli/index.ts validate` | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono. |
-| `node src/cli/index.ts validate --base <ref>` | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
-| `node src/cli/index.ts drift` | Confere se cada documento gerado ainda bate com o comando que o gera. |
-| `node src/cli/index.ts changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit. |
+| Comando                                        | O que faz                                                                                                                                           |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `node src/cli/index.ts init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou.                                                                 |
+| `node src/cli/index.ts validate`               | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono.                                        |
+| `node src/cli/index.ts validate --base <ref>`  | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
+| `node src/cli/index.ts drift`                  | Confere se cada documento gerado ainda bate com o comando que o gera.                                                                               |
+| `node src/cli/index.ts changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit.                                     |
 ````
 
 **3d.** Substitua a seção `## Validar outro projeto` inteira:
 
-`````markdown
+````markdown
 ## Validar outro projeto
 
 A fonte do toolkit e o repositório validado são raízes independentes
@@ -914,7 +934,7 @@ diretório de trabalho ou de `LIVING_DOCS_REPO_ROOT`.
 LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node src/cli/index.ts init --stage small-team --owner @time
 LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node src/cli/index.ts validate
 ```
-`````
+````
 
 **3e.** No parágrafo de `**Ganchos:**` (seção `## O plugin do Claude Code`), a frase final atribui a falha aberta ao container parado. Substitua a frase final por:
 
@@ -964,7 +984,7 @@ O resto do arquivo (`* text=auto eol=lf` e as linhas `binary`) não muda.
 Substitua a linha 196:
 
 ```yaml
-    reason: "o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa"
+reason: 'o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa'
 ```
 
 O `code`, o `doc` e o `consumer-visible: true` daquela entrada **não mudam**.
@@ -974,7 +994,7 @@ O `code`, o `doc` e o `consumer-visible: true` daquela entrada **não mudam**.
 A frase é arbitrária: ela existe para demonstrar que uma frase curta é vocabulário compartilhado e **não** duplicata (`ADR-0009`). Substitua a linha 217:
 
 ```ts
-  const curta = 'O teste vem antes da implementação.';
+const curta = 'O teste vem antes da implementação.'
 ```
 
 O resto do teste não muda — a asserção continua sendo `assert.deepEqual(ci7OwnershipCoverage().run(contextFor(root)), [])`.
@@ -984,7 +1004,7 @@ O resto do teste não muda — a asserção continua sendo `assert.deepEqual(ci7
 A asserção continua correta e ganha valor: agora nem o workflow deste repositório menciona Docker. Só a mensagem, que atribuía a regra a `RNF-0002`, muda. Substitua a linha 36:
 
 ```ts
-    assert.doesNotMatch(yaml, /docker/i, 'como o toolkit chega ao CI de quem instala é DA-0003, não uma imposição nossa');
+assert.doesNotMatch(yaml, /docker/i, 'como o toolkit chega ao CI de quem instala é DA-0003, não uma imposição nossa')
 ```
 
 - [ ] **Step 9: Rodar a suíte e os checks**
@@ -1016,9 +1036,11 @@ git commit -m "docs(RNF-0002): a prosa e as fixtures passam a afirmar o host"
 ## Task 10: O wrapper órfão vira dívida com gatilho observável (`M-11`)
 
 **Files:**
+
 - Create: `docs/decisions/debt/TDR-0002-wrapper-docker-orfao.md`
 
 **Interfaces:**
+
 - Consumes: `ADR-0015` (Tarefa 6); e a Tarefa 9, que tirou `bin/living-docs` de `CONTRIBUTING.md` e `README.md` — sem isso o gatilho abaixo dispara na hora.
 - Produces: o ID `TDR-0002`.
 
@@ -1042,17 +1064,17 @@ title: bin/living-docs continua exigindo Docker sem ninguém que o invoque
 status: open
 owner: '@esliph/engineering'
 trigger: >
-    Quando o gatilho de pagamento abaixo se cumprir.
+  Quando o gatilho de pagamento abaixo se cumprir.
 last-reviewed: 2026-09-01
 relates-to: [ADR-0015, RNF-0002]
 # Aspas simples: em YAML, aspas simples não processam `\`, e o padrão é regex.
 pay-when:
-    pattern: 'bin/living-docs'
-    paths:
-        - CONTRIBUTING.md
-        - README.md
-        - docs/definition-of-done.md
-        - '.github/workflows/**'
+  pattern: 'bin/living-docs'
+  paths:
+    - CONTRIBUTING.md
+    - README.md
+    - docs/definition-of-done.md
+    - '.github/workflows/**'
 ---
 
 # TDR-0002 — bin/living-docs continua exigindo Docker sem ninguém que o invoque
@@ -1122,9 +1144,11 @@ git commit -m "docs(TDR-0002): registra o wrapper Docker órfão com gatilho de 
 ## Task 11: O CHANGELOG e as duas provas que nenhum check faz (`M-10`, §5)
 
 **Files:**
+
 - Modify: `CHANGELOG.md` (entrada nova em `## [Unreleased]` / `### Changed`)
 
 **Interfaces:**
+
 - Consumes: tudo que as Tarefas 3 a 10 produziram.
 - Produces: a entrega fechada.
 
@@ -1213,10 +1237,12 @@ Se o primeiro comando não produzir saída, **não conclua que o wrapper está e
 ## Task 12: Os dois documentos vivos que a §5 não varreu
 
 **Files:**
+
 - Modify: `plugin/skills/working-agreements-keeper/SKILL.md:63`
 - Modify: `templates/workflow.yml:1-9` (o comentário de cabeçalho)
 
 **Interfaces:**
+
 - Consumes: `RNF-0002` reescrito (Tarefa 7).
 - Produces: nada.
 
@@ -1227,14 +1253,14 @@ Se o primeiro comando não produzir saída, **não conclua que o wrapper está e
 `working-agreements-keeper` usa, como **exemplo** de linha bem escrita no formato "o que nunca fazer", a frase `"nunca rode \`npm\` fora do container"`. O exemplo passou a ensinar o oposto da regra vigente. Substitua a linha 63:
 
 ```markdown
-   ("nunca promova uma decisão sem revisão humana").
+("nunca promova uma decisão sem revisão humana").
 ```
 
 O item 4 inteiro fica assim (o resto não muda):
 
 ```markdown
-4. **Escreva uma linha, não um parágrafo.** Forma: *onde está a verdade* ("a
-   regra de X mora em `docs/requirements/rules.md`") ou *o que nunca fazer*
+4. **Escreva uma linha, não um parágrafo.** Forma: _onde está a verdade_ ("a
+   regra de X mora em `docs/requirements/rules.md`") ou _o que nunca fazer_
    ("nunca promova uma decisão sem revisão humana").
 ```
 

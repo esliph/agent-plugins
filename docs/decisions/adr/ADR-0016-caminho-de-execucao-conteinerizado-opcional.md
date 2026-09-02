@@ -4,7 +4,7 @@ title: Caminho de execução conteinerizado opcional, paridade por delegação
 status: accepted
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-09-01
 relates-to: [ADR-0015, ADR-0003, RNF-0006]
 supersedes: null

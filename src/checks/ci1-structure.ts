@@ -1,30 +1,27 @@
-import type { Check, CheckContext, Finding } from '../core/types.ts';
-import type { ArtifactDoc } from '../docs/collect.ts';
-import type { IdFormat } from '../docs/schema.ts';
-import {
-  REQUIRED_FIELDS,
-  CONTAINER_REQUIRED_FIELDS,
-  findCadence,
-  isIsoDate,
-  parseId,
-  statesFor,
-  writeId,
-} from '../docs/schema.ts';
+import type { Check, CheckContext, Finding } from '../core/types.ts'
+import type { ArtifactDoc } from '../docs/collect.ts'
+import type { IdFormat } from '../docs/schema.ts'
+import { REQUIRED_FIELDS, CONTAINER_REQUIRED_FIELDS, findCadence, isIsoDate, parseId, statesFor, writeId } from '../docs/schema.ts'
 
-const RULE = 'CI-1';
+const RULE = 'CI-1'
 
 function error(file: string, line: number, message: string, fix: string): Finding {
-  return { ruleId: RULE, file, line, severity: 'error', message, fix };
+  return { ruleId: RULE, file, line, severity: 'error', message, fix }
 }
 
 function isFilled(value: unknown): boolean {
-  if (value === undefined || value === null) return false;
-  if (typeof value === 'string') return value.trim() !== '';
-  return true;
+  if (value === undefined || value === null) {
+    return false
+  }
+  if (typeof value === 'string') {
+    return value.trim() !== ''
+  }
+
+  return true
 }
 
 function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
-  const findings: Finding[] = [];
+  const findings: Finding[] = []
 
   if (doc.syntaxError) {
     return [
@@ -34,10 +31,11 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         `Frontmatter com YAML inválido: ${doc.syntaxError.message}`,
         'Corrija o bloco YAML entre os `---` no topo do arquivo.',
       ),
-    ];
+    ]
   }
 
-  const frontmatter = doc.frontmatter;
+  const frontmatter = doc.frontmatter
+
   if (!frontmatter) {
     return [
       error(
@@ -46,13 +44,13 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         'Frontmatter ausente — todo artefato de documentação viva abre com o bloco YAML padrão.',
         'Adicione `id`, `title`, `status`, `owner`, `trigger` e `last-reviewed` entre `---` no topo (spec §2).',
       ),
-    ];
+    ]
   }
 
-  const { data, lines } = frontmatter;
-  const lineOf = (field: string): number => lines[field] ?? 1;
-  const isContainer = doc.rule.collection !== 'per-file';
-  const required = isContainer ? CONTAINER_REQUIRED_FIELDS : REQUIRED_FIELDS;
+  const { data, lines } = frontmatter
+  const lineOf = (field: string): number => lines[field] ?? 1
+  const isContainer = doc.rule.collection !== 'per-file'
+  const required = isContainer ? CONTAINER_REQUIRED_FIELDS : REQUIRED_FIELDS
 
   for (const field of required) {
     if (!isFilled(data[field])) {
@@ -63,12 +61,13 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           `Campo obrigatório \`${field}\` ausente ou vazio.`,
           `Preencha \`${field}\` no frontmatter (skill dona: ${doc.rule.skill}).`,
         ),
-      );
+      )
     }
   }
 
   if (!isContainer && isFilled(data.id)) {
-    const parsed = parseId(data.id, format);
+    const parsed = parseId(data.id, format)
+
     if (!parsed) {
       findings.push(
         error(
@@ -77,21 +76,21 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           `\`id\` "${String(data.id)}" fora do formato <PREFIXO>-<número>.`,
           `Use ${writeId(doc.rule.idPrefix, 1, format)} (spec §8).`,
         ),
-      );
+      )
     } else if (parsed.prefix !== doc.rule.idPrefix) {
       findings.push(
         error(
           doc.file,
           lineOf('id'),
           `\`id\` usa o prefixo ${parsed.prefix}, mas ${doc.rule.path} é território de ${doc.rule.idPrefix}.`,
-          `Renomeie para o território de ${doc.rule.idPrefix} (ex.: ${writeId(doc.rule.idPrefix, 1, format)}) ` +
-            'ou mova o arquivo para o artefato dono.',
+          `Renomeie para o território de ${doc.rule.idPrefix} (ex.: ${writeId(doc.rule.idPrefix, 1, format)}) ` + 'ou mova o arquivo para o artefato dono.',
         ),
-      );
+      )
     }
   }
 
-  const states = statesFor(doc.rule);
+  const states = statesFor(doc.rule)
+
   if (!isContainer && isFilled(data.status)) {
     if (!states) {
       findings.push(
@@ -99,9 +98,9 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           doc.file,
           lineOf('status'),
           `Prefixo ${doc.rule.idPrefix} não tem máquina de estados declarada.`,
-          `Declare \`states:\` para esse artefato em docs/.ownership.yml.`,
+          'Declare `states:` para esse artefato em docs/.ownership.yml.',
         ),
-      );
+      )
     } else if (!states.includes(String(data.status))) {
       findings.push(
         error(
@@ -110,7 +109,7 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           `\`status\` "${String(data.status)}" fora da máquina de estados de ${doc.rule.idPrefix}.`,
           `Estados válidos: ${states.join(' → ')} (spec §4).`,
         ),
-      );
+      )
     }
   }
 
@@ -122,11 +121,12 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         `\`owner\` "${String(data.owner)}" precisa começar com @ e espelhar o CODEOWNERS.`,
         'Use o handle de pessoa ou time, ex.: "@team-platform".',
       ),
-    );
+    )
   }
 
   if (isFilled(data.trigger)) {
-    const cadence = findCadence(String(data.trigger));
+    const cadence = findCadence(String(data.trigger))
+
     if (cadence) {
       findings.push(
         error(
@@ -135,7 +135,7 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           `\`trigger\` descreve cadência ("${cadence}") em vez de um evento observável.`,
           'Nomeie o evento: "no mesmo PR que altera src/domain/billing", "quando um código de erro novo é adicionado" (spec §2, mecanismo 2).',
         ),
-      );
+      )
     }
   }
 
@@ -147,21 +147,16 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         `\`last-reviewed\` "${String(data['last-reviewed'])}" não é uma data ISO.`,
         'Use YYYY-MM-DD, e só toque neste campo se você realmente reviu o documento (spec §2).',
       ),
-    );
+    )
   }
 
   if (isContainer && states) {
     for (const item of doc.items) {
       if (item.status === '') {
         findings.push(
-          error(
-            doc.file,
-            item.line,
-            `Item ${item.id} não declara \`status\`.`,
-            `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título (spec §4).`,
-          ),
-        );
-        continue;
+          error(doc.file, item.line, `Item ${item.id} não declara \`status\`.`, `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título (spec §4).`),
+        )
+        continue
       }
       if (!states.includes(item.status)) {
         findings.push(
@@ -171,18 +166,18 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
             `Item ${item.id} com status "${item.status}" fora da máquina de estados de ${doc.rule.idPrefix}.`,
             `Estados válidos: ${states.join(' → ')} (spec §4).`,
           ),
-        );
+        )
       }
     }
   }
 
-  return findings;
+  return findings
 }
 
 export const ci1Structure: Check = {
   id: RULE,
   name: 'structure lint',
   run(context: CheckContext): Finding[] {
-    return context.docs.flatMap((doc) => checkDoc(doc, context.config.idFormat));
+    return context.docs.flatMap(doc => checkDoc(doc, context.config.idFormat))
   },
-};
+}

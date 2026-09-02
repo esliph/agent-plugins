@@ -78,7 +78,6 @@ Cada fase abaixo traz: o que entrega, de que depende, que peça de engine ainda
 não existe, e o risco que só aparece quando alguém tenta implementar. A ordem é
 a da spec §10 e importa: cada fase usa o enforcement que a anterior instalou.
 
-
 ### Fase 3 — amarrar doc ao PR (o mecanismo 1) — **IMPLEMENTADA**
 
 `SK-6` working-agreements-keeper (`CONTRIBUTING.md`, `docs/definition-of-done.md`,

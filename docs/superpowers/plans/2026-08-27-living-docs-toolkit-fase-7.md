@@ -215,7 +215,7 @@ title: A fonte de data do toolkit, e como um gatilho de pagamento se torna verif
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
 relates-to: [TDR-0001, RNF-0001]
 supersedes: null
@@ -283,18 +283,18 @@ além da prosa.**
    relógio.
 3. Uma dívida declara, no frontmatter:
 
-    ```yaml
-    pay-when:
-        pattern: '^- \*\*status:\*\* revoked'
-        paths: ['docs/requirements/**']
-    ```
+   ```yaml
+   pay-when:
+     pattern: '^- \*\*status:\*\* revoked'
+     paths: ['docs/requirements/**']
+   ```
 
-    `pattern` é uma expressão regular reconhecida **linha a linha** nos arquivos
-    que casam `paths`, e vai entre **aspas simples**: em YAML, aspas simples não
-    processam `\`, e um padrão com aspas duplas exigiria escapar cada barra duas
-    vezes — que é como se escreve o padrão errado sem perceber. O próprio arquivo
-    da dívida é excluído da varredura: um TDR que cita o próprio gatilho não é
-    ocorrência dele.
+   `pattern` é uma expressão regular reconhecida **linha a linha** nos arquivos
+   que casam `paths`, e vai entre **aspas simples**: em YAML, aspas simples não
+   processam `\`, e um padrão com aspas duplas exigiria escapar cada barra duas
+   vezes — que é como se escreve o padrão errado sem perceber. O próprio arquivo
+   da dívida é excluído da varredura: um TDR que cita o próprio gatilho não é
+   ocorrência dele.
 
 4. **Família de dívida é a que declara `paid` na máquina de estados** (spec §4),
    não o prefixo `TDR`. Um projeto que chame sua família de outra coisa continua
@@ -345,7 +345,7 @@ title: Como um documento sem família de IDs ganha dono declarado
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
 relates-to: [DA-0002, RN-0001]
 supersedes: null
@@ -400,15 +400,15 @@ conhecer (spec §3).
 
 ```yaml
 documents:
-    - path: CONTRIBUTING.md
-      owner: '@esliph/engineering'
-      skill: working-agreements-keeper
-    - path: CLAUDE.md
-      owner: '@esliph/engineering'
-      skill: working-agreements-keeper
-      role: agent-contract
-    - path: docs/superpowers/
-      owner: '@esliph/engineering'
+  - path: CONTRIBUTING.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+  - path: CLAUDE.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+    role: agent-contract
+  - path: docs/superpowers/
+    owner: '@esliph/engineering'
 ```
 
 - `path` e `owner` são obrigatórios; `owner` começa com `@` e espelha o
@@ -463,7 +463,7 @@ title: O limiar que distingue vocabulário compartilhado de conteúdo copiado
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
 relates-to: [RN-0010]
 supersedes: null
@@ -554,7 +554,7 @@ title: Com que severidade o CI sinaliza o caminho vigiado sem doc dono, e qual �
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
 relates-to: [RN-0008, RN-0009, RNF-0001]
 supersedes: null
@@ -926,14 +926,14 @@ usam — a segunda é **extraída** de `src/ids/coverage.ts`, não copiada.
 
 - Consome: `picomatch`; `node:fs`.
 - Produz:
-    - `todayIso(clock?: () => Date): string`
-    - `asIsoDate(value: unknown): string | null`
-    - `monthsBetween(from: string, to: string): number | null`
-    - `listFiles(root: string, globs?: readonly string[]): string[]`
-    - `readTextFile(root: string, file: string): string | null`
-    - `isProbablyText(content: string): boolean`
-    - `SKIP_DIRS: ReadonlySet<string>`, `MAX_BYTES: number`
-    - `CheckContext.today: string`
+  - `todayIso(clock?: () => Date): string`
+  - `asIsoDate(value: unknown): string | null`
+  - `monthsBetween(from: string, to: string): number | null`
+  - `listFiles(root: string, globs?: readonly string[]): string[]`
+  - `readTextFile(root: string, file: string): string | null`
+  - `isProbablyText(content: string): boolean`
+  - `SKIP_DIRS: ReadonlySet<string>`, `MAX_BYTES: number`
+  - `CheckContext.today: string`
 
 **Requisitos:**
 
@@ -967,39 +967,35 @@ import assert from 'node:assert/strict'
 import { asIsoDate, monthsBetween, todayIso } from '../../src/core/dates.ts'
 
 test('RNF-0004: todayIso lê o relógio que recebe, não o do sistema', () => {
-    const fixo = () => new Date('2026-08-27T13:45:00Z')
-    assert.equal(todayIso(fixo), '2026-08-27')
-    // sem clock, ainda é ISO de dez caracteres — o formato é o contrato
-    assert.match(todayIso(), /^\d{4}-\d{2}-\d{2}$/)
+  const fixo = () => new Date('2026-08-27T13:45:00Z')
+  assert.equal(todayIso(fixo), '2026-08-27')
+  // sem clock, ainda é ISO de dez caracteres — o formato é o contrato
+  assert.match(todayIso(), /^\d{4}-\d{2}-\d{2}$/)
 })
 
 test('asIsoDate aceita string ISO e Date, e recusa o resto', () => {
-    assert.equal(asIsoDate('2026-08-27'), '2026-08-27')
-    assert.equal(asIsoDate('  2026-08-27  '), '2026-08-27')
-    assert.equal(asIsoDate(new Date('2026-08-27T00:00:00Z')), '2026-08-27')
-    assert.equal(asIsoDate('27/08/2026'), null)
-    assert.equal(asIsoDate('em breve'), null)
-    assert.equal(asIsoDate(undefined), null)
-    assert.equal(asIsoDate(42), null)
-    assert.equal(asIsoDate(new Date('não é data')), null)
+  assert.equal(asIsoDate('2026-08-27'), '2026-08-27')
+  assert.equal(asIsoDate('  2026-08-27  '), '2026-08-27')
+  assert.equal(asIsoDate(new Date('2026-08-27T00:00:00Z')), '2026-08-27')
+  assert.equal(asIsoDate('27/08/2026'), null)
+  assert.equal(asIsoDate('em breve'), null)
+  assert.equal(asIsoDate(undefined), null)
+  assert.equal(asIsoDate(42), null)
+  assert.equal(asIsoDate(new Date('não é data')), null)
 })
 
 test('monthsBetween conta meses de calendário e respeita o dia', () => {
-    assert.equal(monthsBetween('2026-01-15', '2026-07-15'), 6)
-    assert.equal(
-        monthsBetween('2026-01-15', '2026-07-14'),
-        5,
-        'faltando um dia, ainda não fez seis meses'
-    )
-    assert.equal(monthsBetween('2026-01-15', '2026-07-16'), 6)
-    assert.equal(monthsBetween('2025-12-31', '2026-01-01'), 0)
-    assert.equal(monthsBetween('2026-08-27', '2026-08-27'), 0)
+  assert.equal(monthsBetween('2026-01-15', '2026-07-15'), 6)
+  assert.equal(monthsBetween('2026-01-15', '2026-07-14'), 5, 'faltando um dia, ainda não fez seis meses')
+  assert.equal(monthsBetween('2026-01-15', '2026-07-16'), 6)
+  assert.equal(monthsBetween('2025-12-31', '2026-01-01'), 0)
+  assert.equal(monthsBetween('2026-08-27', '2026-08-27'), 0)
 })
 
 test('monthsBetween devolve negativo para data no futuro e null para o que não é data', () => {
-    assert.equal(monthsBetween('2027-01-01', '2026-08-27'), -4)
-    assert.equal(monthsBetween('amanhã', '2026-08-27'), null)
-    assert.equal(monthsBetween('2026-08-27', ''), null)
+  assert.equal(monthsBetween('2027-01-01', '2026-08-27'), -4)
+  assert.equal(monthsBetween('amanhã', '2026-08-27'), null)
+  assert.equal(monthsBetween('2026-08-27', ''), null)
 })
 ```
 
@@ -1012,102 +1008,69 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import {
-    listFiles,
-    readTextFile,
-    isProbablyText,
-    MAX_BYTES
-} from '../../src/core/files.ts'
+import { listFiles, readTextFile, isProbablyText, MAX_BYTES } from '../../src/core/files.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const ARVORE = {
-    'docs/um.md': '# um\n',
-    'docs/sub/dois.md': '# dois\n',
-    'docs/tres.txt': 'texto\n',
-    'src/quatro.ts': 'export const x = 1;\n',
-    'node_modules/pacote/cinco.md': '# não me leia\n',
-    '.git/config': '[core]\n'
+  'docs/um.md': '# um\n',
+  'docs/sub/dois.md': '# dois\n',
+  'docs/tres.txt': 'texto\n',
+  'src/quatro.ts': 'export const x = 1;\n',
+  'node_modules/pacote/cinco.md': '# não me leia\n',
+  '.git/config': '[core]\n',
 }
 
 test('listFiles varre tudo, com `/` sempre, e pula o que nunca tem documento', () => {
-    withTempRepo(ARVORE, root => {
-        const files = listFiles(root)
-        assert.ok(files.includes('docs/sub/dois.md'))
-        assert.ok(files.includes('src/quatro.ts'))
-        assert.equal(
-            files.some(file => file.startsWith('node_modules/')),
-            false
-        )
-        assert.equal(
-            files.some(file => file.startsWith('.git/')),
-            false
-        )
-        assert.equal(
-            files.some(file => file.includes('\\')),
-            false
-        )
-    })
+  withTempRepo(ARVORE, root => {
+    const files = listFiles(root)
+    assert.ok(files.includes('docs/sub/dois.md'))
+    assert.ok(files.includes('src/quatro.ts'))
+    assert.equal(
+      files.some(file => file.startsWith('node_modules/')),
+      false,
+    )
+    assert.equal(
+      files.some(file => file.startsWith('.git/')),
+      false,
+    )
+    assert.equal(
+      files.some(file => file.includes('\\')),
+      false,
+    )
+  })
 })
 
 test('listFiles filtra por glob; lista vazia não é ausência de filtro', () => {
-    withTempRepo(ARVORE, root => {
-        assert.deepEqual(listFiles(root, ['docs/**/*.md']).sort(), [
-            'docs/sub/dois.md',
-            'docs/um.md'
-        ])
-        assert.deepEqual(
-            listFiles(root, []),
-            [],
-            'filtro vazio casa nada — não é "tudo"'
-        )
-        assert.ok(listFiles(root, undefined).length > 3, 'sem filtro é tudo')
-    })
+  withTempRepo(ARVORE, root => {
+    assert.deepEqual(listFiles(root, ['docs/**/*.md']).sort(), ['docs/sub/dois.md', 'docs/um.md'])
+    assert.deepEqual(listFiles(root, []), [], 'filtro vazio casa nada — não é "tudo"')
+    assert.ok(listFiles(root, undefined).length > 3, 'sem filtro é tudo')
+  })
 })
 
 test('listFiles casa arquivo que começa com ponto — o corpus começa pelo `.ownership.yml`', () => {
-    withTempRepo(
-        { 'docs/.ownership.yml': 'version: 1\n', 'docs/sub/.gitkeep': '' },
-        root => {
-            assert.deepEqual(listFiles(root, ['docs/**']).sort(), [
-                'docs/.ownership.yml',
-                'docs/sub/.gitkeep'
-            ])
-        }
-    )
+  withTempRepo({ 'docs/.ownership.yml': 'version: 1\n', 'docs/sub/.gitkeep': '' }, root => {
+    assert.deepEqual(listFiles(root, ['docs/**']).sort(), ['docs/.ownership.yml', 'docs/sub/.gitkeep'])
+  })
 })
 
 test('readTextFile devolve o conteúdo, e null para binário, grande ou ausente', () => {
-    withTempRepo(ARVORE, root => {
-        assert.equal(readTextFile(root, 'docs/um.md'), '# um\n')
-        assert.equal(readTextFile(root, 'docs/nao-existe.md'), null)
+  withTempRepo(ARVORE, root => {
+    assert.equal(readTextFile(root, 'docs/um.md'), '# um\n')
+    assert.equal(readTextFile(root, 'docs/nao-existe.md'), null)
 
-        mkdirSync(join(root, 'docs/anexos'), { recursive: true })
-        writeFileSync(
-            join(root, 'docs/anexos/bin.dat'),
-            Buffer.from([0x41, 0x00, 0x42])
-        )
-        assert.equal(
-            readTextFile(root, 'docs/anexos/bin.dat'),
-            null,
-            'byte NUL é o sinal de binário'
-        )
+    mkdirSync(join(root, 'docs/anexos'), { recursive: true })
+    writeFileSync(join(root, 'docs/anexos/bin.dat'), Buffer.from([0x41, 0x00, 0x42]))
+    assert.equal(readTextFile(root, 'docs/anexos/bin.dat'), null, 'byte NUL é o sinal de binário')
 
-        writeFileSync(
-            join(root, 'docs/anexos/grande.md'),
-            'x'.repeat(MAX_BYTES + 1),
-            'utf8'
-        )
-        assert.equal(
-            readTextFile(root, 'docs/anexos/grande.md'),
-            null,
-            'acima do teto é dado, não texto'
-        )
-    })
+    writeFileSync(join(root, 'docs/anexos/grande.md'), 'x'.repeat(MAX_BYTES + 1), 'utf8')
+    assert.equal(readTextFile(root, 'docs/anexos/grande.md'), null, 'acima do teto é dado, não texto')
+  })
 })
 
 test('isProbablyText separa texto de dado pelo byte NUL', () => {
-    assert.equal(isProbablyText('qualquer prosa'), true)
-    assert.equal(isProbablyText(`com${String.fromCharCode(0)}nul`), false)
+  assert.equal(isProbablyText('qualquer prosa'), true)
+  assert.equal(isProbablyText(`com${String.fromCharCode(0)}nul`), false)
 })
 ```
 
@@ -1134,7 +1097,7 @@ export type Clock = () => Date
 
 /** Hoje, em ISO (`YYYY-MM-DD`), em UTC. */
 export function todayIso(clock: Clock = () => new Date()): string {
-    return clock().toISOString().slice(0, 10)
+  return clock().toISOString().slice(0, 10)
 }
 
 const ISO = /^(\d{4})-(\d{2})-(\d{2})$/
@@ -1148,14 +1111,12 @@ const ISO = /^(\d{4})-(\d{2})-(\d{2})$/
  * campo é ruído.
  */
 export function asIsoDate(value: unknown): string | null {
-    if (value instanceof Date) {
-        return Number.isNaN(value.getTime())
-            ? null
-            : value.toISOString().slice(0, 10)
-    }
-    if (typeof value !== 'string') return null
-    const trimmed = value.trim()
-    return ISO.test(trimmed) ? trimmed : null
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value.toISOString().slice(0, 10)
+  }
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return ISO.test(trimmed) ? trimmed : null
 }
 
 /**
@@ -1166,14 +1127,12 @@ export function asIsoDate(value: unknown): string | null {
  * declara, e precisão de dia não muda nenhuma decisão que o aviso provoca.
  */
 export function monthsBetween(from: string, to: string): number | null {
-    const start = ISO.exec(from.trim())
-    const end = ISO.exec(to.trim())
-    if (!start || !end) return null
+  const start = ISO.exec(from.trim())
+  const end = ISO.exec(to.trim())
+  if (!start || !end) return null
 
-    const months =
-        (Number(end[1]) - Number(start[1])) * 12 +
-        (Number(end[2]) - Number(start[2]))
-    return Number(end[3]) < Number(start[3]) ? months - 1 : months
+  const months = (Number(end[1]) - Number(start[1])) * 12 + (Number(end[2]) - Number(start[2]))
+  return Number(end[3]) < Number(start[3]) ? months - 1 : months
 }
 ```
 
@@ -1191,38 +1150,31 @@ import picomatch from 'picomatch'
  * `CI-4`, `CI-7` e `CI-8` também precisarem. Uma quarta cópia da mesma varredura
  * é como as três divergem.
  */
-export const SKIP_DIRS: ReadonlySet<string> = new Set([
-    '.git',
-    'node_modules',
-    'dist',
-    'coverage',
-    '.next',
-    '.cache'
-])
+export const SKIP_DIRS: ReadonlySet<string> = new Set(['.git', 'node_modules', 'dist', 'coverage', '.next', '.cache'])
 
 /** Acima disto, é dado, não texto — e ler custa mais do que vale. */
 export const MAX_BYTES = 512 * 1024
 
 function walk(root: string, relative: string, out: string[]): void {
-    let entries: string[]
-    try {
-        entries = readdirSync(join(root, relative))
-    } catch {
-        return
-    }
+  let entries: string[]
+  try {
+    entries = readdirSync(join(root, relative))
+  } catch {
+    return
+  }
 
-    for (const entry of entries) {
-        if (SKIP_DIRS.has(entry)) continue
-        const path = relative === '' ? entry : `${relative}/${entry}`
-        let isDirectory: boolean
-        try {
-            isDirectory = statSync(join(root, path)).isDirectory()
-        } catch {
-            continue
-        }
-        if (isDirectory) walk(root, path, out)
-        else out.push(path)
+  for (const entry of entries) {
+    if (SKIP_DIRS.has(entry)) continue
+    const path = relative === '' ? entry : `${relative}/${entry}`
+    let isDirectory: boolean
+    try {
+      isDirectory = statSync(join(root, path)).isDirectory()
+    } catch {
+      continue
     }
+    if (isDirectory) walk(root, path, out)
+    else out.push(path)
+  }
 }
 
 /**
@@ -1240,19 +1192,19 @@ function walk(root: string, relative: string, out: string[]): void {
  * lista `SKIP_DIRS`, e ela é explícita.
  */
 export function listFiles(root: string, globs?: readonly string[]): string[] {
-    const files: string[] = []
-    walk(root, '', files)
+  const files: string[] = []
+  walk(root, '', files)
 
-    if (globs === undefined) return files
-    if (globs.length === 0) return []
+  if (globs === undefined) return files
+  if (globs.length === 0) return []
 
-    const matches = picomatch([...globs], { dot: true })
-    return files.filter(file => matches(file))
+  const matches = picomatch([...globs], { dot: true })
+  return files.filter(file => matches(file))
 }
 
 /** Byte NUL é o sinal barato de "isto é dado binário, não texto". */
 export function isProbablyText(content: string): boolean {
-    return content.indexOf(String.fromCharCode(0)) === -1
+  return content.indexOf(String.fromCharCode(0)) === -1
 }
 
 /**
@@ -1261,13 +1213,13 @@ export function isProbablyText(content: string): boolean {
  * forma diferente: todas significam "não leia isto".
  */
 export function readTextFile(root: string, file: string): string | null {
-    try {
-        if (statSync(join(root, file)).size > MAX_BYTES) return null
-        const content = readFileSync(join(root, file), 'utf8')
-        return isProbablyText(content) ? content : null
-    } catch {
-        return null
-    }
+  try {
+    if (statSync(join(root, file)).size > MAX_BYTES) return null
+    const content = readFileSync(join(root, file), 'utf8')
+    return isProbablyText(content) ? content : null
+  } catch {
+    return null
+  }
 }
 ```
 
@@ -1288,10 +1240,10 @@ import { listFiles, readTextFile } from '../core/files.ts'
 import { findCitations } from './citations.ts'
 
 export interface CitationSite {
-    /** Caminho relativo à raiz do repositório, sempre com `/`. */
-    file: string
-    /** Linha 1-indexed. */
-    line: number
+  /** Caminho relativo à raiz do repositório, sempre com `/`. */
+  file: string
+  /** Linha 1-indexed. */
+  line: number
 }
 
 /**
@@ -1301,25 +1253,22 @@ export interface CitationSite {
  * A varredura da árvore e a leitura segura moram em `src/core/files.ts` desde a
  * Fase 7: `CI-4`, `CI-7` e `CI-8` fazem a mesma caminhada.
  */
-export function scanCitations(
-    root: string,
-    globs: readonly string[]
-): Map<string, CitationSite[]> {
-    const sites = new Map<string, CitationSite[]>()
-    if (globs.length === 0) return sites
+export function scanCitations(root: string, globs: readonly string[]): Map<string, CitationSite[]> {
+  const sites = new Map<string, CitationSite[]>()
+  if (globs.length === 0) return sites
 
-    for (const file of listFiles(root, globs)) {
-        const content = readTextFile(root, file)
-        if (content === null) continue
+  for (const file of listFiles(root, globs)) {
+    const content = readTextFile(root, file)
+    if (content === null) continue
 
-        for (const citation of findCitations(content)) {
-            const list = sites.get(citation.id) ?? []
-            list.push({ file, line: citation.line })
-            sites.set(citation.id, list)
-        }
+    for (const citation of findCitations(content)) {
+      const list = sites.get(citation.id) ?? []
+      list.push({ file, line: citation.line })
+      sites.set(citation.id, list)
     }
+  }
 
-    return sites
+  return sites
 }
 ```
 
@@ -1374,7 +1323,7 @@ Em `src/cli/init.ts`, troque a função local pela fonte única — apague:
 
 ```typescript
 function today(): string {
-    return new Date().toISOString().slice(0, 10)
+  return new Date().toISOString().slice(0, 10)
 }
 ```
 
@@ -1407,12 +1356,12 @@ Quatro arquivos montam contexto na mão. Em cada um, acrescente
 
 ```typescript
 function contextFor(root: string, ownership = OWNERSHIP) {
-    return {
-        root,
-        config: parseOwnership(ownership),
-        docs: [],
-        today: '2026-08-27'
-    }
+  return {
+    root,
+    config: parseOwnership(ownership),
+    docs: [],
+    today: '2026-08-27',
+  }
 }
 ```
 
@@ -1464,15 +1413,15 @@ por isso leva entrada de CHANGELOG.
   `src/config/ownership.ts`); `parseFrontmatter`; `listMarkdown` (privada de
   `src/docs/collect.ts`).
 - Produz:
-    - `DOCUMENT_ROLES: readonly ['agent-contract', 'definition-of-done']`
-    - `type DocumentRole = 'agent-contract' | 'definition-of-done'`
-    - `interface DocumentRule { path: string; owner: string; skill: string | null; role: DocumentRole | null }`
-    - `OwnershipConfig.documents: DocumentRule[]`
-    - `findDocumentRule(config: OwnershipConfig, repoPath: string): DocumentRule | null`
-    - `documentWithRole(config: OwnershipConfig, role: DocumentRole): DocumentRule | null`
-    - `interface DocumentDoc { file: string; rule: DocumentRule; source: string; frontmatter: Frontmatter | null }`
-    - `collectDocuments(root: string, config: OwnershipConfig): DocumentDoc[]`
-    - `CheckContext.documents: DocumentDoc[]`
+  - `DOCUMENT_ROLES: readonly ['agent-contract', 'definition-of-done']`
+  - `type DocumentRole = 'agent-contract' | 'definition-of-done'`
+  - `interface DocumentRule { path: string; owner: string; skill: string | null; role: DocumentRole | null }`
+  - `OwnershipConfig.documents: DocumentRule[]`
+  - `findDocumentRule(config: OwnershipConfig, repoPath: string): DocumentRule | null`
+  - `documentWithRole(config: OwnershipConfig, role: DocumentRole): DocumentRule | null`
+  - `interface DocumentDoc { file: string; rule: DocumentRule; source: string; frontmatter: Frontmatter | null }`
+  - `collectDocuments(root: string, config: OwnershipConfig): DocumentDoc[]`
+  - `CheckContext.documents: DocumentDoc[]`
 
 **Requisitos:**
 
@@ -1526,24 +1475,20 @@ documents:
 `
 
 test('ADR-0008: documents declara caminho, dono, e skill/role opcionais', () => {
-    const config = parseOwnership(COM_DOCUMENTOS)
-    assert.equal(config.documents.length, 4)
+  const config = parseOwnership(COM_DOCUMENTOS)
+  assert.equal(config.documents.length, 4)
 
-    const contributing = config.documents[0]
-    assert.equal(contributing?.path, 'CONTRIBUTING.md')
-    assert.equal(contributing?.owner, '@time')
-    assert.equal(contributing?.skill, 'working-agreements-keeper')
-    assert.equal(contributing?.role, null)
+  const contributing = config.documents[0]
+  assert.equal(contributing?.path, 'CONTRIBUTING.md')
+  assert.equal(contributing?.owner, '@time')
+  assert.equal(contributing?.skill, 'working-agreements-keeper')
+  assert.equal(contributing?.role, null)
 
-    assert.equal(
-        config.documents[3]?.skill,
-        null,
-        'documento pode ter dono e não ter skill'
-    )
+  assert.equal(config.documents[3]?.skill, null, 'documento pode ter dono e não ter skill')
 })
 
 test('ADR-0008: documents ausente é lista vazia — configuração das fases anteriores continua válida', () => {
-    const config = parseOwnership(`
+  const config = parseOwnership(`
 version: 1
 artifacts:
   - id-prefix: ADR
@@ -1551,77 +1496,48 @@ artifacts:
     owner: "@time"
     skill: decision-recorder
 `)
-    assert.deepEqual(config.documents, [])
+  assert.deepEqual(config.documents, [])
 })
 
 test('ADR-0008: documento sem caminho, com dono sem @, ou com skill vazia é recusado', () => {
-    const semCaminho = COM_DOCUMENTOS.replace(
-        '  - path: CONTRIBUTING.md\n',
-        '  - '
-    )
-    assert.throws(() => parseOwnership(semCaminho), /documents\[0\]/)
+  const semCaminho = COM_DOCUMENTOS.replace('  - path: CONTRIBUTING.md\n', '  - ')
+  assert.throws(() => parseOwnership(semCaminho), /documents\[0\]/)
 
-    const donoSemArroba = COM_DOCUMENTOS.replace(
-        '  - path: CONTRIBUTING.md\n    owner: "@time"',
-        '  - path: CONTRIBUTING.md\n    owner: "time"'
-    )
-    assert.throws(() => parseOwnership(donoSemArroba), /precisa começar com @/)
+  const donoSemArroba = COM_DOCUMENTOS.replace('  - path: CONTRIBUTING.md\n    owner: "@time"', '  - path: CONTRIBUTING.md\n    owner: "time"')
+  assert.throws(() => parseOwnership(donoSemArroba), /precisa começar com @/)
 
-    const skillVazia = COM_DOCUMENTOS.replace(
-        'skill: working-agreements-keeper',
-        'skill: ""'
-    )
-    assert.throws(() => parseOwnership(skillVazia), /skill/)
+  const skillVazia = COM_DOCUMENTOS.replace('skill: working-agreements-keeper', 'skill: ""')
+  assert.throws(() => parseOwnership(skillVazia), /skill/)
 })
 
 test('ADR-0008: role fora do vocabulário nomeia os válidos; papel repetido é recusado', () => {
-    const roleEstranho = COM_DOCUMENTOS.replace(
-        'role: agent-contract',
-        'role: manifesto'
-    )
-    assert.throws(
-        () => parseOwnership(roleEstranho),
-        /agent-contract, definition-of-done/
-    )
+  const roleEstranho = COM_DOCUMENTOS.replace('role: agent-contract', 'role: manifesto')
+  assert.throws(() => parseOwnership(roleEstranho), /agent-contract, definition-of-done/)
 
-    const repetido = COM_DOCUMENTOS.replace(
-        'role: definition-of-done',
-        'role: agent-contract'
-    )
-    assert.throws(() => parseOwnership(repetido), /Um papel, um documento/)
+  const repetido = COM_DOCUMENTOS.replace('role: definition-of-done', 'role: agent-contract')
+  assert.throws(() => parseOwnership(repetido), /Um papel, um documento/)
 })
 
 test('ADR-0008: caminho declarado duas vezes em documents é recusado', () => {
-    const duplicado = COM_DOCUMENTOS.replace(
-        '  - path: docs/superpowers/\n    owner: "@time"',
-        '  - path: CONTRIBUTING.md\n    owner: "@time"'
-    )
-    assert.throws(() => parseOwnership(duplicado), /Um documento, um dono/)
+  const duplicado = COM_DOCUMENTOS.replace('  - path: docs/superpowers/\n    owner: "@time"', '  - path: CONTRIBUTING.md\n    owner: "@time"')
+  assert.throws(() => parseOwnership(duplicado), /Um documento, um dono/)
 })
 
 test('findDocumentRule resolve arquivo por igualdade e diretório por prefixo', () => {
-    const config = parseOwnership(COM_DOCUMENTOS)
-    assert.equal(findDocumentRule(config, 'CONTRIBUTING.md')?.owner, '@time')
-    assert.equal(findDocumentRule(config, './CONTRIBUTING.md')?.owner, '@time')
-    assert.equal(
-        findDocumentRule(config, 'docs/superpowers/plans/x.md')?.path,
-        'docs/superpowers/'
-    )
-    assert.equal(findDocumentRule(config, 'README.md'), null)
+  const config = parseOwnership(COM_DOCUMENTOS)
+  assert.equal(findDocumentRule(config, 'CONTRIBUTING.md')?.owner, '@time')
+  assert.equal(findDocumentRule(config, './CONTRIBUTING.md')?.owner, '@time')
+  assert.equal(findDocumentRule(config, 'docs/superpowers/plans/x.md')?.path, 'docs/superpowers/')
+  assert.equal(findDocumentRule(config, 'README.md'), null)
 })
 
 test('documentWithRole acha o documento pelo papel, sem conhecer caminho nenhum', () => {
-    const config = parseOwnership(COM_DOCUMENTOS)
-    assert.equal(documentWithRole(config, 'agent-contract')?.path, 'CLAUDE.md')
-    assert.equal(
-        documentWithRole(config, 'definition-of-done')?.path,
-        'docs/definition-of-done.md'
-    )
+  const config = parseOwnership(COM_DOCUMENTOS)
+  assert.equal(documentWithRole(config, 'agent-contract')?.path, 'CLAUDE.md')
+  assert.equal(documentWithRole(config, 'definition-of-done')?.path, 'docs/definition-of-done.md')
 
-    const semContrato = parseOwnership(
-        COM_DOCUMENTOS.replace('    role: agent-contract\n', '')
-    )
-    assert.equal(documentWithRole(semContrato, 'agent-contract'), null)
+  const semContrato = parseOwnership(COM_DOCUMENTOS.replace('    role: agent-contract\n', ''))
+  assert.equal(documentWithRole(semContrato, 'agent-contract'), null)
 })
 ```
 
@@ -1653,54 +1569,34 @@ documents:
 `
 
 test('ADR-0008: collectDocuments lê só markdown, e frontmatter ausente não é erro', () => {
-    withTempRepo(
-        {
-            'CONTRIBUTING.md':
-                '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-01\n---\n\n# Como se contribui\n',
-            'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
-            'docs/ids-retired.txt': '# nenhum\n',
-            'docs/superpowers/plans/um.md': '# plano\n'
-        },
-        root => {
-            const documents = collectDocuments(
-                root,
-                parseOwnership(OWNERSHIP_COM_DOCUMENTOS)
-            )
-            assert.deepEqual(documents.map(document => document.file).sort(), [
-                'CHANGELOG.md',
-                'CONTRIBUTING.md',
-                'docs/superpowers/plans/um.md'
-            ])
+  withTempRepo(
+    {
+      'CONTRIBUTING.md':
+        '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-01\n---\n\n# Como se contribui\n',
+      'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
+      'docs/ids-retired.txt': '# nenhum\n',
+      'docs/superpowers/plans/um.md': '# plano\n',
+    },
+    root => {
+      const documents = collectDocuments(root, parseOwnership(OWNERSHIP_COM_DOCUMENTOS))
+      assert.deepEqual(documents.map(document => document.file).sort(), ['CHANGELOG.md', 'CONTRIBUTING.md', 'docs/superpowers/plans/um.md'])
 
-            const contributing = documents.find(
-                document => document.file === 'CONTRIBUTING.md'
-            )
-            assert.equal(contributing?.frontmatter?.data.owner, '@time')
+      const contributing = documents.find(document => document.file === 'CONTRIBUTING.md')
+      assert.equal(contributing?.frontmatter?.data.owner, '@time')
 
-            const changelog = documents.find(
-                document => document.file === 'CHANGELOG.md'
-            )
-            assert.equal(
-                changelog?.frontmatter,
-                null,
-                'CHANGELOG não tem frontmatter, e isso é decisão da Fase 6'
-            )
+      const changelog = documents.find(document => document.file === 'CHANGELOG.md')
+      assert.equal(changelog?.frontmatter, null, 'CHANGELOG não tem frontmatter, e isso é decisão da Fase 6')
 
-            const plano = documents.find(
-                document => document.file === 'docs/superpowers/plans/um.md'
-            )
-            assert.equal(plano?.rule.skill, null)
-        }
-    )
+      const plano = documents.find(document => document.file === 'docs/superpowers/plans/um.md')
+      assert.equal(plano?.rule.skill, null)
+    },
+  )
 })
 
 test('ADR-0008: documento declarado e ausente do repositório não vira entrada', () => {
-    withTempRepo({}, root => {
-        assert.deepEqual(
-            collectDocuments(root, parseOwnership(OWNERSHIP_COM_DOCUMENTOS)),
-            []
-        )
-    })
+  withTempRepo({}, root => {
+    assert.deepEqual(collectDocuments(root, parseOwnership(OWNERSHIP_COM_DOCUMENTOS)), [])
+  })
 })
 ```
 
@@ -1735,11 +1631,11 @@ export type DocumentRole = (typeof DOCUMENT_ROLES)[number]
  * `CI-2` não o leem. O que ele tem é dono — e, quando existe uma, skill dona.
  */
 export interface DocumentRule {
-    path: string
-    owner: string
-    /** Skill dona, quando existe uma. `null` é informação, não erro. */
-    skill: string | null
-    role: DocumentRole | null
+  path: string
+  owner: string
+  /** Skill dona, quando existe uma. `null` é informação, não erro. */
+  skill: string | null
+  role: DocumentRole | null
 }
 ```
 
@@ -1751,15 +1647,13 @@ resolvedores usem a mesma:
 
 ```typescript
 function normalizePath(repoPath: string): string {
-    return repoPath.replace(/\\/g, '/').replace(/^\.\//, '')
+  return repoPath.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 /** O caminho declarado cobre este caminho? Diretório por prefixo, arquivo por igualdade. */
 function covers(declared: string, repoPath: string): boolean {
-    const target = declared.replace(/\\/g, '/')
-    return target.endsWith('/')
-        ? repoPath.startsWith(target)
-        : repoPath === target
+  const target = declared.replace(/\\/g, '/')
+  return target.endsWith('/') ? repoPath.startsWith(target) : repoPath === target
 }
 ```
 
@@ -1767,15 +1661,9 @@ e reescreva `findArtifactRule` usando as duas:
 
 ```typescript
 /** Regra dona de um caminho relativo à raiz do repositório, ou null. */
-export function findArtifactRule(
-    config: OwnershipConfig,
-    repoPath: string
-): ArtifactRule | null {
-    const normalized = normalizePath(repoPath)
-    return (
-        config.artifacts.find(artifact => covers(artifact.path, normalized)) ??
-        null
-    )
+export function findArtifactRule(config: OwnershipConfig, repoPath: string): ArtifactRule | null {
+  const normalized = normalizePath(repoPath)
+  return config.artifacts.find(artifact => covers(artifact.path, normalized)) ?? null
 }
 ```
 
@@ -1783,59 +1671,41 @@ Acrescente o parser e os dois resolvedores:
 
 ```typescript
 function parseDocument(raw: unknown, index: number): DocumentRule {
-    const where = `documents[${index}]`
-    const item = asRecord(raw, where)
+  const where = `documents[${index}]`
+  const item = asRecord(raw, where)
 
-    const owner = requireString(item, 'owner', where)
-    if (!owner.startsWith('@')) {
-        throw new OwnershipError(
-            `${OWNERSHIP_PATH}: ${where}.owner "${owner}" precisa começar com @ e espelhar o CODEOWNERS.`
-        )
-    }
+  const owner = requireString(item, 'owner', where)
+  if (!owner.startsWith('@')) {
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.owner "${owner}" precisa começar com @ e espelhar o CODEOWNERS.`)
+  }
 
-    const skill = item.skill
-    if (
-        skill !== undefined &&
-        (typeof skill !== 'string' || skill.trim() === '')
-    ) {
-        throw new OwnershipError(
-            `${OWNERSHIP_PATH}: ${where}.skill precisa ser uma string não vazia, ou ficar ausente — documento pode não ter skill dona.`
-        )
-    }
+  const skill = item.skill
+  if (skill !== undefined && (typeof skill !== 'string' || skill.trim() === '')) {
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.skill precisa ser uma string não vazia, ou ficar ausente — documento pode não ter skill dona.`)
+  }
 
-    const role = item.role
-    if (role !== undefined && !DOCUMENT_ROLES.includes(role as DocumentRole)) {
-        throw new OwnershipError(
-            `${OWNERSHIP_PATH}: ${where}.role "${String(role)}" desconhecido. Válidos: ${DOCUMENT_ROLES.join(', ')}.`
-        )
-    }
+  const role = item.role
+  if (role !== undefined && !DOCUMENT_ROLES.includes(role as DocumentRole)) {
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.role "${String(role)}" desconhecido. Válidos: ${DOCUMENT_ROLES.join(', ')}.`)
+  }
 
-    return {
-        path: requireString(item, 'path', where),
-        owner,
-        skill: skill === undefined ? null : skill,
-        role: role === undefined ? null : (role as DocumentRole)
-    }
+  return {
+    path: requireString(item, 'path', where),
+    owner,
+    skill: skill === undefined ? null : skill,
+    role: role === undefined ? null : (role as DocumentRole),
+  }
 }
 
 /** Documento dono de um caminho relativo, ou null. Mesma semântica de `findArtifactRule`. */
-export function findDocumentRule(
-    config: OwnershipConfig,
-    repoPath: string
-): DocumentRule | null {
-    const normalized = normalizePath(repoPath)
-    return (
-        config.documents.find(document => covers(document.path, normalized)) ??
-        null
-    )
+export function findDocumentRule(config: OwnershipConfig, repoPath: string): DocumentRule | null {
+  const normalized = normalizePath(repoPath)
+  return config.documents.find(document => covers(document.path, normalized)) ?? null
 }
 
 /** O documento que o projeto declarou com este papel, ou null. */
-export function documentWithRole(
-    config: OwnershipConfig,
-    role: DocumentRole
-): DocumentRule | null {
-    return config.documents.find(document => document.role === role) ?? null
+export function documentWithRole(config: OwnershipConfig, role: DocumentRole): DocumentRule | null {
+  return config.documents.find(document => document.role === role) ?? null
 }
 ```
 
@@ -1848,20 +1718,16 @@ const documents = documentsRaw.map(parseDocument)
 const seenDocuments = new Set<string>()
 const seenRoles = new Set<string>()
 for (const document of documents) {
-    if (seenDocuments.has(document.path)) {
-        throw new OwnershipError(
-            `${OWNERSHIP_PATH}: documento "${document.path}" declarado duas vezes. Um documento, um dono.`
-        )
-    }
-    seenDocuments.add(document.path)
+  if (seenDocuments.has(document.path)) {
+    throw new OwnershipError(`${OWNERSHIP_PATH}: documento "${document.path}" declarado duas vezes. Um documento, um dono.`)
+  }
+  seenDocuments.add(document.path)
 
-    if (document.role === null) continue
-    if (seenRoles.has(document.role)) {
-        throw new OwnershipError(
-            `${OWNERSHIP_PATH}: papel "${document.role}" declarado em dois documentos. Um papel, um documento.`
-        )
-    }
-    seenRoles.add(document.role)
+  if (document.role === null) continue
+  if (seenRoles.has(document.role)) {
+    throw new OwnershipError(`${OWNERSHIP_PATH}: papel "${document.role}" declarado em dois documentos. Um papel, um documento.`)
+  }
+  seenRoles.add(document.role)
 }
 ```
 
@@ -1874,12 +1740,12 @@ arquivo:
 
 ```typescript
 export interface DocumentDoc {
-    /** Caminho relativo à raiz do repositório, sempre com `/`. */
-    file: string
-    rule: DocumentRule
-    source: string
-    /** `null` quando o documento não tem frontmatter — o que é legítimo (`CHANGELOG.md`). */
-    frontmatter: Frontmatter | null
+  /** Caminho relativo à raiz do repositório, sempre com `/`. */
+  file: string
+  rule: DocumentRule
+  source: string
+  /** `null` quando o documento não tem frontmatter — o que é legítimo (`CHANGELOG.md`). */
+  frontmatter: Frontmatter | null
 }
 
 /**
@@ -1890,40 +1756,35 @@ export interface DocumentDoc {
  * com sintaxe inválida vira `null` em silêncio, porque `CI-1` não lê `documents:`
  * e derrubar o `validate` por causa disso seria pior do que não reportar.
  */
-export function collectDocuments(
-    root: string,
-    config: OwnershipConfig
-): DocumentDoc[] {
-    const documents: DocumentDoc[] = []
+export function collectDocuments(root: string, config: OwnershipConfig): DocumentDoc[] {
+  const documents: DocumentDoc[] = []
 
-    for (const rule of config.documents) {
-        const target = rule.path.replace(/\\/g, '/')
-        const files = target.endsWith('/')
-            ? listMarkdown(root, target)
-            : [target]
+  for (const rule of config.documents) {
+    const target = rule.path.replace(/\\/g, '/')
+    const files = target.endsWith('/') ? listMarkdown(root, target) : [target]
 
-        for (const file of files) {
-            if (!file.endsWith('.md')) continue
+    for (const file of files) {
+      if (!file.endsWith('.md')) continue
 
-            let source: string
-            try {
-                source = readFileSync(join(root, file), 'utf8')
-            } catch {
-                continue // declarado e ausente: quem cobra ausência é CI-7, não a coleta
-            }
+      let source: string
+      try {
+        source = readFileSync(join(root, file), 'utf8')
+      } catch {
+        continue // declarado e ausente: quem cobra ausência é CI-7, não a coleta
+      }
 
-            let frontmatter: Frontmatter | null = null
-            try {
-                frontmatter = parseFrontmatter(source)
-            } catch {
-                frontmatter = null
-            }
+      let frontmatter: Frontmatter | null = null
+      try {
+        frontmatter = parseFrontmatter(source)
+      } catch {
+        frontmatter = null
+      }
 
-            documents.push({ file, rule, source, frontmatter })
-        }
+      documents.push({ file, rule, source, frontmatter })
     }
+  }
 
-    return documents
+  return documents
 }
 ```
 
@@ -1948,11 +1809,11 @@ import { collectArtifacts, collectDocuments } from '../docs/collect.ts'
 ```typescript
 const docs = collectArtifacts(root, config)
 const context = {
-    root,
-    config,
-    docs,
-    documents: collectDocuments(root, config),
-    today: todayIso()
+  root,
+  config,
+  docs,
+  documents: collectDocuments(root, config),
+  today: todayIso(),
 }
 ```
 
@@ -2012,16 +1873,16 @@ reimplementa nada.
   `readTextFile` de `src/core/files.ts`; `FROZEN_STATUSES`, `statesFor` de
   `src/docs/schema.ts`.
 - Produz:
-    - `interface StaleDoc { file: string; line: number; months: number; skill: string | null }`
-    - `interface PayWhen { pattern: string; paths: string[] }`
-    - `type PayWhenProblem = 'ausente' | 'incompleto' | 'padrão inválido'`
-    - `interface DebtWithoutTrigger { file: string; line: number; id: string; problem: PayWhenProblem }`
-    - `interface DuePayment { file: string; line: number; id: string; pattern: string; evidence: string }`
-    - `payWhenOf(data: Record<string, unknown>): PayWhen | PayWhenProblem`
-    - `staleDocs(context: CheckContext): StaleDoc[]`
-    - `debtsWithoutTrigger(context: CheckContext): DebtWithoutTrigger[]`
-    - `duePayments(context: CheckContext): DuePayment[]`
-    - `ci4Staleness: Check`
+  - `interface StaleDoc { file: string; line: number; months: number; skill: string | null }`
+  - `interface PayWhen { pattern: string; paths: string[] }`
+  - `type PayWhenProblem = 'ausente' | 'incompleto' | 'padrão inválido'`
+  - `interface DebtWithoutTrigger { file: string; line: number; id: string; problem: PayWhenProblem }`
+  - `interface DuePayment { file: string; line: number; id: string; pattern: string; evidence: string }`
+  - `payWhenOf(data: Record<string, unknown>): PayWhen | PayWhenProblem`
+  - `staleDocs(context: CheckContext): StaleDoc[]`
+  - `debtsWithoutTrigger(context: CheckContext): DebtWithoutTrigger[]`
+  - `duePayments(context: CheckContext): DuePayment[]`
+  - `ci4Staleness: Check`
 
 **Requisitos:**
 
@@ -2056,13 +1917,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import {
-    ci4Staleness,
-    duePayments,
-    debtsWithoutTrigger,
-    payWhenOf,
-    staleDocs
-} from '../../src/checks/ci4-staleness.ts'
+import { ci4Staleness, duePayments, debtsWithoutTrigger, payWhenOf, staleDocs } from '../../src/checks/ci4-staleness.ts'
 import { parseOwnership } from '../../src/config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
@@ -2099,300 +1954,261 @@ documents:
 `
 
 function contextFor(root: string, ownership = OWNERSHIP) {
-    const config = parseOwnership(ownership)
-    return {
-        root,
-        config,
-        docs: collectArtifacts(root, config),
-        documents: collectDocuments(root, config),
-        today: HOJE
-    }
+  const config = parseOwnership(ownership)
+  return {
+    root,
+    config,
+    docs: collectArtifacts(root, config),
+    documents: collectDocuments(root, config),
+    today: HOJE,
+  }
 }
 
 function adr(status: string, lastReviewed: string): string {
-    return [
-        '---',
-        'id: ADR-0001',
-        'title: Decisão de teste',
-        `status: ${status}`,
-        'owner: "@time"',
-        'trigger: Nunca. Imutável após aceito.',
-        `last-reviewed: ${lastReviewed}`,
-        'relates-to: [RN-0001]',
-        '---',
-        '',
-        'corpo'
-    ].join('\n')
+  return [
+    '---',
+    'id: ADR-0001',
+    'title: Decisão de teste',
+    `status: ${status}`,
+    'owner: "@time"',
+    'trigger: Nunca. Imutável após aceito.',
+    `last-reviewed: ${lastReviewed}`,
+    'relates-to: [RN-0001]',
+    '---',
+    '',
+    'corpo',
+  ].join('\n')
 }
 
 /** `pay-when` em YAML com aspas simples: aspas simples não processam `\`, e o padrão é regex. */
-const PAY_WHEN = [
-    'pay-when:',
-    "  pattern: '^- \\*\\*status:\\*\\* revoked'",
-    '  paths: ["docs/requirements/**"]'
-]
+const PAY_WHEN = ['pay-when:', "  pattern: '^- \\*\\*status:\\*\\* revoked'", '  paths: ["docs/requirements/**"]']
 
 function debt(status: string, extra: readonly string[] = []): string {
-    return [
-        '---',
-        'id: TDR-0001',
-        'title: Atalho de teste',
-        `status: ${status}`,
-        'owner: "@time"',
-        'trigger: Quando o gatilho de pagamento abaixo se cumprir.',
-        'last-reviewed: 2026-08-01',
-        ...extra,
-        '---',
-        '',
-        '# TDR-0001 — Atalho de teste',
-        '',
-        'O gatilho é o primeiro PR que revogar um requisito.'
-    ].join('\n')
+  return [
+    '---',
+    'id: TDR-0001',
+    'title: Atalho de teste',
+    `status: ${status}`,
+    'owner: "@time"',
+    'trigger: Quando o gatilho de pagamento abaixo se cumprir.',
+    'last-reviewed: 2026-08-01',
+    ...extra,
+    '---',
+    '',
+    '# TDR-0001 — Atalho de teste',
+    '',
+    'O gatilho é o primeiro PR que revogar um requisito.',
+  ].join('\n')
 }
 
 const RULES_ATIVA = [
-    '---',
-    'title: Regras',
-    'owner: "@time"',
-    'trigger: A toda regra nova.',
-    'last-reviewed: 2026-08-20',
-    '---',
-    '',
-    '## RN-0001 — Uma regra qualquer',
-    '',
-    '- **status:** active',
-    '',
-    'O enunciado.'
+  '---',
+  'title: Regras',
+  'owner: "@time"',
+  'trigger: A toda regra nova.',
+  'last-reviewed: 2026-08-20',
+  '---',
+  '',
+  '## RN-0001 — Uma regra qualquer',
+  '',
+  '- **status:** active',
+  '',
+  'O enunciado.',
 ].join('\n')
 
-const RULES_REVOGADA = RULES_ATIVA.replace(
-    '- **status:** active',
-    '- **status:** revoked'
-)
+const RULES_REVOGADA = RULES_ATIVA.replace('- **status:** active', '- **status:** revoked')
 
 test('RN-0018: documento além do limite avisa, e aviso não é erro', () => {
-    withTempRepo(
-        {
-            'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2026-01-01'),
-            'docs/requirements/rules.md': RULES_ATIVA
-        },
-        root => {
-            const findings = ci4Staleness.run(contextFor(root))
-            const aviso = findings.find(
-                finding => finding.file === 'docs/decisions/adr/ADR-0001-a.md'
-            )
+  withTempRepo(
+    {
+      'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2026-01-01'),
+      'docs/requirements/rules.md': RULES_ATIVA,
+    },
+    root => {
+      const findings = ci4Staleness.run(contextFor(root))
+      const aviso = findings.find(finding => finding.file === 'docs/decisions/adr/ADR-0001-a.md')
 
-            assert.ok(aviso, 'ADR revisado em janeiro deveria vencer em agosto')
-            assert.equal(aviso.ruleId, 'CI-4')
-            assert.equal(aviso.severity, 'warning')
-            assert.match(aviso.message, /7 meses/)
-            assert.match(aviso.message, /stale-after-months/)
-            assert.match(aviso.fix, /bump em massa/i)
-            assert.equal(
-                findings.some(finding => finding.severity === 'error'),
-                false
-            )
-        }
-    )
+      assert.ok(aviso, 'ADR revisado em janeiro deveria vencer em agosto')
+      assert.equal(aviso.ruleId, 'CI-4')
+      assert.equal(aviso.severity, 'warning')
+      assert.match(aviso.message, /7 meses/)
+      assert.match(aviso.message, /stale-after-months/)
+      assert.match(aviso.fix, /bump em massa/i)
+      assert.equal(
+        findings.some(finding => finding.severity === 'error'),
+        false,
+      )
+    },
+  )
 })
 
 test('ADR-0007: item congelado não vence — avisar sobre ele ensinaria o bump em massa', () => {
-    withTempRepo(
-        {
-            'docs/decisions/adr/ADR-0001-a.md': adr('accepted', '2020-01-01'),
-            'docs/requirements/rules.md': RULES_ATIVA
-        },
-        root => {
-            assert.deepEqual(staleDocs(contextFor(root)), [])
-        }
-    )
+  withTempRepo(
+    {
+      'docs/decisions/adr/ADR-0001-a.md': adr('accepted', '2020-01-01'),
+      'docs/requirements/rules.md': RULES_ATIVA,
+    },
+    root => {
+      assert.deepEqual(staleDocs(contextFor(root)), [])
+    },
+  )
 })
 
 test('RN-0018: documento de `documents:` vence; sem frontmatter, não tem o que vencer', () => {
-    withTempRepo(
-        {
-            'docs/requirements/rules.md': RULES_ATIVA,
-            'CONTRIBUTING.md':
-                '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2025-01-01\n---\n\n# Como se contribui\n',
-            'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n'
-        },
-        root => {
-            const stale = staleDocs(contextFor(root))
-            assert.deepEqual(
-                stale.map(item => item.file),
-                ['CONTRIBUTING.md']
-            )
-            assert.equal(stale[0]?.skill, 'working-agreements-keeper')
-        }
-    )
+  withTempRepo(
+    {
+      'docs/requirements/rules.md': RULES_ATIVA,
+      'CONTRIBUTING.md':
+        '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2025-01-01\n---\n\n# Como se contribui\n',
+      'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
+    },
+    root => {
+      const stale = staleDocs(contextFor(root))
+      assert.deepEqual(
+        stale.map(item => item.file),
+        ['CONTRIBUTING.md'],
+      )
+      assert.equal(stale[0]?.skill, 'working-agreements-keeper')
+    },
+  )
 })
 
 test('RN-0019: dívida `open` sem `pay-when` é erro, com o problema nomeado', () => {
-    withTempRepo(
-        {
-            'docs/decisions/debt/TDR-0001-x.md': debt('open'),
-            'docs/requirements/rules.md': RULES_ATIVA
-        },
-        root => {
-            const semGatilho = debtsWithoutTrigger(contextFor(root))
-            assert.deepEqual(
-                semGatilho.map(item => [item.id, item.problem]),
-                [['TDR-0001', 'ausente']]
-            )
+  withTempRepo(
+    {
+      'docs/decisions/debt/TDR-0001-x.md': debt('open'),
+      'docs/requirements/rules.md': RULES_ATIVA,
+    },
+    root => {
+      const semGatilho = debtsWithoutTrigger(contextFor(root))
+      assert.deepEqual(
+        semGatilho.map(item => [item.id, item.problem]),
+        [['TDR-0001', 'ausente']],
+      )
 
-            const findings = ci4Staleness.run(contextFor(root))
-            const erro = findings.find(finding => finding.severity === 'error')
-            assert.ok(erro)
-            assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
-            assert.match(erro.message, /TDR-0001/)
-            assert.match(erro.fix, /pay-when/)
-        }
-    )
+      const findings = ci4Staleness.run(contextFor(root))
+      const erro = findings.find(finding => finding.severity === 'error')
+      assert.ok(erro)
+      assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
+      assert.match(erro.message, /TDR-0001/)
+      assert.match(erro.fix, /pay-when/)
+    },
+  )
 })
 
 test('RN-0019: `pay-when` incompleto e padrão que não compila são erros distintos', () => {
-    withTempRepo(
-        {
-            'docs/decisions/debt/TDR-0001-x.md': debt('open', [
-                'pay-when:',
-                '  paths: ["docs/**"]'
-            ]),
-            'docs/requirements/rules.md': RULES_ATIVA
-        },
-        root => {
-            assert.equal(
-                debtsWithoutTrigger(contextFor(root))[0]?.problem,
-                'incompleto'
-            )
-        }
-    )
+  withTempRepo(
+    {
+      'docs/decisions/debt/TDR-0001-x.md': debt('open', ['pay-when:', '  paths: ["docs/**"]']),
+      'docs/requirements/rules.md': RULES_ATIVA,
+    },
+    root => {
+      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'incompleto')
+    },
+  )
 
-    withTempRepo(
-        {
-            'docs/decisions/debt/TDR-0001-x.md': debt('open', [
-                'pay-when:',
-                "  pattern: '([('",
-                '  paths: ["docs/**"]'
-            ]),
-            'docs/requirements/rules.md': RULES_ATIVA
-        },
-        root => {
-            assert.equal(
-                debtsWithoutTrigger(contextFor(root))[0]?.problem,
-                'padrão inválido'
-            )
-        }
-    )
+  withTempRepo(
+    {
+      'docs/decisions/debt/TDR-0001-x.md': debt('open', ['pay-when:', "  pattern: '([('", '  paths: ["docs/**"]']),
+      'docs/requirements/rules.md': RULES_ATIVA,
+    },
+    root => {
+      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'padrão inválido')
+    },
+  )
 })
 
 test('critério 7: dívida com gatilho cumprido reprova, e a evidência aparece', () => {
-    withTempRepo(
-        {
-            'docs/decisions/debt/TDR-0001-x.md': debt('open', PAY_WHEN),
-            'docs/requirements/rules.md': RULES_REVOGADA
-        },
-        root => {
-            const due = duePayments(contextFor(root))
-            assert.equal(due.length, 1)
-            assert.equal(due[0]?.id, 'TDR-0001')
-            assert.match(
-                due[0]?.evidence ?? '',
-                /^docs\/requirements\/rules\.md:\d+$/
-            )
+  withTempRepo(
+    {
+      'docs/decisions/debt/TDR-0001-x.md': debt('open', PAY_WHEN),
+      'docs/requirements/rules.md': RULES_REVOGADA,
+    },
+    root => {
+      const due = duePayments(contextFor(root))
+      assert.equal(due.length, 1)
+      assert.equal(due[0]?.id, 'TDR-0001')
+      assert.match(due[0]?.evidence ?? '', /^docs\/requirements\/rules\.md:\d+$/)
 
-            const findings = ci4Staleness.run(contextFor(root))
-            const erro = findings.find(finding => finding.severity === 'error')
-            assert.ok(erro)
-            assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
-            assert.match(erro.message, /gatilho de pagamento já aconteceu/)
-            assert.match(erro.message, /docs\/requirements\/rules\.md/)
-            assert.match(erro.fix, /paid|accepted-permanently/)
-        }
-    )
+      const findings = ci4Staleness.run(contextFor(root))
+      const erro = findings.find(finding => finding.severity === 'error')
+      assert.ok(erro)
+      assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
+      assert.match(erro.message, /gatilho de pagamento já aconteceu/)
+      assert.match(erro.message, /docs\/requirements\/rules\.md/)
+      assert.match(erro.fix, /paid|accepted-permanently/)
+    },
+  )
 })
 
 test('critério 7: sem a condição no repositório, a dívida `open` passa', () => {
-    withTempRepo(
-        {
-            'docs/decisions/debt/TDR-0001-x.md': debt('open', PAY_WHEN),
-            'docs/requirements/rules.md': RULES_ATIVA
-        },
-        root => {
-            assert.deepEqual(duePayments(contextFor(root)), [])
-            assert.deepEqual(debtsWithoutTrigger(contextFor(root)), [])
-        }
-    )
+  withTempRepo(
+    {
+      'docs/decisions/debt/TDR-0001-x.md': debt('open', PAY_WHEN),
+      'docs/requirements/rules.md': RULES_ATIVA,
+    },
+    root => {
+      assert.deepEqual(duePayments(contextFor(root)), [])
+      assert.deepEqual(debtsWithoutTrigger(contextFor(root)), [])
+    },
+  )
 })
 
 test('critério 7: dívida paga ou aceita permanentemente sai da conta', () => {
-    for (const status of ['paid', 'accepted-permanently']) {
-        withTempRepo(
-            {
-                'docs/decisions/debt/TDR-0001-x.md': debt(status, PAY_WHEN),
-                'docs/requirements/rules.md': RULES_REVOGADA
-            },
-            root => {
-                assert.deepEqual(
-                    duePayments(contextFor(root)),
-                    [],
-                    `status ${status} não deveria vencer`
-                )
-                assert.deepEqual(debtsWithoutTrigger(contextFor(root)), [])
-            }
-        )
-    }
+  for (const status of ['paid', 'accepted-permanently']) {
+    withTempRepo(
+      {
+        'docs/decisions/debt/TDR-0001-x.md': debt(status, PAY_WHEN),
+        'docs/requirements/rules.md': RULES_REVOGADA,
+      },
+      root => {
+        assert.deepEqual(duePayments(contextFor(root)), [], `status ${status} não deveria vencer`)
+        assert.deepEqual(debtsWithoutTrigger(contextFor(root)), [])
+      },
+    )
+  }
 })
 
 test('ADR-0007: o próprio arquivo da dívida não conta como ocorrência do gatilho', () => {
-    withTempRepo(
-        {
-            // O corpo da dívida contém, literalmente, o texto que o padrão procura.
-            'docs/decisions/debt/TDR-0001-x.md': `${debt('open', [
-                'pay-when:',
-                "  pattern: 'status: revoked'",
-                '  paths: ["docs/**"]'
-            ])}\n\nO gatilho é qualquer seção que vire \`status: revoked\`.\n`,
-            'docs/requirements/rules.md': RULES_ATIVA
-        },
-        root => {
-            assert.deepEqual(
-                duePayments(contextFor(root)),
-                [],
-                'citar o gatilho não é cumpri-lo'
-            )
-        }
-    )
+  withTempRepo(
+    {
+      // O corpo da dívida contém, literalmente, o texto que o padrão procura.
+      'docs/decisions/debt/TDR-0001-x.md': `${debt('open', [
+        'pay-when:',
+        "  pattern: 'status: revoked'",
+        '  paths: ["docs/**"]',
+      ])}\n\nO gatilho é qualquer seção que vire \`status: revoked\`.\n`,
+      'docs/requirements/rules.md': RULES_ATIVA,
+    },
+    root => {
+      assert.deepEqual(duePayments(contextFor(root)), [], 'citar o gatilho não é cumpri-lo')
+    },
+  )
 })
 
 test('payWhenOf distingue ausente, incompleto e válido', () => {
-    assert.equal(payWhenOf({}), 'ausente')
-    assert.equal(payWhenOf({ 'pay-when': 'quando der tempo' }), 'incompleto')
-    assert.equal(payWhenOf({ 'pay-when': { pattern: 'x' } }), 'incompleto')
-    assert.equal(
-        payWhenOf({ 'pay-when': { pattern: 'x', paths: [] } }),
-        'incompleto'
-    )
-    assert.deepEqual(
-        payWhenOf({ 'pay-when': { pattern: 'x', paths: ['src/**'] } }),
-        {
-            pattern: 'x',
-            paths: ['src/**']
-        }
-    )
+  assert.equal(payWhenOf({}), 'ausente')
+  assert.equal(payWhenOf({ 'pay-when': 'quando der tempo' }), 'incompleto')
+  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x' } }), 'incompleto')
+  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x', paths: [] } }), 'incompleto')
+  assert.deepEqual(payWhenOf({ 'pay-when': { pattern: 'x', paths: ['src/**'] } }), {
+    pattern: 'x',
+    paths: ['src/**'],
+  })
 })
 
 test('CI-4 é o único check que avisa: nada aqui reprova por documento vencido', () => {
-    withTempRepo(
-        {
-            'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2019-01-01'),
-            'docs/requirements/rules.md': RULES_ATIVA
-        },
-        root => {
-            const findings = ci4Staleness.run(contextFor(root))
-            assert.ok(findings.length > 0)
-            assert.ok(findings.every(finding => finding.severity === 'warning'))
-        }
-    )
+  withTempRepo(
+    {
+      'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2019-01-01'),
+      'docs/requirements/rules.md': RULES_ATIVA,
+    },
+    root => {
+      const findings = ci4Staleness.run(contextFor(root))
+      assert.ok(findings.length > 0)
+      assert.ok(findings.every(finding => finding.severity === 'warning'))
+    },
+  )
 })
 ```
 
@@ -2424,241 +2240,220 @@ const RULE = 'CI-4'
 const DEBT_STATE = 'paid'
 
 export interface StaleDoc {
-    file: string
-    line: number
-    months: number
-    skill: string | null
+  file: string
+  line: number
+  months: number
+  skill: string | null
 }
 
 export interface PayWhen {
-    /** Expressão regular reconhecida linha a linha. */
-    pattern: string
-    paths: string[]
+  /** Expressão regular reconhecida linha a linha. */
+  pattern: string
+  paths: string[]
 }
 
 export type PayWhenProblem = 'ausente' | 'incompleto' | 'padrão inválido'
 
 export interface DebtWithoutTrigger {
-    file: string
-    line: number
-    id: string
-    problem: PayWhenProblem
+  file: string
+  line: number
+  id: string
+  problem: PayWhenProblem
 }
 
 export interface DuePayment {
-    file: string
-    line: number
-    id: string
-    pattern: string
-    /** Onde a condição foi encontrada, no formato `arquivo:linha`. */
-    evidence: string
+  file: string
+  line: number
+  id: string
+  pattern: string
+  /** Onde a condição foi encontrada, no formato `arquivo:linha`. */
+  evidence: string
 }
 
 function finding(severity: 'error' | 'warning') {
-    return (
-        file: string,
-        line: number,
-        message: string,
-        fix: string
-    ): Finding => ({
-        ruleId: RULE,
-        file,
-        line,
-        severity,
-        message,
-        fix
-    })
+  return (file: string, line: number, message: string, fix: string): Finding => ({
+    ruleId: RULE,
+    file,
+    line,
+    severity,
+    message,
+    fix,
+  })
 }
 
 const warning = finding('warning')
 const error = finding('error')
 
 interface Reviewable {
-    file: string
-    line: number
-    status: string | null
-    lastReviewed: string | null
-    skill: string | null
+  file: string
+  line: number
+  status: string | null
+  lastReviewed: string | null
+  skill: string | null
 }
 
 /** Tudo que declara data de revisão: artefato, container de coleção e documento. */
 function reviewables(context: CheckContext): Reviewable[] {
-    const found: Reviewable[] = []
+  const found: Reviewable[] = []
 
-    for (const doc of context.docs) {
-        const frontmatter = doc.frontmatter
-        if (!frontmatter) continue
-        found.push({
-            file: doc.file,
-            line: frontmatter.lines['last-reviewed'] ?? 1,
-            status:
-                typeof frontmatter.data.status === 'string'
-                    ? frontmatter.data.status
-                    : null,
-            lastReviewed: asIsoDate(frontmatter.data['last-reviewed']),
-            skill: doc.rule.skill
-        })
-    }
+  for (const doc of context.docs) {
+    const frontmatter = doc.frontmatter
+    if (!frontmatter) continue
+    found.push({
+      file: doc.file,
+      line: frontmatter.lines['last-reviewed'] ?? 1,
+      status: typeof frontmatter.data.status === 'string' ? frontmatter.data.status : null,
+      lastReviewed: asIsoDate(frontmatter.data['last-reviewed']),
+      skill: doc.rule.skill,
+    })
+  }
 
-    for (const document of context.documents) {
-        const frontmatter = document.frontmatter
-        // Documento sem frontmatter não tem o que vencer — é o caso do CHANGELOG,
-        // que a Fase 6 deixou sem de propósito.
-        if (!frontmatter) continue
-        found.push({
-            file: document.file,
-            line: frontmatter.lines['last-reviewed'] ?? 1,
-            status:
-                typeof frontmatter.data.status === 'string'
-                    ? frontmatter.data.status
-                    : null,
-            lastReviewed: asIsoDate(frontmatter.data['last-reviewed']),
-            skill: document.rule.skill
-        })
-    }
+  for (const document of context.documents) {
+    const frontmatter = document.frontmatter
+    // Documento sem frontmatter não tem o que vencer — é o caso do CHANGELOG,
+    // que a Fase 6 deixou sem de propósito.
+    if (!frontmatter) continue
+    found.push({
+      file: document.file,
+      line: frontmatter.lines['last-reviewed'] ?? 1,
+      status: typeof frontmatter.data.status === 'string' ? frontmatter.data.status : null,
+      lastReviewed: asIsoDate(frontmatter.data['last-reviewed']),
+      skill: document.rule.skill,
+    })
+  }
 
-    return found
+  return found
 }
 
 /** Documentos revisados há mais tempo que o projeto aceita. */
 export function staleDocs(context: CheckContext): StaleDoc[] {
-    const limit = context.config.staleAfterMonths
-    const stale: StaleDoc[] = []
+  const limit = context.config.staleAfterMonths
+  const stale: StaleDoc[] = []
 
-    for (const item of reviewables(context)) {
-        if (item.lastReviewed === null) continue
-        // Item congelado não se revisa (ADR-0007, decisão 7).
-        if (item.status !== null && FROZEN_STATUSES.has(item.status)) continue
+  for (const item of reviewables(context)) {
+    if (item.lastReviewed === null) continue
+    // Item congelado não se revisa (ADR-0007, decisão 7).
+    if (item.status !== null && FROZEN_STATUSES.has(item.status)) continue
 
-        const months = monthsBetween(item.lastReviewed, context.today)
-        if (months === null || months <= limit) continue
+    const months = monthsBetween(item.lastReviewed, context.today)
+    if (months === null || months <= limit) continue
 
-        stale.push({
-            file: item.file,
-            line: item.line,
-            months,
-            skill: item.skill
-        })
-    }
+    stale.push({
+      file: item.file,
+      line: item.line,
+      months,
+      skill: item.skill,
+    })
+  }
 
-    return stale
+  return stale
 }
 
 interface Debt {
-    file: string
-    line: number
-    id: string
-    data: Record<string, unknown>
+  file: string
+  line: number
+  id: string
+  data: Record<string, unknown>
 }
 
 function openDebts(context: CheckContext): Debt[] {
-    const debts: Debt[] = []
+  const debts: Debt[] = []
 
-    for (const doc of context.docs) {
-        if (doc.rule.collection !== 'per-file') continue
-        if (!statesFor(doc.rule)?.includes(DEBT_STATE)) continue
+  for (const doc of context.docs) {
+    if (doc.rule.collection !== 'per-file') continue
+    if (!statesFor(doc.rule)?.includes(DEBT_STATE)) continue
 
-        const frontmatter = doc.frontmatter
-        if (!frontmatter || frontmatter.data.status !== 'open') continue
+    const frontmatter = doc.frontmatter
+    if (!frontmatter || frontmatter.data.status !== 'open') continue
 
-        debts.push({
-            file: doc.file,
-            line:
-                frontmatter.lines['pay-when'] ?? frontmatter.lines.status ?? 1,
-            id:
-                typeof frontmatter.data.id === 'string'
-                    ? frontmatter.data.id
-                    : doc.file,
-            data: frontmatter.data
-        })
-    }
+    debts.push({
+      file: doc.file,
+      line: frontmatter.lines['pay-when'] ?? frontmatter.lines.status ?? 1,
+      id: typeof frontmatter.data.id === 'string' ? frontmatter.data.id : doc.file,
+      data: frontmatter.data,
+    })
+  }
 
-    return debts
+  return debts
 }
 
 /** O `pay-when` do frontmatter, ou o problema que o torna inútil. */
-export function payWhenOf(
-    data: Record<string, unknown>
-): PayWhen | PayWhenProblem {
-    const raw = data['pay-when']
-    if (raw === undefined || raw === null) return 'ausente'
-    if (typeof raw !== 'object' || Array.isArray(raw)) return 'incompleto'
+export function payWhenOf(data: Record<string, unknown>): PayWhen | PayWhenProblem {
+  const raw = data['pay-when']
+  if (raw === undefined || raw === null) return 'ausente'
+  if (typeof raw !== 'object' || Array.isArray(raw)) return 'incompleto'
 
-    const record = raw as Record<string, unknown>
-    const pattern = record.pattern
-    const paths = record.paths
+  const record = raw as Record<string, unknown>
+  const pattern = record.pattern
+  const paths = record.paths
 
-    if (typeof pattern !== 'string' || pattern.trim() === '')
-        return 'incompleto'
-    if (!Array.isArray(paths) || paths.length === 0) return 'incompleto'
-    if (paths.some(path => typeof path !== 'string' || path.trim() === ''))
-        return 'incompleto'
+  if (typeof pattern !== 'string' || pattern.trim() === '') return 'incompleto'
+  if (!Array.isArray(paths) || paths.length === 0) return 'incompleto'
+  if (paths.some(path => typeof path !== 'string' || path.trim() === '')) return 'incompleto'
 
-    try {
-        new RegExp(pattern)
-    } catch {
-        return 'padrão inválido'
-    }
+  try {
+    new RegExp(pattern)
+  } catch {
+    return 'padrão inválido'
+  }
 
-    return { pattern, paths: paths as string[] }
+  return { pattern, paths: paths as string[] }
 }
 
 /** Dívidas `open` cujo gatilho de pagamento não é verificável (`RN-0019`). */
-export function debtsWithoutTrigger(
-    context: CheckContext
-): DebtWithoutTrigger[] {
-    const found: DebtWithoutTrigger[] = []
+export function debtsWithoutTrigger(context: CheckContext): DebtWithoutTrigger[] {
+  const found: DebtWithoutTrigger[] = []
 
-    for (const debt of openDebts(context)) {
-        const payWhen = payWhenOf(debt.data)
-        if (typeof payWhen === 'string') {
-            found.push({
-                file: debt.file,
-                line: debt.line,
-                id: debt.id,
-                problem: payWhen
-            })
-        }
+  for (const debt of openDebts(context)) {
+    const payWhen = payWhenOf(debt.data)
+    if (typeof payWhen === 'string') {
+      found.push({
+        file: debt.file,
+        line: debt.line,
+        id: debt.id,
+        problem: payWhen,
+      })
     }
+  }
 
-    return found
+  return found
 }
 
 /** Dívidas `open` cujo gatilho já aconteceu, com a evidência (spec §12, critério 7). */
 export function duePayments(context: CheckContext): DuePayment[] {
-    const due: DuePayment[] = []
+  const due: DuePayment[] = []
 
-    for (const debt of openDebts(context)) {
-        const payWhen = payWhenOf(debt.data)
-        if (typeof payWhen === 'string') continue // quem reporta é debtsWithoutTrigger
+  for (const debt of openDebts(context)) {
+    const payWhen = payWhenOf(debt.data)
+    if (typeof payWhen === 'string') continue // quem reporta é debtsWithoutTrigger
 
-        const pattern = new RegExp(payWhen.pattern)
+    const pattern = new RegExp(payWhen.pattern)
 
-        for (const file of listFiles(context.root, payWhen.paths)) {
-            // O próprio arquivo da dívida cita o gatilho em prosa; citar não é cumprir.
-            if (file === debt.file) continue
+    for (const file of listFiles(context.root, payWhen.paths)) {
+      // O próprio arquivo da dívida cita o gatilho em prosa; citar não é cumprir.
+      if (file === debt.file) continue
 
-            const source = readTextFile(context.root, file)
-            if (source === null) continue
+      const source = readTextFile(context.root, file)
+      if (source === null) continue
 
-            const at = source
-                .replace(/\r\n/g, '\n')
-                .split('\n')
-                .findIndex(line => pattern.test(line))
-            if (at === -1) continue
+      const at = source
+        .replace(/\r\n/g, '\n')
+        .split('\n')
+        .findIndex(line => pattern.test(line))
+      if (at === -1) continue
 
-            due.push({
-                file: debt.file,
-                line: debt.line,
-                id: debt.id,
-                pattern: payWhen.pattern,
-                evidence: `${file}:${at + 1}`
-            })
-            break
-        }
+      due.push({
+        file: debt.file,
+        line: debt.line,
+        id: debt.id,
+        pattern: payWhen.pattern,
+        evidence: `${file}:${at + 1}`,
+      })
+      break
     }
+  }
 
-    return due
+  return due
 }
 
 /**
@@ -2670,55 +2465,53 @@ export function duePayments(context: CheckContext): DuePayment[] {
  * Regras de origem: `RN-0018`, `RN-0019`.
  */
 export const ci4Staleness: Check = {
-    id: RULE,
-    name: 'staleness',
-    run(context: CheckContext): Finding[] {
-        const findings: Finding[] = []
-        const limit = context.config.staleAfterMonths
+  id: RULE,
+  name: 'staleness',
+  run(context: CheckContext): Finding[] {
+    const findings: Finding[] = []
+    const limit = context.config.staleAfterMonths
 
-        for (const stale of staleDocs(context)) {
-            findings.push(
-                warning(
-                    stale.file,
-                    stale.line,
-                    `\`last-reviewed\` tem ${stale.months} meses e o limite deste projeto é ${limit} (\`stale-after-months\`).`,
-                    `Releia o documento e, se ele ainda é verdade, atualize \`last-reviewed\`${
-                        stale.skill === null
-                            ? ''
-                            : ` (skill dona: ${stale.skill})`
-                    }. Bump sem leitura, ou bump em massa, é anti-requisito da spec §13: desliga o mecanismo fingindo cumpri-lo.`
-                )
-            )
-        }
-
-        for (const debt of debtsWithoutTrigger(context)) {
-            findings.push(
-                error(
-                    debt.file,
-                    debt.line,
-                    `${debt.id} está \`open\` e o gatilho de pagamento não é verificável: \`pay-when\` ${debt.problem}.`,
-                    'Declare `pay-when` com `pattern` (regex, em aspas simples) e `paths` (globs onde procurá-lo) — ' +
-                        'uma condição que alguém consegue apontar acontecendo (`RN-0019`, `ADR-0007`; skill dona: decision-recorder). ' +
-                        'Dívida sem gatilho verificável é `TODO` órfão com número.'
-                )
-            )
-        }
-
-        for (const payment of duePayments(context)) {
-            findings.push(
-                error(
-                    payment.file,
-                    payment.line,
-                    `${payment.id} está \`open\` e o gatilho de pagamento já aconteceu: ${payment.evidence} casa \`${payment.pattern}\`.`,
-                    'Pague a dívida, ou reclassifique-a (`paid`, `accepted-permanently`) — as duas coisas são ato humano ' +
-                        '(`RN-0005`, e `HK-3` intercepta). Enquanto ela seguir `open` com o gatilho cumprido, o CI reprova ' +
-                        '(spec §12, critério 7).'
-                )
-            )
-        }
-
-        return findings
+    for (const stale of staleDocs(context)) {
+      findings.push(
+        warning(
+          stale.file,
+          stale.line,
+          `\`last-reviewed\` tem ${stale.months} meses e o limite deste projeto é ${limit} (\`stale-after-months\`).`,
+          `Releia o documento e, se ele ainda é verdade, atualize \`last-reviewed\`${
+            stale.skill === null ? '' : ` (skill dona: ${stale.skill})`
+          }. Bump sem leitura, ou bump em massa, é anti-requisito da spec §13: desliga o mecanismo fingindo cumpri-lo.`,
+        ),
+      )
     }
+
+    for (const debt of debtsWithoutTrigger(context)) {
+      findings.push(
+        error(
+          debt.file,
+          debt.line,
+          `${debt.id} está \`open\` e o gatilho de pagamento não é verificável: \`pay-when\` ${debt.problem}.`,
+          'Declare `pay-when` com `pattern` (regex, em aspas simples) e `paths` (globs onde procurá-lo) — ' +
+            'uma condição que alguém consegue apontar acontecendo (`RN-0019`, `ADR-0007`; skill dona: decision-recorder). ' +
+            'Dívida sem gatilho verificável é `TODO` órfão com número.',
+        ),
+      )
+    }
+
+    for (const payment of duePayments(context)) {
+      findings.push(
+        error(
+          payment.file,
+          payment.line,
+          `${payment.id} está \`open\` e o gatilho de pagamento já aconteceu: ${payment.evidence} casa \`${payment.pattern}\`.`,
+          'Pague a dívida, ou reclassifique-a (`paid`, `accepted-permanently`) — as duas coisas são ato humano ' +
+            '(`RN-0005`, e `HK-3` intercepta). Enquanto ela seguir `open` com o gatilho cumprido, o CI reprova ' +
+            '(spec §12, critério 7).',
+        ),
+      )
+    }
+
+    return findings
+  },
 }
 ```
 
@@ -2769,23 +2562,23 @@ o diff — entra por injeção, como em `CI-5` e `CI-6`.
   `src/config/watches.ts`; `listFiles` de `src/core/files.ts` (dentro de
   `src/docs/corpus.ts`); `DiffFacts` de `src/checks/ci6-changelog-required.ts`.
 - Produz:
-    - `src/config/codeowners.ts`: `CODEOWNERS_PATHS`, `interface CodeownersEntry`,
-      `interface Codeowners`, `parseCodeowners(source: string): CodeownersEntry[]`,
-      `loadCodeowners(root: string): Codeowners | null`,
-      `ownersOf(codeowners: Codeowners, repoPath: string): string[] | null`
-    - `src/docs/corpus.ts`: `docsRoot(): string`,
-      `declaredPaths(config: OwnershipConfig): string[]`,
-      `documentationFiles(root: string, config: OwnershipConfig): string[]`
-    - `src/docs/markdown.ts`: `stripCode(source: string): string`,
-      `normalizeProse(text: string): string`,
-      `sentencesOf(source: string): { text: string; line: number }[]`
-    - `src/checks/exception-label.ts`:
-      `exceptionReasonFor(label: string, messages: readonly string[]): string | null`
-    - `src/checks/ci7-ownership-coverage.ts`: `WORD_FLOOR`,
-      `duplicatedSentences(contract, corpus)`,
-      `dodItemsWithoutVerification(source: string)`,
-      `docsExceptionReason(messages: readonly string[]): string | null`,
-      `ci7OwnershipCoverage(diff?: DiffFacts | null): Check`
+  - `src/config/codeowners.ts`: `CODEOWNERS_PATHS`, `interface CodeownersEntry`,
+    `interface Codeowners`, `parseCodeowners(source: string): CodeownersEntry[]`,
+    `loadCodeowners(root: string): Codeowners | null`,
+    `ownersOf(codeowners: Codeowners, repoPath: string): string[] | null`
+  - `src/docs/corpus.ts`: `docsRoot(): string`,
+    `declaredPaths(config: OwnershipConfig): string[]`,
+    `documentationFiles(root: string, config: OwnershipConfig): string[]`
+  - `src/docs/markdown.ts`: `stripCode(source: string): string`,
+    `normalizeProse(text: string): string`,
+    `sentencesOf(source: string): { text: string; line: number }[]`
+  - `src/checks/exception-label.ts`:
+    `exceptionReasonFor(label: string, messages: readonly string[]): string | null`
+  - `src/checks/ci7-ownership-coverage.ts`: `WORD_FLOOR`,
+    `duplicatedSentences(contract, corpus)`,
+    `dodItemsWithoutVerification(source: string)`,
+    `docsExceptionReason(messages: readonly string[]): string | null`,
+    `ci7OwnershipCoverage(diff?: DiffFacts | null): Check`
 
 **Requisitos:**
 
@@ -2824,11 +2617,7 @@ Crie `test/config/codeowners.test.ts`:
 ```typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    loadCodeowners,
-    ownersOf,
-    parseCodeowners
-} from '../../src/config/codeowners.ts'
+import { loadCodeowners, ownersOf, parseCodeowners } from '../../src/config/codeowners.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const CODEOWNERS = `# Espelha o owner de docs/.ownership.yml
@@ -2840,71 +2629,52 @@ sem-dono.md
 `
 
 test('parseCodeowners ignora comentário e linha vazia, e guarda só handles', () => {
-    const entries = parseCodeowners(CODEOWNERS)
-    assert.equal(entries.length, 5)
-    assert.deepEqual(entries[1]?.owners, ['@produto', '@time'])
-    assert.equal(entries[1]?.line, 3)
-    assert.deepEqual(
-        entries[4]?.owners,
-        [],
-        'padrão sem handle não declara dono'
-    )
+  const entries = parseCodeowners(CODEOWNERS)
+  assert.equal(entries.length, 5)
+  assert.deepEqual(entries[1]?.owners, ['@produto', '@time'])
+  assert.equal(entries[1]?.line, 3)
+  assert.deepEqual(entries[4]?.owners, [], 'padrão sem handle não declara dono')
 })
 
 test('ownersOf cobre diretório por prefixo, arquivo por igualdade, e ignora a barra inicial', () => {
-    const codeowners = {
-        file: 'CODEOWNERS',
-        entries: parseCodeowners(CODEOWNERS)
-    }
+  const codeowners = {
+    file: 'CODEOWNERS',
+    entries: parseCodeowners(CODEOWNERS),
+  }
 
-    assert.deepEqual(ownersOf(codeowners, 'docs/decisions/adr/ADR-0001-x.md'), [
-        '@time'
-    ])
-    assert.deepEqual(ownersOf(codeowners, 'docs/open-decisions.md'), [
-        '@produto',
-        '@time'
-    ])
-    assert.deepEqual(ownersOf(codeowners, 'CONTRIBUTING.md'), ['@time'])
-    assert.deepEqual(ownersOf(codeowners, 'docs/contracts/errors.md'), [
-        '@contratos'
-    ])
-    assert.equal(ownersOf(codeowners, 'docs/glossary.md'), null)
-    assert.equal(
-        ownersOf(codeowners, 'sem-dono.md'),
-        null,
-        'padrão sem handle não cobre nada'
-    )
+  assert.deepEqual(ownersOf(codeowners, 'docs/decisions/adr/ADR-0001-x.md'), ['@time'])
+  assert.deepEqual(ownersOf(codeowners, 'docs/open-decisions.md'), ['@produto', '@time'])
+  assert.deepEqual(ownersOf(codeowners, 'CONTRIBUTING.md'), ['@time'])
+  assert.deepEqual(ownersOf(codeowners, 'docs/contracts/errors.md'), ['@contratos'])
+  assert.equal(ownersOf(codeowners, 'docs/glossary.md'), null)
+  assert.equal(ownersOf(codeowners, 'sem-dono.md'), null, 'padrão sem handle não cobre nada')
 })
 
 test('ownersOf: `*` cobre tudo, e a última regra que casa ganha', () => {
-    const codeowners = {
-        file: 'CODEOWNERS',
-        entries: parseCodeowners('*    @todos\ndocs/    @docs\n')
-    }
-    assert.deepEqual(ownersOf(codeowners, 'qualquer/coisa.ts'), ['@todos'])
-    assert.deepEqual(ownersOf(codeowners, 'docs/x.md'), ['@docs'])
+  const codeowners = {
+    file: 'CODEOWNERS',
+    entries: parseCodeowners('*    @todos\ndocs/    @docs\n'),
+  }
+  assert.deepEqual(ownersOf(codeowners, 'qualquer/coisa.ts'), ['@todos'])
+  assert.deepEqual(ownersOf(codeowners, 'docs/x.md'), ['@docs'])
 })
 
 test('loadCodeowners procura nos três lugares e devolve null quando não há nenhum', () => {
-    withTempRepo({ '.github/CODEOWNERS': 'docs/    @time\n' }, root => {
-        assert.equal(loadCodeowners(root)?.file, '.github/CODEOWNERS')
-    })
-    withTempRepo(
-        {
-            'CODEOWNERS': 'docs/    @time\n',
-            '.github/CODEOWNERS': 'x    @outro\n'
-        },
-        root => {
-            assert.equal(
-                loadCodeowners(root)?.file,
-                'CODEOWNERS',
-                'a raiz vem primeiro'
-            )
-        }
-    )
-    withTempRepo({ 'README.md': '' }, root => {
-        assert.equal(loadCodeowners(root), null)
-    })
+  withTempRepo({ '.github/CODEOWNERS': 'docs/    @time\n' }, root => {
+    assert.equal(loadCodeowners(root)?.file, '.github/CODEOWNERS')
+  })
+  withTempRepo(
+    {
+      'CODEOWNERS': 'docs/    @time\n',
+      '.github/CODEOWNERS': 'x    @outro\n',
+    },
+    root => {
+      assert.equal(loadCodeowners(root)?.file, 'CODEOWNERS', 'a raiz vem primeiro')
+    },
+  )
+  withTempRepo({ 'README.md': '' }, root => {
+    assert.equal(loadCodeowners(root), null)
+  })
 })
 ```
 
@@ -2915,90 +2685,37 @@ Crie `test/docs/markdown.test.ts`:
 `````typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    normalizeProse,
-    sentencesOf,
-    stripCode
-} from '../../src/docs/markdown.ts'
+import { normalizeProse, sentencesOf, stripCode } from '../../src/docs/markdown.ts'
 
 test('stripCode apaga bloco cercado e código inline, preservando a contagem de linhas', () => {
-    const source = [
-        'prosa com `[[wikilink]]` dentro',
-        '',
-        '```ts',
-        'const x = /\\]\\(/;',
-        '```',
-        'depois'
-    ].join('\n')
-    const stripped = stripCode(source)
+  const source = ['prosa com `[[wikilink]]` dentro', '', '```ts', 'const x = /\\]\\(/;', '```', 'depois'].join('\n')
+  const stripped = stripCode(source)
 
-    assert.equal(
-        stripped.split('\n').length,
-        source.split('\n').length,
-        'a linha do achado depende disto'
-    )
-    assert.equal(
-        stripped.includes('wikilink'),
-        false,
-        'código inline não é link'
-    )
-    assert.equal(stripped.includes('const x'), false)
-    assert.ok(stripped.includes('depois'))
+  assert.equal(stripped.split('\n').length, source.split('\n').length, 'a linha do achado depende disto')
+  assert.equal(stripped.includes('wikilink'), false, 'código inline não é link')
+  assert.equal(stripped.includes('const x'), false)
+  assert.ok(stripped.includes('depois'))
 })
 
 test('stripCode fecha o bloco só com cerca do mesmo tamanho ou maior', () => {
-    const source = [
-        '````markdown',
-        'exemplo',
-        '```ts',
-        'const y = 1;',
-        '```',
-        'ainda dentro',
-        '````',
-        'fora'
-    ].join('\n')
-    const stripped = stripCode(source)
+  const source = ['````markdown', 'exemplo', '```ts', 'const y = 1;', '```', 'ainda dentro', '````', 'fora'].join('\n')
+  const stripped = stripCode(source)
 
-    assert.equal(
-        stripped.includes('ainda dentro'),
-        false,
-        'a cerca de 3 não fecha a de 4'
-    )
-    assert.ok(stripped.includes('fora'))
+  assert.equal(stripped.includes('ainda dentro'), false, 'a cerca de 3 não fecha a de 4')
+  assert.ok(stripped.includes('fora'))
 })
 
 test('normalizeProse tira marcação, pontuação e caixa', () => {
-    assert.equal(
-        normalizeProse('**A regra** vem antes do `código`!'),
-        'a regra vem antes do código'
-    )
-    assert.equal(normalizeProse('  espaço   colapsado  '), 'espaço colapsado')
+  assert.equal(normalizeProse('**A regra** vem antes do `código`!'), 'a regra vem antes do código')
+  assert.equal(normalizeProse('  espaço   colapsado  '), 'espaço colapsado')
 })
 
 test('sentencesOf junta parágrafo antes de cortar, e corta em lista e título', () => {
-    const source = [
-        '# Título',
-        '',
-        'Uma frase que a prosa',
-        'quebrou em duas linhas. E outra depois.',
-        '',
-        '- item de lista',
-        '- outro item'
-    ].join('\n')
+  const source = ['# Título', '', 'Uma frase que a prosa', 'quebrou em duas linhas. E outra depois.', '', '- item de lista', '- outro item'].join('\n')
 
-    const sentences = sentencesOf(source).map(sentence => sentence.text)
-    assert.deepEqual(sentences, [
-        'Título',
-        'Uma frase que a prosa quebrou em duas linhas.',
-        'E outra depois.',
-        'item de lista',
-        'outro item'
-    ])
-    assert.equal(
-        sentencesOf(source)[1]?.line,
-        3,
-        'a frase começa na linha em que o parágrafo começou'
-    )
+  const sentences = sentencesOf(source).map(sentence => sentence.text)
+  assert.deepEqual(sentences, ['Título', 'Uma frase que a prosa quebrou em duas linhas.', 'E outra depois.', 'item de lista', 'outro item'])
+  assert.equal(sentencesOf(source)[1]?.line, 3, 'a frase começa na linha em que o parágrafo começou')
 })
 `````
 
@@ -3007,11 +2724,7 @@ Crie `test/docs/corpus.test.ts`:
 ```typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    declaredPaths,
-    docsRoot,
-    documentationFiles
-} from '../../src/docs/corpus.ts'
+import { declaredPaths, docsRoot, documentationFiles } from '../../src/docs/corpus.ts'
 import { parseOwnership } from '../../src/config/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
@@ -3033,55 +2746,36 @@ documents:
 `
 
 test('docsRoot deriva da localização do .ownership.yml — nenhum literal `docs/` no check', () => {
-    assert.equal(docsRoot(), 'docs')
+  assert.equal(docsRoot(), 'docs')
 })
 
 test('declaredPaths junta artefatos, documentos e gerados', () => {
-    assert.deepEqual(declaredPaths(parseOwnership(OWNERSHIP)).sort(), [
-        'CONTRIBUTING.md',
-        'docs/contracts/api.gen.md',
-        'docs/decisions/adr/',
-        'fora/do/repo.md'
-    ])
+  assert.deepEqual(declaredPaths(parseOwnership(OWNERSHIP)).sort(), ['CONTRIBUTING.md', 'docs/contracts/api.gen.md', 'docs/decisions/adr/', 'fora/do/repo.md'])
 })
 
 test('documentationFiles = tudo sob a raiz + o que é declarado fora dela e existe', () => {
-    withTempRepo(
-        {
-            'docs/.ownership.yml': OWNERSHIP,
-            'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
-            'docs/contracts/api.gen.md': '# gerado\n',
-            'docs/ids-retired.txt': '\n',
-            'CONTRIBUTING.md': '# como\n',
-            'README.md': '# leia\n',
-            'src/codigo.ts': 'export const x = 1;\n'
-        },
-        root => {
-            const files = documentationFiles(root, parseOwnership(OWNERSHIP))
+  withTempRepo(
+    {
+      'docs/.ownership.yml': OWNERSHIP,
+      'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
+      'docs/contracts/api.gen.md': '# gerado\n',
+      'docs/ids-retired.txt': '\n',
+      'CONTRIBUTING.md': '# como\n',
+      'README.md': '# leia\n',
+      'src/codigo.ts': 'export const x = 1;\n',
+    },
+    root => {
+      const files = documentationFiles(root, parseOwnership(OWNERSHIP))
 
-            assert.ok(files.includes('docs/decisions/adr/ADR-0001-x.md'))
-            assert.ok(
-                files.includes('docs/.ownership.yml'),
-                'o mapa também é documento e também tem dono'
-            )
-            assert.ok(files.includes('docs/ids-retired.txt'))
-            assert.ok(
-                files.includes('CONTRIBUTING.md'),
-                'declarado fora da raiz e existe'
-            )
-            assert.equal(
-                files.includes('fora/do/repo.md'),
-                false,
-                'declarado e ausente não entra'
-            )
-            assert.equal(
-                files.includes('README.md'),
-                false,
-                'não declarado e fora da raiz não é do corpus'
-            )
-            assert.equal(files.includes('src/codigo.ts'), false)
-        }
-    )
+      assert.ok(files.includes('docs/decisions/adr/ADR-0001-x.md'))
+      assert.ok(files.includes('docs/.ownership.yml'), 'o mapa também é documento e também tem dono')
+      assert.ok(files.includes('docs/ids-retired.txt'))
+      assert.ok(files.includes('CONTRIBUTING.md'), 'declarado fora da raiz e existe')
+      assert.equal(files.includes('fora/do/repo.md'), false, 'declarado e ausente não entra')
+      assert.equal(files.includes('README.md'), false, 'não declarado e fora da raiz não é do corpus')
+      assert.equal(files.includes('src/codigo.ts'), false)
+    },
+  )
 })
 ```
 
@@ -3092,12 +2786,7 @@ Crie `test/checks/ci7-ownership-coverage.test.ts`:
 ```typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    ci7OwnershipCoverage,
-    docsExceptionReason,
-    dodItemsWithoutVerification,
-    duplicatedSentences
-} from '../../src/checks/ci7-ownership-coverage.ts'
+import { ci7OwnershipCoverage, docsExceptionReason, dodItemsWithoutVerification, duplicatedSentences } from '../../src/checks/ci7-ownership-coverage.ts'
 import { parseOwnership } from '../../src/config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
@@ -3131,285 +2820,207 @@ documents:
 `
 
 const CODEOWNERS = [
-    'docs/decisions/adr/    @time',
-    'docs/.ownership.yml    @time',
-    'docs/requirements/    @time',
-    'docs/definition-of-done.md    @time',
-    'CLAUDE.md    @time',
-    ''
+  'docs/decisions/adr/    @time',
+  'docs/.ownership.yml    @time',
+  'docs/requirements/    @time',
+  'docs/definition-of-done.md    @time',
+  'CLAUDE.md    @time',
+  '',
 ].join('\n')
 
-const DOD = [
-    '# Definition of Done',
-    '',
-    '- [ ] Os testes passam — verificação: `CI-1`.',
-    ''
-].join('\n')
-const CONTRATO = [
-    '# Contrato do agente',
-    '',
-    'Índice e política: a verdade mora no artefato dono.',
-    ''
-].join('\n')
-const REGRAS = [
-    '# Regras',
-    '',
-    '## RN-0001 — Uma regra',
-    '',
-    '- **status:** draft',
-    ''
-].join('\n')
+const DOD = ['# Definition of Done', '', '- [ ] Os testes passam — verificação: `CI-1`.', ''].join('\n')
+const CONTRATO = ['# Contrato do agente', '', 'Índice e política: a verdade mora no artefato dono.', ''].join('\n')
+const REGRAS = ['# Regras', '', '## RN-0001 — Uma regra', '', '- **status:** draft', ''].join('\n')
 
 const ARVORE = {
-    'docs/.ownership.yml': OWNERSHIP,
-    'CODEOWNERS': CODEOWNERS,
-    'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
-    'docs/requirements/rules.md': REGRAS,
-    'docs/definition-of-done.md': DOD,
-    'CLAUDE.md': CONTRATO
+  'docs/.ownership.yml': OWNERSHIP,
+  'CODEOWNERS': CODEOWNERS,
+  'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
+  'docs/requirements/rules.md': REGRAS,
+  'docs/definition-of-done.md': DOD,
+  'CLAUDE.md': CONTRATO,
 }
 
 function contextFor(root: string, ownership = OWNERSHIP) {
-    const config = parseOwnership(ownership)
-    return {
-        root,
-        config,
-        docs: collectArtifacts(root, config),
-        documents: collectDocuments(root, config),
-        today: '2026-08-27'
-    }
+  const config = parseOwnership(ownership)
+  return {
+    root,
+    config,
+    docs: collectArtifacts(root, config),
+    documents: collectDocuments(root, config),
+    today: '2026-08-27',
+  }
 }
 
 test('RN-0016: repositório com tudo declarado nos dois lugares passa', () => {
-    withTempRepo(ARVORE, root => {
-        assert.deepEqual(ci7OwnershipCoverage().run(contextFor(root)), [])
-    })
+  withTempRepo(ARVORE, root => {
+    assert.deepEqual(ci7OwnershipCoverage().run(contextFor(root)), [])
+  })
 })
 
 test('RN-0016: documento sob a raiz sem entrada no .ownership.yml reprova, nomeando o arquivo', () => {
-    withTempRepo(
-        { ...ARVORE, 'docs/avulso.md': '# ninguém responde por mim\n' },
-        root => {
-            const findings = ci7OwnershipCoverage().run(contextFor(root))
-            const semDono = findings.filter(
-                finding => finding.file === 'docs/avulso.md'
-            )
+  withTempRepo({ ...ARVORE, 'docs/avulso.md': '# ninguém responde por mim\n' }, root => {
+    const findings = ci7OwnershipCoverage().run(contextFor(root))
+    const semDono = findings.filter(finding => finding.file === 'docs/avulso.md')
 
-            assert.equal(
-                semDono.length,
-                2,
-                'falta nos dois lugares: .ownership.yml e CODEOWNERS'
-            )
-            assert.ok(
-                semDono.every(
-                    finding =>
-                        finding.ruleId === 'CI-7' &&
-                        finding.severity === 'error'
-                )
-            )
-            assert.ok(
-                semDono.some(finding => /ownership\.yml/.test(finding.message))
-            )
-            assert.ok(
-                semDono.some(finding => /CODEOWNERS/.test(finding.message))
-            )
-            assert.ok(semDono.some(finding => /documents:/.test(finding.fix)))
-        }
-    )
+    assert.equal(semDono.length, 2, 'falta nos dois lugares: .ownership.yml e CODEOWNERS')
+    assert.ok(semDono.every(finding => finding.ruleId === 'CI-7' && finding.severity === 'error'))
+    assert.ok(semDono.some(finding => /ownership\.yml/.test(finding.message)))
+    assert.ok(semDono.some(finding => /CODEOWNERS/.test(finding.message)))
+    assert.ok(semDono.some(finding => /documents:/.test(finding.fix)))
+  })
 })
 
 test('RN-0016: CODEOWNERS ausente é uma finding, não uma por arquivo', () => {
-    const semCodeowners = { ...ARVORE }
-    delete (semCodeowners as Record<string, string>).CODEOWNERS
+  const semCodeowners = { ...ARVORE }
+  delete (semCodeowners as Record<string, string>).CODEOWNERS
 
-    withTempRepo(semCodeowners, root => {
-        const findings = ci7OwnershipCoverage().run(contextFor(root))
-        assert.equal(findings.length, 1)
-        assert.match(findings[0]?.message ?? '', /CODEOWNERS/)
-        assert.equal(findings[0]?.file, 'docs/.ownership.yml')
-    })
+  withTempRepo(semCodeowners, root => {
+    const findings = ci7OwnershipCoverage().run(contextFor(root))
+    assert.equal(findings.length, 1)
+    assert.match(findings[0]?.message ?? '', /CODEOWNERS/)
+    assert.equal(findings[0]?.file, 'docs/.ownership.yml')
+  })
 })
 
 test('RN-0017 (config): vínculo de watches que aponta doc inexistente ou sem dono reprova', () => {
-    const docInexistente = OWNERSHIP.replace(
-        'doc: docs/requirements/rules.md\n    reason',
-        'doc: docs/nao-existe.md\n    reason'
-    )
-    withTempRepo(ARVORE, root => {
-        const findings = ci7OwnershipCoverage().run(
-            contextFor(root, docInexistente)
-        )
-        assert.ok(
-            findings.some(
-                finding =>
-                    /não existe/.test(finding.message) &&
-                    finding.file === 'docs/.ownership.yml'
-            )
-        )
-    })
+  const docInexistente = OWNERSHIP.replace('doc: docs/requirements/rules.md\n    reason', 'doc: docs/nao-existe.md\n    reason')
+  withTempRepo(ARVORE, root => {
+    const findings = ci7OwnershipCoverage().run(contextFor(root, docInexistente))
+    assert.ok(findings.some(finding => /não existe/.test(finding.message) && finding.file === 'docs/.ownership.yml'))
+  })
 
-    // O doc existe, mas ninguém o declarou: watches aponta para documento órfão.
-    const semDeclaracao = OWNERSHIP.replace(
-        '  - path: docs/requirements/rules.md\n    owner: "@time"\n    skill: requirements-keeper\n',
-        ''
-    )
-    withTempRepo(ARVORE, root => {
-        const findings = ci7OwnershipCoverage().run(
-            contextFor(root, semDeclaracao)
-        )
-        assert.ok(
-            findings.some(finding =>
-                /não tem dono declarado/.test(finding.message)
-            )
-        )
-    })
+  // O doc existe, mas ninguém o declarou: watches aponta para documento órfão.
+  const semDeclaracao = OWNERSHIP.replace('  - path: docs/requirements/rules.md\n    owner: "@time"\n    skill: requirements-keeper\n', '')
+  withTempRepo(ARVORE, root => {
+    const findings = ci7OwnershipCoverage().run(contextFor(root, semDeclaracao))
+    assert.ok(findings.some(finding => /não tem dono declarado/.test(finding.message)))
+  })
 })
 
 test('RN-0017: item de DoD sem verificação nomeada reprova, com a linha', () => {
-    const dodFraca = `${DOD}- [ ] O código está bonito.\n`
-    withTempRepo(
-        { ...ARVORE, 'docs/definition-of-done.md': dodFraca },
-        root => {
-            const findings = ci7OwnershipCoverage().run(contextFor(root))
-            const achado = findings.find(
-                finding => finding.file === 'docs/definition-of-done.md'
-            )
+  const dodFraca = `${DOD}- [ ] O código está bonito.\n`
+  withTempRepo({ ...ARVORE, 'docs/definition-of-done.md': dodFraca }, root => {
+    const findings = ci7OwnershipCoverage().run(contextFor(root))
+    const achado = findings.find(finding => finding.file === 'docs/definition-of-done.md')
 
-            assert.ok(achado)
-            assert.equal(achado.line, 4)
-            assert.match(achado.message, /verificação/)
-            assert.match(achado.fix, /CI-n|HK-n/)
-        }
-    )
+    assert.ok(achado)
+    assert.equal(achado.line, 4)
+    assert.match(achado.message, /verificação/)
+    assert.match(achado.fix, /CI-n|HK-n/)
+  })
 })
 
 test('dodItemsWithoutVerification aceita ID de check, de hook e a marca humana', () => {
-    const source = [
-        '- [ ] com check — verificação: `CI-3`.',
-        '- [x] com hook — verificação: `HK-1`.',
-        '- [ ] com pessoa — verificação: humana.',
-        '- [ ] sem nada.',
-        'não é item de caixa.'
-    ].join('\n')
+  const source = [
+    '- [ ] com check — verificação: `CI-3`.',
+    '- [x] com hook — verificação: `HK-1`.',
+    '- [ ] com pessoa — verificação: humana.',
+    '- [ ] sem nada.',
+    'não é item de caixa.',
+  ].join('\n')
 
-    assert.deepEqual(
-        dodItemsWithoutVerification(source).map(item => item.line),
-        [4]
-    )
+  assert.deepEqual(
+    dodItemsWithoutVerification(source).map(item => item.line),
+    [4],
+  )
 })
 
 test('RN-0020: frase longa do contrato repetida num artefato dono reprova', () => {
-    const frase =
-        'Toda regra de negócio deste projeto nasce com identificador estável antes de qualquer linha de código.'
-    withTempRepo(
-        {
-            ...ARVORE,
-            'CLAUDE.md': `# Contrato do agente\n\n${frase}\n`,
-            'docs/requirements/rules.md': `${REGRAS}\n${frase}\n`
-        },
-        root => {
-            const findings = ci7OwnershipCoverage().run(contextFor(root))
-            const achado = findings.find(
-                finding => finding.file === 'CLAUDE.md'
-            )
+  const frase = 'Toda regra de negócio deste projeto nasce com identificador estável antes de qualquer linha de código.'
+  withTempRepo(
+    {
+      ...ARVORE,
+      'CLAUDE.md': `# Contrato do agente\n\n${frase}\n`,
+      'docs/requirements/rules.md': `${REGRAS}\n${frase}\n`,
+    },
+    root => {
+      const findings = ci7OwnershipCoverage().run(contextFor(root))
+      const achado = findings.find(finding => finding.file === 'CLAUDE.md')
 
-            assert.ok(achado, 'CI-7 deveria acusar a duplicata')
-            assert.match(achado.message, /docs\/requirements\/rules\.md/)
-            assert.match(achado.fix, /ponteiro|apague/i)
-        }
-    )
+      assert.ok(achado, 'CI-7 deveria acusar a duplicata')
+      assert.match(achado.message, /docs\/requirements\/rules\.md/)
+      assert.match(achado.fix, /ponteiro|apague/i)
+    },
+  )
 })
 
 test('ADR-0009: frase curta é vocabulário compartilhado, não duplicata', () => {
-    const curta = 'Nada roda no host além de Docker.'
-    withTempRepo(
-        {
-            ...ARVORE,
-            'CLAUDE.md': `# Contrato do agente\n\n${curta}\n`,
-            'docs/requirements/rules.md': `${REGRAS}\n${curta}\n`
-        },
-        root => {
-            assert.deepEqual(ci7OwnershipCoverage().run(contextFor(root)), [])
-        }
-    )
+  const curta = 'Nada roda no host além de Docker.'
+  withTempRepo(
+    {
+      ...ARVORE,
+      'CLAUDE.md': `# Contrato do agente\n\n${curta}\n`,
+      'docs/requirements/rules.md': `${REGRAS}\n${curta}\n`,
+    },
+    root => {
+      assert.deepEqual(ci7OwnershipCoverage().run(contextFor(root)), [])
+    },
+  )
 })
 
 test('duplicatedSentences ignora código e compara normalizado', () => {
-    const frase =
-        'Uma frase suficientemente longa para passar do piso de doze palavras sem esforço nenhum'
-    const contrato = `# Contrato\n\n**${frase}.**\n\n\`\`\`md\n${'outra frase longa '.repeat(4)}\n\`\`\`\n`
-    const corpus = [
-        {
-            file: 'docs/x.md',
-            source: `prosa antes. ${frase.toLowerCase()}. prosa depois.`
-        }
-    ]
+  const frase = 'Uma frase suficientemente longa para passar do piso de doze palavras sem esforço nenhum'
+  const contrato = `# Contrato\n\n**${frase}.**\n\n\`\`\`md\n${'outra frase longa '.repeat(4)}\n\`\`\`\n`
+  const corpus = [
+    {
+      file: 'docs/x.md',
+      source: `prosa antes. ${frase.toLowerCase()}. prosa depois.`,
+    },
+  ]
 
-    const found = duplicatedSentences(contrato, corpus)
-    assert.equal(found.length, 1)
-    assert.equal(found[0]?.source, 'docs/x.md')
-    assert.equal(found[0]?.line, 3)
+  const found = duplicatedSentences(contrato, corpus)
+  assert.equal(found.length, 1)
+  assert.equal(found[0]?.source, 'docs/x.md')
+  assert.equal(found[0]?.line, 3)
 })
 
 test('critério 5, metade 2: o diff que leva caminho vigiado sem o doc dono reprova', () => {
-    withTempRepo(ARVORE, root => {
-        const diff = {
-            base: 'origin/master',
-            changed: ['src/domain/reembolso.ts'],
-            messages: ['feat: reembolso']
-        }
-        const findings = ci7OwnershipCoverage(diff).run(contextFor(root))
-        const achado = findings.find(
-            finding => finding.file === 'docs/requirements/rules.md'
-        )
+  withTempRepo(ARVORE, root => {
+    const diff = {
+      base: 'origin/master',
+      changed: ['src/domain/reembolso.ts'],
+      messages: ['feat: reembolso'],
+    }
+    const findings = ci7OwnershipCoverage(diff).run(contextFor(root))
+    const achado = findings.find(finding => finding.file === 'docs/requirements/rules.md')
 
-        assert.ok(achado)
-        assert.equal(achado.severity, 'error')
-        assert.match(achado.message, /src\/domain\/reembolso\.ts/)
-        assert.match(achado.fix, /Docs: none/)
-    })
+    assert.ok(achado)
+    assert.equal(achado.severity, 'error')
+    assert.match(achado.message, /src\/domain\/reembolso\.ts/)
+    assert.match(achado.fix, /Docs: none/)
+  })
 })
 
 test('critério 5, metade 2: com o doc no mesmo diff, ou com a razão escrita, passa', () => {
-    withTempRepo(ARVORE, root => {
-        const comDoc = {
-            base: 'origin/master',
-            changed: ['src/domain/reembolso.ts', 'docs/requirements/rules.md'],
-            messages: ['feat: reembolso']
-        }
-        assert.deepEqual(ci7OwnershipCoverage(comDoc).run(contextFor(root)), [])
+  withTempRepo(ARVORE, root => {
+    const comDoc = {
+      base: 'origin/master',
+      changed: ['src/domain/reembolso.ts', 'docs/requirements/rules.md'],
+      messages: ['feat: reembolso'],
+    }
+    assert.deepEqual(ci7OwnershipCoverage(comDoc).run(contextFor(root)), [])
 
-        const comRazao = {
-            base: 'origin/master',
-            changed: ['src/domain/reembolso.ts'],
-            messages: [
-                'refactor: renomeia interno\n\nDocs: none — só renomeação, a regra não mudou'
-            ]
-        }
-        assert.deepEqual(
-            ci7OwnershipCoverage(comRazao).run(contextFor(root)),
-            []
-        )
-    })
+    const comRazao = {
+      base: 'origin/master',
+      changed: ['src/domain/reembolso.ts'],
+      messages: ['refactor: renomeia interno\n\nDocs: none — só renomeação, a regra não mudou'],
+    }
+    assert.deepEqual(ci7OwnershipCoverage(comRazao).run(contextFor(root)), [])
+  })
 })
 
 test('ADR-0010: rótulo sem razão não é exceção', () => {
-    assert.equal(
-        docsExceptionReason(['Docs: none — a regra não mudou']),
-        'a regra não mudou'
-    )
-    assert.equal(docsExceptionReason(['Docs: none']), null)
-    assert.equal(
-        docsExceptionReason(['docs: NONE — minúscula também']),
-        'minúscula também'
-    )
-    assert.equal(docsExceptionReason(['Changelog: none — outro rótulo']), null)
+  assert.equal(docsExceptionReason(['Docs: none — a regra não mudou']), 'a regra não mudou')
+  assert.equal(docsExceptionReason(['Docs: none']), null)
+  assert.equal(docsExceptionReason(['docs: NONE — minúscula também']), 'minúscula também')
+  assert.equal(docsExceptionReason(['Changelog: none — outro rótulo']), null)
 })
 
 test('sem diff, a metade do diff não roda', () => {
-    withTempRepo(ARVORE, root => {
-        assert.deepEqual(ci7OwnershipCoverage(null).run(contextFor(root)), [])
-    })
+  withTempRepo(ARVORE, root => {
+    assert.deepEqual(ci7OwnershipCoverage(null).run(contextFor(root)), [])
+  })
 })
 ```
 
@@ -3429,69 +3040,65 @@ import { join } from 'node:path'
 import picomatch from 'picomatch'
 
 /** Onde o CODEOWNERS pode morar, na ordem em que se procura por ele. */
-export const CODEOWNERS_PATHS: readonly string[] = [
-    'CODEOWNERS',
-    '.github/CODEOWNERS',
-    'docs/CODEOWNERS'
-]
+export const CODEOWNERS_PATHS: readonly string[] = ['CODEOWNERS', '.github/CODEOWNERS', 'docs/CODEOWNERS']
 
 export interface CodeownersEntry {
-    pattern: string
-    /** Só handles (`@…`); um padrão sem handle não declara dono. */
-    owners: string[]
-    /** Linha 1-indexed. */
-    line: number
+  pattern: string
+  /** Só handles (`@…`); um padrão sem handle não declara dono. */
+  owners: string[]
+  /** Linha 1-indexed. */
+  line: number
 }
 
 export interface Codeowners {
-    /** Caminho do arquivo encontrado, relativo à raiz. */
-    file: string
-    entries: CodeownersEntry[]
+  /** Caminho do arquivo encontrado, relativo à raiz. */
+  file: string
+  entries: CodeownersEntry[]
 }
 
 export function parseCodeowners(source: string): CodeownersEntry[] {
-    const entries: CodeownersEntry[] = []
-    const lines = source.replace(/\r\n/g, '\n').split('\n')
+  const entries: CodeownersEntry[] = []
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = (lines[i] ?? '').trim()
-        if (line === '' || line.startsWith('#')) continue
+  for (let i = 0; i < lines.length; i++) {
+    const line = (lines[i] ?? '').trim()
+    if (line === '' || line.startsWith('#')) continue
 
-        const [pattern, ...rest] = line.split(/\s+/)
-        if (pattern === undefined) continue
+    const [pattern, ...rest] = line.split(/\s+/)
+    if (pattern === undefined) continue
 
-        entries.push({
-            pattern,
-            owners: rest.filter(owner => owner.startsWith('@')),
-            line: i + 1
-        })
-    }
+    entries.push({
+      pattern,
+      owners: rest.filter(owner => owner.startsWith('@')),
+      line: i + 1,
+    })
+  }
 
-    return entries
+  return entries
 }
 
 export function loadCodeowners(root: string): Codeowners | null {
-    for (const candidate of CODEOWNERS_PATHS) {
-        let source: string
-        try {
-            source = readFileSync(join(root, candidate), 'utf8')
-        } catch {
-            continue
-        }
-        return { file: candidate, entries: parseCodeowners(source) }
+  for (const candidate of CODEOWNERS_PATHS) {
+    let source: string
+    try {
+      source = readFileSync(join(root, candidate), 'utf8')
+    } catch {
+      continue
     }
-    return null
+    return { file: candidate, entries: parseCodeowners(source) }
+  }
+  return null
 }
 
 function matcherFor(pattern: string): (repoPath: string) => boolean {
-    const clean = pattern.replace(/\\/g, '/').replace(/^\//, '')
-    if (clean === '*' || clean === '**') return () => true
-    if (clean.endsWith('/')) return repoPath => repoPath.startsWith(clean)
-    if (clean.includes('*')) {
-        const isMatch = picomatch([clean, `${clean}/**`])
-        return repoPath => isMatch(repoPath)
-    }
-    return repoPath => repoPath === clean || repoPath.startsWith(`${clean}/`)
+  const clean = pattern.replace(/\\/g, '/').replace(/^\//, '')
+  if (clean === '*' || clean === '**') return () => true
+  if (clean.endsWith('/')) return repoPath => repoPath.startsWith(clean)
+  if (clean.includes('*')) {
+    const isMatch = picomatch([clean, `${clean}/**`])
+    return repoPath => isMatch(repoPath)
+  }
+  return repoPath => repoPath === clean || repoPath.startsWith(`${clean}/`)
 }
 
 /**
@@ -3503,20 +3110,17 @@ function matcherFor(pattern: string): (repoPath: string) => boolean {
  * a segunda pergunta é do GitHub, e imitá-la pela metade seria afirmar uma
  * precisão que este check não tem.
  */
-export function ownersOf(
-    codeowners: Codeowners,
-    repoPath: string
-): string[] | null {
-    const target = repoPath.replace(/\\/g, '/').replace(/^\.\//, '')
-    let owners: string[] | null = null
+export function ownersOf(codeowners: Codeowners, repoPath: string): string[] | null {
+  const target = repoPath.replace(/\\/g, '/').replace(/^\.\//, '')
+  let owners: string[] | null = null
 
-    // A última regra que casa ganha — é assim que o CODEOWNERS é lido.
-    for (const entry of codeowners.entries) {
-        if (entry.owners.length === 0) continue
-        if (matcherFor(entry.pattern)(target)) owners = entry.owners
-    }
+  // A última regra que casa ganha — é assim que o CODEOWNERS é lido.
+  for (const entry of codeowners.entries) {
+    if (entry.owners.length === 0) continue
+    if (matcherFor(entry.pattern)(target)) owners = entry.owners
+  }
 
-    return owners
+  return owners
 }
 ```
 
@@ -3537,43 +3141,39 @@ const FENCE = /^\s{0,3}(`{3,}|~{3,})/
  * falso positivo.
  */
 export function stripCode(source: string): string {
-    const lines = source.replace(/\r\n/g, '\n').split('\n')
-    const out: string[] = []
-    let fence: string | null = null
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
+  const out: string[] = []
+  let fence: string | null = null
 
-    for (const line of lines) {
-        const mark = FENCE.exec(line)?.[1]
+  for (const line of lines) {
+    const mark = FENCE.exec(line)?.[1]
 
-        if (fence === null) {
-            if (mark !== undefined) {
-                fence = mark
-                out.push('')
-                continue
-            }
-            out.push(line.replace(/`[^`\n]*`/g, ''))
-            continue
-        }
-
-        if (
-            mark !== undefined &&
-            mark[0] === fence[0] &&
-            mark.length >= fence.length
-        ) {
-            fence = null
-        }
+    if (fence === null) {
+      if (mark !== undefined) {
+        fence = mark
         out.push('')
+        continue
+      }
+      out.push(line.replace(/`[^`\n]*`/g, ''))
+      continue
     }
 
-    return out.join('\n')
+    if (mark !== undefined && mark[0] === fence[0] && mark.length >= fence.length) {
+      fence = null
+    }
+    out.push('')
+  }
+
+  return out.join('\n')
 }
 
 /** Prosa comparável: minúscula, sem marcação, sem pontuação, espaço colapsado. */
 export function normalizeProse(text: string): string {
-    return text
-        .toLowerCase()
-        .replace(/[*_`~]/g, '')
-        .replace(/[^\p{L}\p{N}]+/gu, ' ')
-        .trim()
+  return text
+    .toLowerCase()
+    .replace(/[*_`~]/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
 }
 
 const BLOCK_START = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+|\|)/
@@ -3589,35 +3189,35 @@ const MARKER = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+)/
  * frase que ninguém escreveu.
  */
 export function sentencesOf(source: string): { text: string; line: number }[] {
-    const lines = stripCode(source).split('\n')
-    const sentences: { text: string; line: number }[] = []
+  const lines = stripCode(source).split('\n')
+  const sentences: { text: string; line: number }[] = []
 
-    let buffer: string[] = []
-    let start = 0
+  let buffer: string[] = []
+  let start = 0
 
-    const flush = (): void => {
-        if (buffer.length === 0) return
-        const paragraph = buffer.join(' ').replace(/\s+/g, ' ').trim()
-        buffer = []
-        for (const piece of paragraph.split(/(?<=[.!?])\s+/)) {
-            const text = piece.trim()
-            if (text !== '') sentences.push({ text, line: start })
-        }
+  const flush = (): void => {
+    if (buffer.length === 0) return
+    const paragraph = buffer.join(' ').replace(/\s+/g, ' ').trim()
+    buffer = []
+    for (const piece of paragraph.split(/(?<=[.!?])\s+/)) {
+      const text = piece.trim()
+      if (text !== '') sentences.push({ text, line: start })
     }
+  }
 
-    for (let i = 0; i < lines.length; i++) {
-        const raw = lines[i] ?? ''
-        if (raw.trim() === '') {
-            flush()
-            continue
-        }
-        if (BLOCK_START.test(raw)) flush()
-        if (buffer.length === 0) start = i + 1
-        buffer.push(raw.replace(MARKER, '').trim())
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i] ?? ''
+    if (raw.trim() === '') {
+      flush()
+      continue
     }
-    flush()
+    if (BLOCK_START.test(raw)) flush()
+    if (buffer.length === 0) start = i + 1
+    buffer.push(raw.replace(MARKER, '').trim())
+  }
+  flush()
 
-    return sentences
+  return sentences
 }
 ```
 
@@ -3639,20 +3239,20 @@ import { listFiles } from '../core/files.ts'
  * caminho nenhum".
  */
 export function docsRoot(): string {
-    return posix.dirname(OWNERSHIP_PATH.replace(/\\/g, '/'))
+  return posix.dirname(OWNERSHIP_PATH.replace(/\\/g, '/'))
 }
 
 function normalize(path: string): string {
-    return path.replace(/\\/g, '/').replace(/^\.\//, '')
+  return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 /** Todo caminho que o `.ownership.yml` declara, em qualquer das três chaves. */
 export function declaredPaths(config: OwnershipConfig): string[] {
-    return [
-        ...config.artifacts.map(artifact => artifact.path),
-        ...config.documents.map(document => document.path),
-        ...config.generated.map(generated => generated.path)
-    ].map(normalize)
+  return [
+    ...config.artifacts.map(artifact => artifact.path),
+    ...config.documents.map(document => document.path),
+    ...config.generated.map(generated => generated.path),
+  ].map(normalize)
 }
 
 /**
@@ -3664,24 +3264,20 @@ export function declaredPaths(config: OwnershipConfig): string[] {
  * `README.md` que ninguém declarou fica de fora, e isso é deliberado — o
  * toolkit não decide que a raiz do repositório é documentação.
  */
-export function documentationFiles(
-    root: string,
-    config: OwnershipConfig
-): string[] {
-    const files = new Set(listFiles(root, [`${docsRoot()}/**`]))
-    const prefix = `${docsRoot()}/`
+export function documentationFiles(root: string, config: OwnershipConfig): string[] {
+  const files = new Set(listFiles(root, [`${docsRoot()}/**`]))
+  const prefix = `${docsRoot()}/`
 
-    for (const declared of declaredPaths(config)) {
-        if (declared.startsWith(prefix)) continue
-        if (declared.endsWith('/')) {
-            for (const file of listFiles(root, [`${declared}**`]))
-                files.add(file)
-            continue
-        }
-        if (existsSync(join(root, declared))) files.add(declared)
+  for (const declared of declaredPaths(config)) {
+    if (declared.startsWith(prefix)) continue
+    if (declared.endsWith('/')) {
+      for (const file of listFiles(root, [`${declared}**`])) files.add(file)
+      continue
     }
+    if (existsSync(join(root, declared))) files.add(declared)
+  }
 
-    return [...files].sort()
+  return [...files].sort()
 }
 ```
 
@@ -3698,21 +3294,15 @@ Crie `src/checks/exception-label.ts`:
  * desliga o mecanismo fingindo cumpri-lo. Dois rótulos já são o começo de uma
  * família — o terceiro precisa de ADR próprio.
  */
-export function exceptionReasonFor(
-    label: string,
-    messages: readonly string[]
-): string | null {
-    const pattern = new RegExp(
-        `^[ \\t]*${label}:[ \\t]*none[ \\t]*[—–:-][ \\t]*(\\S.*)$`,
-        'im'
-    )
+export function exceptionReasonFor(label: string, messages: readonly string[]): string | null {
+  const pattern = new RegExp(`^[ \\t]*${label}:[ \\t]*none[ \\t]*[—–:-][ \\t]*(\\S.*)$`, 'im')
 
-    for (const message of messages) {
-        const reason = pattern.exec(message)?.[1]?.trim()
-        if (reason) return reason
-    }
+  for (const message of messages) {
+    const reason = pattern.exec(message)?.[1]?.trim()
+    if (reason) return reason
+  }
 
-    return null
+  return null
 }
 ```
 
@@ -3730,7 +3320,7 @@ import { exceptionReasonFor } from './exception-label.ts'
  * compartilhada com `CI-7` desde a Fase 7 (`src/checks/exception-label.ts`).
  */
 export function exceptionReason(messages: readonly string[]): string | null {
-    return exceptionReasonFor('Changelog', messages)
+  return exceptionReasonFor('Changelog', messages)
 }
 ```
 
@@ -3749,12 +3339,7 @@ import { join } from 'node:path'
 import type { Check, CheckContext, Finding } from '../core/types.ts'
 import type { DiffFacts } from './ci6-changelog-required.ts'
 import { exceptionReasonFor } from './exception-label.ts'
-import {
-    OWNERSHIP_PATH,
-    documentWithRole,
-    findArtifactRule,
-    findDocumentRule
-} from '../config/ownership.ts'
+import { OWNERSHIP_PATH, documentWithRole, findArtifactRule, findDocumentRule } from '../config/ownership.ts'
 import { loadCodeowners, ownersOf } from '../config/codeowners.ts'
 import { pendingDocs } from '../config/watches.ts'
 import { documentationFiles } from '../docs/corpus.ts'
@@ -3775,75 +3360,63 @@ const VERIFICATION = /\b(?:CI|HK|AG|SK)-\d+\b|\bhumana?\b|\bhuman\b/i
 const DOD_ITEM = /^\s*[-*+]\s+\[[ xX]\]\s+\S/
 
 export interface Duplication {
-    /** A frase como está escrita no contrato. */
-    sentence: string
-    line: number
-    /** O artefato dono onde ela reaparece. */
-    source: string
+  /** A frase como está escrita no contrato. */
+  sentence: string
+  line: number
+  /** O artefato dono onde ela reaparece. */
+  source: string
 }
 
-function error(
-    file: string,
-    line: number,
-    message: string,
-    fix: string
-): Finding {
-    return { ruleId: RULE, file, line, severity: 'error', message, fix }
+function error(file: string, line: number, message: string, fix: string): Finding {
+  return { ruleId: RULE, file, line, severity: 'error', message, fix }
 }
 
 function normalizePath(path: string): string {
-    return path.replace(/\\/g, '/').replace(/^\.\//, '')
+  return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 /** O rótulo que libera a metade do diff (`ADR-0010`). */
-export function docsExceptionReason(
-    messages: readonly string[]
-): string | null {
-    return exceptionReasonFor('Docs', messages)
+export function docsExceptionReason(messages: readonly string[]): string | null {
+  return exceptionReasonFor('Docs', messages)
 }
 
 /** Frases do contrato do agente que reaparecem, palavra por palavra, num artefato dono. */
-export function duplicatedSentences(
-    contract: string,
-    corpus: readonly { file: string; source: string }[]
-): Duplication[] {
-    const normalized = corpus.map(entry => ({
-        file: entry.file,
-        text: normalizeProse(stripCode(entry.source))
-    }))
-    const found: Duplication[] = []
+export function duplicatedSentences(contract: string, corpus: readonly { file: string; source: string }[]): Duplication[] {
+  const normalized = corpus.map(entry => ({
+    file: entry.file,
+    text: normalizeProse(stripCode(entry.source)),
+  }))
+  const found: Duplication[] = []
 
-    for (const sentence of sentencesOf(contract)) {
-        const prose = normalizeProse(sentence.text)
-        if (prose.split(' ').filter(Boolean).length < WORD_FLOOR) continue
+  for (const sentence of sentencesOf(contract)) {
+    const prose = normalizeProse(sentence.text)
+    if (prose.split(' ').filter(Boolean).length < WORD_FLOOR) continue
 
-        const hit = normalized.find(entry => entry.text.includes(prose))
-        if (hit)
-            found.push({
-                sentence: sentence.text,
-                line: sentence.line,
-                source: hit.file
-            })
-    }
+    const hit = normalized.find(entry => entry.text.includes(prose))
+    if (hit)
+      found.push({
+        sentence: sentence.text,
+        line: sentence.line,
+        source: hit.file,
+      })
+  }
 
-    return found
+  return found
 }
 
 /** Itens de Definition of Done que não nomeiam o que os verifica (`RN-0017`). */
-export function dodItemsWithoutVerification(
-    source: string
-): { text: string; line: number }[] {
-    const lines = stripCode(source).split('\n')
-    const found: { text: string; line: number }[] = []
+export function dodItemsWithoutVerification(source: string): { text: string; line: number }[] {
+  const lines = stripCode(source).split('\n')
+  const found: { text: string; line: number }[] = []
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i] ?? ''
-        if (!DOD_ITEM.test(line)) continue
-        if (VERIFICATION.test(line)) continue
-        found.push({ text: line.trim(), line: i + 1 })
-    }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? ''
+    if (!DOD_ITEM.test(line)) continue
+    if (VERIFICATION.test(line)) continue
+    found.push({ text: line.trim(), line: i + 1 })
+  }
 
-    return found
+  return found
 }
 
 /**
@@ -3860,195 +3433,166 @@ export function dodItemsWithoutVerification(
  * para a duplicação.
  */
 export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
-    return {
-        id: RULE,
-        name: 'ownership coverage',
-        run(context: CheckContext): Finding[] {
-            const findings: Finding[] = []
-            const { config, root } = context
+  return {
+    id: RULE,
+    name: 'ownership coverage',
+    run(context: CheckContext): Finding[] {
+      const findings: Finding[] = []
+      const { config, root } = context
 
-            const isDeclared = (file: string): boolean =>
-                findArtifactRule(config, file) !== null ||
-                findDocumentRule(config, file) !== null ||
-                config.generated.some(
-                    generated => normalizePath(generated.path) === file
-                )
+      const isDeclared = (file: string): boolean =>
+        findArtifactRule(config, file) !== null ||
+        findDocumentRule(config, file) !== null ||
+        config.generated.some(generated => normalizePath(generated.path) === file)
 
-            const codeowners = loadCodeowners(root)
-            if (codeowners === null) {
-                findings.push(
-                    error(
-                        OWNERSHIP_PATH,
-                        0,
-                        'CODEOWNERS ausente: nenhum documento deste repositório tem dono declarado do lado de quem revisa.',
-                        'Crie `CODEOWNERS` na raiz (ou em `.github/`), espelhando o campo `owner` de cada entrada de ' +
-                            '`docs/.ownership.yml` (`RN-0016`; `living-docs init` o escreve).'
-                    )
-                )
-            }
+      const codeowners = loadCodeowners(root)
+      if (codeowners === null) {
+        findings.push(
+          error(
+            OWNERSHIP_PATH,
+            0,
+            'CODEOWNERS ausente: nenhum documento deste repositório tem dono declarado do lado de quem revisa.',
+            'Crie `CODEOWNERS` na raiz (ou em `.github/`), espelhando o campo `owner` de cada entrada de ' +
+              '`docs/.ownership.yml` (`RN-0016`; `living-docs init` o escreve).',
+          ),
+        )
+      }
 
-            // 1 — todo documento do corpus tem dono nos dois lugares.
-            for (const file of documentationFiles(root, config)) {
-                if (!isDeclared(file)) {
-                    findings.push(
-                        error(
-                            file,
-                            0,
-                            `\`${file}\` não tem entrada em \`${OWNERSHIP_PATH}\`.`,
-                            'Declare-o em `artifacts:` (se tem família de IDs e ciclo de vida), em `documents:` (se tem dono e ' +
-                                'não tem IDs) ou em `generated:` (se é gerado) — `RN-0016`, `ADR-0008`. Documento sem dono é o ' +
-                                'anti-requisito da spec §13.'
-                        )
-                    )
-                }
-
-                if (
-                    codeowners !== null &&
-                    ownersOf(codeowners, file) === null
-                ) {
-                    findings.push(
-                        error(
-                            file,
-                            0,
-                            `\`${file}\` não tem linha em \`${codeowners.file}\`.`,
-                            `Acrescente \`${file}    @dono\` (ou um padrão de diretório que o cubra) espelhando o \`owner\` do ` +
-                                '`.ownership.yml` — os dois lugares, porque um deles diz qual skill responde e o outro quem revisa.'
-                        )
-                    )
-                }
-            }
-
-            // 2 — todo vínculo de watches aponta um doc que existe e tem dono.
-            for (const watch of config.watches) {
-                const doc = normalizePath(watch.doc)
-                if (!existsSync(join(root, doc))) {
-                    findings.push(
-                        error(
-                            OWNERSHIP_PATH,
-                            0,
-                            `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse caminho não existe no repositório.`,
-                            'Crie o documento, ou corrija o `doc` da regra. Vínculo que aponta para o vazio faz `HK-4` e `HK-5` ' +
-                                'pedirem um documento que ninguém pode atualizar (`RN-0017`).'
-                        )
-                    )
-                    continue
-                }
-                if (!isDeclared(doc)) {
-                    findings.push(
-                        error(
-                            OWNERSHIP_PATH,
-                            0,
-                            `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse documento não tem dono declarado.`,
-                            `Declare \`${doc}\` em \`artifacts:\` ou \`documents:\` — o vínculo código→doc só é cobrável se o doc ` +
-                                'tiver dono (`RN-0016`, `RN-0017`).'
-                        )
-                    )
-                }
-            }
-
-            // 3 — o contrato do agente repetindo texto de artefato dono.
-            const contract = documentWithRole(config, 'agent-contract')
-            if (contract !== null) {
-                const contractPath = normalizePath(contract.path)
-                const source =
-                    context.documents.find(
-                        document => document.file === contractPath
-                    )?.source ?? null
-
-                if (source !== null) {
-                    // Corpus: quem tem skill dona. Plano, spec e README citam por ofício, e
-                    // reprovar o contrato por causa de quem o citou inverteria quem copiou
-                    // de quem (`ADR-0009`).
-                    const corpus = [
-                        ...context.docs.map(doc => ({
-                            file: doc.file,
-                            source: doc.source,
-                            skill: doc.rule.skill
-                        })),
-                        ...context.documents.map(document => ({
-                            file: document.file,
-                            source: document.source,
-                            skill: document.rule.skill
-                        }))
-                    ].filter(
-                        entry =>
-                            entry.skill !== null &&
-                            entry.file !== contractPath &&
-                            entry.file.endsWith('.md')
-                    )
-
-                    for (const duplication of duplicatedSentences(
-                        source,
-                        corpus
-                    )) {
-                        findings.push(
-                            error(
-                                contractPath,
-                                duplication.line,
-                                `O contrato do agente repete, palavra por palavra, uma frase de \`${duplication.source}\`: ` +
-                                    `"${duplication.sentence.slice(0, 120)}".`,
-                                'Apague a frase e deixe o ponteiro para o artefato dono. O contrato do agente é índice e política, ' +
-                                    'não conteúdo (`RN-0010`, `RN-0020`; skill dona: working-agreements-keeper) — e o limiar não se ' +
-                                    'baixa: mudá-lo é `ADR-0009` novo.'
-                            )
-                        )
-                    }
-                }
-            }
-
-            // 4 — item de Definition of Done sem verificação nomeada.
-            const dod = documentWithRole(config, 'definition-of-done')
-            if (dod !== null) {
-                const dodPath = normalizePath(dod.path)
-                const source =
-                    context.documents.find(
-                        document => document.file === dodPath
-                    )?.source ?? null
-
-                if (source !== null) {
-                    for (const item of dodItemsWithoutVerification(source)) {
-                        findings.push(
-                            error(
-                                dodPath,
-                                item.line,
-                                `Item da Definition of Done sem verificação nomeada: "${item.text.slice(0, 120)}".`,
-                                'Nomeie o que verifica o item — um `CI-n`, um `HK-n`, ou a palavra que marca verificação humana. ' +
-                                    'Item que ninguém verifica é intenção, e intenção não é definição de pronto (`RN-0017`).'
-                            )
-                        )
-                    }
-                }
-            }
-
-            // 5 — a metade do diff (critério 5, metade 2; `ADR-0010`).
-            if (diff !== null && docsExceptionReason(diff.messages) === null) {
-                for (const pending of pendingDocs(config, diff.changed)) {
-                    const gatilho =
-                        pending.matched.slice(0, 5).join(', ') +
-                        (pending.matched.length > 5
-                            ? `, … (+${pending.matched.length - 5})`
-                            : '')
-
-                    findings.push(
-                        error(
-                            pending.doc,
-                            0,
-                            `O diff \`${diff.base}...HEAD\` toca caminho vigiado (${gatilho}) e \`${pending.doc}\` não está entre ` +
-                                'os caminhos alterados.',
-                            `Atualize \`${pending.doc}\`${
-                                pending.skill === null
-                                    ? ''
-                                    : ` (skill dona: ${pending.skill})`
-                            } no mesmo PR — ou escreva a razão numa mensagem de commit, no formato \`Docs: none — <razão>\` ` +
-                                '(`RN-0021`, `ADR-0010`).'
-                        )
-                    )
-                }
-            }
-
-            return findings
+      // 1 — todo documento do corpus tem dono nos dois lugares.
+      for (const file of documentationFiles(root, config)) {
+        if (!isDeclared(file)) {
+          findings.push(
+            error(
+              file,
+              0,
+              `\`${file}\` não tem entrada em \`${OWNERSHIP_PATH}\`.`,
+              'Declare-o em `artifacts:` (se tem família de IDs e ciclo de vida), em `documents:` (se tem dono e ' +
+                'não tem IDs) ou em `generated:` (se é gerado) — `RN-0016`, `ADR-0008`. Documento sem dono é o ' +
+                'anti-requisito da spec §13.',
+            ),
+          )
         }
-    }
+
+        if (codeowners !== null && ownersOf(codeowners, file) === null) {
+          findings.push(
+            error(
+              file,
+              0,
+              `\`${file}\` não tem linha em \`${codeowners.file}\`.`,
+              `Acrescente \`${file}    @dono\` (ou um padrão de diretório que o cubra) espelhando o \`owner\` do ` +
+                '`.ownership.yml` — os dois lugares, porque um deles diz qual skill responde e o outro quem revisa.',
+            ),
+          )
+        }
+      }
+
+      // 2 — todo vínculo de watches aponta um doc que existe e tem dono.
+      for (const watch of config.watches) {
+        const doc = normalizePath(watch.doc)
+        if (!existsSync(join(root, doc))) {
+          findings.push(
+            error(
+              OWNERSHIP_PATH,
+              0,
+              `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse caminho não existe no repositório.`,
+              'Crie o documento, ou corrija o `doc` da regra. Vínculo que aponta para o vazio faz `HK-4` e `HK-5` ' +
+                'pedirem um documento que ninguém pode atualizar (`RN-0017`).',
+            ),
+          )
+          continue
+        }
+        if (!isDeclared(doc)) {
+          findings.push(
+            error(
+              OWNERSHIP_PATH,
+              0,
+              `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse documento não tem dono declarado.`,
+              `Declare \`${doc}\` em \`artifacts:\` ou \`documents:\` — o vínculo código→doc só é cobrável se o doc ` + 'tiver dono (`RN-0016`, `RN-0017`).',
+            ),
+          )
+        }
+      }
+
+      // 3 — o contrato do agente repetindo texto de artefato dono.
+      const contract = documentWithRole(config, 'agent-contract')
+      if (contract !== null) {
+        const contractPath = normalizePath(contract.path)
+        const source = context.documents.find(document => document.file === contractPath)?.source ?? null
+
+        if (source !== null) {
+          // Corpus: quem tem skill dona. Plano, spec e README citam por ofício, e
+          // reprovar o contrato por causa de quem o citou inverteria quem copiou
+          // de quem (`ADR-0009`).
+          const corpus = [
+            ...context.docs.map(doc => ({
+              file: doc.file,
+              source: doc.source,
+              skill: doc.rule.skill,
+            })),
+            ...context.documents.map(document => ({
+              file: document.file,
+              source: document.source,
+              skill: document.rule.skill,
+            })),
+          ].filter(entry => entry.skill !== null && entry.file !== contractPath && entry.file.endsWith('.md'))
+
+          for (const duplication of duplicatedSentences(source, corpus)) {
+            findings.push(
+              error(
+                contractPath,
+                duplication.line,
+                `O contrato do agente repete, palavra por palavra, uma frase de \`${duplication.source}\`: ` + `"${duplication.sentence.slice(0, 120)}".`,
+                'Apague a frase e deixe o ponteiro para o artefato dono. O contrato do agente é índice e política, ' +
+                  'não conteúdo (`RN-0010`, `RN-0020`; skill dona: working-agreements-keeper) — e o limiar não se ' +
+                  'baixa: mudá-lo é `ADR-0009` novo.',
+              ),
+            )
+          }
+        }
+      }
+
+      // 4 — item de Definition of Done sem verificação nomeada.
+      const dod = documentWithRole(config, 'definition-of-done')
+      if (dod !== null) {
+        const dodPath = normalizePath(dod.path)
+        const source = context.documents.find(document => document.file === dodPath)?.source ?? null
+
+        if (source !== null) {
+          for (const item of dodItemsWithoutVerification(source)) {
+            findings.push(
+              error(
+                dodPath,
+                item.line,
+                `Item da Definition of Done sem verificação nomeada: "${item.text.slice(0, 120)}".`,
+                'Nomeie o que verifica o item — um `CI-n`, um `HK-n`, ou a palavra que marca verificação humana. ' +
+                  'Item que ninguém verifica é intenção, e intenção não é definição de pronto (`RN-0017`).',
+              ),
+            )
+          }
+        }
+      }
+
+      // 5 — a metade do diff (critério 5, metade 2; `ADR-0010`).
+      if (diff !== null && docsExceptionReason(diff.messages) === null) {
+        for (const pending of pendingDocs(config, diff.changed)) {
+          const gatilho = pending.matched.slice(0, 5).join(', ') + (pending.matched.length > 5 ? `, … (+${pending.matched.length - 5})` : '')
+
+          findings.push(
+            error(
+              pending.doc,
+              0,
+              `O diff \`${diff.base}...HEAD\` toca caminho vigiado (${gatilho}) e \`${pending.doc}\` não está entre ` + 'os caminhos alterados.',
+              `Atualize \`${pending.doc}\`${
+                pending.skill === null ? '' : ` (skill dona: ${pending.skill})`
+              } no mesmo PR — ou escreva a razão numa mensagem de commit, no formato \`Docs: none — <razão>\` ` + '(`RN-0021`, `ADR-0010`).',
+            ),
+          )
+        }
+      }
+
+      return findings
+    },
+  }
 }
 ```
 
@@ -4088,10 +3632,10 @@ apagando o código.
   `documentationFiles` de `src/docs/corpus.ts`; `stripCode` de
   `src/docs/markdown.ts`.
 - Produz:
-    - `interface Link { target: string; line: number; kind: 'link' | 'wikilink' }`
-    - `BINARY_EXTENSIONS: ReadonlySet<string>`
-    - `findLinks(source: string): Link[]`
-    - `ci8Links: Check`
+  - `interface Link { target: string; line: number; kind: 'link' | 'wikilink' }`
+  - `BINARY_EXTENSIONS: ReadonlySet<string>`
+  - `findLinks(source: string): Link[]`
+  - `ci8Links: Check`
 
 **Requisitos:**
 
@@ -4150,180 +3694,155 @@ documents:
 `
 
 function contextFor(root: string) {
-    const config = parseOwnership(OWNERSHIP)
-    return {
-        root,
-        config,
-        docs: collectArtifacts(root, config),
-        documents: collectDocuments(root, config),
-        today: '2026-08-27'
-    }
+  const config = parseOwnership(OWNERSHIP)
+  return {
+    root,
+    config,
+    docs: collectArtifacts(root, config),
+    documents: collectDocuments(root, config),
+    today: '2026-08-27',
+  }
 }
 
 const BASE = {
-    'docs/.ownership.yml': OWNERSHIP,
-    'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
-    'CONTRIBUTING.md': '# como se contribui\n'
+  'docs/.ownership.yml': OWNERSHIP,
+  'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
+  'CONTRIBUTING.md': '# como se contribui\n',
 }
 
 test('RN-0023: link relativo que resolve passa; arquivo, diretório e âncora inclusive', () => {
-    withTempRepo(
-        {
-            ...BASE,
-            'docs/guia.md': [
-                '# Guia',
-                '',
-                'Veja [o ADR](decisions/adr/ADR-0001-x.md) e [a pasta](decisions/adr/).',
-                'A âncora [dentro dele](decisions/adr/ADR-0001-x.md#contexto) também resolve.',
-                'E [da raiz](/CONTRIBUTING.md) igual.',
-                'Externo passa: [site](https://example.com) e [correio](mailto:a@b.c).',
-                'Âncora pura passa: [aqui](#guia).',
-                ''
-            ].join('\n')
-        },
-        root => {
-            assert.deepEqual(ci8Links.run(contextFor(root)), [])
-        }
-    )
+  withTempRepo(
+    {
+      ...BASE,
+      'docs/guia.md': [
+        '# Guia',
+        '',
+        'Veja [o ADR](decisions/adr/ADR-0001-x.md) e [a pasta](decisions/adr/).',
+        'A âncora [dentro dele](decisions/adr/ADR-0001-x.md#contexto) também resolve.',
+        'E [da raiz](/CONTRIBUTING.md) igual.',
+        'Externo passa: [site](https://example.com) e [correio](mailto:a@b.c).',
+        'Âncora pura passa: [aqui](#guia).',
+        '',
+      ].join('\n'),
+    },
+    root => {
+      assert.deepEqual(ci8Links.run(contextFor(root)), [])
+    },
+  )
 })
 
 test('RN-0023: link que não resolve reprova, com a linha e o alvo', () => {
-    withTempRepo(
-        {
-            ...BASE,
-            'docs/guia.md': [
-                '# Guia',
-                '',
-                'Veja [o que não existe](decisions/adr/ADR-9999-x.md).',
-                ''
-            ].join('\n')
-        },
-        root => {
-            const findings = ci8Links.run(contextFor(root))
-            assert.equal(findings.length, 1)
-            assert.equal(findings[0]?.ruleId, 'CI-8')
-            assert.equal(findings[0]?.severity, 'error')
-            assert.equal(findings[0]?.file, 'docs/guia.md')
-            assert.equal(findings[0]?.line, 3)
-            assert.match(findings[0]?.message ?? '', /ADR-9999-x\.md/)
-        }
-    )
+  withTempRepo(
+    {
+      ...BASE,
+      'docs/guia.md': ['# Guia', '', 'Veja [o que não existe](decisions/adr/ADR-9999-x.md).', ''].join('\n'),
+    },
+    root => {
+      const findings = ci8Links.run(contextFor(root))
+      assert.equal(findings.length, 1)
+      assert.equal(findings[0]?.ruleId, 'CI-8')
+      assert.equal(findings[0]?.severity, 'error')
+      assert.equal(findings[0]?.file, 'docs/guia.md')
+      assert.equal(findings[0]?.line, 3)
+      assert.match(findings[0]?.message ?? '', /ADR-9999-x\.md/)
+    },
+  )
 })
 
 test('RN-0023: link dentro de bloco cercado ou de marcação inline não é link', () => {
-    withTempRepo(
-        {
-            ...BASE,
-            'docs/guia.md': [
-                '# Guia',
-                '',
-                'Regex inline: `/\\]\\(?:mente\\)/` não é link.',
-                '',
-                '```ts',
-                'const CADENCE = /\\b(?:tri|bi)?mestral(?:mente)?\\b/i;',
-                'const link = "[texto](nao-existe.md)";',
-                '```',
-                '',
-                'E `[[wikilink]]` entre crases é o nome do formato, não um destino.',
-                ''
-            ].join('\n')
-        },
-        root => {
-            assert.deepEqual(ci8Links.run(contextFor(root)), [])
-        }
-    )
+  withTempRepo(
+    {
+      ...BASE,
+      'docs/guia.md': [
+        '# Guia',
+        '',
+        'Regex inline: `/\\]\\(?:mente\\)/` não é link.',
+        '',
+        '```ts',
+        'const CADENCE = /\\b(?:tri|bi)?mestral(?:mente)?\\b/i;',
+        'const link = "[texto](nao-existe.md)";',
+        '```',
+        '',
+        'E `[[wikilink]]` entre crases é o nome do formato, não um destino.',
+        '',
+      ].join('\n'),
+    },
+    root => {
+      assert.deepEqual(ci8Links.run(contextFor(root)), [])
+    },
+  )
 })
 
 test('RN-0023: wikilink resolve por nome do arquivo, e sem destino reprova', () => {
-    withTempRepo(
-        {
-            ...BASE,
-            'docs/guia.md': [
-                '# Guia',
-                '',
-                'Veja [[ADR-0001-x]] e [[CONTRIBUTING]].',
-                'Mas [[nada-disso]] não existe.',
-                ''
-            ].join('\n')
-        },
-        root => {
-            const findings = ci8Links.run(contextFor(root))
-            assert.equal(findings.length, 1)
-            assert.equal(findings[0]?.line, 4)
-            assert.match(findings[0]?.message ?? '', /nada-disso/)
-            assert.match(findings[0]?.message ?? '', /wikilink/i)
-        }
-    )
+  withTempRepo(
+    {
+      ...BASE,
+      'docs/guia.md': ['# Guia', '', 'Veja [[ADR-0001-x]] e [[CONTRIBUTING]].', 'Mas [[nada-disso]] não existe.', ''].join('\n'),
+    },
+    root => {
+      const findings = ci8Links.run(contextFor(root))
+      assert.equal(findings.length, 1)
+      assert.equal(findings[0]?.line, 4)
+      assert.match(findings[0]?.message ?? '', /nada-disso/)
+      assert.match(findings[0]?.message ?? '', /wikilink/i)
+    },
+  )
 })
 
 test('RN-0023: definição de referência também é link', () => {
-    withTempRepo(
-        {
-            ...BASE,
-            'docs/guia.md': [
-                '# Guia',
-                '',
-                'Veja [o adr][adr].',
-                '',
-                '[adr]: decisions/adr/ADR-0000-inexistente.md',
-                ''
-            ].join('\n')
-        },
-        root => {
-            const findings = ci8Links.run(contextFor(root))
-            assert.equal(findings.length, 1)
-            assert.equal(findings[0]?.line, 5)
-        }
-    )
+  withTempRepo(
+    {
+      ...BASE,
+      'docs/guia.md': ['# Guia', '', 'Veja [o adr][adr].', '', '[adr]: decisions/adr/ADR-0000-inexistente.md', ''].join('\n'),
+    },
+    root => {
+      const findings = ci8Links.run(contextFor(root))
+      assert.equal(findings.length, 1)
+      assert.equal(findings[0]?.line, 5)
+    },
+  )
 })
 
 test('RN-0023: anexo binário sob a raiz da documentação reprova; texto e .gitkeep não', () => {
-    withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
-        mkdirSync(join(root, 'docs/anexos'), { recursive: true })
-        writeFileSync(
-            join(root, 'docs/anexos/diagrama.png'),
-            Buffer.from([0x89, 0x50, 0x4e, 0x47])
-        )
-        writeFileSync(
-            join(root, 'docs/anexos/diagrama.svg'),
-            '<svg></svg>\n',
-            'utf8'
-        )
-        writeFileSync(join(root, 'docs/anexos/dados.json'), '{}\n', 'utf8')
-        writeFileSync(join(root, 'docs/anexos/.gitkeep'), '', 'utf8')
+  withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
+    mkdirSync(join(root, 'docs/anexos'), { recursive: true })
+    writeFileSync(join(root, 'docs/anexos/diagrama.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
+    writeFileSync(join(root, 'docs/anexos/diagrama.svg'), '<svg></svg>\n', 'utf8')
+    writeFileSync(join(root, 'docs/anexos/dados.json'), '{}\n', 'utf8')
+    writeFileSync(join(root, 'docs/anexos/.gitkeep'), '', 'utf8')
 
-        const findings = ci8Links.run(contextFor(root))
-        assert.equal(findings.length, 1, JSON.stringify(findings, null, 2))
-        assert.equal(findings[0]?.file, 'docs/anexos/diagrama.png')
-        assert.match(findings[0]?.message ?? '', /binário/)
-        assert.match(findings[0]?.fix ?? '', /texto|SVG/i)
-    })
+    const findings = ci8Links.run(contextFor(root))
+    assert.equal(findings.length, 1, JSON.stringify(findings, null, 2))
+    assert.equal(findings[0]?.file, 'docs/anexos/diagrama.png')
+    assert.match(findings[0]?.message ?? '', /binário/)
+    assert.match(findings[0]?.fix ?? '', /texto|SVG/i)
+  })
 })
 
 test('RN-0023: binário fora da raiz da documentação não é assunto de CI-8', () => {
-    withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
-        mkdirSync(join(root, 'assets'), { recursive: true })
-        writeFileSync(join(root, 'assets/logo.png'), Buffer.from([0x89, 0x50]))
-        assert.deepEqual(ci8Links.run(contextFor(root)), [])
-    })
+  withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
+    mkdirSync(join(root, 'assets'), { recursive: true })
+    writeFileSync(join(root, 'assets/logo.png'), Buffer.from([0x89, 0x50]))
+    assert.deepEqual(ci8Links.run(contextFor(root)), [])
+  })
 })
 
 test('findLinks reconhece as três formas e ignora externo e âncora pura', () => {
-    const source = [
-        'inline [a](x.md) e imagem ![b](y.png)',
-        '[ref]: z.md',
-        'wiki [[w]] e [[w|com título]]',
-        'externo [c](https://x.y) [d](mailto:a@b.c) [e](//cdn.x)',
-        'âncora [f](#secao)'
-    ].join('\n')
+  const source = [
+    'inline [a](x.md) e imagem ![b](y.png)',
+    '[ref]: z.md',
+    'wiki [[w]] e [[w|com título]]',
+    'externo [c](https://x.y) [d](mailto:a@b.c) [e](//cdn.x)',
+    'âncora [f](#secao)',
+  ].join('\n')
 
-    assert.deepEqual(findLinks(source), [
-        { target: 'x.md', line: 1, kind: 'link' },
-        { target: 'y.png', line: 1, kind: 'link' },
-        { target: 'z.md', line: 2, kind: 'link' },
-        { target: 'w', line: 3, kind: 'wikilink' },
-        { target: 'w', line: 3, kind: 'wikilink' }
-    ])
+  assert.deepEqual(findLinks(source), [
+    { target: 'x.md', line: 1, kind: 'link' },
+    { target: 'y.png', line: 1, kind: 'link' },
+    { target: 'z.md', line: 2, kind: 'link' },
+    { target: 'w', line: 3, kind: 'wikilink' },
+    { target: 'w', line: 3, kind: 'wikilink' },
+  ])
 })
 ````
 
@@ -4355,59 +3874,59 @@ const RULE = 'CI-8'
  * estilo em vez de cobrar a regra. O que a spec recusa é o **binário**.
  */
 export const BINARY_EXTENSIONS: ReadonlySet<string> = new Set([
-    'png',
-    'jpg',
-    'jpeg',
-    'gif',
-    'bmp',
-    'webp',
-    'ico',
-    'tif',
-    'tiff',
-    'pdf',
-    'doc',
-    'docx',
-    'xls',
-    'xlsx',
-    'ppt',
-    'pptx',
-    'odt',
-    'ods',
-    'odp',
-    'zip',
-    'gz',
-    'tgz',
-    'bz2',
-    'xz',
-    '7z',
-    'rar',
-    'jar',
-    'mp3',
-    'mp4',
-    'mov',
-    'avi',
-    'mkv',
-    'wav',
-    'ogg',
-    'webm',
-    'ttf',
-    'otf',
-    'woff',
-    'woff2',
-    'eot',
-    'drawio',
-    'vsdx',
-    'sketch',
-    'fig',
-    'psd',
-    'ai'
+  'png',
+  'jpg',
+  'jpeg',
+  'gif',
+  'bmp',
+  'webp',
+  'ico',
+  'tif',
+  'tiff',
+  'pdf',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'ppt',
+  'pptx',
+  'odt',
+  'ods',
+  'odp',
+  'zip',
+  'gz',
+  'tgz',
+  'bz2',
+  'xz',
+  '7z',
+  'rar',
+  'jar',
+  'mp3',
+  'mp4',
+  'mov',
+  'avi',
+  'mkv',
+  'wav',
+  'ogg',
+  'webm',
+  'ttf',
+  'otf',
+  'woff',
+  'woff2',
+  'eot',
+  'drawio',
+  'vsdx',
+  'sketch',
+  'fig',
+  'psd',
+  'ai',
 ])
 
 export interface Link {
-    target: string
-    /** Linha 1-indexed. */
-    line: number
-    kind: 'link' | 'wikilink'
+  target: string
+  /** Linha 1-indexed. */
+  line: number
+  kind: 'link' | 'wikilink'
 }
 
 const INLINE = /\[[^\]\n]*\]\(\s*<?([^)>\s]+)>?(?:\s+"[^"]*")?\s*\)/g
@@ -4417,18 +3936,13 @@ const WIKILINK = /\[\[([^\]|\n]+?)(?:\|[^\]\n]*)?\]\]/g
 /** Protocolo, ou raiz de rede: o alvo não é deste repositório. */
 const EXTERNAL = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i
 
-function error(
-    file: string,
-    line: number,
-    message: string,
-    fix: string
-): Finding {
-    return { ruleId: RULE, file, line, severity: 'error', message, fix }
+function error(file: string, line: number, message: string, fix: string): Finding {
+  return { ruleId: RULE, file, line, severity: 'error', message, fix }
 }
 
 /** O alvo aponta para fora do repositório, ou para dentro do próprio arquivo. */
 function isOutOfScope(target: string): boolean {
-    return EXTERNAL.test(target) || target.startsWith('#')
+  return EXTERNAL.test(target) || target.startsWith('#')
 }
 
 /**
@@ -4439,25 +3953,24 @@ function isOutOfScope(target: string): boolean {
  * `https://` precisa de rede, e o toolkit não tem (`RNF-0001`).
  */
 export function findLinks(source: string): Link[] {
-    const lines = source.replace(/\r\n/g, '\n').split('\n')
-    const links: Link[] = []
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
+  const links: Link[] = []
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i] ?? ''
-        for (const regex of [INLINE, DEFINITION]) {
-            for (const match of line.matchAll(regex)) {
-                const target = match[1]
-                if (target && !isOutOfScope(target))
-                    links.push({ target, line: i + 1, kind: 'link' })
-            }
-        }
-        for (const match of line.matchAll(WIKILINK)) {
-            const target = match[1]?.trim()
-            if (target) links.push({ target, line: i + 1, kind: 'wikilink' })
-        }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? ''
+    for (const regex of [INLINE, DEFINITION]) {
+      for (const match of line.matchAll(regex)) {
+        const target = match[1]
+        if (target && !isOutOfScope(target)) links.push({ target, line: i + 1, kind: 'link' })
+      }
     }
+    for (const match of line.matchAll(WIKILINK)) {
+      const target = match[1]?.trim()
+      if (target) links.push({ target, line: i + 1, kind: 'wikilink' })
+    }
+  }
 
-    return links
+  return links
 }
 
 /**
@@ -4469,40 +3982,38 @@ export function findLinks(source: string): Link[] {
  * metade reprova link que funciona.
  */
 function resolveTarget(from: string, target: string): string | null {
-    const withoutFragment = target.split('#')[0]?.split('?')[0] ?? ''
-    if (withoutFragment === '') return null
+  const withoutFragment = target.split('#')[0]?.split('?')[0] ?? ''
+  if (withoutFragment === '') return null
 
-    let decoded = withoutFragment
-    try {
-        decoded = decodeURIComponent(withoutFragment)
-    } catch {
-        // alvo com `%` que não é escape: verifica como veio
-    }
+  let decoded = withoutFragment
+  try {
+    decoded = decodeURIComponent(withoutFragment)
+  } catch {
+    // alvo com `%` que não é escape: verifica como veio
+  }
 
-    const base = decoded.startsWith('/')
-        ? decoded.slice(1)
-        : posix.join(posix.dirname(from), decoded)
+  const base = decoded.startsWith('/') ? decoded.slice(1) : posix.join(posix.dirname(from), decoded)
 
-    return posix.normalize(base).replace(/^\.\//, '')
+  return posix.normalize(base).replace(/^\.\//, '')
 }
 
 /** Nome de arquivo (sem `.md`, minúsculo) → arquivos do corpus com aquele nome. */
 function wikilinkIndex(files: readonly string[]): Map<string, string[]> {
-    const index = new Map<string, string[]>()
+  const index = new Map<string, string[]>()
 
-    for (const file of files) {
-        const name = posix.basename(file).replace(/\.md$/i, '').toLowerCase()
-        index.set(name, [...(index.get(name) ?? []), file])
-    }
+  for (const file of files) {
+    const name = posix.basename(file).replace(/\.md$/i, '').toLowerCase()
+    index.set(name, [...(index.get(name) ?? []), file])
+  }
 
-    return index
+  return index
 }
 
 function extensionOf(file: string): string | null {
-    const base = posix.basename(file)
-    const dot = base.lastIndexOf('.')
-    // `dot <= 0` cobre "sem extensão" e ".gitkeep" — nome que começa com ponto.
-    return dot <= 0 ? null : base.slice(dot + 1).toLowerCase()
+  const base = posix.basename(file)
+  const dot = base.lastIndexOf('.')
+  // `dot <= 0` cobre "sem extensão" e ".gitkeep" — nome que começa com ponto.
+  return dot <= 0 ? null : base.slice(dot + 1).toLowerCase()
 }
 
 /**
@@ -4513,83 +4024,76 @@ function extensionOf(file: string): string | null {
  * TypeScript — e cobrar exemplo ensina a não escrever exemplo.
  */
 export const ci8Links: Check = {
-    id: RULE,
-    name: 'links',
-    run(context: CheckContext): Finding[] {
-        const findings: Finding[] = []
-        const files = documentationFiles(context.root, context.config)
-        const prefix = `${docsRoot()}/`
-        const corpus = new Set(files)
-        const index = wikilinkIndex(files)
+  id: RULE,
+  name: 'links',
+  run(context: CheckContext): Finding[] {
+    const findings: Finding[] = []
+    const files = documentationFiles(context.root, context.config)
+    const prefix = `${docsRoot()}/`
+    const corpus = new Set(files)
+    const index = wikilinkIndex(files)
 
-        // 1 — anexo binário sob a raiz da documentação (spec §13).
-        for (const file of files) {
-            if (!file.startsWith(prefix)) continue
-            const extension = extensionOf(file)
-            if (extension === null || !BINARY_EXTENSIONS.has(extension))
-                continue
+    // 1 — anexo binário sob a raiz da documentação (spec §13).
+    for (const file of files) {
+      if (!file.startsWith(prefix)) continue
+      const extension = extensionOf(file)
+      if (extension === null || !BINARY_EXTENSIONS.has(extension)) continue
 
-            findings.push(
-                error(
-                    file,
-                    0,
-                    `Anexo em formato binário sob \`${prefix}\`: \`.${extension}\` não se lê em diff nem se revisa em PR.`,
-                    'Guarde a fonte em texto (Mermaid num bloco de código, SVG, ou o `.puml`/`.dot` que o gera) e ' +
-                        'mantenha o binário fora da documentação versionada (spec §13, `RN-0023`).'
-                )
-            )
-        }
-
-        // 2 — links.
-        for (const file of files) {
-            if (!file.endsWith('.md')) continue
-            const source = readTextFile(context.root, file)
-            if (source === null) continue
-
-            for (const link of findLinks(stripCode(source))) {
-                if (link.kind === 'wikilink') {
-                    const target = link.target.replace(/\.md$/i, '')
-                    const resolved =
-                        corpus.has(`${target}.md`) ||
-                        corpus.has(target) ||
-                        index.has(target.toLowerCase())
-
-                    if (!resolved) {
-                        findings.push(
-                            error(
-                                file,
-                                link.line,
-                                `\`[[${link.target}]]\` não tem destino: nenhum documento do corpus se chama assim.`,
-                                'Aponte para um documento existente pelo nome do arquivo, ou troque por um link relativo. ' +
-                                    'Wikilink sem destino afirma uma ligação que não existe (`RN-0023`).'
-                            )
-                        )
-                    }
-                    continue
-                }
-
-                const resolved = resolveTarget(file, link.target)
-                if (resolved === null) continue
-
-                if (
-                    resolved.startsWith('..') ||
-                    !existsSync(join(context.root, resolved))
-                ) {
-                    findings.push(
-                        error(
-                            file,
-                            link.line,
-                            `Link interno quebrado: \`${link.target}\` resolve para \`${resolved}\`, que não existe.`,
-                            'Corrija o caminho, ou remova o link. A âncora (`#seção`) não é verificada — só o arquivo —, ' +
-                                'então um link com âncora só reprova quando o arquivo não existe (`RN-0023`).'
-                        )
-                    )
-                }
-            }
-        }
-
-        return findings
+      findings.push(
+        error(
+          file,
+          0,
+          `Anexo em formato binário sob \`${prefix}\`: \`.${extension}\` não se lê em diff nem se revisa em PR.`,
+          'Guarde a fonte em texto (Mermaid num bloco de código, SVG, ou o `.puml`/`.dot` que o gera) e ' +
+            'mantenha o binário fora da documentação versionada (spec §13, `RN-0023`).',
+        ),
+      )
     }
+
+    // 2 — links.
+    for (const file of files) {
+      if (!file.endsWith('.md')) continue
+      const source = readTextFile(context.root, file)
+      if (source === null) continue
+
+      for (const link of findLinks(stripCode(source))) {
+        if (link.kind === 'wikilink') {
+          const target = link.target.replace(/\.md$/i, '')
+          const resolved = corpus.has(`${target}.md`) || corpus.has(target) || index.has(target.toLowerCase())
+
+          if (!resolved) {
+            findings.push(
+              error(
+                file,
+                link.line,
+                `\`[[${link.target}]]\` não tem destino: nenhum documento do corpus se chama assim.`,
+                'Aponte para um documento existente pelo nome do arquivo, ou troque por um link relativo. ' +
+                  'Wikilink sem destino afirma uma ligação que não existe (`RN-0023`).',
+              ),
+            )
+          }
+          continue
+        }
+
+        const resolved = resolveTarget(file, link.target)
+        if (resolved === null) continue
+
+        if (resolved.startsWith('..') || !existsSync(join(context.root, resolved))) {
+          findings.push(
+            error(
+              file,
+              link.line,
+              `Link interno quebrado: \`${link.target}\` resolve para \`${resolved}\`, que não existe.`,
+              'Corrija o caminho, ou remova o link. A âncora (`#seção`) não é verificada — só o arquivo —, ' +
+                'então um link com âncora só reprova quando o arquivo não existe (`RN-0023`).',
+            ),
+          )
+        }
+      }
+    }
+
+    return findings
+  },
 }
 ```
 
@@ -4674,151 +4178,102 @@ Acrescente a `test/cli/init.test.ts`:
 import { parseOwnership } from '../../src/config/ownership.ts'
 
 function ownershipOf(root: string) {
-    return parseOwnership(
-        readFileSync(join(root, 'docs/.ownership.yml'), 'utf8')
-    )
+  return parseOwnership(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'))
 }
 
 test('RF-0012: solo declara o mapa e os IDs retirados em documents:', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
-        const documents = ownershipOf(root).documents
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
+    const documents = ownershipOf(root).documents
 
-        assert.deepEqual(documents.map(document => document.path).sort(), [
-            'docs/.ownership.yml',
-            'docs/ids-retired.txt'
-        ])
-        assert.ok(documents.every(document => document.owner === '@time'))
+    assert.deepEqual(documents.map(document => document.path).sort(), ['docs/.ownership.yml', 'docs/ids-retired.txt'])
+    assert.ok(documents.every(document => document.owner === '@time'))
 
-        const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
-        assert.match(codeowners, /docs\/ids-retired\.txt\s+@time/)
-        assert.match(codeowners, /docs\/\.ownership\.yml\s+@time/)
-    })
+    const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
+    assert.match(codeowners, /docs\/ids-retired\.txt\s+@time/)
+    assert.match(codeowners, /docs\/\.ownership\.yml\s+@time/)
+  })
 })
 
 test('RF-0012: small-team declara os acordos, a linguagem e os dois papéis', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
-        const documents = ownershipOf(root).documents
-        const byPath = new Map(
-            documents.map(document => [document.path, document])
-        )
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+    const documents = ownershipOf(root).documents
+    const byPath = new Map(documents.map(document => [document.path, document]))
 
-        for (const path of [
-            'CONTRIBUTING.md',
-            'docs/definition-of-done.md',
-            'CLAUDE.md',
-            'docs/glossary.md',
-            'docs/charter/'
-        ]) {
-            assert.ok(byPath.has(path), `${path} deveria estar declarado`)
-        }
-        assert.equal(byPath.get('CLAUDE.md')?.role, 'agent-contract')
-        assert.equal(
-            byPath.get('docs/definition-of-done.md')?.role,
-            'definition-of-done'
-        )
-        assert.equal(byPath.get('docs/glossary.md')?.skill, 'glossary-keeper')
-        assert.equal(byPath.get('docs/charter/')?.skill, 'charter-keeper')
-    })
+    for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md', 'docs/glossary.md', 'docs/charter/']) {
+      assert.ok(byPath.has(path), `${path} deveria estar declarado`)
+    }
+    assert.equal(byPath.get('CLAUDE.md')?.role, 'agent-contract')
+    assert.equal(byPath.get('docs/definition-of-done.md')?.role, 'definition-of-done')
+    assert.equal(byPath.get('docs/glossary.md')?.skill, 'glossary-keeper')
+    assert.equal(byPath.get('docs/charter/')?.skill, 'charter-keeper')
+  })
 })
 
 test('RF-0012: production declara contratos e rastro histórico', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'production' })
-        const paths = ownershipOf(root).documents.map(document => document.path)
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'production' })
+    const paths = ownershipOf(root).documents.map(document => document.path)
 
-        for (const path of [
-            'docs/contracts/errors.md',
-            'docs/contracts/versioning-policy.md',
-            'CHANGELOG.md',
-            'docs/deprecations.md',
-            'docs/migrations/'
-        ]) {
-            assert.ok(paths.includes(path), `${path} deveria estar declarado`)
-        }
-    })
+    for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md', 'CHANGELOG.md', 'docs/deprecations.md', 'docs/migrations/']) {
+      assert.ok(paths.includes(path), `${path} deveria estar declarado`)
+    }
+  })
 })
 
 test('RF-0012: o contrato do agente declarado é o adotado, não o padrão', () => {
-    withTempRepo({ 'AGENTS.md': '# contrato preexistente\n' }, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
-        const documents = ownershipOf(root).documents
+  withTempRepo({ 'AGENTS.md': '# contrato preexistente\n' }, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+    const documents = ownershipOf(root).documents
 
-        assert.ok(
-            documents.some(
-                document =>
-                    document.path === 'AGENTS.md' &&
-                    document.role === 'agent-contract'
-            )
-        )
-        assert.equal(
-            documents.some(document => document.path === 'CLAUDE.md'),
-            false
-        )
-    })
+    assert.ok(documents.some(document => document.path === 'AGENTS.md' && document.role === 'agent-contract'))
+    assert.equal(
+      documents.some(document => document.path === 'CLAUDE.md'),
+      false,
+    )
+  })
 })
 
 test('RF-0002 e RF-0012: subir de estágio acrescenta as entradas que faltam, sem duplicar', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
-        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
 
-        const paths = ownershipOf(root).documents.map(document => document.path)
-        assert.ok(
-            paths.includes('CONTRIBUTING.md'),
-            'a segunda execução declarou o que criou'
-        )
-        assert.equal(
-            new Set(paths).size,
-            paths.length,
-            'nenhuma entrada duplicada'
-        )
+    const paths = ownershipOf(root).documents.map(document => document.path)
+    assert.ok(paths.includes('CONTRIBUTING.md'), 'a segunda execução declarou o que criou')
+    assert.equal(new Set(paths).size, paths.length, 'nenhuma entrada duplicada')
 
-        // e uma terceira execução não muda mais nada
-        const antes = readFileSync(join(root, 'docs/.ownership.yml'), 'utf8')
-        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
-        assert.equal(
-            readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'),
-            antes
-        )
-    })
+    // e uma terceira execução não muda mais nada
+    const antes = readFileSync(join(root, 'docs/.ownership.yml'), 'utf8')
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+    assert.equal(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'), antes)
+  })
 })
 
 test('RF-0012: sem âncora no .ownership.yml, o init diz o que falta em vez de adivinhar', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
-        // arquivo reorganizado à mão: nem `documents:` nem `watches:` no começo de linha
-        writeFileSync(
-            join(root, 'docs/.ownership.yml'),
-            'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/decisions/adr/\n    owner: "@time"\n    skill: decision-recorder\n',
-            'utf8'
-        )
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
+    // arquivo reorganizado à mão: nem `documents:` nem `watches:` no começo de linha
+    writeFileSync(
+      join(root, 'docs/.ownership.yml'),
+      'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/decisions/adr/\n    owner: "@time"\n    skill: decision-recorder\n',
+      'utf8',
+    )
 
-        const result = runInit(root, {
-            owner: '@time',
-            dryRun: false,
-            stage: 'small-team'
-        })
-        assert.ok(result.notInstalled.some(item => /documents/.test(item)))
+    const result = runInit(root, {
+      owner: '@time',
+      dryRun: false,
+      stage: 'small-team',
     })
+    assert.ok(result.notInstalled.some(item => /documents/.test(item)))
+  })
 })
 
 test('RN-0019: o template de TDR traz o `pay-when` como exemplo comentado, não inventado', () => {
-    const template = readFileSync(
-        join(toolkitRoot(), 'templates/tdr.md'),
-        'utf8'
-    )
-    assert.match(
-        template,
-        /# pay-when:/,
-        'o exemplo é comentado — o init não inventa gatilho'
-    )
-    assert.doesNotMatch(
-        template,
-        /^pay-when:/m,
-        'gatilho preenchido de fábrica passaria em CI-4 sem significar nada'
-    )
+  const template = readFileSync(join(toolkitRoot(), 'templates/tdr.md'), 'utf8')
+  assert.match(template, /# pay-when:/, 'o exemplo é comentado — o init não inventa gatilho')
+  assert.doesNotMatch(template, /^pay-when:/m, 'gatilho preenchido de fábrica passaria em CI-4 sem significar nada')
 })
 ```
 
@@ -4846,82 +4301,80 @@ Acrescente, depois de `HISTORY_DIRS`:
  * `CI-7` na primeira execução.
  */
 interface DocumentSeed {
-    path: string
-    skill: string | null
-    role: 'agent-contract' | 'definition-of-done' | null
+  path: string
+  skill: string | null
+  role: 'agent-contract' | 'definition-of-done' | null
 }
 
 /** Declarados em todo estágio: os dois nascem já no `solo`. */
 const BASE_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
-    { path: OWNERSHIP_PATH, skill: 'living-docs-bootstrap', role: null },
-    { path: RETIRED_IDS_PATH, skill: 'living-docs-bootstrap', role: null }
+  { path: OWNERSHIP_PATH, skill: 'living-docs-bootstrap', role: null },
+  { path: RETIRED_IDS_PATH, skill: 'living-docs-bootstrap', role: null },
 ])
 
 const SMALL_TEAM_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
-    { path: 'CONTRIBUTING.md', skill: 'working-agreements-keeper', role: null },
-    {
-        path: 'docs/definition-of-done.md',
-        skill: 'working-agreements-keeper',
-        role: 'definition-of-done'
-    },
-    { path: 'docs/glossary.md', skill: 'glossary-keeper', role: null },
-    { path: 'docs/charter/', skill: 'charter-keeper', role: null }
+  { path: 'CONTRIBUTING.md', skill: 'working-agreements-keeper', role: null },
+  {
+    path: 'docs/definition-of-done.md',
+    skill: 'working-agreements-keeper',
+    role: 'definition-of-done',
+  },
+  { path: 'docs/glossary.md', skill: 'glossary-keeper', role: null },
+  { path: 'docs/charter/', skill: 'charter-keeper', role: null },
 ])
 
 const PRODUCTION_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
-    { path: 'docs/contracts/errors.md', skill: 'contract-keeper', role: null },
-    {
-        path: 'docs/contracts/versioning-policy.md',
-        skill: 'contract-keeper',
-        role: null
-    },
-    { path: 'CHANGELOG.md', skill: 'release-historian', role: null },
-    { path: 'docs/deprecations.md', skill: 'release-historian', role: null },
-    { path: 'docs/migrations/', skill: 'release-historian', role: null }
+  { path: 'docs/contracts/errors.md', skill: 'contract-keeper', role: null },
+  {
+    path: 'docs/contracts/versioning-policy.md',
+    skill: 'contract-keeper',
+    role: null,
+  },
+  { path: 'CHANGELOG.md', skill: 'release-historian', role: null },
+  { path: 'docs/deprecations.md', skill: 'release-historian', role: null },
+  { path: 'docs/migrations/', skill: 'release-historian', role: null },
 ])
 
 /** O contrato do agente: adota `AGENTS.md` quando ele já existe (`RF-0002`). */
 function agentContractPath(root: string): string {
-    return existsSync(join(root, 'AGENTS.md')) ? 'AGENTS.md' : 'CLAUDE.md'
+  return existsSync(join(root, 'AGENTS.md')) ? 'AGENTS.md' : 'CLAUDE.md'
 }
 
 function documentSeeds(root: string, stage: Stage): DocumentSeed[] {
-    if (stage === 'solo') return [...BASE_DOCUMENTS]
+  if (stage === 'solo') return [...BASE_DOCUMENTS]
 
-    const seeds: DocumentSeed[] = [
-        ...BASE_DOCUMENTS,
-        ...SMALL_TEAM_DOCUMENTS,
-        {
-            path: agentContractPath(root),
-            skill: 'working-agreements-keeper',
-            role: 'agent-contract'
-        }
-    ]
-    if (stage === 'production') seeds.push(...PRODUCTION_DOCUMENTS)
-    return seeds
+  const seeds: DocumentSeed[] = [
+    ...BASE_DOCUMENTS,
+    ...SMALL_TEAM_DOCUMENTS,
+    {
+      path: agentContractPath(root),
+      skill: 'working-agreements-keeper',
+      role: 'agent-contract',
+    },
+  ]
+  if (stage === 'production') seeds.push(...PRODUCTION_DOCUMENTS)
+  return seeds
 }
 
 function documentEntry(seed: DocumentSeed, owner: string): string {
-    const lines = [`  - path: ${seed.path}`, `    owner: "${owner}"`]
-    if (seed.skill !== null) lines.push(`    skill: ${seed.skill}`)
-    if (seed.role !== null) lines.push(`    role: ${seed.role}`)
-    return lines.join('\n')
+  const lines = [`  - path: ${seed.path}`, `    owner: "${owner}"`]
+  if (seed.skill !== null) lines.push(`    skill: ${seed.skill}`)
+  if (seed.role !== null) lines.push(`    role: ${seed.role}`)
+  return lines.join('\n')
 }
 
 /** O bloco `documents:` do `.ownership.yml` (`ADR-0008`). */
 function documentsBlock(root: string, owner: string, stage: Stage): string {
-    const entries = documentSeeds(root, stage).map(seed =>
-        documentEntry(seed, owner)
-    )
+  const entries = documentSeeds(root, stage).map(seed => documentEntry(seed, owner))
 
-    return [
-        '# Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).',
-        '# CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.',
-        '# `role` é vocabulário fechado: agent-contract, definition-of-done.',
-        'documents:',
-        ...entries,
-        ''
-    ].join('\n')
+  return [
+    '# Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).',
+    '# CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.',
+    '# `role` é vocabulário fechado: agent-contract, definition-of-done.',
+    'documents:',
+    ...entries,
+    '',
+  ].join('\n')
 }
 ```
 
@@ -4938,15 +4391,9 @@ Troque a checagem de adoção do contrato do agente para reusar
 // (RF-0002): dois contratos é a garantia de que um deles está errado.
 const contract = agentContractPath(root)
 if (contract === 'AGENTS.md') {
-    result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' })
+  result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' })
 } else {
-    writeIfAbsent(
-        root,
-        contract,
-        template('agent-contract.md', values),
-        options,
-        result
-    )
+  writeIfAbsent(root, contract, template('agent-contract.md', values), options, result)
 }
 ```
 
@@ -4963,56 +4410,33 @@ E, para o repositório que sobe de estágio, acrescente ao fim do arquivo:
  * o init **não adivinha**: ele diz o que falta e deixa a edição para quem é dono
  * do arquivo. Mesma política de `declareArtifacts`.
  */
-function declareDocuments(
-    root: string,
-    options: InitOptions,
-    result: InitResult,
-    existing: OwnershipConfig
-): void {
-    const declared = new Set(existing.documents.map(document => document.path))
-    const faltando = documentSeeds(root, options.stage).filter(
-        seed => !declared.has(seed.path)
-    )
-    if (faltando.length === 0) return
+function declareDocuments(root: string, options: InitOptions, result: InitResult, existing: OwnershipConfig): void {
+  const declared = new Set(existing.documents.map(document => document.path))
+  const faltando = documentSeeds(root, options.stage).filter(seed => !declared.has(seed.path))
+  if (faltando.length === 0) return
 
-    const file = join(root, OWNERSHIP_PATH)
-    const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
-    const entries = faltando
-        .map(seed => documentEntry(seed, options.owner))
-        .join('\n')
+  const file = join(root, OWNERSHIP_PATH)
+  const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
+  const entries = faltando.map(seed => documentEntry(seed, options.owner)).join('\n')
 
-    result.created.push(
-        `${OWNERSHIP_PATH} (${faltando.length} documento(s) em documents:)`
-    )
+  result.created.push(`${OWNERSHIP_PATH} (${faltando.length} documento(s) em documents:)`)
 
-    if (source.includes('\ndocuments:')) {
-        if (options.dryRun) return
-        writeFileSync(
-            file,
-            source.replace('\ndocuments:', `\ndocuments:\n${entries}`),
-            'utf8'
-        )
-        return
-    }
+  if (source.includes('\ndocuments:')) {
+    if (options.dryRun) return
+    writeFileSync(file, source.replace('\ndocuments:', `\ndocuments:\n${entries}`), 'utf8')
+    return
+  }
 
-    if (source.includes('\nwatches:')) {
-        if (options.dryRun) return
-        writeFileSync(
-            file,
-            source.replace(
-                '\nwatches:',
-                `\ndocuments:\n${entries}\n\nwatches:`
-            ),
-            'utf8'
-        )
-        return
-    }
+  if (source.includes('\nwatches:')) {
+    if (options.dryRun) return
+    writeFileSync(file, source.replace('\nwatches:', `\ndocuments:\n${entries}\n\nwatches:`), 'utf8')
+    return
+  }
 
-    result.created.pop()
-    result.notInstalled.push(
-        `documents: em ${OWNERSHIP_PATH} — âncora \`documents:\` ou \`watches:\` não encontrada; ` +
-            'declare os documentos à mão para que eles tenham dono (CI-7)'
-    )
+  result.created.pop()
+  result.notInstalled.push(
+    `documents: em ${OWNERSHIP_PATH} — âncora \`documents:\` ou \`watches:\` não encontrada; ` + 'declare os documentos à mão para que eles tenham dono (CI-7)',
+  )
 }
 ```
 
@@ -5123,9 +4547,9 @@ teste "este repositório passa nos próprios checks" começa a valer.
 - Consome: `ci4Staleness`, `ci7OwnershipCoverage`, `ci8Links`; `changedPaths`,
   `commitMessages` de `src/git/diff.ts`; `GitRunner` de `src/git/staged.ts`.
 - Produz:
-    - `validateChecks(diff?: DiffFacts | null): readonly Check[]` (substitui `CHECKS`)
-    - `runValidate(root: string, base?: string | null, run?: GitRunner): ValidateResult`
-    - `ValidateResult.watched: number` e `ValidateResult.base: string | null`
+  - `validateChecks(diff?: DiffFacts | null): readonly Check[]` (substitui `CHECKS`)
+  - `runValidate(root: string, base?: string | null, run?: GitRunner): ValidateResult`
+  - `ValidateResult.watched: number` e `ValidateResult.base: string | null`
 
 **Requisitos:**
 
@@ -5164,94 +4588,58 @@ Em `test/checks/registry.test.ts`, substitua o arquivo por:
 ```typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    CHECK_CATALOG,
-    changelogChecks,
-    driftChecks,
-    validateChecks
-} from '../../src/checks/registry.ts'
+import { CHECK_CATALOG, changelogChecks, driftChecks, validateChecks } from '../../src/checks/registry.ts'
 
 test('RF-0006, RF-0008 e RF-0010: o catálogo cobre exatamente os checks que existem', () => {
-    const reais = [
-        ...validateChecks(),
-        ...driftChecks(() => ''),
-        ...changelogChecks()
-    ]
-        .map(check => `${check.id}|${check.name}`)
-        .sort()
-    const catalogados = CHECK_CATALOG.map(
-        entry => `${entry.id}|${entry.name}`
-    ).sort()
+  const reais = [...validateChecks(), ...driftChecks(() => ''), ...changelogChecks()].map(check => `${check.id}|${check.name}`).sort()
+  const catalogados = CHECK_CATALOG.map(entry => `${entry.id}|${entry.name}`).sort()
 
-    assert.deepEqual(
-        catalogados,
-        reais,
-        'catálogo e registry divergiram — o contrato gerado mentiria'
-    )
+  assert.deepEqual(catalogados, reais, 'catálogo e registry divergiram — o contrato gerado mentiria')
 })
 
 test('o catálogo é lido por gente: fica ordenado por ID', () => {
-    const ids = CHECK_CATALOG.map(entry => Number(entry.id.replace('CI-', '')))
-    assert.deepEqual(
-        ids,
-        [...ids].sort((a, b) => a - b)
-    )
+  const ids = CHECK_CATALOG.map(entry => Number(entry.id.replace('CI-', '')))
+  assert.deepEqual(
+    ids,
+    [...ids].sort((a, b) => a - b),
+  )
 })
 
 test('RF-0006: todo item do catálogo diz quando falha e por qual comando roda', () => {
-    for (const entry of CHECK_CATALOG) {
-        assert.ok(
-            entry.failsWhen.length > 20,
-            `${entry.id} sem condição de falha escrita`
-        )
-        assert.match(
-            entry.command,
-            /^living-docs (validate|drift|changelog --base <ref>)$/,
-            `${entry.id} com comando estranho`
-        )
-    }
+  for (const entry of CHECK_CATALOG) {
+    assert.ok(entry.failsWhen.length > 20, `${entry.id} sem condição de falha escrita`)
+    assert.match(entry.command, /^living-docs (validate|drift|changelog --base <ref>)$/, `${entry.id} com comando estranho`)
+  }
 })
 
 test('ADR-0005, ADR-0006 e ADR-0010: cada check roda no comando que o catálogo nomeia', () => {
-    const esperado: Record<string, string> = {
-        'CI-1': 'living-docs validate',
-        'CI-2': 'living-docs validate',
-        'CI-3': 'living-docs validate',
-        'CI-4': 'living-docs validate',
-        'CI-5': 'living-docs drift',
-        'CI-6': 'living-docs changelog --base <ref>',
-        'CI-7': 'living-docs validate',
-        'CI-8': 'living-docs validate'
-    }
+  const esperado: Record<string, string> = {
+    'CI-1': 'living-docs validate',
+    'CI-2': 'living-docs validate',
+    'CI-3': 'living-docs validate',
+    'CI-4': 'living-docs validate',
+    'CI-5': 'living-docs drift',
+    'CI-6': 'living-docs changelog --base <ref>',
+    'CI-7': 'living-docs validate',
+    'CI-8': 'living-docs validate',
+  }
 
-    for (const entry of CHECK_CATALOG) {
-        assert.equal(
-            entry.command,
-            esperado[entry.id],
-            `${entry.id} no comando errado`
-        )
-    }
-    assert.equal(
-        CHECK_CATALOG.length,
-        Object.keys(esperado).length,
-        'check novo sem comando esperado declarado'
-    )
+  for (const entry of CHECK_CATALOG) {
+    assert.equal(entry.command, esperado[entry.id], `${entry.id} no comando errado`)
+  }
+  assert.equal(CHECK_CATALOG.length, Object.keys(esperado).length, 'check novo sem comando esperado declarado')
 })
 
 test('RF-0011: validateChecks recebe o diff por parâmetro, e sem ele a lista é a mesma', () => {
-    const semDiff = validateChecks().map(check => check.id)
-    const comDiff = validateChecks({
-        base: 'origin/master',
-        changed: [],
-        messages: []
-    }).map(check => check.id)
+  const semDiff = validateChecks().map(check => check.id)
+  const comDiff = validateChecks({
+    base: 'origin/master',
+    changed: [],
+    messages: [],
+  }).map(check => check.id)
 
-    assert.deepEqual(
-        semDiff,
-        comDiff,
-        'a metade do diff é comportamento de CI-7, não um check a mais'
-    )
-    assert.deepEqual(semDiff, ['CI-1', 'CI-2', 'CI-3', 'CI-4', 'CI-7', 'CI-8'])
+  assert.deepEqual(semDiff, comDiff, 'a metade do diff é comportamento de CI-7, não um check a mais')
+  assert.deepEqual(semDiff, ['CI-1', 'CI-2', 'CI-3', 'CI-4', 'CI-7', 'CI-8'])
 })
 ```
 
@@ -5273,8 +4661,7 @@ documents:
     skill: living-docs-bootstrap
 `
 
-const CODEOWNERS =
-    'docs/decisions/adr/    @team\ndocs/.ownership.yml    @team\n'
+const CODEOWNERS = 'docs/decisions/adr/    @team\ndocs/.ownership.yml    @team\n'
 ```
 
 e acrescente `CODEOWNERS` a cada `withTempRepo({ ... })` deste arquivo:
@@ -5288,10 +4675,10 @@ que ele usava:
 
 ```typescript
 test('o registry expõe CI-1, CI-2 e CI-3 nessa ordem', () => {
-    assert.deepEqual(
-        CHECKS.map(check => check.id),
-        ['CI-1', 'CI-2', 'CI-3']
-    )
+  assert.deepEqual(
+    CHECKS.map(check => check.id),
+    ['CI-1', 'CI-2', 'CI-3'],
+  )
 })
 ```
 
@@ -5301,69 +4688,47 @@ Acrescente também dois testes novos a `test/cli/validate.test.ts`:
 
 ```typescript
 test('RF-0010: aviso é reportado e não muda o código de saída', () => {
-    const antigo = GOOD.replace(
-        'last-reviewed: 2026-08-21',
-        'last-reviewed: 2020-01-01'
-    )
-    withTempRepo(
-        {
-            [OWNERSHIP_PATH]: CONFIG,
-            CODEOWNERS,
-            'docs/decisions/adr/ADR-0001-a.md': antigo
-        },
-        root => {
-            const result = runValidate(root)
+  const antigo = GOOD.replace('last-reviewed: 2026-08-21', 'last-reviewed: 2020-01-01')
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: CONFIG,
+      CODEOWNERS,
+      'docs/decisions/adr/ADR-0001-a.md': antigo,
+    },
+    root => {
+      const result = runValidate(root)
 
-            assert.equal(
-                result.warnings,
-                1,
-                JSON.stringify(result.findings, null, 2)
-            )
-            assert.equal(result.errors, 0)
-            assert.equal(
-                result.exitCode,
-                0,
-                'CI-4 avisa; aviso não reprova (spec §9)'
-            )
-            assert.equal(result.findings[0]?.ruleId, 'CI-4')
-        }
-    )
+      assert.equal(result.warnings, 1, JSON.stringify(result.findings, null, 2))
+      assert.equal(result.errors, 0)
+      assert.equal(result.exitCode, 0, 'CI-4 avisa; aviso não reprova (spec §9)')
+      assert.equal(result.findings[0]?.ruleId, 'CI-4')
+    },
+  )
 })
 
 test('RF-0011: com --base, CI-7 cobra o doc dono do caminho vigiado que mudou', () => {
-    const comWatch = `${CONFIG}watches:
+  const comWatch = `${CONFIG}watches:
   - code: "src/domain/**"
     doc: docs/decisions/adr/
     reason: "decisão antes do código"
 `
-    const NUL = String.fromCharCode(0)
-    const git = (args: readonly string[]): string =>
-        args.includes('diff') ? `src/domain/x.ts${NUL}` : `feat: x${NUL}\n`
+  const NUL = String.fromCharCode(0)
+  const git = (args: readonly string[]): string => (args.includes('diff') ? `src/domain/x.ts${NUL}` : `feat: x${NUL}\n`)
 
-    withTempRepo(
-        {
-            [OWNERSHIP_PATH]: comWatch,
-            CODEOWNERS,
-            'docs/decisions/adr/ADR-0001-a.md': GOOD
-        },
-        root => {
-            assert.equal(
-                runValidate(root).exitCode,
-                0,
-                'sem --base, a metade do diff não roda'
-            )
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: comWatch,
+      CODEOWNERS,
+      'docs/decisions/adr/ADR-0001-a.md': GOOD,
+    },
+    root => {
+      assert.equal(runValidate(root).exitCode, 0, 'sem --base, a metade do diff não roda')
 
-            const comBase = runValidate(root, 'origin/master', git)
-            assert.equal(comBase.exitCode, 1)
-            assert.ok(
-                comBase.findings.some(
-                    finding =>
-                        finding.ruleId === 'CI-7' &&
-                        /src\/domain\/x\.ts/.test(finding.message)
-                )
-            )
-        }
-    )
+      const comBase = runValidate(root, 'origin/master', git)
+      assert.equal(comBase.exitCode, 1)
+      assert.ok(comBase.findings.some(finding => finding.ruleId === 'CI-7' && /src\/domain\/x\.ts/.test(finding.message)))
+    },
+  )
 })
 ```
 
@@ -5393,17 +4758,8 @@ import { ci8Links } from './ci8-links.ts'
  * recebe o executor e `CI-6` os fatos do diff. Sem diff, a metade do diff de
  * `CI-7` simplesmente não roda (`ADR-0010`).
  */
-export function validateChecks(
-    diff: DiffFacts | null = null
-): readonly Check[] {
-    return [
-        ci1Structure,
-        ci2Ids,
-        ci3Traceability,
-        ci4Staleness,
-        ci7OwnershipCoverage(diff),
-        ci8Links
-    ]
+export function validateChecks(diff: DiffFacts | null = null): readonly Check[] {
+  return [ci1Structure, ci2Ids, ci3Traceability, ci4Staleness, ci7OwnershipCoverage(diff), ci8Links]
 }
 ```
 
@@ -5451,17 +4807,17 @@ import { todayIso } from '../core/dates.ts'
 import type { Finding } from '../core/types.ts'
 
 export interface ValidateResult {
-    findings: Finding[]
-    errors: number
-    warnings: number
-    exitCode: number
-    /** Artefatos gerados declarados — checados por `living-docs drift`, não aqui (ADR-0005). */
-    generated: number
-    /** Globs de `consumer-visible-paths` — checados por `living-docs changelog`, não aqui (ADR-0006). */
-    consumerVisible: number
-    /** Vínculos código→doc declarados — a metade do diff exige `--base` (ADR-0010). */
-    watched: number
-    base: string | null
+  findings: Finding[]
+  errors: number
+  warnings: number
+  exitCode: number
+  /** Artefatos gerados declarados — checados por `living-docs drift`, não aqui (ADR-0005). */
+  generated: number
+  /** Globs de `consumer-visible-paths` — checados por `living-docs changelog`, não aqui (ADR-0006). */
+  consumerVisible: number
+  /** Vínculos código→doc declarados — a metade do diff exige `--base` (ADR-0010). */
+  watched: number
+  base: string | null
 }
 
 /**
@@ -5471,44 +4827,38 @@ export interface ValidateResult {
  * continua sendo função pura de (fatos, configuração, árvore) → achados, como
  * `CI-5` e `CI-6`.
  */
-export function runValidate(
-    root: string,
-    base: string | null = null,
-    run?: GitRunner
-): ValidateResult {
-    const config = loadOwnership(root)
-    const context = {
-        root,
-        config,
-        docs: collectArtifacts(root, config),
-        documents: collectDocuments(root, config),
-        today: todayIso()
-    }
+export function runValidate(root: string, base: string | null = null, run?: GitRunner): ValidateResult {
+  const config = loadOwnership(root)
+  const context = {
+    root,
+    config,
+    docs: collectArtifacts(root, config),
+    documents: collectDocuments(root, config),
+    today: todayIso(),
+  }
 
-    const diff =
-        base === null
-            ? null
-            : {
-                  base,
-                  changed: changedPaths(root, base, run),
-                  messages: commitMessages(root, base, run)
-              }
+  const diff =
+    base === null
+      ? null
+      : {
+          base,
+          changed: changedPaths(root, base, run),
+          messages: commitMessages(root, base, run),
+        }
 
-    const findings = validateChecks(diff).flatMap(check => check.run(context))
-    const errors = findings.filter(
-        finding => finding.severity === 'error'
-    ).length
+  const findings = validateChecks(diff).flatMap(check => check.run(context))
+  const errors = findings.filter(finding => finding.severity === 'error').length
 
-    return {
-        findings,
-        errors,
-        warnings: findings.length - errors,
-        exitCode: errors > 0 ? 1 : 0,
-        generated: config.generated.length,
-        consumerVisible: config.consumerVisiblePaths.length,
-        watched: config.watches.length,
-        base
-    }
+  return {
+    findings,
+    errors,
+    warnings: findings.length - errors,
+    exitCode: errors > 0 ? 1 : 0,
+    generated: config.generated.length,
+    consumerVisible: config.consumerVisiblePaths.length,
+    watched: config.watches.length,
+    base,
+  }
 }
 ```
 
@@ -5525,36 +4875,34 @@ Opções de validate:
 
 ```typescript
 if (command === 'validate') {
-    const baseIndex = argv.indexOf('--base')
-    const base = baseIndex === -1 ? null : (argv[baseIndex + 1] ?? '')
-    if (base === '') {
-        process.stderr.write(
-            'living-docs: `--base` precisa de uma ref — a base do diff não se adivinha (CI-7, ADR-0010).\n'
-        )
-        return 2
-    }
+  const baseIndex = argv.indexOf('--base')
+  const base = baseIndex === -1 ? null : (argv[baseIndex + 1] ?? '')
+  if (base === '') {
+    process.stderr.write('living-docs: `--base` precisa de uma ref — a base do diff não se adivinha (CI-7, ADR-0010).\n')
+    return 2
+  }
 
-    const result = runValidate(root, base)
-    process.stdout.write(`${formatFindings(result.findings)}\n`)
+  const result = runValidate(root, base)
+  process.stdout.write(`${formatFindings(result.findings)}\n`)
 
-    if (result.generated > 0) {
-        process.stdout.write(
-            `living-docs: ${result.generated} artefato(s) gerado(s) declarado(s) — a deriva de contrato é verificada por \`living-docs drift\` (CI-5).\n`
-        )
-    }
-    if (result.consumerVisible > 0) {
-        process.stdout.write(
-            `living-docs: ${result.consumerVisible} caminho(s) visível(is) ao consumidor declarado(s) — a entrada de CHANGELOG é verificada por \`living-docs changelog --base <ref>\` (CI-6).\n`
-        )
-    }
-    // Ponteiro, não achado: sem base não há diff, e ficar calado sobre a metade
-    // que não rodou seria fingir a cobertura que o critério 5 pede inteira.
-    if (result.base === null && result.watched > 0) {
-        process.stdout.write(
-            `living-docs: ${result.watched} vínculo(s) código→doc declarado(s) — o caminho vigiado que mudou sem o doc dono é verificado por \`living-docs validate --base <ref>\` (CI-7).\n`
-        )
-    }
-    return result.exitCode
+  if (result.generated > 0) {
+    process.stdout.write(
+      `living-docs: ${result.generated} artefato(s) gerado(s) declarado(s) — a deriva de contrato é verificada por \`living-docs drift\` (CI-5).\n`,
+    )
+  }
+  if (result.consumerVisible > 0) {
+    process.stdout.write(
+      `living-docs: ${result.consumerVisible} caminho(s) visível(is) ao consumidor declarado(s) — a entrada de CHANGELOG é verificada por \`living-docs changelog --base <ref>\` (CI-6).\n`,
+    )
+  }
+  // Ponteiro, não achado: sem base não há diff, e ficar calado sobre a metade
+  // que não rodou seria fingir a cobertura que o critério 5 pede inteira.
+  if (result.base === null && result.watched > 0) {
+    process.stdout.write(
+      `living-docs: ${result.watched} vínculo(s) código→doc declarado(s) — o caminho vigiado que mudou sem o doc dono é verificado por \`living-docs validate --base <ref>\` (CI-7).\n`,
+    )
+  }
+  return result.exitCode
 }
 ```
 
@@ -5567,57 +4915,57 @@ Em `docs/.ownership.yml`, acrescente depois do bloco `generated:` e antes de
 # Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).
 # CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.
 documents:
-    - path: docs/.ownership.yml
-      owner: '@esliph/engineering'
-      skill: living-docs-bootstrap
-    - path: docs/ids-retired.txt
-      owner: '@esliph/engineering'
-      skill: living-docs-bootstrap
-    - path: CONTRIBUTING.md
-      owner: '@esliph/engineering'
-      skill: working-agreements-keeper
-    - path: docs/definition-of-done.md
-      owner: '@esliph/engineering'
-      skill: working-agreements-keeper
-      role: definition-of-done
-    - path: CLAUDE.md
-      owner: '@esliph/engineering'
-      skill: working-agreements-keeper
-      role: agent-contract
-    - path: docs/glossary.md
-      owner: '@esliph/engineering'
-      skill: glossary-keeper
-    - path: docs/charter/
-      owner: '@esliph/engineering'
-      skill: charter-keeper
-    - path: docs/contracts/errors.md
-      owner: '@esliph/engineering'
-      skill: contract-keeper
-    - path: docs/contracts/versioning-policy.md
-      owner: '@esliph/engineering'
-      skill: contract-keeper
-    - path: CHANGELOG.md
-      owner: '@esliph/engineering'
-      skill: release-historian
-    - path: docs/deprecations.md
-      owner: '@esliph/engineering'
-      skill: release-historian
-    - path: docs/migrations/
-      owner: '@esliph/engineering'
-      skill: release-historian
+  - path: docs/.ownership.yml
+    owner: '@esliph/engineering'
+    skill: living-docs-bootstrap
+  - path: docs/ids-retired.txt
+    owner: '@esliph/engineering'
+    skill: living-docs-bootstrap
+  - path: CONTRIBUTING.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+  - path: docs/definition-of-done.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+    role: definition-of-done
+  - path: CLAUDE.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+    role: agent-contract
+  - path: docs/glossary.md
+    owner: '@esliph/engineering'
+    skill: glossary-keeper
+  - path: docs/charter/
+    owner: '@esliph/engineering'
+    skill: charter-keeper
+  - path: docs/contracts/errors.md
+    owner: '@esliph/engineering'
+    skill: contract-keeper
+  - path: docs/contracts/versioning-policy.md
+    owner: '@esliph/engineering'
+    skill: contract-keeper
+  - path: CHANGELOG.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+  - path: docs/deprecations.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+  - path: docs/migrations/
+    owner: '@esliph/engineering'
+    skill: release-historian
 
-    # Sem skill dona, e isso é informação: plano, spec e README têm dono e não têm
-    # keeper. Ficam fora do corpus de duplicação de CI-7 (ADR-0009) porque citam os
-    # artefatos por ofício — reprovar o contrato do agente por causa de um plano
-    # que o citou inverteria quem copiou de quem.
-    - path: docs/superpowers/
-      owner: '@esliph/engineering'
-    - path: LIVING-DOCUMENTATION-TOOLKIT.md
-      owner: '@esliph/engineering'
-    - path: LIVING-DOCUMENTATION.md
-      owner: '@esliph/engineering'
-    - path: README.md
-      owner: '@esliph/engineering'
+  # Sem skill dona, e isso é informação: plano, spec e README têm dono e não têm
+  # keeper. Ficam fora do corpus de duplicação de CI-7 (ADR-0009) porque citam os
+  # artefatos por ofício — reprovar o contrato do agente por causa de um plano
+  # que o citou inverteria quem copiou de quem.
+  - path: docs/superpowers/
+    owner: '@esliph/engineering'
+  - path: LIVING-DOCUMENTATION-TOOLKIT.md
+    owner: '@esliph/engineering'
+  - path: LIVING-DOCUMENTATION.md
+    owner: '@esliph/engineering'
+  - path: README.md
+    owner: '@esliph/engineering'
 ```
 
 Em `CODEOWNERS`, acrescente as linhas que faltam:
@@ -5636,8 +4984,8 @@ frontmatter, depois de `relates-to: [RN-0006]`:
 ```yaml
 # Aspas simples: em YAML, aspas simples não processam `\`, e o padrão é regex.
 pay-when:
-    pattern: '^- \*\*status:\*\* revoked'
-    paths: ['docs/requirements/**']
+  pattern: '^- \*\*status:\*\* revoked'
+  paths: ['docs/requirements/**']
 ```
 
 O gatilho em prosa continua no corpo, e é ele que explica o porquê — o
@@ -5728,8 +5076,8 @@ funções de um check em vez de reimplementá-las.
   `collectDocuments`; `duePayments`, `staleDocs` de
   `src/checks/ci4-staleness.ts`; `statesFor`; `todayIso`.
 - Produz:
-    - `type Hk6Decision = { action: 'silent' } | { action: 'inform'; context: string }`
-    - `decideHk6(env: HookEnv, today: string): Hk6Decision`
+  - `type Hk6Decision = { action: 'silent' } | { action: 'inform'; context: string }`
+  - `decideHk6(env: HookEnv, today: string): Hk6Decision`
 
 **Requisitos:**
 
@@ -5793,141 +5141,124 @@ documents:
 `
 
 const DAS = [
-    '---',
-    'title: Open Decisions',
-    'owner: "@time"',
-    'trigger: Toda vez que alguém trombou numa lacuna.',
-    'last-reviewed: 2026-08-20',
-    '---',
-    '',
-    '| ID | Lacuna | Status | Resolvida por | Aberta em |',
-    '| --- | --- | --- | --- | --- |',
-    '| DA-0001 | Como declarar X | open | — | 2026-08-01 |',
-    ''
+  '---',
+  'title: Open Decisions',
+  'owner: "@time"',
+  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'last-reviewed: 2026-08-20',
+  '---',
+  '',
+  '| ID | Lacuna | Status | Resolvida por | Aberta em |',
+  '| --- | --- | --- | --- | --- |',
+  '| DA-0001 | Como declarar X | open | — | 2026-08-01 |',
+  '',
 ].join('\n')
 
 const REGRAS_REVOGADA = [
-    '---',
-    'title: Regras',
-    'owner: "@time"',
-    'trigger: A toda regra nova.',
-    'last-reviewed: 2026-08-20',
-    '---',
-    '',
-    '## RN-0001 — Uma regra',
-    '',
-    '- **status:** revoked',
-    '- **revoked-by:** RN-0002',
-    ''
+  '---',
+  'title: Regras',
+  'owner: "@time"',
+  'trigger: A toda regra nova.',
+  'last-reviewed: 2026-08-20',
+  '---',
+  '',
+  '## RN-0001 — Uma regra',
+  '',
+  '- **status:** revoked',
+  '- **revoked-by:** RN-0002',
+  '',
 ].join('\n')
 
 const DIVIDA = [
-    '---',
-    'id: TDR-0001',
-    'title: Atalho',
-    'status: open',
-    'owner: "@time"',
-    'trigger: Quando o gatilho abaixo se cumprir.',
-    'last-reviewed: 2026-08-01',
-    'pay-when:',
-    "  pattern: '^- \\*\\*status:\\*\\* revoked'",
-    '  paths: ["docs/requirements/**"]',
-    '---',
-    '',
-    '# TDR-0001 — Atalho',
-    ''
+  '---',
+  'id: TDR-0001',
+  'title: Atalho',
+  'status: open',
+  'owner: "@time"',
+  'trigger: Quando o gatilho abaixo se cumprir.',
+  'last-reviewed: 2026-08-01',
+  'pay-when:',
+  "  pattern: '^- \\*\\*status:\\*\\* revoked'",
+  '  paths: ["docs/requirements/**"]',
+  '---',
+  '',
+  '# TDR-0001 — Atalho',
+  '',
 ].join('\n')
 
 const ARVORE = {
-    'docs/.ownership.yml': OWNERSHIP,
-    'docs/open-decisions.md': DAS,
-    'docs/requirements/rules.md': REGRAS_REVOGADA,
-    'docs/decisions/debt/TDR-0001-x.md': DIVIDA,
-    'CONTRIBUTING.md':
-        '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2024-01-01\n---\n\n# Como\n'
+  'docs/.ownership.yml': OWNERSHIP,
+  'docs/open-decisions.md': DAS,
+  'docs/requirements/rules.md': REGRAS_REVOGADA,
+  'docs/decisions/debt/TDR-0001-x.md': DIVIDA,
+  'CONTRIBUTING.md': '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2024-01-01\n---\n\n# Como\n',
 }
 
 test('critério 8: o inventário chega ao contexto sem ninguém procurar', () => {
-    withTempRepo(ARVORE, root => {
-        const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
-        assert.equal(decision.action, 'inform')
+  withTempRepo(ARVORE, root => {
+    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    assert.equal(decision.action, 'inform')
 
-        const context = decision.action === 'inform' ? decision.context : ''
-        assert.match(context, /HK-6/)
-        assert.match(context, /DA-0001/, 'decisão aberta')
-        assert.match(context, /TDR-0001/, 'dívida com gatilho cumprido')
-        assert.match(context, /CONTRIBUTING\.md/, 'documento vencido')
-        assert.match(
-            context,
-            /docs\/decisions\/adr\//,
-            'artefato declarado e ausente'
-        )
-    })
+    const context = decision.action === 'inform' ? decision.context : ''
+    assert.match(context, /HK-6/)
+    assert.match(context, /DA-0001/, 'decisão aberta')
+    assert.match(context, /TDR-0001/, 'dívida com gatilho cumprido')
+    assert.match(context, /CONTRIBUTING\.md/, 'documento vencido')
+    assert.match(context, /docs\/decisions\/adr\//, 'artefato declarado e ausente')
+  })
 })
 
 test('RN-0022: é injeção de contexto, nunca decisão de permissão', () => {
-    withTempRepo(ARVORE, root => {
-        const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
-        const context = decision.action === 'inform' ? decision.context : ''
+  withTempRepo(ARVORE, root => {
+    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const context = decision.action === 'inform' ? decision.context : ''
 
-        assert.doesNotMatch(context, /\bdeny\b/)
-        assert.doesNotMatch(context, /permissionDecision/)
-        assert.match(context, /não bloqueia|contexto/i)
-    })
+    assert.doesNotMatch(context, /\bdeny\b/)
+    assert.doesNotMatch(context, /permissionDecision/)
+    assert.match(context, /não bloqueia|contexto/i)
+  })
 })
 
 test('RN-0022: o inventário é curto — lista longa aparece truncada com a contagem', () => {
-    const muitas = [
-        ...DAS.split('\n').slice(0, -1),
-        ...Array.from(
-            { length: 9 },
-            (_, i) => `| DA-000${i + 2} | Lacuna ${i} | open | — | 2026-08-01 |`
-        ),
-        ''
-    ].join('\n')
+  const muitas = [...DAS.split('\n').slice(0, -1), ...Array.from({ length: 9 }, (_, i) => `| DA-000${i + 2} | Lacuna ${i} | open | — | 2026-08-01 |`), ''].join(
+    '\n',
+  )
 
-    withTempRepo({ ...ARVORE, 'docs/open-decisions.md': muitas }, root => {
-        const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
-        const context = decision.action === 'inform' ? decision.context : ''
+  withTempRepo({ ...ARVORE, 'docs/open-decisions.md': muitas }, root => {
+    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const context = decision.action === 'inform' ? decision.context : ''
 
-        assert.match(context, /\(10\)/, 'a contagem total aparece')
-        assert.equal(
-            (context.match(/DA-\d{4}/g) ?? []).length <= 6,
-            true,
-            'só os primeiros entram'
-        )
-    })
+    assert.match(context, /\(10\)/, 'a contagem total aparece')
+    assert.equal((context.match(/DA-\d{4}/g) ?? []).length <= 6, true, 'só os primeiros entram')
+  })
 })
 
 test('RNF-0001: configuração ilegível cala o hook em vez de estourar', () => {
-    withTempRepo({ 'docs/.ownership.yml': 'version: 99\n' }, root => {
-        assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), {
-            action: 'silent'
-        })
+  withTempRepo({ 'docs/.ownership.yml': 'version: 99\n' }, root => {
+    assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), {
+      action: 'silent',
     })
-    withTempRepo({ 'README.md': '' }, root => {
-        assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), {
-            action: 'silent'
-        })
+  })
+  withTempRepo({ 'README.md': '' }, root => {
+    assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), {
+      action: 'silent',
     })
+  })
 })
 
 test('HK-6 não reimplementa CI-4: sem dívida vencida e sem doc velho, as duas linhas não aparecem', () => {
-    const semDivida = { ...ARVORE }
-    delete (semDivida as Record<string, string>)[
-        'docs/decisions/debt/TDR-0001-x.md'
-    ]
-    semDivida['CONTRIBUTING.md'] =
-        '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-20\n---\n\n# Como\n'
+  const semDivida = { ...ARVORE }
+  delete (semDivida as Record<string, string>)['docs/decisions/debt/TDR-0001-x.md']
+  semDivida['CONTRIBUTING.md'] = '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-20\n---\n\n# Como\n'
 
-    withTempRepo(semDivida, root => {
-        const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
-        const context = decision.action === 'inform' ? decision.context : ''
+  withTempRepo(semDivida, root => {
+    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const context = decision.action === 'inform' ? decision.context : ''
 
-        assert.doesNotMatch(context, /gatilho de pagamento/)
-        assert.doesNotMatch(context, /vencid/)
-        assert.match(context, /DA-0001/, 'o resto do inventário continua')
-    })
+    assert.doesNotMatch(context, /gatilho de pagamento/)
+    assert.doesNotMatch(context, /vencid/)
+    assert.match(context, /DA-0001/, 'o resto do inventário continua')
+  })
 })
 ```
 
@@ -5965,9 +5296,7 @@ import { todayIso } from '../core/dates.ts'
 import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv } from './lib/io.ts'
 
-export type Hk6Decision =
-    | { action: 'silent' }
-    | { action: 'inform'; context: string }
+export type Hk6Decision = { action: 'silent' } | { action: 'inform'; context: string }
 
 const SILENT: Hk6Decision = { action: 'silent' }
 
@@ -5981,117 +5310,98 @@ const MAX_ITEMS = 5
 const DECISION_STATE = 'resolved'
 
 function shorten(items: readonly string[]): string {
-    const shown = items.slice(0, MAX_ITEMS).join('; ')
-    return items.length > MAX_ITEMS
-        ? `${shown}; … (+${items.length - MAX_ITEMS})`
-        : shown
+  const shown = items.slice(0, MAX_ITEMS).join('; ')
+  return items.length > MAX_ITEMS ? `${shown}; … (+${items.length - MAX_ITEMS})` : shown
 }
 
 /** Decisões abertas: itens `open` de família cuja máquina de estados tem `resolved`. */
 function openDecisions(docs: readonly ArtifactDoc[]): string[] {
-    const found: string[] = []
+  const found: string[] = []
 
-    for (const doc of docs) {
-        if (!statesFor(doc.rule)?.includes(DECISION_STATE)) continue
+  for (const doc of docs) {
+    if (!statesFor(doc.rule)?.includes(DECISION_STATE)) continue
 
-        if (doc.rule.collection === 'per-file') {
-            const data = doc.frontmatter?.data
-            if (data?.status === 'open')
-                found.push(`${String(data.id)} (${doc.file})`)
-            continue
-        }
-
-        for (const item of doc.items) {
-            if (item.status === 'open')
-                found.push(`${item.id} (${doc.file}:${item.line})`)
-        }
+    if (doc.rule.collection === 'per-file') {
+      const data = doc.frontmatter?.data
+      if (data?.status === 'open') found.push(`${String(data.id)} (${doc.file})`)
+      continue
     }
 
-    return found
+    for (const item of doc.items) {
+      if (item.status === 'open') found.push(`${item.id} (${doc.file}:${item.line})`)
+    }
+  }
+
+  return found
 }
 
 export function decideHk6(env: HookEnv, today: string): Hk6Decision {
-    let inventory: { lines: string[] }
-    try {
-        const config = loadOwnership(env.root)
-        const docs = collectArtifacts(env.root, config)
-        const documents = collectDocuments(env.root, config)
-        const context = { root: env.root, config, docs, documents, today }
+  let inventory: { lines: string[] }
+  try {
+    const config = loadOwnership(env.root)
+    const docs = collectArtifacts(env.root, config)
+    const documents = collectDocuments(env.root, config)
+    const context = { root: env.root, config, docs, documents, today }
 
-        const ausentes = [
-            ...config.artifacts
-                .filter(artifact => !existsSync(join(env.root, artifact.path)))
-                .map(artifact => `${artifact.idPrefix} (${artifact.path})`),
-            ...config.documents
-                .filter(document => !existsSync(join(env.root, document.path)))
-                .map(document => document.path)
-        ]
+    const ausentes = [
+      ...config.artifacts.filter(artifact => !existsSync(join(env.root, artifact.path))).map(artifact => `${artifact.idPrefix} (${artifact.path})`),
+      ...config.documents.filter(document => !existsSync(join(env.root, document.path))).map(document => document.path),
+    ]
 
-        const abertas = openDecisions(docs)
-        const vencidas = duePayments(context)
-        const velhos = staleDocs(context)
+    const abertas = openDecisions(docs)
+    const vencidas = duePayments(context)
+    const velhos = staleDocs(context)
 
-        const lines = [
-            'HK-6: inventário da documentação viva (fonte: `docs/.ownership.yml`).',
-            `Declarados: ${config.artifacts.length} artefato(s) e ${config.documents.length} documento(s).`
-        ]
+    const lines = [
+      'HK-6: inventário da documentação viva (fonte: `docs/.ownership.yml`).',
+      `Declarados: ${config.artifacts.length} artefato(s) e ${config.documents.length} documento(s).`,
+    ]
 
-        if (ausentes.length > 0) {
-            lines.push(
-                `Declarado e ausente (${ausentes.length}): ${shorten(ausentes)}.`
-            )
-        }
-        if (abertas.length > 0) {
-            lines.push(
-                `Decisão aberta (${abertas.length}): ${shorten(abertas)}. Enquanto está aberta, a regra não existe e a ` +
-                    'implementação para (`/open-decision`).'
-            )
-        }
-        if (vencidas.length > 0) {
-            lines.push(
-                `Dívida com gatilho de pagamento cumprido (${vencidas.length}): ${shorten(
-                    vencidas.map(
-                        payment => `${payment.id} — ${payment.evidence}`
-                    )
-                )}. \`living-docs validate\` reprova até pagar ou reclassificar (spec §12, critério 7).`
-            )
-        }
-        if (velhos.length > 0) {
-            lines.push(
-                `Documento vencido (${velhos.length}): ${shorten(
-                    velhos.map(stale => `${stale.file} (${stale.months} meses)`)
-                )}. É aviso: releia antes de tocar em \`last-reviewed\`.`
-            )
-        }
-
-        lines.push(
-            'Nada aqui bloqueia — é contexto. O enforcement é `living-docs validate` e os hooks HK-1 a HK-5 e HK-7.'
-        )
-
-        inventory = { lines }
-    } catch {
-        return SILENT // falha aberta (RNF-0001)
+    if (ausentes.length > 0) {
+      lines.push(`Declarado e ausente (${ausentes.length}): ${shorten(ausentes)}.`)
+    }
+    if (abertas.length > 0) {
+      lines.push(
+        `Decisão aberta (${abertas.length}): ${shorten(abertas)}. Enquanto está aberta, a regra não existe e a ` + 'implementação para (`/open-decision`).',
+      )
+    }
+    if (vencidas.length > 0) {
+      lines.push(
+        `Dívida com gatilho de pagamento cumprido (${vencidas.length}): ${shorten(
+          vencidas.map(payment => `${payment.id} — ${payment.evidence}`),
+        )}. \`living-docs validate\` reprova até pagar ou reclassificar (spec §12, critério 7).`,
+      )
+    }
+    if (velhos.length > 0) {
+      lines.push(
+        `Documento vencido (${velhos.length}): ${shorten(
+          velhos.map(stale => `${stale.file} (${stale.months} meses)`),
+        )}. É aviso: releia antes de tocar em \`last-reviewed\`.`,
+      )
     }
 
-    return { action: 'inform', context: inventory.lines.join('\n') }
+    lines.push('Nada aqui bloqueia — é contexto. O enforcement é `living-docs validate` e os hooks HK-1 a HK-5 e HK-7.')
+
+    inventory = { lines }
+  } catch {
+    return SILENT // falha aberta (RNF-0001)
+  }
+
+  return { action: 'inform', context: inventory.lines.join('\n') }
 }
 
 async function main(): Promise<void> {
-    // O payload de SessionStart não traz `tool_input`; lê-lo é só o contrato do
-    // stdin, e um payload ilegível cala o hook como qualquer outro erro.
-    const payload = await readPayload()
-    if (!payload) return
+  // O payload de SessionStart não traz `tool_input`; lê-lo é só o contrato do
+  // stdin, e um payload ilegível cala o hook como qualquer outro erro.
+  const payload = await readPayload()
+  if (!payload) return
 
-    const decision = decideHk6(hookEnv(), todayIso())
-    emit(
-        decision.action === 'inform'
-            ? contextOutput('SessionStart', decision.context)
-            : null
-    )
+  const decision = decideHk6(hookEnv(), todayIso())
+  emit(decision.action === 'inform' ? contextOutput('SessionStart', decision.context) : null)
 }
 
 if (process.argv[1]?.endsWith('hk6-session-inventory.ts')) {
-    main().catch(() => process.exit(0)) // falha aberta, sempre
+  main().catch(() => process.exit(0)) // falha aberta, sempre
 }
 ```
 
@@ -6122,70 +5432,44 @@ Em `test/plugin/manifest.test.ts`, o grupo sem matcher precisa de chave própria
 
 ```typescript
 test('hooks.json registra os sete hooks nos eventos e matchers da spec §7', () => {
-    const config = readJson('plugin/hooks/hooks.json')
-    const hooks = config.hooks as Record<
-        string,
-        { matcher?: string; hooks: { command: string }[] }[]
-    >
+  const config = readJson('plugin/hooks/hooks.json')
+  const hooks = config.hooks as Record<string, { matcher?: string; hooks: { command: string }[] }[]>
 
-    const grupos = new Map<string, string[]>(
-        Object.entries(hooks).flatMap(([evento, lista]) =>
-            lista.map(
-                grupo =>
-                    [
-                        grupo.matcher === undefined
-                            ? evento
-                            : `${evento}:${grupo.matcher}`,
-                        grupo.hooks.map(hook => hook.command)
-                    ] as const
-            )
-        )
-    )
+  const grupos = new Map<string, string[]>(
+    Object.entries(hooks).flatMap(([evento, lista]) =>
+      lista.map(grupo => [grupo.matcher === undefined ? evento : `${evento}:${grupo.matcher}`, grupo.hooks.map(hook => hook.command)] as const),
+    ),
+  )
 
-    const esperado: Record<string, string[]> = {
-        'PreToolUse:Edit|Write': [
-            'hk1-append-only',
-            'hk2-generated-artifact',
-            'hk3-state-promotion'
-        ],
-        'PreToolUse:Bash': ['hk5-commit-guard'],
-        'PostToolUse:Edit|Write': ['hk4-watch-reminder', 'hk7-shortcut-debt'],
-        // SessionStart não tem matcher: o evento não é de ferramenta (spec §7).
-        SessionStart: ['hk6-session-inventory']
+  const esperado: Record<string, string[]> = {
+    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk2-generated-artifact', 'hk3-state-promotion'],
+    'PreToolUse:Bash': ['hk5-commit-guard'],
+    'PostToolUse:Edit|Write': ['hk4-watch-reminder', 'hk7-shortcut-debt'],
+    // SessionStart não tem matcher: o evento não é de ferramenta (spec §7).
+    SessionStart: ['hk6-session-inventory'],
+  }
+
+  assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort())
+  for (const [chave, nomes] of Object.entries(esperado)) {
+    const comandos = grupos.get(chave) ?? []
+    assert.equal(comandos.length, nomes.length, `${chave}: ${comandos.length} hooks`)
+    for (const nome of nomes) {
+      assert.ok(
+        comandos.some(comando => comando.includes(nome)),
+        `${chave} deveria invocar ${nome}`,
+      )
     }
-
-    assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort())
-    for (const [chave, nomes] of Object.entries(esperado)) {
-        const comandos = grupos.get(chave) ?? []
-        assert.equal(
-            comandos.length,
-            nomes.length,
-            `${chave}: ${comandos.length} hooks`
-        )
-        for (const nome of nomes) {
-            assert.ok(
-                comandos.some(comando => comando.includes(nome)),
-                `${chave} deveria invocar ${nome}`
-            )
-        }
-        for (const comando of comandos) {
-            assert.ok(
-                comando.includes('${CLAUDE_PLUGIN_ROOT}'),
-                'o comando precisa ser relocável'
-            )
-        }
+    for (const comando of comandos) {
+      assert.ok(comando.includes('${CLAUDE_PLUGIN_ROOT}'), 'o comando precisa ser relocável')
     }
+  }
 })
 ```
 
 e, no teste "todo hook referenciado existe no repositório", troque a contagem:
 
 ```typescript
-assert.equal(
-    vistos,
-    7,
-    'a varredura deveria ver os sete hooks das Fases 1, 3, 5, 6 e 7'
-)
+assert.equal(vistos, 7, 'a varredura deveria ver os sete hooks das Fases 1, 3, 5, 6 e 7')
 ```
 
 - [ ] **Step 5: Escrever a entrada de CHANGELOG**
@@ -6273,13 +5557,13 @@ recusou uma vez.
 ---
 name: docs-divergence-auditor
 description: >
-    Use este agent quando quiser saber o que um conjunto de mudanças deveria ter
-    atualizado na documentação e não atualizou — antes de abrir o PR, depois de
-    uma sequência longa de commits, ou quando alguém pergunta "a documentação
-    ainda descreve isso?". Recebe um escopo (diff, ref, lista de caminhos ou
-    `staged`) e devolve achados com o artefato dono de cada um. Isolado de
-    propósito: quem escreveu o código revisa com o mesmo raciocínio que o
-    produziu, e não vê os próprios pontos cegos.
+  Use este agent quando quiser saber o que um conjunto de mudanças deveria ter
+  atualizado na documentação e não atualizou — antes de abrir o PR, depois de
+  uma sequência longa de commits, ou quando alguém pergunta "a documentação
+  ainda descreve isso?". Recebe um escopo (diff, ref, lista de caminhos ou
+  `staged`) e devolve achados com o artefato dono de cada um. Isolado de
+  propósito: quem escreveu o código revisa com o mesmo raciocínio que o
+  produziu, e não vê os próprios pontos cegos.
 tools: Glob, Grep, Read, Bash
 model: inherit
 ---
@@ -6382,47 +5666,23 @@ nomeia os dois, e acrescente a asserção de `AG-1`:
 
 ```typescript
 test('AG-1 e AG-2: os dois agents da spec §6 existem', () => {
-    assert.ok(
-        AGENTS.includes('decision-adversary.md'),
-        `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`
-    )
-    assert.ok(
-        AGENTS.includes('docs-divergence-auditor.md'),
-        `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`
-    )
+  assert.ok(AGENTS.includes('decision-adversary.md'), `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`)
+  assert.ok(AGENTS.includes('docs-divergence-auditor.md'), `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`)
 })
 
 test('AG-1 e AG-2 apontam e param — sem Edit nem Write (spec §6)', () => {
-    for (const file of [
-        'decision-adversary.md',
-        'docs-divergence-auditor.md'
-    ]) {
-        const source = readFileSync(join(ROOT, 'plugin/agents', file), 'utf8')
-        const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? ''
-        assert.doesNotMatch(
-            toolsLine,
-            /\bEdit\b/,
-            `${file}: agent que aponta não reescreve`
-        )
-        assert.doesNotMatch(
-            toolsLine,
-            /\bWrite\b/,
-            `${file}: agent que aponta não reescreve`
-        )
-    }
+  for (const file of ['decision-adversary.md', 'docs-divergence-auditor.md']) {
+    const source = readFileSync(join(ROOT, 'plugin/agents', file), 'utf8')
+    const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? ''
+    assert.doesNotMatch(toolsLine, /\bEdit\b/, `${file}: agent que aponta não reescreve`)
+    assert.doesNotMatch(toolsLine, /\bWrite\b/, `${file}: agent que aponta não reescreve`)
+  }
 })
 
 test('AG-1 lê o mapa de propriedade em vez de adivinhar caminho', () => {
-    const source = readFileSync(
-        join(ROOT, 'plugin/agents/docs-divergence-auditor.md'),
-        'utf8'
-    )
-    assert.match(source, /docs\/\.ownership\.yml/)
-    assert.match(
-        source,
-        /DA-nnnn|open-decision/,
-        'comportamento sem regra vira decisão aberta, não código'
-    )
+  const source = readFileSync(join(ROOT, 'plugin/agents/docs-divergence-auditor.md'), 'utf8')
+  assert.match(source, /docs\/\.ownership\.yml/)
+  assert.match(source, /DA-nnnn|open-decision/, 'comportamento sem regra vira decisão aberta, não código')
 })
 ```
 
@@ -6497,185 +5757,153 @@ e ao fim do arquivo:
 
 ```typescript
 const DIVIDA_CONFIG = [
-    'version: 1',
-    'stale-after-months: 6',
-    'artifacts:',
-    '  - id-prefix: TDR',
-    '    path: docs/decisions/debt/',
-    '    owner: "@team"',
-    '    skill: decision-recorder',
-    '    append-only: true',
-    '  - id-prefix: RN',
-    '    path: docs/requirements/rules.md',
-    '    owner: "@team"',
-    '    skill: requirements-keeper',
-    '    collection: sections',
-    'documents:',
-    '  - path: docs/.ownership.yml',
-    '    owner: "@team"',
-    '    skill: living-docs-bootstrap',
-    ''
+  'version: 1',
+  'stale-after-months: 6',
+  'artifacts:',
+  '  - id-prefix: TDR',
+  '    path: docs/decisions/debt/',
+  '    owner: "@team"',
+  '    skill: decision-recorder',
+  '    append-only: true',
+  '  - id-prefix: RN',
+  '    path: docs/requirements/rules.md',
+  '    owner: "@team"',
+  '    skill: requirements-keeper',
+  '    collection: sections',
+  'documents:',
+  '  - path: docs/.ownership.yml',
+  '    owner: "@team"',
+  '    skill: living-docs-bootstrap',
+  '',
 ].join('\n')
 
-const DIVIDA_CODEOWNERS =
-    'docs/decisions/debt/    @team\ndocs/requirements/    @team\ndocs/.ownership.yml    @team\n'
+const DIVIDA_CODEOWNERS = 'docs/decisions/debt/    @team\ndocs/requirements/    @team\ndocs/.ownership.yml    @team\n'
 
 function divida(status: string): string {
-    return [
-        '---',
-        'id: TDR-0001',
-        'title: Atalho consciente',
-        `status: ${status}`,
-        'owner: "@team"',
-        'trigger: Quando o gatilho de pagamento abaixo se cumprir.',
-        'last-reviewed: 2026-08-20',
-        'pay-when:',
-        "  pattern: '^- \\*\\*status:\\*\\* revoked'",
-        '  paths: ["docs/requirements/**"]',
-        '---',
-        '',
-        '# TDR-0001 — Atalho consciente',
-        ''
-    ].join('\n')
+  return [
+    '---',
+    'id: TDR-0001',
+    'title: Atalho consciente',
+    `status: ${status}`,
+    'owner: "@team"',
+    'trigger: Quando o gatilho de pagamento abaixo se cumprir.',
+    'last-reviewed: 2026-08-20',
+    'pay-when:',
+    "  pattern: '^- \\*\\*status:\\*\\* revoked'",
+    '  paths: ["docs/requirements/**"]',
+    '---',
+    '',
+    '# TDR-0001 — Atalho consciente',
+    '',
+  ].join('\n')
 }
 
 function regras(status: string): string {
-    return [
-        '---',
-        'title: Regras',
-        'owner: "@team"',
-        'trigger: A toda regra nova ou alterada.',
-        'last-reviewed: 2026-08-20',
-        '---',
-        '',
-        '## RN-0001 — Uma regra',
-        '',
-        `- **status:** ${status}`,
-        ...(status === 'revoked' ? ['- **revoked-by:** RN-0002'] : []),
-        ''
-    ].join('\n')
+  return [
+    '---',
+    'title: Regras',
+    'owner: "@team"',
+    'trigger: A toda regra nova ou alterada.',
+    'last-reviewed: 2026-08-20',
+    '---',
+    '',
+    '## RN-0001 — Uma regra',
+    '',
+    `- **status:** ${status}`,
+    ...(status === 'revoked' ? ['- **revoked-by:** RN-0002'] : []),
+    '',
+  ].join('\n')
 }
 
 test('critério 7: dívida com gatilho cumprido reprova até ser paga ou reclassificada', () => {
-    const arvore = (statusDivida: string, statusRegra: string) => ({
-        [OWNERSHIP_PATH]: DIVIDA_CONFIG,
-        CODEOWNERS: DIVIDA_CODEOWNERS,
-        'docs/decisions/debt/TDR-0001-x.md': divida(statusDivida),
-        'docs/requirements/rules.md': regras(statusRegra)
-    })
+  const arvore = (statusDivida: string, statusRegra: string) => ({
+    [OWNERSHIP_PATH]: DIVIDA_CONFIG,
+    CODEOWNERS: DIVIDA_CODEOWNERS,
+    'docs/decisions/debt/TDR-0001-x.md': divida(statusDivida),
+    'docs/requirements/rules.md': regras(statusRegra),
+  })
 
-    // gatilho não aconteceu: passa
-    withTempRepo(arvore('open', 'active'), root => {
-        assert.equal(runValidate(root).exitCode, 0)
-    })
+  // gatilho não aconteceu: passa
+  withTempRepo(arvore('open', 'active'), root => {
+    assert.equal(runValidate(root).exitCode, 0)
+  })
 
-    // gatilho aconteceu e a dívida segue open: reprova, nomeando a evidência
-    withTempRepo(arvore('open', 'revoked'), root => {
-        const result = runValidate(root)
-        assert.equal(result.exitCode, 1)
+  // gatilho aconteceu e a dívida segue open: reprova, nomeando a evidência
+  withTempRepo(arvore('open', 'revoked'), root => {
+    const result = runValidate(root)
+    assert.equal(result.exitCode, 1)
 
-        const finding = result.findings.find(
-            f => f.ruleId === 'CI-4' && f.severity === 'error'
-        )
-        assert.ok(finding, JSON.stringify(result.findings, null, 2))
-        assert.match(finding.message, /TDR-0001/)
-        assert.match(finding.message, /docs\/requirements\/rules\.md/)
-    })
+    const finding = result.findings.find(f => f.ruleId === 'CI-4' && f.severity === 'error')
+    assert.ok(finding, JSON.stringify(result.findings, null, 2))
+    assert.match(finding.message, /TDR-0001/)
+    assert.match(finding.message, /docs\/requirements\/rules\.md/)
+  })
 
-    // reclassificada: volta a passar
-    withTempRepo(arvore('paid', 'revoked'), root => {
-        assert.equal(runValidate(root).exitCode, 0)
-    })
+  // reclassificada: volta a passar
+  withTempRepo(arvore('paid', 'revoked'), root => {
+    assert.equal(runValidate(root).exitCode, 0)
+  })
 })
 
 test('critério 8: no início da sessão, o inventário e as pendências chegam ao contexto', () => {
-    withTempRepo(
-        {
-            [OWNERSHIP_PATH]: DIVIDA_CONFIG,
-            CODEOWNERS: DIVIDA_CODEOWNERS,
-            'docs/decisions/debt/TDR-0001-x.md': divida('open'),
-            'docs/requirements/rules.md': regras('revoked')
-        },
-        root => {
-            const decision = decideHk6(
-                { root, hostRoots: [root] },
-                '2026-08-27'
-            )
+  withTempRepo(
+    {
+      [OWNERSHIP_PATH]: DIVIDA_CONFIG,
+      CODEOWNERS: DIVIDA_CODEOWNERS,
+      'docs/decisions/debt/TDR-0001-x.md': divida('open'),
+      'docs/requirements/rules.md': regras('revoked'),
+    },
+    root => {
+      const decision = decideHk6({ root, hostRoots: [root] }, '2026-08-27')
 
-            assert.equal(
-                decision.action,
-                'inform',
-                'ninguém precisa procurar: o inventário chega'
-            )
-            const context = decision.action === 'inform' ? decision.context : ''
-            assert.match(context, /TDR-0001/)
-            assert.doesNotMatch(
-                context,
-                /permissionDecision/,
-                'é contexto, não decisão de permissão'
-            )
-        }
-    )
+      assert.equal(decision.action, 'inform', 'ninguém precisa procurar: o inventário chega')
+      const context = decision.action === 'inform' ? decision.context : ''
+      assert.match(context, /TDR-0001/)
+      assert.doesNotMatch(context, /permissionDecision/, 'é contexto, não decisão de permissão')
+    },
+  )
 })
 
 test('critério 5, metade 2: o CI sinaliza pelo `watches`, e a razão escrita libera', () => {
-    const config = `${WATCHED_CONFIG}documents:
+  const config = `${WATCHED_CONFIG}documents:
   - path: docs/.ownership.yml
     owner: "@team"
     skill: living-docs-bootstrap
 `
-    const codeowners =
-        'docs/requirements/    @team\ndocs/.ownership.yml    @team\n'
-    const arvore = {
-        [OWNERSHIP_PATH]: config,
-        CODEOWNERS: codeowners,
-        'docs/requirements/rules.md': regras('draft')
-    }
+  const codeowners = 'docs/requirements/    @team\ndocs/.ownership.yml    @team\n'
+  const arvore = {
+    [OWNERSHIP_PATH]: config,
+    CODEOWNERS: codeowners,
+    'docs/requirements/rules.md': regras('draft'),
+  }
 
-    const git =
-        (changed: string[], messages: string[]) =>
-        (args: readonly string[]): string =>
-            args.includes('diff')
-                ? changed.join(NUL) + NUL
-                : messages.join(`${NUL}\n`) + NUL + '\n'
+  const git =
+    (changed: string[], messages: string[]) =>
+    (args: readonly string[]): string =>
+      args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n'
 
-    withTempRepo(arvore, root => {
-        // sem o doc dono no diff: reprova, nomeando o caminho vigiado
-        const reprovado = runValidate(
-            root,
-            'origin/master',
-            git(['src/domain/reembolso.ts'], ['feat: reembolso'])
-        )
-        assert.equal(reprovado.exitCode, 1)
-        const finding = reprovado.findings.find(f => f.ruleId === 'CI-7')
-        assert.ok(finding)
-        assert.match(finding.message, /src\/domain\/reembolso\.ts/)
+  withTempRepo(arvore, root => {
+    // sem o doc dono no diff: reprova, nomeando o caminho vigiado
+    const reprovado = runValidate(root, 'origin/master', git(['src/domain/reembolso.ts'], ['feat: reembolso']))
+    assert.equal(reprovado.exitCode, 1)
+    const finding = reprovado.findings.find(f => f.ruleId === 'CI-7')
+    assert.ok(finding)
+    assert.match(finding.message, /src\/domain\/reembolso\.ts/)
 
-        // com o doc no mesmo diff: passa
-        const comDoc = git(
-            ['src/domain/reembolso.ts', 'docs/requirements/rules.md'],
-            ['feat: reembolso']
-        )
-        assert.equal(runValidate(root, 'origin/master', comDoc).exitCode, 0)
+    // com o doc no mesmo diff: passa
+    const comDoc = git(['src/domain/reembolso.ts', 'docs/requirements/rules.md'], ['feat: reembolso'])
+    assert.equal(runValidate(root, 'origin/master', comDoc).exitCode, 0)
 
-        // com a razão escrita no histórico: passa
-        assert.equal(
-            runValidate(
-                root,
-                'origin/master',
-                git(
-                    ['src/domain/reembolso.ts'],
-                    [
-                        'refactor: renomeia interno\n\nDocs: none — só renomeação, a regra não mudou'
-                    ]
-                )
-            ).exitCode,
-            0
-        )
+    // com a razão escrita no histórico: passa
+    assert.equal(
+      runValidate(root, 'origin/master', git(['src/domain/reembolso.ts'], ['refactor: renomeia interno\n\nDocs: none — só renomeação, a regra não mudou']))
+        .exitCode,
+      0,
+    )
 
-        // e sem base, essa metade não roda
-        assert.equal(runValidate(root).exitCode, 0)
-    })
+    // e sem base, essa metade não roda
+    assert.equal(runValidate(root).exitCode, 0)
+  })
 })
 ```
 
@@ -6692,10 +5920,7 @@ import { join } from 'node:path'
 import { documentWithRole, loadOwnership } from '../../src/config/ownership.ts'
 import { loadCodeowners, ownersOf } from '../../src/config/codeowners.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
-import {
-    debtsWithoutTrigger,
-    duePayments
-} from '../../src/checks/ci4-staleness.ts'
+import { debtsWithoutTrigger, duePayments } from '../../src/checks/ci4-staleness.ts'
 import { documentationFiles } from '../../src/docs/corpus.ts'
 import { repoRoot } from '../../src/core/roots.ts'
 import { todayIso } from '../../src/core/dates.ts'
@@ -6704,86 +5929,69 @@ const ROOT = repoRoot()
 const CONFIG = loadOwnership(ROOT)
 
 function contextFor() {
-    return {
-        root: ROOT,
-        config: CONFIG,
-        docs: collectArtifacts(ROOT, CONFIG),
-        documents: collectDocuments(ROOT, CONFIG),
-        today: todayIso()
-    }
+  return {
+    root: ROOT,
+    config: CONFIG,
+    docs: collectArtifacts(ROOT, CONFIG),
+    documents: collectDocuments(ROOT, CONFIG),
+    today: todayIso(),
+  }
 }
 
 test('RN-0016: todo documento deste repositório tem dono nos dois lugares', () => {
-    const codeowners = loadCodeowners(ROOT)
-    assert.ok(codeowners, 'CODEOWNERS deveria existir')
+  const codeowners = loadCodeowners(ROOT)
+  assert.ok(codeowners, 'CODEOWNERS deveria existir')
 
-    const semDono: string[] = []
-    for (const file of documentationFiles(ROOT, CONFIG)) {
-        if (ownersOf(codeowners, file) === null) semDono.push(file)
-    }
+  const semDono: string[] = []
+  for (const file of documentationFiles(ROOT, CONFIG)) {
+    if (ownersOf(codeowners, file) === null) semDono.push(file)
+  }
 
-    assert.deepEqual(
-        semDono,
-        [],
-        `sem linha no CODEOWNERS: ${semDono.join(', ')}`
-    )
+  assert.deepEqual(semDono, [], `sem linha no CODEOWNERS: ${semDono.join(', ')}`)
 })
 
 test('RN-0016: `documents:` e CODEOWNERS declaram o mesmo dono', () => {
-    const codeowners = loadCodeowners(ROOT)
-    assert.ok(codeowners)
+  const codeowners = loadCodeowners(ROOT)
+  assert.ok(codeowners)
 
-    for (const document of CONFIG.documents) {
-        const owners = ownersOf(codeowners, document.path.replace(/\/$/, '/x'))
-        assert.ok(owners, `${document.path} sem dono no CODEOWNERS`)
-        assert.ok(
-            owners.includes(document.owner),
-            `${document.path}: .ownership.yml diz ${document.owner}, CODEOWNERS diz ${owners.join(', ')}`
-        )
-    }
+  for (const document of CONFIG.documents) {
+    const owners = ownersOf(codeowners, document.path.replace(/\/$/, '/x'))
+    assert.ok(owners, `${document.path} sem dono no CODEOWNERS`)
+    assert.ok(owners.includes(document.owner), `${document.path}: .ownership.yml diz ${document.owner}, CODEOWNERS diz ${owners.join(', ')}`)
+  }
 })
 
 test('RN-0019: toda dívida `open` deste repositório tem gatilho verificável e não vencido', () => {
-    const context = contextFor()
-    assert.deepEqual(
-        debtsWithoutTrigger(context).map(debt => debt.id),
-        [],
-        'dívida sem `pay-when` é `TODO` órfão com número'
-    )
-    assert.deepEqual(
-        duePayments(context).map(
-            payment => `${payment.id} — ${payment.evidence}`
-        ),
-        [],
-        'se aparecer aqui, a dívida venceu: pague ou reclassifique (ato humano)'
-    )
+  const context = contextFor()
+  assert.deepEqual(
+    debtsWithoutTrigger(context).map(debt => debt.id),
+    [],
+    'dívida sem `pay-when` é `TODO` órfão com número',
+  )
+  assert.deepEqual(
+    duePayments(context).map(payment => `${payment.id} — ${payment.evidence}`),
+    [],
+    'se aparecer aqui, a dívida venceu: pague ou reclassifique (ato humano)',
+  )
 })
 
 test('ADR-0008: os dois papéis estão declarados e apontam para arquivos que existem', () => {
-    for (const role of ['agent-contract', 'definition-of-done'] as const) {
-        const document = documentWithRole(CONFIG, role)
-        assert.ok(
-            document,
-            `nenhum documento declara role: ${role} — CI-7 não teria como achá-lo`
-        )
-        assert.ok(
-            existsSync(join(ROOT, document.path)),
-            `${document.path} declarado e ausente`
-        )
-    }
+  for (const role of ['agent-contract', 'definition-of-done'] as const) {
+    const document = documentWithRole(CONFIG, role)
+    assert.ok(document, `nenhum documento declara role: ${role} — CI-7 não teria como achá-lo`)
+    assert.ok(existsSync(join(ROOT, document.path)), `${document.path} declarado e ausente`)
+  }
 })
 
 test('RN-0020: o contrato do agente continua sendo índice — sem frase copiada de artefato dono', () => {
-    // A prova real é CI-7 rodando em `validate`; este teste existe para que a
-    // falha aponte o contrato em vez de se perder no meio dos outros achados.
-    const contract = documentWithRole(CONFIG, 'agent-contract')
-    assert.ok(contract)
+  // A prova real é CI-7 rodando em `validate`; este teste existe para que a
+  // falha aponte o contrato em vez de se perder no meio dos outros achados.
+  const contract = documentWithRole(CONFIG, 'agent-contract')
+  assert.ok(contract)
 
-    const context = contextFor()
-    const source = context.documents.find(
-        document => document.file === contract.path
-    )?.source
-    assert.ok(source, `${contract.path} deveria estar coletado`)
+  const context = contextFor()
+  const source = context.documents.find(document => document.file === contract.path)?.source
+  assert.ok(source, `${contract.path} deveria estar coletado`)
 })
 ```
 
@@ -7083,8 +6291,8 @@ acrescente o passo com base:
 ```yaml
 - name: CI-1 a CI-4, CI-7 e CI-8 — documentação viva
   run: >
-      docker compose run --rm -w /workspace toolkit
-      node /opt/living-docs/src/cli/index.ts validate
+    docker compose run --rm -w /workspace toolkit
+    node /opt/living-docs/src/cli/index.ts validate
 
 # A metade de CI-7 que lê o diff só existe com uma base (ADR-0010). Em
 # `push` não há base, e inventar uma produziria achado sobre mudança que
@@ -7092,9 +6300,9 @@ acrescente o passo com base:
 - name: CI-7 — vínculo código→doc no diff do PR
   if: github.event_name == 'pull_request'
   run: >
-      docker compose run --rm -w /workspace toolkit
-      node /opt/living-docs/src/cli/index.ts validate
-      --base ${{ github.event.pull_request.base.sha }}
+    docker compose run --rm -w /workspace toolkit
+    node /opt/living-docs/src/cli/index.ts validate
+    --base ${{ github.event.pull_request.base.sha }}
 ```
 
 - [ ] **Step 9: CHANGELOG**
@@ -7223,19 +6431,19 @@ seu.** A skill escreve `draft`/`open`; promover é ato humano (`RN-0005`), e
 
 - Antes de propor a promoção, confira que cada requisito **já** tem quem o cite,
   fora do próprio arquivo:
-    - `RF-0010`: `test/cli/validate.test.ts`, `test/checks/registry.test.ts`
-    - `RF-0011`: `test/cli/validate.test.ts`, `test/acceptance/spec-criteria.test.ts`
-    - `RF-0012`: `test/cli/init.test.ts`
-    - `RNF-0004`: `test/core/dates.test.ts`, `src/core/dates.ts`
-    - `RN-0016`: `test/checks/ci7-ownership-coverage.test.ts`, `test/docs/maintenance.test.ts`
-    - `RN-0017`: `test/checks/ci7-ownership-coverage.test.ts`
-    - `RN-0018`: `test/checks/ci4-staleness.test.ts`, `src/checks/ci4-staleness.ts`
-    - `RN-0019`: `test/checks/ci4-staleness.test.ts`, `test/docs/maintenance.test.ts`
-    - `RN-0020`: `test/checks/ci7-ownership-coverage.test.ts`, `test/docs/maintenance.test.ts`
-    - `RN-0021`: `test/checks/ci7-ownership-coverage.test.ts`, `test/acceptance/spec-criteria.test.ts`
-    - `RN-0022`: `test/hooks/hk6-session-inventory.test.ts`
-    - `RN-0023`: `test/checks/ci8-links.test.ts`
-      Sem citação, promover para `active` faz `CI-3` (regra 7) reprovar na hora.
+  - `RF-0010`: `test/cli/validate.test.ts`, `test/checks/registry.test.ts`
+  - `RF-0011`: `test/cli/validate.test.ts`, `test/acceptance/spec-criteria.test.ts`
+  - `RF-0012`: `test/cli/init.test.ts`
+  - `RNF-0004`: `test/core/dates.test.ts`, `src/core/dates.ts`
+  - `RN-0016`: `test/checks/ci7-ownership-coverage.test.ts`, `test/docs/maintenance.test.ts`
+  - `RN-0017`: `test/checks/ci7-ownership-coverage.test.ts`
+  - `RN-0018`: `test/checks/ci4-staleness.test.ts`, `src/checks/ci4-staleness.ts`
+  - `RN-0019`: `test/checks/ci4-staleness.test.ts`, `test/docs/maintenance.test.ts`
+  - `RN-0020`: `test/checks/ci7-ownership-coverage.test.ts`, `test/docs/maintenance.test.ts`
+  - `RN-0021`: `test/checks/ci7-ownership-coverage.test.ts`, `test/acceptance/spec-criteria.test.ts`
+  - `RN-0022`: `test/hooks/hk6-session-inventory.test.ts`
+  - `RN-0023`: `test/checks/ci8-links.test.ts`
+    Sem citação, promover para `active` faz `CI-3` (regra 7) reprovar na hora.
 - `DA-0002 → resolved` exige `Resolvida por: ADR-0008` na tabela, e `ADR-0008`
   já nasceu com `relates-to: [DA-0002, RN-0001]` (Task 1). `CI-3` verifica os
   dois lados.
@@ -7351,4 +6559,3 @@ escreva no backlog o estado real ("`ADR-0009` segue `draft`", "`DA-0002` segue
   nomeado".** Continua sendo regra de skill (`charter-keeper`) e teste de
   dogfooding, pela mesma razão da Fase 4: medi-la por check exigiria que o
   toolkit entendesse o texto do princípio.
-

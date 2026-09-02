@@ -4,7 +4,7 @@ title: A fonte de data do toolkit, e como um gatilho de pagamento se torna verif
 status: accepted
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-27
 relates-to: [TDR-0001, RNF-0001]
 supersedes: null
@@ -72,18 +72,18 @@ além da prosa.**
    relógio.
 3. Uma dívida declara, no frontmatter:
 
-    ```yaml
-    pay-when:
-        pattern: '^- \*\*status:\*\* revoked'
-        paths: ['docs/requirements/**']
-    ```
+   ```yaml
+   pay-when:
+     pattern: '^- \*\*status:\*\* revoked'
+     paths: ['docs/requirements/**']
+   ```
 
-    `pattern` é uma expressão regular reconhecida **linha a linha** nos arquivos
-    que casam `paths`, e vai entre **aspas simples**: em YAML, aspas simples não
-    processam `\`, e um padrão com aspas duplas exigiria escapar cada barra duas
-    vezes — que é como se escreve o padrão errado sem perceber. O próprio arquivo
-    da dívida é excluído da varredura: um TDR que cita o próprio gatilho não é
-    ocorrência dele.
+   `pattern` é uma expressão regular reconhecida **linha a linha** nos arquivos
+   que casam `paths`, e vai entre **aspas simples**: em YAML, aspas simples não
+   processam `\`, e um padrão com aspas duplas exigiria escapar cada barra duas
+   vezes — que é como se escreve o padrão errado sem perceber. O próprio arquivo
+   da dívida é excluído da varredura: um TDR que cita o próprio gatilho não é
+   ocorrência dele.
 
 4. **Família de dívida é a que declara `paid` na máquina de estados** (spec §4),
    não o prefixo `TDR`. Um projeto que chame sua família de outra coisa continua
@@ -121,4 +121,3 @@ e aí o mecanismo não existiria.
 `monthsBetween` conta meses de calendário, não dias: um documento revisto em 31
 de janeiro "faz um mês" em 28 de fevereiro. Precisão de dia não muda nenhuma
 decisão que este aviso provoca.
-

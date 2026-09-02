@@ -33,13 +33,13 @@ uma nova varredura.
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
-| `docs/.ownership.yml` | O único arquivo específico do projeto: caminhos, donos, prefixos, `watches` | Arquivo único, mutável |
-| A estrutura de diretórios | Onde cada artefato mora | Diretórios + `.gitkeep` |
-| `docs/ids-retired.txt` | Registro de IDs retirados, que nunca voltam | Arquivo único, append-only |
-| `CODEOWNERS` | O dono de cada caminho de doc, espelhando `owner:` | Arquivo único |
-| Instalação de `HK-*` e `CI-*` | O enforcement das fases do estágio | Workflow em `.github/workflows/` + registro do plugin em `.claude/settings.json` |
+| Artefato                      | O que é                                                                     | Forma                                                                            |
+| ----------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `docs/.ownership.yml`         | O único arquivo específico do projeto: caminhos, donos, prefixos, `watches` | Arquivo único, mutável                                                           |
+| A estrutura de diretórios     | Onde cada artefato mora                                                     | Diretórios + `.gitkeep`                                                          |
+| `docs/ids-retired.txt`        | Registro de IDs retirados, que nunca voltam                                 | Arquivo único, append-only                                                       |
+| `CODEOWNERS`                  | O dono de cada caminho de doc, espelhando `owner:`                          | Arquivo único                                                                    |
+| Instalação de `HK-*` e `CI-*` | O enforcement das fases do estágio                                          | Workflow em `.github/workflows/` + registro do plugin em `.claude/settings.json` |
 
 ## Quando usar / quando não
 
@@ -70,6 +70,7 @@ garantida.
    quantas ocorrências leu nela. **Confirme com quem é dono do repositório** e
    declare com `--id-separator` e `--id-padding` — nunca renumere o que já
    existe para caber no padrão do toolkit (`ADR-0011`, `RF-0014`).
+
 2. **Determine o estágio** — `solo` (protótipo), `small-team` (time pequeno),
    `production` (produção com usuários) ou `multi-team` (múltiplos times) — e
    derive o conjunto **mínimo** de fases (spec §10). Os quatro nomes são os que
@@ -102,14 +103,14 @@ garantida.
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| Decidir o estágio e o conjunto mínimo de fases | Escrever o conteúdo de um artefato |
-| Adotar o que já existe, registrando o caminho real | Mover ou renomear documentação existente por estética |
-| Preencher donos e `watches` reais no `.ownership.yml` | Reproduzir o formato do `.ownership.yml` nesta skill |
-| Instalar `HK-*`/`CI-*` na ordem das fases | Instalar fase que o estágio não pede |
-| Apontar `living-docs init` para o trabalho mecânico | Reimplementar o `init` em prosa |
-| Listar o que ficou fora e por quê | Decidir que o que ficou fora nunca entra |
+| É seu                                                 | Não é seu                                             |
+| ----------------------------------------------------- | ----------------------------------------------------- |
+| Decidir o estágio e o conjunto mínimo de fases        | Escrever o conteúdo de um artefato                    |
+| Adotar o que já existe, registrando o caminho real    | Mover ou renomear documentação existente por estética |
+| Preencher donos e `watches` reais no `.ownership.yml` | Reproduzir o formato do `.ownership.yml` nesta skill  |
+| Instalar `HK-*`/`CI-*` na ordem das fases             | Instalar fase que o estágio não pede                  |
+| Apontar `living-docs init` para o trabalho mecânico   | Reimplementar o `init` em prosa                       |
+| Listar o que ficou fora e por quê                     | Decidir que o que ficou fora nunca entra              |
 
 ## Checklist
 

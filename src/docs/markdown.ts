@@ -1,5 +1,5 @@
 /** Abre ou fecha bloco de código cercado. O grupo guarda o tamanho da cerca. */
-const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
+const FENCE = /^\s{0,3}(`{3,}|~{3,})/
 
 /**
  * O texto sem bloco cercado, e **com** a marcação inline intacta.
@@ -16,30 +16,30 @@ const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
  * uma cerca continua sendo exemplo (`CI-7`, item de Definition of Done).
  */
 export function stripFences(source: string): string {
-  const lines = source.replace(/\r\n/g, '\n').split('\n');
-  const out: string[] = [];
-  let fence: string | null = null;
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
+  const out: string[] = []
+  let fence: string | null = null
 
   for (const line of lines) {
-    const mark = FENCE.exec(line)?.[1];
+    const mark = FENCE.exec(line)?.[1]
 
     if (fence === null) {
       if (mark !== undefined) {
-        fence = mark;
-        out.push('');
-        continue;
+        fence = mark
+        out.push('')
+        continue
       }
-      out.push(line);
-      continue;
+      out.push(line)
+      continue
     }
 
     if (mark !== undefined && mark[0] === fence[0] && mark.length >= fence.length) {
-      fence = null;
+      fence = null
     }
-    out.push('');
+    out.push('')
   }
 
-  return out.join('\n');
+  return out.join('\n')
 }
 
 /**
@@ -51,8 +51,8 @@ export function stripFences(source: string): string {
 export function stripCode(source: string): string {
   return stripFences(source)
     .split('\n')
-    .map((line) => line.replace(/`[^`\n]*`/g, ''))
-    .join('\n');
+    .map(line => line.replace(/`[^`\n]*`/g, ''))
+    .join('\n')
 }
 
 /** Prosa comparável: minúscula, sem marcação, sem pontuação, espaço colapsado. */
@@ -61,11 +61,11 @@ export function normalizeProse(text: string): string {
     .toLowerCase()
     .replace(/[*_`~]/g, '')
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
+    .trim()
 }
 
-const BLOCK_START = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+|\|)/;
-const MARKER = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+)/;
+const BLOCK_START = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+|\|)/
+const MARKER = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+)/
 
 /**
  * Frases do documento, já sem código, com a linha em que cada uma começa.
@@ -77,33 +77,44 @@ const MARKER = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+)/;
  * frase que ninguém escreveu.
  */
 export function sentencesOf(source: string): { text: string; line: number }[] {
-  const lines = stripCode(source).split('\n');
-  const sentences: { text: string; line: number }[] = [];
+  const lines = stripCode(source).split('\n')
+  const sentences: { text: string; line: number }[] = []
 
-  let buffer: string[] = [];
-  let start = 0;
+  let buffer: string[] = []
+  let start = 0
 
   const flush = (): void => {
-    if (buffer.length === 0) return;
-    const paragraph = buffer.join(' ').replace(/\s+/g, ' ').trim();
-    buffer = [];
-    for (const piece of paragraph.split(/(?<=[.!?])\s+/)) {
-      const text = piece.trim();
-      if (text !== '') sentences.push({ text, line: start });
+    if (buffer.length === 0) {
+      return
     }
-  };
+    const paragraph = buffer.join(' ').replace(/\s+/g, ' ').trim()
+
+    buffer = []
+    for (const piece of paragraph.split(/(?<=[.!?])\s+/)) {
+      const text = piece.trim()
+
+      if (text !== '') {
+        sentences.push({ text, line: start })
+      }
+    }
+  }
 
   for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i] ?? '';
-    if (raw.trim() === '') {
-      flush();
-      continue;
-    }
-    if (BLOCK_START.test(raw)) flush();
-    if (buffer.length === 0) start = i + 1;
-    buffer.push(raw.replace(MARKER, '').trim());
-  }
-  flush();
+    const raw = lines[i] ?? ''
 
-  return sentences;
+    if (raw.trim() === '') {
+      flush()
+      continue
+    }
+    if (BLOCK_START.test(raw)) {
+      flush()
+    }
+    if (buffer.length === 0) {
+      start = i + 1
+    }
+    buffer.push(raw.replace(MARKER, '').trim())
+  }
+  flush()
+
+  return sentences
 }

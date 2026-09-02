@@ -1,8 +1,8 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { declaredPaths, docsRoot, documentationFiles } from '../../src/docs/corpus.ts';
-import { parseOwnership } from '../../src/config/ownership.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { declaredPaths, docsRoot, documentationFiles } from '../../src/docs/corpus.ts'
+import { parseOwnership } from '../../src/config/ownership.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 const OWNERSHIP = `
 version: 1
@@ -19,20 +19,15 @@ documents:
     owner: "@time"
   - path: fora/do/repo.md
     owner: "@time"
-`;
+`
 
 test('docsRoot deriva da localização do .ownership.yml — nenhum literal `docs/` no check', () => {
-  assert.equal(docsRoot(), 'docs');
-});
+  assert.equal(docsRoot(), 'docs')
+})
 
 test('declaredPaths junta artefatos, documentos e gerados', () => {
-  assert.deepEqual(declaredPaths(parseOwnership(OWNERSHIP)).sort(), [
-    'CONTRIBUTING.md',
-    'docs/contracts/api.gen.md',
-    'docs/decisions/adr/',
-    'fora/do/repo.md',
-  ]);
-});
+  assert.deepEqual(declaredPaths(parseOwnership(OWNERSHIP)).sort(), ['CONTRIBUTING.md', 'docs/contracts/api.gen.md', 'docs/decisions/adr/', 'fora/do/repo.md'])
+})
 
 test('documentationFiles = tudo sob a raiz + o que é declarado fora dela e existe', () => {
   withTempRepo(
@@ -45,16 +40,16 @@ test('documentationFiles = tudo sob a raiz + o que é declarado fora dela e exis
       'README.md': '# leia\n',
       'src/codigo.ts': 'export const x = 1;\n',
     },
-    (root) => {
-      const files = documentationFiles(root, parseOwnership(OWNERSHIP));
+    root => {
+      const files = documentationFiles(root, parseOwnership(OWNERSHIP))
 
-      assert.ok(files.includes('docs/decisions/adr/ADR-0001-x.md'));
-      assert.ok(files.includes('docs/.ownership.yml'), 'o mapa também é documento e também tem dono');
-      assert.ok(files.includes('docs/ids-retired.txt'));
-      assert.ok(files.includes('CONTRIBUTING.md'), 'declarado fora da raiz e existe');
-      assert.equal(files.includes('fora/do/repo.md'), false, 'declarado e ausente não entra');
-      assert.equal(files.includes('README.md'), false, 'não declarado e fora da raiz não é do corpus');
-      assert.equal(files.includes('src/codigo.ts'), false);
+      assert.ok(files.includes('docs/decisions/adr/ADR-0001-x.md'))
+      assert.ok(files.includes('docs/.ownership.yml'), 'o mapa também é documento e também tem dono')
+      assert.ok(files.includes('docs/ids-retired.txt'))
+      assert.ok(files.includes('CONTRIBUTING.md'), 'declarado fora da raiz e existe')
+      assert.equal(files.includes('fora/do/repo.md'), false, 'declarado e ausente não entra')
+      assert.equal(files.includes('README.md'), false, 'não declarado e fora da raiz não é do corpus')
+      assert.equal(files.includes('src/codigo.ts'), false)
     },
-  );
-});
+  )
+})

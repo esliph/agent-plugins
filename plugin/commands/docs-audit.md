@@ -1,6 +1,6 @@
 ---
 description: Audita a divergência entre código e documentação num escopo — o que o diff deveria ter atualizado e não atualizou.
-argument-hint: "[escopo: ref de diff, caminho, ou staged]"
+argument-hint: '[escopo: ref de diff, caminho, ou staged]'
 ---
 
 Acione o agent `docs-divergence-auditor` com o escopo: $ARGUMENTS

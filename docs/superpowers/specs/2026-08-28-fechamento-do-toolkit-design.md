@@ -20,18 +20,18 @@ conteúdo deles é copiado para cá.
 
 ## 1. As dez lacunas
 
-| ID | Lacuna | Origem na spec original | Evidência |
-| --- | --- | --- | --- |
-| `L-1` | O `init` não instala o enforcement | §5, `SK-0` — "Dona de: … a instalação de `HK-*` e `CI-*`"; passo 4 | `src/cli/init.ts` não menciona `workflow`, `.github` nem `.claude`; `templates/` não tem template de workflow; `RF-0003` cristalizou "instala apenas a **moldura**" |
-| `L-2` | O plugin não tem caminho de instalação | §10, fases; `SK-0` passo 4 | Não existe `marketplace.json`; `.claude/` deste repositório só tem `scheduled_tasks.lock`; os sete hooks nunca rodaram numa sessão — só por payload em `test/hooks/` |
-| `L-3` | O critério de aceite 4 não tem mecanismo, requisito nem teste | §12, critério 4; §5, `SK-3` regra 1 e `SK-4` regra 5 | Não há regra de negócio para ele em `docs/requirements/rules.md`; nenhum hook impede implementar com decisão aberta; `test/acceptance/spec-criteria.test.ts` cobre 1, 2, 3, 5, 6, 7 e 8 |
-| `L-4` | Os critérios de aceite 9 e 10 não têm prova | §12, critérios 9 e 10 | O 9 está coberto pela metade em `test/docs/agent-contract.test.ts` (índice, não conteúdo); a metade do loop "erro → linha" não tem registro. O 10 não tem teste |
-| `L-5` | Bump em massa de `last-reviewed` não é detectado | §2, regra 3; §13 | Todo outro anti-requisito da §13 tem peça; este não |
-| `L-6` | `trigger` do artefato e `description` da skill dona não são comparados | §11 — "dizem a mesma coisa … se divergirem, o documento declara um gatilho que nada dispara" | `test/plugin/authoring.test.ts` valida a `description`; `CI-1` valida o `trigger`; nada cruza os dois |
-| `L-7` | `--stage multi-team` não existe, e a skill manda escolhê-lo | §9, mapeamento por estágio; §5, `SK-0` passo 2 | `src/cli/init.ts` declara `solo`, `small-team` e `production`; `plugin/skills/living-docs-bootstrap/SKILL.md` passo 2 manda determinar entre quatro, incluindo "múltiplos times" |
-| `L-8` | Duas regras escritas sem check: ID na mensagem de commit, e o orçamento de tempo | §11, idioma e commits; §9 — "rodam em minutos, no PR" | `src/git/diff.ts` já expõe `commitMessages`, usado só para rótulo de exceção; `RNF-0001` cobre o teto do hook, e nenhum requisito cobre o do check |
-| `L-9` | O enforcement não é vigiado por `watches` | §3, mecanismo 1 | `.github/workflows/` não está em `watches` nem em `consumer-visible-paths` do `docs/.ownership.yml` |
-| `L-10` | A forma escrita do ID é do toolkit, não do projeto | §8, sintaxe de citação; §5, `SK-0` passo 1; §12, critério 1 | `src/docs/schema.ts` e `src/ids/citations.ts` exigem hífen e três a quatro dígitos. O consumidor real escreve `RF001`, `RNF001`, `RN009` e `DA001` — 97 regras, já citadas assim nos testes dele |
+| ID     | Lacuna                                                                           | Origem na spec original                                                                      | Evidência                                                                                                                                                                                        |
+| ------ | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `L-1`  | O `init` não instala o enforcement                                               | §5, `SK-0` — "Dona de: … a instalação de `HK-*` e `CI-*`"; passo 4                           | `src/cli/init.ts` não menciona `workflow`, `.github` nem `.claude`; `templates/` não tem template de workflow; `RF-0003` cristalizou "instala apenas a **moldura**"                              |
+| `L-2`  | O plugin não tem caminho de instalação                                           | §10, fases; `SK-0` passo 4                                                                   | Não existe `marketplace.json`; `.claude/` deste repositório só tem `scheduled_tasks.lock`; os sete hooks nunca rodaram numa sessão — só por payload em `test/hooks/`                             |
+| `L-3`  | O critério de aceite 4 não tem mecanismo, requisito nem teste                    | §12, critério 4; §5, `SK-3` regra 1 e `SK-4` regra 5                                         | Não há regra de negócio para ele em `docs/requirements/rules.md`; nenhum hook impede implementar com decisão aberta; `test/acceptance/spec-criteria.test.ts` cobre 1, 2, 3, 5, 6, 7 e 8          |
+| `L-4`  | Os critérios de aceite 9 e 10 não têm prova                                      | §12, critérios 9 e 10                                                                        | O 9 está coberto pela metade em `test/docs/agent-contract.test.ts` (índice, não conteúdo); a metade do loop "erro → linha" não tem registro. O 10 não tem teste                                  |
+| `L-5`  | Bump em massa de `last-reviewed` não é detectado                                 | §2, regra 3; §13                                                                             | Todo outro anti-requisito da §13 tem peça; este não                                                                                                                                              |
+| `L-6`  | `trigger` do artefato e `description` da skill dona não são comparados           | §11 — "dizem a mesma coisa … se divergirem, o documento declara um gatilho que nada dispara" | `test/plugin/authoring.test.ts` valida a `description`; `CI-1` valida o `trigger`; nada cruza os dois                                                                                            |
+| `L-7`  | `--stage multi-team` não existe, e a skill manda escolhê-lo                      | §9, mapeamento por estágio; §5, `SK-0` passo 2                                               | `src/cli/init.ts` declara `solo`, `small-team` e `production`; `plugin/skills/living-docs-bootstrap/SKILL.md` passo 2 manda determinar entre quatro, incluindo "múltiplos times"                 |
+| `L-8`  | Duas regras escritas sem check: ID na mensagem de commit, e o orçamento de tempo | §11, idioma e commits; §9 — "rodam em minutos, no PR"                                        | `src/git/diff.ts` já expõe `commitMessages`, usado só para rótulo de exceção; `RNF-0001` cobre o teto do hook, e nenhum requisito cobre o do check                                               |
+| `L-9`  | O enforcement não é vigiado por `watches`                                        | §3, mecanismo 1                                                                              | `.github/workflows/` não está em `watches` nem em `consumer-visible-paths` do `docs/.ownership.yml`                                                                                              |
+| `L-10` | A forma escrita do ID é do toolkit, não do projeto                               | §8, sintaxe de citação; §5, `SK-0` passo 1; §12, critério 1                                  | `src/docs/schema.ts` e `src/ids/citations.ts` exigem hífen e três a quatro dígitos. O consumidor real escreve `RF001`, `RNF001`, `RN009` e `DA001` — 97 regras, já citadas assim nos testes dele |
 
 `L-10` só existe porque um consumidor real foi olhado. É a lacuna que bloqueia
 todas as outras: sem ela resolvida, `L-1` e `L-2` entregam um enforcement que
@@ -48,12 +48,12 @@ entra.
 
 **Fora, e por quê:**
 
-| Fora | Razão |
-| --- | --- |
-| `L-4` — critérios de aceite 9 e 10 | São verificação humana por natureza. "Um agente errou por falta de contexto" não é observável por máquina, e "nenhuma métrica de volume documental" é a ausência de uma coisa. A §11 da spec original já admite item de checklist verificável só por gente, dito explicitamente — é assim que os dois ficam: linha na Definition of Done, marcada humana, e não um check que finge medir |
-| Quality Attribute Scenarios / NFR budget, e Domain model / invariantes (camada 3 da pesquisa) | A spec original não os colocou nem em "Dentro" nem em "Fora". São extensão de escopo, não buraco de implementação, e entram pelo mesmo ponto de extensão que C4 e runbooks: uma entrada em `docs/.ownership.yml` e uma skill dona |
-| Test strategy e Onboarding path (camada 7 da pesquisa) | Mesma razão. O style guide, que estava na mesma tabela da pesquisa, foi absorvido pela `SK-6`; estes dois não, e continuam fora até alguém pedir |
-| Camadas 4 e 6 inteiras, event catalog, RFC longo, feature spec | A §"Escopo" da spec original já as recusa por escrito. Esta spec não reabre |
+| Fora                                                                                          | Razão                                                                                                                                                                                                                                                                                                                                                                                    |
+| --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `L-4` — critérios de aceite 9 e 10                                                            | São verificação humana por natureza. "Um agente errou por falta de contexto" não é observável por máquina, e "nenhuma métrica de volume documental" é a ausência de uma coisa. A §11 da spec original já admite item de checklist verificável só por gente, dito explicitamente — é assim que os dois ficam: linha na Definition of Done, marcada humana, e não um check que finge medir |
+| Quality Attribute Scenarios / NFR budget, e Domain model / invariantes (camada 3 da pesquisa) | A spec original não os colocou nem em "Dentro" nem em "Fora". São extensão de escopo, não buraco de implementação, e entram pelo mesmo ponto de extensão que C4 e runbooks: uma entrada em `docs/.ownership.yml` e uma skill dona                                                                                                                                                        |
+| Test strategy e Onboarding path (camada 7 da pesquisa)                                        | Mesma razão. O style guide, que estava na mesma tabela da pesquisa, foi absorvido pela `SK-6`; estes dois não, e continuam fora até alguém pedir                                                                                                                                                                                                                                         |
+| Camadas 4 e 6 inteiras, event catalog, RFC longo, feature spec                                | A §"Escopo" da spec original já as recusa por escrito. Esta spec não reabre                                                                                                                                                                                                                                                                                                              |
 
 ---
 
@@ -87,8 +87,8 @@ papéis; passa a fazer um só.
 
 ```yaml
 id-format:
-  separator: ""      # padrão: "-"
-  padding: 3         # padrão: 4
+  separator: '' # padrão: "-"
+  padding: 3 # padrão: 4
 ```
 
 Com isso `RN009` e `RN-0009` são o mesmo item, cada projeto escolhe a sua forma,
@@ -133,10 +133,10 @@ marketplace, e este repositório nunca registrou o próprio plugin.
 
 O `init` passa a escrever, além da moldura, as duas peças de enforcement:
 
-| Peça | O que é | Regra |
-| --- | --- | --- |
-| Workflow de CI | Um template parametrizado que roda `validate`, e `validate --base`, `drift` e `changelog` quando há base | **Não impõe Docker.** `RNF-0002` é regra deste toolkit, não do consumidor: o workflow instalado roda como o resto do CI do consumidor roda, e o template recebe o modo de invocação |
-| Registro do plugin | A entrada que liga os sete hooks na sessão, mais o manifesto de marketplace na raiz do toolkit | Instalado por **mesclagem** |
+| Peça               | O que é                                                                                                  | Regra                                                                                                                                                                               |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workflow de CI     | Um template parametrizado que roda `validate`, e `validate --base`, `drift` e `changelog` quando há base | **Não impõe Docker.** `RNF-0002` é regra deste toolkit, não do consumidor: o workflow instalado roda como o resto do CI do consumidor roda, e o template recebe o modo de invocação |
+| Registro do plugin | A entrada que liga os sete hooks na sessão, mais o manifesto de marketplace na raiz do toolkit           | Instalado por **mesclagem**                                                                                                                                                         |
 
 A regra que governa as duas é a que o `init` já pratica com o `CODEOWNERS` e
 com os artefatos de requisito: **mesclar, nunca sobrescrever**. Um consumidor
@@ -177,10 +177,10 @@ como campo de impacto, hoje.
 Uma decisão aberta ganha um campo que nomeia **os caminhos que ela bloqueia**.
 Daí saem duas peças:
 
-| Peça | Evento | Decisão | O que faz |
-| --- | --- | --- | --- |
-| `HK-8` | `PreToolUse` / `Edit\|Write` | `ask` | Editar caminho reivindicado por decisão aberta pergunta, nomeando a decisão, o que ela bloqueia e a skill dona |
-| — | `CI-7`, metade do diff | erro | Diff que toca caminho reivindicado por decisão aberta reprova, com a mesma saída escrita que as outras metades do `CI-7` já aceitam |
+| Peça   | Evento                       | Decisão | O que faz                                                                                                                           |
+| ------ | ---------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `HK-8` | `PreToolUse` / `Edit\|Write` | `ask`   | Editar caminho reivindicado por decisão aberta pergunta, nomeando a decisão, o que ela bloqueia e a skill dona                      |
+| —      | `CI-7`, metade do diff       | erro    | Diff que toca caminho reivindicado por decisão aberta reprova, com a mesma saída escrita que as outras metades do `CI-7` já aceitam |
 
 `HK-8` **pergunta, não nega**. Negar exigiria que o hook julgasse se aquela
 edição é a implementação da regra que falta ou outra coisa qualquer no mesmo
@@ -267,15 +267,15 @@ o teto é do conjunto — não de cada check —, porque é o conjunto que roda 
 O consumidor é o repositório que motivou a pesquisa. O que ele tem hoje, e que a
 instalação precisa atravessar sem quebrar nada:
 
-| O que existe lá | O que isso exige |
-| --- | --- |
-| 97 regras e 15 requisitos funcionais em arquivo único, com IDs sem hífen, já citados assim nos testes | `L-10` resolvido. Sem isso, nada mais desta seção acontece |
-| Duas decisões abertas em seções, com contexto, alternativas, recomendação e situação em prosa | O coletor de coleção por seções já existe; o mapa de campos do `docs/.ownership.yml` cobre a diferença de nome. A situação em prosa precisa virar estado da máquina — é ato humano, não conversão automática |
-| `docs/adr/` vazio | Já está na lista de adoção do `init`. Nasce adotado, não recriado |
-| Hooks próprios já registrados na sessão | A mesclagem da §4. Nenhum hook do consumidor é perdido |
-| CI por diretório, com filtro de caminho e sem Docker | O workflow parametrizado da §4 |
-| `docs/architecture/` e `docs/domains/` — camada 4 | Ver abaixo |
-| Sem `CODEOWNERS` | O `init` já escreve |
+| O que existe lá                                                                                       | O que isso exige                                                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 97 regras e 15 requisitos funcionais em arquivo único, com IDs sem hífen, já citados assim nos testes | `L-10` resolvido. Sem isso, nada mais desta seção acontece                                                                                                                                                   |
+| Duas decisões abertas em seções, com contexto, alternativas, recomendação e situação em prosa         | O coletor de coleção por seções já existe; o mapa de campos do `docs/.ownership.yml` cobre a diferença de nome. A situação em prosa precisa virar estado da máquina — é ato humano, não conversão automática |
+| `docs/adr/` vazio                                                                                     | Já está na lista de adoção do `init`. Nasce adotado, não recriado                                                                                                                                            |
+| Hooks próprios já registrados na sessão                                                               | A mesclagem da §4. Nenhum hook do consumidor é perdido                                                                                                                                                       |
+| CI por diretório, com filtro de caminho e sem Docker                                                  | O workflow parametrizado da §4                                                                                                                                                                               |
+| `docs/architecture/` e `docs/domains/` — camada 4                                                     | Ver abaixo                                                                                                                                                                                                   |
+| Sem `CODEOWNERS`                                                                                      | O `init` já escreve                                                                                                                                                                                          |
 
 ### A camada 4 e o ponto de extensão
 
@@ -297,22 +297,22 @@ qual for.
 
 ## 9. As peças novas, reunidas
 
-| Peça | Tipo | O que resolve |
-| --- | --- | --- |
-| `id-format` no mapa de propriedade | Configuração | `L-10` |
-| Forma escrita separada da chave canônica | Engine | `L-10` |
-| Relato da forma detectada no inventário | `SK-0` | `L-10` |
-| Template de workflow parametrizado | Template | `L-1` |
-| Registro do plugin e manifesto de marketplace | Template + raiz do toolkit | `L-2` |
-| Mesclagem do enforcement no `init` | CLI | `L-1`, `L-2` |
-| `--stage multi-team` | CLI + `SK-0` | `L-7` |
-| Campo de caminhos bloqueados na decisão aberta | Contrato de máquina | `L-3` |
-| `HK-8` | Hook (`ask`) | `L-3` |
-| Achado de caminho bloqueado no `CI-7` | Check | `L-3` |
-| `CI-9` | Check (grupo do diff) | `L-5`, `L-8` |
-| `CI-10` | Check (`validate`) | `L-6` |
-| `.github/workflows/` em `watches` | Mapa de propriedade | `L-9` |
-| Teto de tempo do conjunto de checks | Requisito não funcional | `L-8` |
+| Peça                                           | Tipo                       | O que resolve |
+| ---------------------------------------------- | -------------------------- | ------------- |
+| `id-format` no mapa de propriedade             | Configuração               | `L-10`        |
+| Forma escrita separada da chave canônica       | Engine                     | `L-10`        |
+| Relato da forma detectada no inventário        | `SK-0`                     | `L-10`        |
+| Template de workflow parametrizado             | Template                   | `L-1`         |
+| Registro do plugin e manifesto de marketplace  | Template + raiz do toolkit | `L-2`         |
+| Mesclagem do enforcement no `init`             | CLI                        | `L-1`, `L-2`  |
+| `--stage multi-team`                           | CLI + `SK-0`               | `L-7`         |
+| Campo de caminhos bloqueados na decisão aberta | Contrato de máquina        | `L-3`         |
+| `HK-8`                                         | Hook (`ask`)               | `L-3`         |
+| Achado de caminho bloqueado no `CI-7`          | Check                      | `L-3`         |
+| `CI-9`                                         | Check (grupo do diff)      | `L-5`, `L-8`  |
+| `CI-10`                                        | Check (`validate`)         | `L-6`         |
+| `.github/workflows/` em `watches`              | Mapa de propriedade        | `L-9`         |
+| Teto de tempo do conjunto de checks            | Requisito não funcional    | `L-8`         |
 
 Nenhum ID de requisito é pré-alocado aqui. Requisito sem número não é citável, e
 citar número que não existe reprova no `CI-2` — quem numera é a

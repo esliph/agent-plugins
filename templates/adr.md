@@ -1,11 +1,11 @@
 ---
-id: {{ID}}
-title: {{TITLE}}
+id: { { ID } }
+title: { { TITLE } }
 status: draft
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.
-last-reviewed: {{TODAY}}
+last-reviewed: { { TODAY } }
 relates-to: []
 supersedes: null
 superseded-by: null

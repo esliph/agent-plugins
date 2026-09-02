@@ -33,11 +33,11 @@ nunca assuma caminho.
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
-| ADR | Por que isto e não aquilo, e o que se aceita perder | Um arquivo por decisão, numerado, append-only |
-| Open Decisions (DA) | O que ainda **não** foi decidido | Arquivo único, tabela, mutável |
-| TDR | Dívida assumida de propósito, com gatilho de pagamento | Um arquivo por dívida |
+| Artefato            | O que é                                                | Forma                                         |
+| ------------------- | ------------------------------------------------------ | --------------------------------------------- |
+| ADR                 | Por que isto e não aquilo, e o que se aceita perder    | Um arquivo por decisão, numerado, append-only |
+| Open Decisions (DA) | O que ainda **não** foi decidido                       | Arquivo único, tabela, mutável                |
+| TDR                 | Dívida assumida de propósito, com gatilho de pagamento | Um arquivo por dívida                         |
 
 Templates: `templates/adr.md` e `templates/tdr.md`. Não reescreva o formato aqui.
 
@@ -91,13 +91,13 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| Registrar por que isto e não aquilo, e o que se perde | Tomar a decisão |
-| Transformar lacuna em item bloqueante com ID | Implementar a regra que falta |
-| Registrar a dívida com gatilho de pagamento | Pagar a dívida |
-| Propor supersedir um ADR errado | Editar um ADR aceito |
-| Apontar o formato do template | Duplicar o conteúdo do artefato aqui |
+| É seu                                                 | Não é seu                            |
+| ----------------------------------------------------- | ------------------------------------ |
+| Registrar por que isto e não aquilo, e o que se perde | Tomar a decisão                      |
+| Transformar lacuna em item bloqueante com ID          | Implementar a regra que falta        |
+| Registrar a dívida com gatilho de pagamento           | Pagar a dívida                       |
+| Propor supersedir um ADR errado                       | Editar um ADR aceito                 |
+| Apontar o formato do template                         | Duplicar o conteúdo do artefato aqui |
 
 ## Checklist
 

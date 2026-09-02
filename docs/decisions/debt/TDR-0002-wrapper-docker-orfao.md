@@ -4,17 +4,17 @@ title: bin/living-docs continua exigindo Docker sem ninguém que o invoque
 status: paid
 owner: '@esliph/engineering'
 trigger: >
-    Quando o gatilho de pagamento abaixo se cumprir.
+  Quando o gatilho de pagamento abaixo se cumprir.
 last-reviewed: 2026-09-01
 relates-to: [ADR-0015, RNF-0002]
 # Aspas simples: em YAML, aspas simples não processam `\`, e o padrão é regex.
 pay-when:
-    pattern: 'bin/living-docs'
-    paths:
-        - CONTRIBUTING.md
-        - README.md
-        - docs/definition-of-done.md
-        - '.github/workflows/**'
+  pattern: 'bin/living-docs'
+  paths:
+    - CONTRIBUTING.md
+    - README.md
+    - docs/definition-of-done.md
+    - '.github/workflows/**'
 ---
 
 # TDR-0002 — bin/living-docs continua exigindo Docker sem ninguém que o invoque

@@ -1,11 +1,11 @@
 ---
-id: {{ID}}
-title: {{TITLE}}
+id: { { ID } }
+title: { { TITLE } }
 status: open
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
   Quando o gatilho de pagamento abaixo se cumprir.
-last-reviewed: {{TODAY}}
+last-reviewed: { { TODAY } }
 relates-to: []
 # Gatilho de pagamento em forma de máquina (RN-0019, ADR-0007). Descomente e
 # preencha: `pattern` é regex (aspas simples, para o `\` não ser escape do YAML)

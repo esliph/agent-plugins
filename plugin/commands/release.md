@@ -1,6 +1,6 @@
 ---
 description: Prepara uma versão — deriva a release note do CHANGELOG e move as entradas de Unreleased.
-argument-hint: "[versão]"
+argument-hint: '[versão]'
 ---
 
 Acione a skill `release-historian` para preparar a versão `$ARGUMENTS`.

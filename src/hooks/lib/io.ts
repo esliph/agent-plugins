@@ -1,15 +1,15 @@
-import { repoRoot } from '../../core/roots.ts';
+import { repoRoot } from '../../core/roots.ts'
 
 export interface HookEnv {
   /** Raiz do repositório validado (ADR-0003). */
-  root: string;
+  root: string
   /** Raízes reconhecidas em `file_path`: a do container e a do host. */
-  hostRoots: readonly string[];
+  hostRoots: readonly string[]
 }
 
 export interface HookPayload {
-  tool_name?: string;
-  tool_input?: Record<string, unknown>;
+  tool_name?: string
+  tool_input?: Record<string, unknown>
 }
 
 /**
@@ -17,21 +17,29 @@ export interface HookPayload {
  * sempre significou "o prefixo de caminho do lado do host", que não é ambíguo.
  */
 export function hookEnv(): HookEnv {
-  const root = repoRoot();
-  const host = process.env.LIVING_DOCS_HOST_ROOT;
-  return { root, hostRoots: host ? [root, host] : [root] };
+  const root = repoRoot()
+  const host = process.env.LIVING_DOCS_HOST_ROOT
+
+  return { root, hostRoots: host ? [root, host] : [root] }
 }
 
 export async function readPayload(): Promise<HookPayload | null> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
+  const chunks: Buffer[] = []
+
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk as Buffer)
+  }
 
   try {
-    const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-    if (parsed === null || typeof parsed !== 'object') return null;
-    return parsed as HookPayload;
+    const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+
+    if (parsed === null || typeof parsed !== 'object') {
+      return null
+    }
+
+    return parsed
   } catch {
-    return null;
+    return null
   }
 }
 
@@ -42,15 +50,15 @@ function output(decision: 'deny' | 'ask', reason: string): string {
       permissionDecision: decision,
       permissionDecisionReason: reason,
     },
-  });
+  })
 }
 
 export function denyOutput(reason: string): string {
-  return output('deny', reason);
+  return output('deny', reason)
 }
 
 export function askOutput(reason: string): string {
-  return output('ask', reason);
+  return output('ask', reason)
 }
 
 /**
@@ -62,10 +70,12 @@ export function askOutput(reason: string): string {
 export function contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string {
   return JSON.stringify({
     hookSpecificOutput: { hookEventName: event, additionalContext: context },
-  });
+  })
 }
 
 /** Emite a decisão; `null` significa "deixe passar em silêncio". */
 export function emit(value: string | null): void {
-  if (value !== null) process.stdout.write(`${value}\n`);
+  if (value !== null) {
+    process.stdout.write(`${value}\n`)
+  }
 }

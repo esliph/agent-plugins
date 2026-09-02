@@ -22,14 +22,14 @@ de 5 s do hook, razão de os hooks ficarem fora do container).
 
 Seis escolhas foram tomadas antes desta spec e não são reabertas aqui:
 
-| # | Escolha | Consequência aceita |
-| --- | --- | --- |
-| `E-1` | Os **hooks nunca entram no container**. O wrapper cobre manutenção: `npm`, o CLI, um shell | Numa máquina sem Node no host, os hooks continuam sem enforcement local. É o mesmo custo que `ADR-0015` já declarou, e não é agravado |
-| `E-2` | Container **persistente**, e o wrapper o garante: se não está de pé, sobe sozinho | O wrapper passa a ter efeito colateral (`docker compose up -d`) numa invocação que parecia só de leitura. Em troca, some o modo de falha "container parado" que hoje devolve exit 2 |
-| `E-3` | `bin/dev` genérico é o ponto de entrada; `bin/living-docs` sobrevive como delegação de uma linha | Dois arquivos em `bin/` em vez de um. Nenhuma lógica duplicada, e o caminho público que `TDR-0002` protege continua válido |
-| `E-4` | **Só bash.** Nenhum `.ps1`, nenhum `.cmd` | No Windows invoca-se pelo Git Bash, pelo WSL, ou com `bash bin/dev …` a partir do PowerShell. O `git` já é exigido pelo toolkit e o Git for Windows traz o bash junto |
-| `E-5` | O caminho Docker é verificado por **workflow condicional por caminho**, não em todo PR | Uma quebra causada por algo fora da lista de caminhos vigiados só aparece na próxima vez que alguém tocar naquela lista |
-| `E-6` | Regra nova (`RNF-0006`), não emenda ao `RNF-0002` | Um ID a mais. Em troca, os dois caminhos têm ciclos de vida independentes: retirar o Docker um dia não mexe no requisito do host |
+| #     | Escolha                                                                                          | Consequência aceita                                                                                                                                                                 |
+| ----- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `E-1` | Os **hooks nunca entram no container**. O wrapper cobre manutenção: `npm`, o CLI, um shell       | Numa máquina sem Node no host, os hooks continuam sem enforcement local. É o mesmo custo que `ADR-0015` já declarou, e não é agravado                                               |
+| `E-2` | Container **persistente**, e o wrapper o garante: se não está de pé, sobe sozinho                | O wrapper passa a ter efeito colateral (`docker compose up -d`) numa invocação que parecia só de leitura. Em troca, some o modo de falha "container parado" que hoje devolve exit 2 |
+| `E-3` | `bin/dev` genérico é o ponto de entrada; `bin/living-docs` sobrevive como delegação de uma linha | Dois arquivos em `bin/` em vez de um. Nenhuma lógica duplicada, e o caminho público que `TDR-0002` protege continua válido                                                          |
+| `E-4` | **Só bash.** Nenhum `.ps1`, nenhum `.cmd`                                                        | No Windows invoca-se pelo Git Bash, pelo WSL, ou com `bash bin/dev …` a partir do PowerShell. O `git` já é exigido pelo toolkit e o Git for Windows traz o bash junto               |
+| `E-5` | O caminho Docker é verificado por **workflow condicional por caminho**, não em todo PR           | Uma quebra causada por algo fora da lista de caminhos vigiados só aparece na próxima vez que alguém tocar naquela lista                                                             |
+| `E-6` | Regra nova (`RNF-0006`), não emenda ao `RNF-0002`                                                | Um ID a mais. Em troca, os dois caminhos têm ciclos de vida independentes: retirar o Docker um dia não mexe no requisito do host                                                    |
 
 `E-1` é a que sustenta as outras. O núcleo de `ADR-0015` é que o enforcement
 local não pode depender do estado de um daemon; enquanto os hooks executam no
@@ -57,19 +57,19 @@ atualizar o wrapper.
 
 ## 3. As onze mudanças
 
-| ID | Mudança | Arquivo |
-| --- | --- | --- |
-| `M-1` | Nasce o wrapper genérico | `bin/dev` |
-| `M-2` | O wrapper do CLI vira delegação de uma linha | `bin/living-docs` |
-| `M-3` | `RNF-0006` nasce; `RNF-0002` marca o caminho conteinerizado como fora de escopo | `docs/requirements/non-functional.md` |
-| `M-4` | `ADR-0016` nasce, carregando `ADR-0015` em vez de supersedê-lo | `docs/decisions/adr/` |
-| `M-5` | `TDR-0002` é quitado por conserto | `docs/decisions/debt/` |
-| `M-6` | `bin/**` passa a ser o caminho vigiado, e `bin/dev` entra em `consumer-visible-paths` | `docs/.ownership.yml` |
-| `M-7` | Nasce o workflow que exercita o caminho Docker | `.github/workflows/wrapper-docker.yml` |
-| `M-8` | Testes travam a delegação e a invariante da §2 | `test/plugin/` |
-| `M-9` | O princípio 6 é emendado; a Constitution vai a `version: 3` | `docs/charter/constitution.md` |
-| `M-10` | A prosa ensina os dois caminhos, host primeiro | `README.md`, `CONTRIBUTING.md` |
-| `M-11` | A entrada de `## [Unreleased]` registra a mudança visível | `CHANGELOG.md` |
+| ID     | Mudança                                                                               | Arquivo                                |
+| ------ | ------------------------------------------------------------------------------------- | -------------------------------------- |
+| `M-1`  | Nasce o wrapper genérico                                                              | `bin/dev`                              |
+| `M-2`  | O wrapper do CLI vira delegação de uma linha                                          | `bin/living-docs`                      |
+| `M-3`  | `RNF-0006` nasce; `RNF-0002` marca o caminho conteinerizado como fora de escopo       | `docs/requirements/non-functional.md`  |
+| `M-4`  | `ADR-0016` nasce, carregando `ADR-0015` em vez de supersedê-lo                        | `docs/decisions/adr/`                  |
+| `M-5`  | `TDR-0002` é quitado por conserto                                                     | `docs/decisions/debt/`                 |
+| `M-6`  | `bin/**` passa a ser o caminho vigiado, e `bin/dev` entra em `consumer-visible-paths` | `docs/.ownership.yml`                  |
+| `M-7`  | Nasce o workflow que exercita o caminho Docker                                        | `.github/workflows/wrapper-docker.yml` |
+| `M-8`  | Testes travam a delegação e a invariante da §2                                        | `test/plugin/`                         |
+| `M-9`  | O princípio 6 é emendado; a Constitution vai a `version: 3`                           | `docs/charter/constitution.md`         |
+| `M-10` | A prosa ensina os dois caminhos, host primeiro                                        | `README.md`, `CONTRIBUTING.md`         |
+| `M-11` | A entrada de `## [Unreleased]` registra a mudança visível                             | `CHANGELOG.md`                         |
 
 `Dockerfile`, `compose.yaml` e `.dockerignore` **não mudam**. Já estão corretos
 para este desenho, e essa é a razão de a entrega ser pequena.
@@ -133,7 +133,7 @@ por `RNF-0001` e `E-1`.
 `RNF-0002` não é reescrito e não muda de sentido. Ganha uma linha em **fora de
 escopo** apontando para `RNF-0006`, para que quem leia "Node 24 e o npm são o
 único toolchain exigido" entenda que Docker é alternativa, não exigência — a
-palavra que carrega a frase continua sendo *exigido*.
+palavra que carrega a frase continua sendo _exigido_.
 
 Nasce `draft`. Promover é ato humano (`HK-3`).
 
@@ -230,9 +230,9 @@ quebrado.
 
 ### `M-9` — o princípio 6
 
-Hoje: *"O toolkit roda no Node do host, sem passo de build — verificado por
+Hoje: _"O toolkit roda no Node do host, sem passo de build — verificado por
 `test/plugin/manifest.test.ts` (`RNF-0002`) e pelo workflow, que instala Node e
-npm e nada além."*
+npm e nada além."_
 
 A cláusula final fica ambígua com um segundo workflow que constrói imagem. A
 emenda mantém a afirmação — a execução de registro é o host, e não há passo de

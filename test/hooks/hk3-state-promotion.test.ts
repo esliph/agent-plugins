@@ -1,12 +1,12 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts';
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
-import type { Hk3Decision } from '../../src/hooks/hk3-state-promotion.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts'
+import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
+import type { Hk3Decision } from '../../src/hooks/hk3-state-promotion.ts'
 
 function assertAsk(decision: Hk3Decision): asserts decision is { action: 'ask'; reason: string } {
-  assert.equal(decision.action, 'ask');
+  assert.equal(decision.action, 'ask')
 }
 
 const CONFIG = `
@@ -27,9 +27,9 @@ artifacts:
     owner: "@team"
     skill: requirements-keeper
     collection: sections
-`;
+`
 
-const ADR_FILE = 'docs/decisions/adr/ADR-0001-fila.md';
+const ADR_FILE = 'docs/decisions/adr/ADR-0001-fila.md'
 
 function adr(status: string): string {
   return [
@@ -43,7 +43,7 @@ function adr(status: string): string {
     '---',
     '',
     '## Contexto',
-  ].join('\n');
+  ].join('\n')
 }
 
 function openDecisions(status: string, resolvedBy: string): string {
@@ -58,70 +58,87 @@ function openDecisions(status: string, resolvedBy: string): string {
     '| ID | Lacuna | Status | Resolvida por |',
     '| --- | --- | --- | --- |',
     `| DA-0001 | Reembolso parcial | ${status} | ${resolvedBy} |`,
-  ].join('\n');
+  ].join('\n')
 }
 
 function decide(files: Record<string, string>, toolInput: Record<string, unknown>): Hk3Decision {
-  let decision: Hk3Decision = { action: 'allow' };
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, (root) => {
-    decision = decideHk3({ tool_name: 'Edit', tool_input: toolInput }, { root, hostRoots: [root] });
-  });
-  return decision;
+  let decision: Hk3Decision = { action: 'allow' }
+
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
+    decision = decideHk3({ tool_name: 'Edit', tool_input: toolInput }, { root, hostRoots: [root] })
+  })
+
+  return decision
 }
 
 test('RN-0005: pergunta ao promover ADR de draft para accepted', () => {
-  const decision = decide({ [ADR_FILE]: adr('draft') }, {
-    file_path: ADR_FILE,
-    old_string: 'status: draft',
-    new_string: 'status: accepted',
-  });
-  assertAsk(decision);
-  assert.match(decision.reason, /ADR-0001/);
-  assert.match(decision.reason, /humano/i);
-  assert.match(decision.reason, /decision-recorder/);
-});
+  const decision = decide(
+    { [ADR_FILE]: adr('draft') },
+    {
+      file_path: ADR_FILE,
+      old_string: 'status: draft',
+      new_string: 'status: accepted',
+    },
+  )
+
+  assertAsk(decision)
+  assert.match(decision.reason, /ADR-0001/)
+  assert.match(decision.reason, /humano/i)
+  assert.match(decision.reason, /decision-recorder/)
+})
 
 test('RN-0005: pergunta ao resolver uma DA na tabela', () => {
-  const decision = decide({ 'docs/open-decisions.md': openDecisions('open', '—') }, {
-    file_path: 'docs/open-decisions.md',
-    content: openDecisions('resolved', 'ADR-0002'),
-  });
-  assertAsk(decision);
-  assert.match(decision.reason, /DA-0001/);
-});
+  const decision = decide(
+    { 'docs/open-decisions.md': openDecisions('open', '—') },
+    {
+      file_path: 'docs/open-decisions.md',
+      content: openDecisions('resolved', 'ADR-0002'),
+    },
+  )
+
+  assertAsk(decision)
+  assert.match(decision.reason, /DA-0001/)
+})
 
 test('permite escrever draft — é o máximo que uma skill escreve', () => {
-  const decision = decide({}, { file_path: ADR_FILE, content: adr('draft') });
-  assert.equal(decision.action, 'allow');
-});
+  const decision = decide({}, { file_path: ADR_FILE, content: adr('draft') })
+
+  assert.equal(decision.action, 'allow')
+})
 
 test('permite alterações que não são promoção humana', () => {
-  const decision = decide({ [ADR_FILE]: adr('accepted') }, {
-    file_path: ADR_FILE,
-    old_string: 'status: accepted',
-    new_string: 'status: superseded',
-  });
-  assert.equal(decision.action, 'allow');
-});
+  const decision = decide(
+    { [ADR_FILE]: adr('accepted') },
+    {
+      file_path: ADR_FILE,
+      old_string: 'status: accepted',
+      new_string: 'status: superseded',
+    },
+  )
+
+  assert.equal(decision.action, 'allow')
+})
 
 test('permite adicionar linha nova em open na tabela', () => {
-  const before = openDecisions('open', '—');
-  const after = `${before}\n| DA-0002 | Outra lacuna | open | — |`;
-  assert.equal(decide({ 'docs/open-decisions.md': before }, { file_path: 'docs/open-decisions.md', content: after }).action, 'allow');
-});
+  const before = openDecisions('open', '—')
+  const after = `${before}\n| DA-0002 | Outra lacuna | open | — |`
+
+  assert.equal(decide({ 'docs/open-decisions.md': before }, { file_path: 'docs/open-decisions.md', content: after }).action, 'allow')
+})
 
 test('RNF-0001: falha aberta — sem configuração, permite', () => {
-  let decision: Hk3Decision = { action: 'ask', reason: 'não deveria' };
-  withTempRepo({ [ADR_FILE]: adr('draft') }, (root) => {
+  let decision: Hk3Decision = { action: 'ask', reason: 'não deveria' }
+
+  withTempRepo({ [ADR_FILE]: adr('draft') }, root => {
     decision = decideHk3(
       { tool_name: 'Edit', tool_input: { file_path: ADR_FILE, old_string: 'status: draft', new_string: 'status: accepted' } },
       { root, hostRoots: [root] },
-    );
-  });
-  assert.equal(decision.action, 'allow');
-});
+    )
+  })
+  assert.equal(decision.action, 'allow')
+})
 
-const RULES_FILE = 'docs/requirements/rules.md';
+const RULES_FILE = 'docs/requirements/rules.md'
 
 function rules(status: string): string {
   return [
@@ -138,11 +155,11 @@ function rules(status: string): string {
     '',
     'Enunciado.',
     '',
-  ].join('\n');
+  ].join('\n')
 }
 
 test('RN-0005: promover um requisito de draft para active pergunta', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('draft') }, (root) => {
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('draft') }, root => {
     const decision = decideHk3(
       {
         tool_name: 'Edit',
@@ -153,15 +170,16 @@ test('RN-0005: promover um requisito de draft para active pergunta', () => {
         },
       },
       { root, hostRoots: [root] },
-    );
-    assertAsk(decision);
-    assert.match(decision.reason, /RN-0001/);
-    assert.match(decision.reason, /active/);
-  });
-});
+    )
+
+    assertAsk(decision)
+    assert.match(decision.reason, /RN-0001/)
+    assert.match(decision.reason, /active/)
+  })
+})
 
 test('RN-0005: revogar um requisito também pergunta', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('active') }, (root) => {
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('active') }, root => {
     const decision = decideHk3(
       {
         tool_name: 'Edit',
@@ -172,21 +190,23 @@ test('RN-0005: revogar um requisito também pergunta', () => {
         },
       },
       { root, hostRoots: [root] },
-    );
-    assertAsk(decision);
-    assert.match(decision.reason, /revoked/);
-  });
-});
+    )
+
+    assertAsk(decision)
+    assert.match(decision.reason, /revoked/)
+  })
+})
 
 test('editar o enunciado de um requisito em draft não pergunta', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('draft') }, (root) => {
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('draft') }, root => {
     const decision = decideHk3(
       {
         tool_name: 'Edit',
         tool_input: { file_path: RULES_FILE, old_string: 'Enunciado.', new_string: 'Outro enunciado.' },
       },
       { root, hostRoots: [root] },
-    );
-    assert.equal(decision.action, 'allow');
-  });
-});
+    )
+
+    assert.equal(decision.action, 'allow')
+  })
+})

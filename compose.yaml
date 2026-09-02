@@ -15,7 +15,7 @@ services:
     environment:
       LIVING_DOCS_TOOLKIT_ROOT: /opt/living-docs
       LIVING_DOCS_REPO_ROOT: /workspace
-    command: ["sleep", "infinity"]
+    command: ['sleep', 'infinity']
 
 volumes:
   node_modules:

@@ -206,10 +206,10 @@ git commit -m "docs(RN-0008..RN-0010, RF-0004): requisitos da Fase 3 em draft"
 
 - Consome: `OwnershipConfig`, `WatchRule` e `findArtifactRule` de `src/config/ownership.ts` (já existem, sem alteração); `picomatch`.
 - Produz, para as Tasks 4, 5 e 9:
-    - `interface WatchMatch { doc: string; reason: string | null; consumerVisible: boolean; matched: string[]; skill: string | null; owner: string | null }`
-    - `watchesFor(config: OwnershipConfig, paths: readonly string[]): WatchMatch[]`
-    - `pendingDocs(config: OwnershipConfig, paths: readonly string[]): WatchMatch[]`
-    - `coversDoc(doc: string, paths: readonly string[]): boolean`
+  - `interface WatchMatch { doc: string; reason: string | null; consumerVisible: boolean; matched: string[]; skill: string | null; owner: string | null }`
+  - `watchesFor(config: OwnershipConfig, paths: readonly string[]): WatchMatch[]`
+  - `pendingDocs(config: OwnershipConfig, paths: readonly string[]): WatchMatch[]`
+  - `coversDoc(doc: string, paths: readonly string[]): boolean`
 
 **Requisitos:**
 
@@ -259,77 +259,59 @@ artifacts:
 `)
 
 test('RN-0008: caminho vigiado nomeia o doc dono, com quem o mantém e por quê', () => {
-    const matches = watchesFor(CONFIG, ['src/domain/reembolso.ts'])
-    assert.equal(matches.length, 1)
-    assert.equal(matches[0]?.doc, 'docs/requirements/rules.md')
-    assert.equal(matches[0]?.skill, 'requirements-keeper')
-    assert.equal(matches[0]?.owner, '@team')
-    assert.match(String(matches[0]?.reason), /regra com ID antes do código/)
-    assert.deepEqual(matches[0]?.matched, ['src/domain/reembolso.ts'])
+  const matches = watchesFor(CONFIG, ['src/domain/reembolso.ts'])
+  assert.equal(matches.length, 1)
+  assert.equal(matches[0]?.doc, 'docs/requirements/rules.md')
+  assert.equal(matches[0]?.skill, 'requirements-keeper')
+  assert.equal(matches[0]?.owner, '@team')
+  assert.match(String(matches[0]?.reason), /regra com ID antes do código/)
+  assert.deepEqual(matches[0]?.matched, ['src/domain/reembolso.ts'])
 })
 
 test('RN-0008: caminho fora de watches não exige doc nenhum', () => {
-    assert.deepEqual(
-        watchesFor(CONFIG, ['README.md', 'test/helpers/tmp.ts']),
-        []
-    )
+  assert.deepEqual(watchesFor(CONFIG, ['README.md', 'test/helpers/tmp.ts']), [])
 })
 
 test('doc sem artefato declarado é exigido do mesmo jeito, só que sem skill', () => {
-    const [match] = watchesFor(CONFIG, ['src/api/errors/not-found.ts'])
-    assert.equal(match?.doc, 'docs/contracts/errors.md')
-    assert.equal(match?.skill, null)
-    assert.equal(match?.owner, null)
+  const [match] = watchesFor(CONFIG, ['src/api/errors/not-found.ts'])
+  assert.equal(match?.doc, 'docs/contracts/errors.md')
+  assert.equal(match?.skill, null)
+  assert.equal(match?.owner, null)
 })
 
 test('duas regras para o mesmo doc viram uma exigência só, com os caminhos somados', () => {
-    const matches = watchesFor(CONFIG, [
-        'src/domain/pedido/item.ts',
-        'src/domain/reembolso.ts'
-    ])
-    assert.equal(matches.length, 1)
-    assert.deepEqual(matches[0]?.matched, [
-        'src/domain/pedido/item.ts',
-        'src/domain/reembolso.ts'
-    ])
+  const matches = watchesFor(CONFIG, ['src/domain/pedido/item.ts', 'src/domain/reembolso.ts'])
+  assert.equal(matches.length, 1)
+  assert.deepEqual(matches[0]?.matched, ['src/domain/pedido/item.ts', 'src/domain/reembolso.ts'])
 })
 
 test('RN-0008: o doc tocado no mesmo conjunto sai da lista de pendências', () => {
-    const paths = ['src/domain/reembolso.ts', 'docs/requirements/rules.md']
-    assert.equal(watchesFor(CONFIG, paths).length, 1)
-    assert.deepEqual(pendingDocs(CONFIG, paths), [])
+  const paths = ['src/domain/reembolso.ts', 'docs/requirements/rules.md']
+  assert.equal(watchesFor(CONFIG, paths).length, 1)
+  assert.deepEqual(pendingDocs(CONFIG, paths), [])
 })
 
 test('RN-0008: sem o doc, a pendência permanece', () => {
-    const pending = pendingDocs(CONFIG, ['src/domain/reembolso.ts'])
-    assert.equal(pending.length, 1)
-    assert.equal(pending[0]?.doc, 'docs/requirements/rules.md')
+  const pending = pendingDocs(CONFIG, ['src/domain/reembolso.ts'])
+  assert.equal(pending.length, 1)
+  assert.equal(pending[0]?.doc, 'docs/requirements/rules.md')
 })
 
 test('doc declarado como diretório é coberto por qualquer arquivo dentro dele', () => {
-    assert.equal(
-        coversDoc('docs/requirements/', ['docs/requirements/rules.md']),
-        true
-    )
-    assert.equal(coversDoc('docs/requirements/', ['docs/glossary.md']), false)
-    assert.equal(
-        coversDoc('docs/requirements/rules.md', ['docs/requirements/rules.md']),
-        true
-    )
-    assert.equal(
-        coversDoc('docs/requirements/rules.md', ['docs/requirements/']),
-        false
-    )
+  assert.equal(coversDoc('docs/requirements/', ['docs/requirements/rules.md']), true)
+  assert.equal(coversDoc('docs/requirements/', ['docs/glossary.md']), false)
+  assert.equal(coversDoc('docs/requirements/rules.md', ['docs/requirements/rules.md']), true)
+  assert.equal(coversDoc('docs/requirements/rules.md', ['docs/requirements/']), false)
 })
 
 test('caminho em formato de host é normalizado antes de casar', () => {
-    assert.equal(watchesFor(CONFIG, ['src\\domain\\reembolso.ts']).length, 1)
-    assert.equal(watchesFor(CONFIG, ['./src/domain/reembolso.ts']).length, 1)
+  assert.equal(watchesFor(CONFIG, ['src\\domain\\reembolso.ts']).length, 1)
+  assert.equal(watchesFor(CONFIG, ['./src/domain/reembolso.ts']).length, 1)
 })
 
 test('sem `watches`, nada é exigido — é o estado das Fases 0 a 2', () => {
-    assert.deepEqual(watchesFor(SEM_WATCHES, ['src/domain/reembolso.ts']), [])
-    assert.deepEqual(pendingDocs(SEM_WATCHES, ['src/domain/reembolso.ts']), [])
+  assert.deepEqual(watchesFor(SEM_WATCHES, ['src/domain/reembolso.ts']), [])
+  assert.deepEqual(pendingDocs(SEM_WATCHES, ['src/domain/reembolso.ts']), [])
 })
 ```
 
@@ -349,21 +331,21 @@ import { findArtifactRule } from './ownership.ts'
 import type { OwnershipConfig } from './ownership.ts'
 
 export interface WatchMatch {
-    /** Doc dono exigido, normalizado. */
-    doc: string
-    /** Por que o vínculo existe. O texto é do projeto; o toolkit só o transporta. */
-    reason: string | null
-    /** `consumer-visible: true` em alguma das regras que apontam para este doc (CI-6, Fase 6). */
-    consumerVisible: boolean
-    /** Caminhos do conjunto que dispararam a exigência, sem repetição e na ordem em que vieram. */
-    matched: string[]
-    /** Skill dona do doc, quando o doc é artefato declarado; null quando não é. */
-    skill: string | null
-    owner: string | null
+  /** Doc dono exigido, normalizado. */
+  doc: string
+  /** Por que o vínculo existe. O texto é do projeto; o toolkit só o transporta. */
+  reason: string | null
+  /** `consumer-visible: true` em alguma das regras que apontam para este doc (CI-6, Fase 6). */
+  consumerVisible: boolean
+  /** Caminhos do conjunto que dispararam a exigência, sem repetição e na ordem em que vieram. */
+  matched: string[]
+  /** Skill dona do doc, quando o doc é artefato declarado; null quando não é. */
+  skill: string | null
+  owner: string | null
 }
 
 function normalize(path: string): string {
-    return path.replace(/\\/g, '/').replace(/^\.\//, '')
+  return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 /**
@@ -371,13 +353,11 @@ function normalize(path: string): string {
  * coberto pelo que está dentro dele; declarado como arquivo, só por igualdade.
  */
 export function coversDoc(doc: string, paths: readonly string[]): boolean {
-    const target = normalize(doc)
-    return paths.some(path => {
-        const candidate = normalize(path)
-        return target.endsWith('/')
-            ? candidate.startsWith(target)
-            : candidate === target
-    })
+  const target = normalize(doc)
+  return paths.some(path => {
+    const candidate = normalize(path)
+    return target.endsWith('/') ? candidate.startsWith(target) : candidate === target
+  })
 }
 
 /**
@@ -387,53 +367,43 @@ export function coversDoc(doc: string, paths: readonly string[]): boolean {
  * caminho), por `HK-5` (com o índice inteiro) e, na Fase 7, por `CI-7` (com o
  * diff). Nenhum deles conhece caminho de projeto: tudo vem do `.ownership.yml`.
  */
-export function watchesFor(
-    config: OwnershipConfig,
-    paths: readonly string[]
-): WatchMatch[] {
-    const normalized = paths.map(normalize)
-    const byDoc = new Map<string, WatchMatch>()
+export function watchesFor(config: OwnershipConfig, paths: readonly string[]): WatchMatch[] {
+  const normalized = paths.map(normalize)
+  const byDoc = new Map<string, WatchMatch>()
 
-    for (const watch of config.watches) {
-        const matches = picomatch(watch.code)
-        const hits = normalized.filter(path => matches(path))
-        if (hits.length === 0) continue
+  for (const watch of config.watches) {
+    const matches = picomatch(watch.code)
+    const hits = normalized.filter(path => matches(path))
+    if (hits.length === 0) continue
 
-        const doc = normalize(watch.doc)
-        const existing = byDoc.get(doc)
-        if (existing) {
-            existing.reason = existing.reason ?? watch.reason
-            existing.consumerVisible =
-                existing.consumerVisible || watch.consumerVisible
-            for (const hit of hits)
-                if (!existing.matched.includes(hit)) existing.matched.push(hit)
-            continue
-        }
-
-        // Doc que não é artefato declarado continua sendo doc dono: quem responde por
-        // ele é o CODEOWNERS. A ausência de skill é informação, não erro.
-        const rule = findArtifactRule(config, doc)
-        byDoc.set(doc, {
-            doc,
-            reason: watch.reason,
-            consumerVisible: watch.consumerVisible,
-            matched: [...hits],
-            skill: rule?.skill ?? null,
-            owner: rule?.owner ?? null
-        })
+    const doc = normalize(watch.doc)
+    const existing = byDoc.get(doc)
+    if (existing) {
+      existing.reason = existing.reason ?? watch.reason
+      existing.consumerVisible = existing.consumerVisible || watch.consumerVisible
+      for (const hit of hits) if (!existing.matched.includes(hit)) existing.matched.push(hit)
+      continue
     }
 
-    return [...byDoc.values()]
+    // Doc que não é artefato declarado continua sendo doc dono: quem responde por
+    // ele é o CODEOWNERS. A ausência de skill é informação, não erro.
+    const rule = findArtifactRule(config, doc)
+    byDoc.set(doc, {
+      doc,
+      reason: watch.reason,
+      consumerVisible: watch.consumerVisible,
+      matched: [...hits],
+      skill: rule?.skill ?? null,
+      owner: rule?.owner ?? null,
+    })
+  }
+
+  return [...byDoc.values()]
 }
 
 /** Docs que estes caminhos exigem e que eles não tocam — o mecanismo 1 (spec §7). */
-export function pendingDocs(
-    config: OwnershipConfig,
-    paths: readonly string[]
-): WatchMatch[] {
-    return watchesFor(config, paths).filter(
-        match => !coversDoc(match.doc, paths)
-    )
+export function pendingDocs(config: OwnershipConfig, paths: readonly string[]): WatchMatch[] {
+  return watchesFor(config, paths).filter(match => !coversDoc(match.doc, paths))
 }
 ```
 
@@ -468,14 +438,14 @@ git commit -m "feat(RN-0008): watches responde que docs um conjunto de caminhos 
 
 - Consome: `node:child_process`.
 - Produz, para a Task 5:
-    - `type GitRunner = (args: readonly string[], cwd: string) => string`
-    - `stagedPaths(root: string, run?: GitRunner): string[]`
+  - `type GitRunner = (args: readonly string[], cwd: string) => string`
+  - `stagedPaths(root: string, run?: GitRunner): string[]`
 
 **Requisitos:**
 
 - Um comando, de leitura: `git -c safe.directory=* diff --cached --name-only -z`.
-    - `-z` separa por byte NUL: sem ele, o git **escapa e envolve em aspas** caminho com acento ou espaço, e o caminho deixa de casar com os globs de `watches`.
-    - `-c safe.directory=*` existe porque o hook roda dentro do container, com uid diferente do dono do checkout montado; sem isso o git recusa o repositório com `dubious ownership` e o hook silencia justamente quando deveria falar.
+  - `-z` separa por byte NUL: sem ele, o git **escapa e envolve em aspas** caminho com acento ou espaço, e o caminho deixa de casar com os globs de `watches`.
+  - `-c safe.directory=*` existe porque o hook roda dentro do container, com uid diferente do dono do checkout montado; sem isso o git recusa o repositório com `dubious ownership` e o hook silencia justamente quando deveria falar.
 - Timeout de 3 s — o orçamento do hook inteiro é 5 s (spec §7), e ainda há a leitura do `.ownership.yml`.
 - **Qualquer** erro devolve `[]`. Sem `.git`, sem `git` no PATH, timeout, exit ≠ 0: lista vazia. `HK-5` traduz lista vazia em "deixe passar".
 - O runner é injetável para que o teste não dependa de um repositório real — e há um teste com repositório real mesmo assim, porque o formato da saída do git é a metade que um fake não prova.
@@ -495,71 +465,55 @@ import { withTempRepo } from '../helpers/tmp.ts'
 const NUL = String.fromCharCode(0)
 
 test('RN-0008: devolve os caminhos do índice, sem entrada vazia', () => {
-    const fake: GitRunner = () =>
-        `src/domain/a.ts${NUL}docs/requirements/rules.md${NUL}`
-    assert.deepEqual(stagedPaths('/qualquer', fake), [
-        'src/domain/a.ts',
-        'docs/requirements/rules.md'
-    ])
+  const fake: GitRunner = () => `src/domain/a.ts${NUL}docs/requirements/rules.md${NUL}`
+  assert.deepEqual(stagedPaths('/qualquer', fake), ['src/domain/a.ts', 'docs/requirements/rules.md'])
 })
 
 test('índice vazio devolve lista vazia', () => {
-    assert.deepEqual(
-        stagedPaths('/qualquer', () => ''),
-        []
-    )
+  assert.deepEqual(
+    stagedPaths('/qualquer', () => ''),
+    [],
+  )
 })
 
 test('RNF-0001: erro do git não trava o trabalho — devolve lista vazia', () => {
-    const explode: GitRunner = () => {
-        throw new Error('fatal: not a git repository')
-    }
-    assert.deepEqual(stagedPaths('/qualquer', explode), [])
+  const explode: GitRunner = () => {
+    throw new Error('fatal: not a git repository')
+  }
+  assert.deepEqual(stagedPaths('/qualquer', explode), [])
 })
 
 test('o comando executado é de leitura, e só um', () => {
-    const seen: string[][] = []
-    const spy: GitRunner = args => {
-        seen.push([...args])
-        return ''
-    }
-    stagedPaths('/qualquer', spy)
-    assert.equal(seen.length, 1)
-    assert.deepEqual(
-        seen[0]?.filter(arg =>
-            ['add', 'commit', 'checkout', 'stash', 'reset'].includes(arg)
-        ),
-        []
-    )
-    assert.ok(seen[0]?.includes('--cached'))
-    assert.ok(seen[0]?.includes('-z'))
+  const seen: string[][] = []
+  const spy: GitRunner = args => {
+    seen.push([...args])
+    return ''
+  }
+  stagedPaths('/qualquer', spy)
+  assert.equal(seen.length, 1)
+  assert.deepEqual(
+    seen[0]?.filter(arg => ['add', 'commit', 'checkout', 'stash', 'reset'].includes(arg)),
+    [],
+  )
+  assert.ok(seen[0]?.includes('--cached'))
+  assert.ok(seen[0]?.includes('-z'))
 })
 
 test('lê o índice de um repositório de verdade', () => {
-    withTempRepo({ 'src/a.ts': 'export const a = 1;\n' }, root => {
-        const git = (...args: string[]): void => {
-            execFileSync('git', args, { cwd: root, stdio: 'ignore' })
-        }
-        try {
-            git('init', '-q')
-        } catch {
-            return // sem git no ambiente: nada a provar aqui
-        }
-        git(
-            '-c',
-            'user.email=teste@exemplo.dev',
-            '-c',
-            'user.name=Teste',
-            'commit',
-            '-q',
-            '-m',
-            'seed',
-            '--allow-empty'
-        )
-        git('add', 'src/a.ts')
+  withTempRepo({ 'src/a.ts': 'export const a = 1;\n' }, root => {
+    const git = (...args: string[]): void => {
+      execFileSync('git', args, { cwd: root, stdio: 'ignore' })
+    }
+    try {
+      git('init', '-q')
+    } catch {
+      return // sem git no ambiente: nada a provar aqui
+    }
+    git('-c', 'user.email=teste@exemplo.dev', '-c', 'user.name=Teste', 'commit', '-q', '-m', 'seed', '--allow-empty')
+    git('add', 'src/a.ts')
 
-        assert.deepEqual(stagedPaths(root), ['src/a.ts'])
-    })
+    assert.deepEqual(stagedPaths(root), ['src/a.ts'])
+  })
 })
 ```
 
@@ -583,12 +537,12 @@ export type GitRunner = (args: readonly string[], cwd: string) => string
 const TIMEOUT_MS = 3_000
 
 const runGit: GitRunner = (args, cwd) =>
-    execFileSync('git', [...args], {
-        cwd,
-        encoding: 'utf8',
-        timeout: TIMEOUT_MS,
-        stdio: ['ignore', 'pipe', 'ignore']
-    })
+  execFileSync('git', [...args], {
+    cwd,
+    encoding: 'utf8',
+    timeout: TIMEOUT_MS,
+    stdio: ['ignore', 'pipe', 'ignore'],
+  })
 
 /**
  * Caminhos no índice, relativos à raiz do repositório e sempre com `/`.
@@ -602,20 +556,17 @@ const runGit: GitRunner = (args, cwd) =>
  * sei", e quem chama trata "não sei" como "deixe passar".
  */
 export function stagedPaths(root: string, run: GitRunner = runGit): string[] {
-    let output: string
-    try {
-        output = run(
-            ['-c', 'safe.directory=*', 'diff', '--cached', '--name-only', '-z'],
-            root
-        )
-    } catch {
-        return []
-    }
+  let output: string
+  try {
+    output = run(['-c', 'safe.directory=*', 'diff', '--cached', '--name-only', '-z'], root)
+  } catch {
+    return []
+  }
 
-    return output
-        .split(String.fromCharCode(0))
-        .map(path => path.trim().replace(/\\/g, '/'))
-        .filter(path => path !== '')
+  return output
+    .split(String.fromCharCode(0))
+    .map(path => path.trim().replace(/\\/g, '/'))
+    .filter(path => path !== '')
 }
 ```
 
@@ -651,9 +602,9 @@ git commit -m "feat(RN-0008): stagedPaths lê o índice do git com falha aberta"
 
 - Consome: `watchesFor`, `coversDoc`, `WatchMatch` (Task 2); `toRepoPath` de `src/hooks/lib/paths.ts`; `loadOwnership`; `HookEnv`/`HookPayload`/`emit`/`readPayload`/`hookEnv` de `src/hooks/lib/io.ts`.
 - Produz:
-    - `contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string` em `src/hooks/lib/io.ts` — `HK-6` vai reusá-lo na Fase 7.
-    - `type Hk4Decision = { action: 'silent' } | { action: 'remind'; context: string }`
-    - `decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision`
+  - `contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string` em `src/hooks/lib/io.ts` — `HK-6` vai reusá-lo na Fase 7.
+  - `type Hk4Decision = { action: 'silent' } | { action: 'remind'; context: string }`
+  - `decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision`
 
 **Requisitos:**
 
@@ -692,74 +643,64 @@ watches:
     reason: "skill nova muda como se trabalha aqui"
 `
 
-function assertRemind(
-    decision: Hk4Decision
-): asserts decision is { action: 'remind'; context: string } {
-    assert.equal(decision.action, 'remind')
+function assertRemind(decision: Hk4Decision): asserts decision is { action: 'remind'; context: string } {
+  assert.equal(decision.action, 'remind')
 }
 
 function decide(filePath: string, config: string | null = CONFIG): Hk4Decision {
-    let decision: Hk4Decision = { action: 'silent' }
-    const files = config === null ? {} : { [OWNERSHIP_PATH]: config }
-    withTempRepo(files, root => {
-        decision = decideHk4(
-            { tool_name: 'Edit', tool_input: { file_path: filePath } },
-            { root, hostRoots: [root] }
-        )
-    })
-    return decision
+  let decision: Hk4Decision = { action: 'silent' }
+  const files = config === null ? {} : { [OWNERSHIP_PATH]: config }
+  withTempRepo(files, root => {
+    decision = decideHk4({ tool_name: 'Edit', tool_input: { file_path: filePath } }, { root, hostRoots: [root] })
+  })
+  return decision
 }
 
 test('RN-0008: editar caminho vigiado lembra o doc dono, com motivo e skill', () => {
-    const decision = decide('src/domain/reembolso.ts')
-    assertRemind(decision)
-    assert.match(decision.context, /docs\/requirements\/rules\.md/)
-    assert.match(decision.context, /regra com ID antes do código/)
-    assert.match(decision.context, /requirements-keeper/)
-    assert.match(decision.context, /HK-4/)
+  const decision = decide('src/domain/reembolso.ts')
+  assertRemind(decision)
+  assert.match(decision.context, /docs\/requirements\/rules\.md/)
+  assert.match(decision.context, /regra com ID antes do código/)
+  assert.match(decision.context, /requirements-keeper/)
+  assert.match(decision.context, /HK-4/)
 })
 
 test('RN-0009: HK-4 lembra e não bloqueia — a saída não carrega decisão de permissão', () => {
-    const decision = decide('src/domain/reembolso.ts')
-    assertRemind(decision)
-    assert.match(decision.context, /não é bloqueio|lembrete/i)
+  const decision = decide('src/domain/reembolso.ts')
+  assertRemind(decision)
+  assert.match(decision.context, /não é bloqueio|lembrete/i)
 
-    const emitted = JSON.parse(
-        contextOutput('PostToolUse', decision.context)
-    ) as {
-        hookSpecificOutput: Record<string, unknown>
-    }
-    assert.equal(emitted.hookSpecificOutput.hookEventName, 'PostToolUse')
-    assert.equal(typeof emitted.hookSpecificOutput.additionalContext, 'string')
-    assert.equal('permissionDecision' in emitted.hookSpecificOutput, false)
+  const emitted = JSON.parse(contextOutput('PostToolUse', decision.context)) as {
+    hookSpecificOutput: Record<string, unknown>
+  }
+  assert.equal(emitted.hookSpecificOutput.hookEventName, 'PostToolUse')
+  assert.equal(typeof emitted.hookSpecificOutput.additionalContext, 'string')
+  assert.equal('permissionDecision' in emitted.hookSpecificOutput, false)
 })
 
 test('doc dono sem skill declarada ainda é lembrado', () => {
-    const decision = decide('plugin/skills/nova/SKILL.md')
-    assertRemind(decision)
-    assert.match(decision.context, /CONTRIBUTING\.md/)
+  const decision = decide('plugin/skills/nova/SKILL.md')
+  assertRemind(decision)
+  assert.match(decision.context, /CONTRIBUTING\.md/)
 })
 
 test('editar o próprio doc dono não gera lembrete', () => {
-    assert.equal(decide('docs/requirements/rules.md').action, 'silent')
+  assert.equal(decide('docs/requirements/rules.md').action, 'silent')
 })
 
 test('caminho fora de watches é silêncio', () => {
-    assert.equal(decide('README.md').action, 'silent')
+  assert.equal(decide('README.md').action, 'silent')
 })
 
 test('RNF-0001: sem configuração legível, silêncio', () => {
-    assert.equal(decide('src/domain/reembolso.ts', null).action, 'silent')
+  assert.equal(decide('src/domain/reembolso.ts', null).action, 'silent')
 })
 
 test('payload sem file_path é silêncio', () => {
-    withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
-        const decision = decideHk4(
-            { tool_name: 'Edit', tool_input: {} },
-            { root, hostRoots: [root] }
-        )
-        assert.equal(decision.action, 'silent')
-    })
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
+    const decision = decideHk4({ tool_name: 'Edit', tool_input: {} }, { root, hostRoots: [root] })
+    assert.equal(decision.action, 'silent')
+  })
 })
 ```
 
@@ -782,13 +723,10 @@ Depois de `askOutput`, antes de `emit`:
  * Não existe variante com `permissionDecision` aqui de propósito — o mecanismo 1
  * lembra e pergunta, nunca nega (spec §7).
  */
-export function contextOutput(
-    event: 'PostToolUse' | 'SessionStart',
-    context: string
-): string {
-    return JSON.stringify({
-        hookSpecificOutput: { hookEventName: event, additionalContext: context }
-    })
+export function contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string {
+  return JSON.stringify({
+    hookSpecificOutput: { hookEventName: event, additionalContext: context },
+  })
 }
 ```
 
@@ -810,68 +748,56 @@ import { toRepoPath } from './lib/paths.ts'
 import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk4Decision =
-    | { action: 'silent' }
-    | { action: 'remind'; context: string }
+export type Hk4Decision = { action: 'silent' } | { action: 'remind'; context: string }
 
 const SILENT: Hk4Decision = { action: 'silent' }
 
 function describe(match: WatchMatch): string {
-    const parts = [`- \`${match.doc}\``]
-    if (match.owner !== null) parts.push(`(dono: ${match.owner})`)
-    if (match.reason !== null) parts.push(`— ${match.reason}`)
-    parts.push(
-        match.skill !== null
-            ? `Skill dona: ${match.skill}.`
-            : 'Sem skill declarada para este doc — o dono está no CODEOWNERS.'
-    )
-    return parts.join(' ')
+  const parts = [`- \`${match.doc}\``]
+  if (match.owner !== null) parts.push(`(dono: ${match.owner})`)
+  if (match.reason !== null) parts.push(`— ${match.reason}`)
+  parts.push(match.skill !== null ? `Skill dona: ${match.skill}.` : 'Sem skill declarada para este doc — o dono está no CODEOWNERS.')
+  return parts.join(' ')
 }
 
 export function decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision {
-    const filePath = payload.tool_input?.file_path
-    if (typeof filePath !== 'string') return SILENT
+  const filePath = payload.tool_input?.file_path
+  if (typeof filePath !== 'string') return SILENT
 
-    const repoPath = toRepoPath(filePath, env.hostRoots)
-    if (repoPath === null) return SILENT
+  const repoPath = toRepoPath(filePath, env.hostRoots)
+  if (repoPath === null) return SILENT
 
-    let config
-    try {
-        config = loadOwnership(env.root)
-    } catch {
-        return SILENT // falha aberta
-    }
+  let config
+  try {
+    config = loadOwnership(env.root)
+  } catch {
+    return SILENT // falha aberta
+  }
 
-    // Quem acabou de editar o doc dono não precisa ser lembrado dele.
-    const pending = watchesFor(config, [repoPath]).filter(
-        match => !coversDoc(match.doc, [repoPath])
-    )
-    if (pending.length === 0) return SILENT
+  // Quem acabou de editar o doc dono não precisa ser lembrado dele.
+  const pending = watchesFor(config, [repoPath]).filter(match => !coversDoc(match.doc, [repoPath]))
+  if (pending.length === 0) return SILENT
 
-    return {
-        action: 'remind',
-        context:
-            `HK-4: \`${repoPath}\` é caminho vigiado em \`docs/.ownership.yml\` (\`watches\`). ` +
-            'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — a atualização do doc dono cabe no mesmo PR; ' +
-            'se não couber, ela não acontece.\n' +
-            `Doc dono a atualizar:\n${pending.map(describe).join('\n')}\n` +
-            'Isto é lembrete, não é bloqueio: se a mudança realmente não afeta o doc, siga em frente.'
-    }
+  return {
+    action: 'remind',
+    context:
+      `HK-4: \`${repoPath}\` é caminho vigiado em \`docs/.ownership.yml\` (\`watches\`). ` +
+      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — a atualização do doc dono cabe no mesmo PR; ' +
+      'se não couber, ela não acontece.\n' +
+      `Doc dono a atualizar:\n${pending.map(describe).join('\n')}\n` +
+      'Isto é lembrete, não é bloqueio: se a mudança realmente não afeta o doc, siga em frente.',
+  }
 }
 
 async function main(): Promise<void> {
-    const payload = await readPayload()
-    if (!payload) return // falha aberta
-    const decision = decideHk4(payload, hookEnv())
-    emit(
-        decision.action === 'remind'
-            ? contextOutput('PostToolUse', decision.context)
-            : null
-    )
+  const payload = await readPayload()
+  if (!payload) return // falha aberta
+  const decision = decideHk4(payload, hookEnv())
+  emit(decision.action === 'remind' ? contextOutput('PostToolUse', decision.context) : null)
 }
 
 if (process.argv[1]?.endsWith('hk4-watch-reminder.ts')) {
-    main().catch(() => process.exit(0)) // falha aberta, sempre
+  main().catch(() => process.exit(0)) // falha aberta, sempre
 }
 ```
 
@@ -906,9 +832,9 @@ git commit -m "feat(RN-0008, RN-0009): HK-4 lembra o doc dono de caminho vigiado
 
 - Consome: `pendingDocs`, `WatchMatch` (Task 2); `stagedPaths`, `GitRunner` (Task 3); `askOutput`/`emit`/`hookEnv`/`readPayload` de `src/hooks/lib/io.ts`.
 - Produz:
-    - `isGitCommit(command: string): boolean`
-    - `type Hk5Decision = { action: 'allow' } | { action: 'ask'; reason: string }`
-    - `decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): Hk5Decision`
+  - `isGitCommit(command: string): boolean`
+  - `type Hk5Decision = { action: 'allow' } | { action: 'ask'; reason: string }`
+  - `decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): Hk5Decision`
 
 **Requisitos:**
 
@@ -949,128 +875,97 @@ watches:
 `
 
 const staged =
-    (...paths: string[]): GitRunner =>
-    () =>
-        paths.map(path => `${path}${NUL}`).join('')
+  (...paths: string[]): GitRunner =>
+  () =>
+    paths.map(path => `${path}${NUL}`).join('')
 
-function assertAsk(
-    decision: Hk5Decision
-): asserts decision is { action: 'ask'; reason: string } {
-    assert.equal(decision.action, 'ask')
+function assertAsk(decision: Hk5Decision): asserts decision is { action: 'ask'; reason: string } {
+  assert.equal(decision.action, 'ask')
 }
 
-function decide(
-    command: string,
-    run: GitRunner,
-    config: string | null = CONFIG
-): Hk5Decision {
-    let decision: Hk5Decision = { action: 'allow' }
-    const files = config === null ? {} : { [OWNERSHIP_PATH]: config }
-    withTempRepo(files, root => {
-        decision = decideHk5(
-            { tool_name: 'Bash', tool_input: { command } },
-            { root, hostRoots: [root] },
-            run
-        )
-    })
-    return decision
+function decide(command: string, run: GitRunner, config: string | null = CONFIG): Hk5Decision {
+  let decision: Hk5Decision = { action: 'allow' }
+  const files = config === null ? {} : { [OWNERSHIP_PATH]: config }
+  withTempRepo(files, root => {
+    decision = decideHk5({ tool_name: 'Bash', tool_input: { command } }, { root, hostRoots: [root] }, run)
+  })
+  return decision
 }
 
 test('RN-0008: staged toca caminho vigiado sem o doc dono — pergunta e lista os pendentes', () => {
-    const decision = decide(
-        'git commit -m "feat: reembolso parcial"',
-        staged('src/domain/reembolso.ts')
-    )
-    assertAsk(decision)
-    assert.match(decision.reason, /docs\/requirements\/rules\.md/)
-    assert.match(decision.reason, /src\/domain\/reembolso\.ts/)
-    assert.match(decision.reason, /requirements-keeper/)
-    assert.match(decision.reason, /HK-5/)
+  const decision = decide('git commit -m "feat: reembolso parcial"', staged('src/domain/reembolso.ts'))
+  assertAsk(decision)
+  assert.match(decision.reason, /docs\/requirements\/rules\.md/)
+  assert.match(decision.reason, /src\/domain\/reembolso\.ts/)
+  assert.match(decision.reason, /requirements-keeper/)
+  assert.match(decision.reason, /HK-5/)
 })
 
 test('RN-0008: staged que traz o doc dono passa', () => {
-    const run = staged('src/domain/reembolso.ts', 'docs/requirements/rules.md')
-    assert.equal(
-        decide('git commit -m "feat: reembolso parcial"', run).action,
-        'allow'
-    )
+  const run = staged('src/domain/reembolso.ts', 'docs/requirements/rules.md')
+  assert.equal(decide('git commit -m "feat: reembolso parcial"', run).action, 'allow')
 })
 
 test('RN-0009: HK-5 pergunta, nunca nega', () => {
-    const decision = decide(
-        'git commit -m "x"',
-        staged('src/domain/reembolso.ts')
-    )
-    assertAsk(decision)
-    const emitted = JSON.parse(askOutput(decision.reason)) as {
-        hookSpecificOutput: { permissionDecision: string }
-    }
-    assert.equal(emitted.hookSpecificOutput.permissionDecision, 'ask')
+  const decision = decide('git commit -m "x"', staged('src/domain/reembolso.ts'))
+  assertAsk(decision)
+  const emitted = JSON.parse(askOutput(decision.reason)) as {
+    hookSpecificOutput: { permissionDecision: string }
+  }
+  assert.equal(emitted.hookSpecificOutput.permissionDecision, 'ask')
 })
 
 test('a mensagem ensina as duas saídas legítimas', () => {
-    const decision = decide(
-        'git commit -m "x"',
-        staged('src/domain/reembolso.ts')
-    )
-    assertAsk(decision)
-    assert.match(decision.reason, /atualize o doc/i)
-    assert.match(decision.reason, /decisão humana|uma pessoa/i)
+  const decision = decide('git commit -m "x"', staged('src/domain/reembolso.ts'))
+  assertAsk(decision)
+  assert.match(decision.reason, /atualize o doc/i)
+  assert.match(decision.reason, /decisão humana|uma pessoa/i)
 })
 
 test('comando que não é git commit passa sem consultar o git', () => {
-    let consultado = false
-    const spy: GitRunner = () => {
-        consultado = true
-        return ''
-    }
-    for (const command of [
-        'git status',
-        'npm test',
-        'git add -A',
-        'echo "git commit"'
-    ]) {
-        assert.equal(decide(command, spy).action, 'allow', command)
-    }
-    assert.equal(consultado, false)
+  let consultado = false
+  const spy: GitRunner = () => {
+    consultado = true
+    return ''
+  }
+  for (const command of ['git status', 'npm test', 'git add -A', 'echo "git commit"']) {
+    assert.equal(decide(command, spy).action, 'allow', command)
+  }
+  assert.equal(consultado, false)
 })
 
 test('reconhece git commit em cadeia e com opções', () => {
-    assert.equal(isGitCommit('git commit'), true)
-    assert.equal(isGitCommit('git add -A && git commit -m "x"'), true)
-    assert.equal(isGitCommit('git -c user.name=Teste commit --amend'), true)
-    assert.equal(isGitCommit('git status'), false)
-    assert.equal(isGitCommit('npm run commitlint'), false)
+  assert.equal(isGitCommit('git commit'), true)
+  assert.equal(isGitCommit('git add -A && git commit -m "x"'), true)
+  assert.equal(isGitCommit('git -c user.name=Teste commit --amend'), true)
+  assert.equal(isGitCommit('git status'), false)
+  assert.equal(isGitCommit('npm run commitlint'), false)
 })
 
 test('RNF-0001: git indisponível — passa', () => {
-    const explode: GitRunner = () => {
-        throw new Error('fatal: not a git repository')
-    }
-    assert.equal(decide('git commit -m "x"', explode).action, 'allow')
+  const explode: GitRunner = () => {
+    throw new Error('fatal: not a git repository')
+  }
+  assert.equal(decide('git commit -m "x"', explode).action, 'allow')
 })
 
 test('RNF-0001: sem .ownership.yml — passa', () => {
-    assert.equal(
-        decide('git commit -m "x"', staged('src/domain/reembolso.ts'), null)
-            .action,
-        'allow'
-    )
+  assert.equal(decide('git commit -m "x"', staged('src/domain/reembolso.ts'), null).action, 'allow')
 })
 
 test('índice vazio — passa', () => {
-    assert.equal(decide('git commit -m "x"', () => '').action, 'allow')
+  assert.equal(decide('git commit -m "x"', () => '').action, 'allow')
 })
 
 test('tool_name diferente de Bash não é assunto deste hook', () => {
-    withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
-        const decision = decideHk5(
-            { tool_name: 'Edit', tool_input: { command: 'git commit -m "x"' } },
-            { root, hostRoots: [root] },
-            staged('src/domain/reembolso.ts')
-        )
-        assert.equal(decision.action, 'allow')
-    })
+  withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
+    const decision = decideHk5(
+      { tool_name: 'Edit', tool_input: { command: 'git commit -m "x"' } },
+      { root, hostRoots: [root] },
+      staged('src/domain/reembolso.ts'),
+    )
+    assert.equal(decision.action, 'allow')
+  })
 })
 ```
 
@@ -1102,9 +997,7 @@ import type { GitRunner } from '../git/staged.ts'
 import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk5Decision =
-    | { action: 'allow' }
-    | { action: 'ask'; reason: string }
+export type Hk5Decision = { action: 'allow' } | { action: 'ask'; reason: string }
 
 const ALLOW: Hk5Decision = { action: 'allow' }
 
@@ -1118,64 +1011,59 @@ const ALLOW: Hk5Decision = { action: 'allow' }
 const GIT_COMMIT = /(?:^|[;&|]\s*)git\b[^;&|]*\bcommit\b/
 
 export function isGitCommit(command: string): boolean {
-    return GIT_COMMIT.test(command.trim())
+  return GIT_COMMIT.test(command.trim())
 }
 
 function describe(match: WatchMatch): string {
-    const parts = [`- \`${match.doc}\``]
-    if (match.owner !== null) parts.push(`(dono: ${match.owner})`)
-    parts.push(`— exigido por: ${match.matched.join(', ')}`)
-    if (match.reason !== null) parts.push(`Motivo: ${match.reason}`)
-    if (match.skill !== null) parts.push(`Skill dona: ${match.skill}.`)
-    return parts.join(' ')
+  const parts = [`- \`${match.doc}\``]
+  if (match.owner !== null) parts.push(`(dono: ${match.owner})`)
+  parts.push(`— exigido por: ${match.matched.join(', ')}`)
+  if (match.reason !== null) parts.push(`Motivo: ${match.reason}`)
+  if (match.skill !== null) parts.push(`Skill dona: ${match.skill}.`)
+  return parts.join(' ')
 }
 
-export function decideHk5(
-    payload: HookPayload,
-    env: HookEnv,
-    run?: GitRunner
-): Hk5Decision {
-    if (payload.tool_name !== undefined && payload.tool_name !== 'Bash')
-        return ALLOW
+export function decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): Hk5Decision {
+  if (payload.tool_name !== undefined && payload.tool_name !== 'Bash') return ALLOW
 
-    const command = payload.tool_input?.command
-    if (typeof command !== 'string' || !isGitCommit(command)) return ALLOW
+  const command = payload.tool_input?.command
+  if (typeof command !== 'string' || !isGitCommit(command)) return ALLOW
 
-    let config
-    try {
-        config = loadOwnership(env.root)
-    } catch {
-        return ALLOW // falha aberta
-    }
+  let config
+  try {
+    config = loadOwnership(env.root)
+  } catch {
+    return ALLOW // falha aberta
+  }
 
-    // Lista vazia significa "não sei": índice vazio, sem git, ou repositório recusado.
-    const staged = stagedPaths(env.root, run)
-    if (staged.length === 0) return ALLOW
+  // Lista vazia significa "não sei": índice vazio, sem git, ou repositório recusado.
+  const staged = stagedPaths(env.root, run)
+  if (staged.length === 0) return ALLOW
 
-    const pending = pendingDocs(config, staged)
-    if (pending.length === 0) return ALLOW
+  const pending = pendingDocs(config, staged)
+  if (pending.length === 0) return ALLOW
 
-    return {
-        action: 'ask',
-        reason:
-            'HK-5: este commit leva código de caminho vigiado sem o doc dono. ' +
-            'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — se a atualização da documentação não cabe no ' +
-            'PR que mudou o código, ela não acontece.\n' +
-            `Pendente:\n${pending.map(describe).join('\n')}\n` +
-            'Caminho válido: atualize o doc agora (skill dona acima) e refaça o `git add`. ' +
-            'Se a mudança realmente não afeta o doc, isso é uma decisão humana — diga que é o caso e siga.'
-    }
+  return {
+    action: 'ask',
+    reason:
+      'HK-5: este commit leva código de caminho vigiado sem o doc dono. ' +
+      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 — se a atualização da documentação não cabe no ' +
+      'PR que mudou o código, ela não acontece.\n' +
+      `Pendente:\n${pending.map(describe).join('\n')}\n` +
+      'Caminho válido: atualize o doc agora (skill dona acima) e refaça o `git add`. ' +
+      'Se a mudança realmente não afeta o doc, isso é uma decisão humana — diga que é o caso e siga.',
+  }
 }
 
 async function main(): Promise<void> {
-    const payload = await readPayload()
-    if (!payload) return // falha aberta
-    const decision = decideHk5(payload, hookEnv())
-    emit(decision.action === 'ask' ? askOutput(decision.reason) : null)
+  const payload = await readPayload()
+  if (!payload) return // falha aberta
+  const decision = decideHk5(payload, hookEnv())
+  emit(decision.action === 'ask' ? askOutput(decision.reason) : null)
 }
 
 if (process.argv[1]?.endsWith('hk5-commit-guard.ts')) {
-    main().catch(() => process.exit(0)) // falha aberta, sempre
+  main().catch(() => process.exit(0)) // falha aberta, sempre
 }
 ```
 
@@ -1230,51 +1118,33 @@ Em `test/plugin/manifest.test.ts`, substitua o teste `'hooks.json registra HK-1 
 
 ```typescript
 test('hooks.json registra os quatro hooks nos eventos e matchers da spec §7', () => {
-    const config = readJson('plugin/hooks/hooks.json')
-    const hooks = config.hooks as Record<
-        string,
-        { matcher: string; hooks: { command: string }[] }[]
-    >
+  const config = readJson('plugin/hooks/hooks.json')
+  const hooks = config.hooks as Record<string, { matcher: string; hooks: { command: string }[] }[]>
 
-    const grupos = new Map(
-        Object.entries(hooks).flatMap(([evento, lista]) =>
-            lista.map(
-                grupo =>
-                    [
-                        `${evento}:${grupo.matcher}`,
-                        grupo.hooks.map(hook => hook.command)
-                    ] as const
-            )
-        )
-    )
+  const grupos = new Map(
+    Object.entries(hooks).flatMap(([evento, lista]) => lista.map(grupo => [`${evento}:${grupo.matcher}`, grupo.hooks.map(hook => hook.command)] as const)),
+  )
 
-    const esperado: Record<string, string[]> = {
-        'PreToolUse:Edit|Write': ['hk1-append-only', 'hk3-state-promotion'],
-        'PreToolUse:Bash': ['hk5-commit-guard'],
-        'PostToolUse:Edit|Write': ['hk4-watch-reminder']
+  const esperado: Record<string, string[]> = {
+    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk3-state-promotion'],
+    'PreToolUse:Bash': ['hk5-commit-guard'],
+    'PostToolUse:Edit|Write': ['hk4-watch-reminder'],
+  }
+
+  assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort())
+  for (const [chave, nomes] of Object.entries(esperado)) {
+    const comandos = grupos.get(chave) ?? []
+    assert.equal(comandos.length, nomes.length, `${chave}: ${comandos.length} hooks`)
+    for (const nome of nomes) {
+      assert.ok(
+        comandos.some(comando => comando.includes(nome)),
+        `${chave} deveria invocar ${nome}`,
+      )
     }
-
-    assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort())
-    for (const [chave, nomes] of Object.entries(esperado)) {
-        const comandos = grupos.get(chave) ?? []
-        assert.equal(
-            comandos.length,
-            nomes.length,
-            `${chave}: ${comandos.length} hooks`
-        )
-        for (const nome of nomes) {
-            assert.ok(
-                comandos.some(comando => comando.includes(nome)),
-                `${chave} deveria invocar ${nome}`
-            )
-        }
-        for (const comando of comandos) {
-            assert.ok(
-                comando.includes('${CLAUDE_PLUGIN_ROOT}'),
-                'o comando precisa ser relocável'
-            )
-        }
+    for (const comando of comandos) {
+      assert.ok(comando.includes('${CLAUDE_PLUGIN_ROOT}'), 'o comando precisa ser relocável')
     }
+  }
 })
 ```
 
@@ -1282,33 +1152,21 @@ E o teste `'todo hook referenciado existe no repositório'` passa a varrer todos
 
 ```typescript
 test('todo hook referenciado existe no repositório', () => {
-    const config = readJson('plugin/hooks/hooks.json')
-    const hooks = config.hooks as Record<
-        string,
-        { hooks: { command: string }[] }[]
-    >
-    let vistos = 0
+  const config = readJson('plugin/hooks/hooks.json')
+  const hooks = config.hooks as Record<string, { hooks: { command: string }[] }[]>
+  let vistos = 0
 
-    for (const grupos of Object.values(hooks)) {
-        for (const grupo of grupos) {
-            for (const hook of grupo.hooks) {
-                const name =
-                    hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ??
-                    ''
-                assert.ok(
-                    existsSync(join(ROOT, 'src/hooks', `${name}.ts`)),
-                    `src/hooks/${name}.ts deveria existir`
-                )
-                vistos += 1
-            }
-        }
+  for (const grupos of Object.values(hooks)) {
+    for (const grupo of grupos) {
+      for (const hook of grupo.hooks) {
+        const name = hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? ''
+        assert.ok(existsSync(join(ROOT, 'src/hooks', `${name}.ts`)), `src/hooks/${name}.ts deveria existir`)
+        vistos += 1
+      }
     }
+  }
 
-    assert.equal(
-        vistos,
-        4,
-        'a varredura deveria ver os quatro hooks das Fases 1 e 3'
-    )
+  assert.equal(vistos, 4, 'a varredura deveria ver os quatro hooks das Fases 1 e 3')
 })
 ```
 
@@ -1324,51 +1182,51 @@ Esperado: FAIL — o `hooks.json` atual só tem `PreToolUse:Edit|Write`.
 
 ```json
 {
-    "hooks": {
-        "PreToolUse": [
-            {
-                "matcher": "Edit|Write",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk1-append-only",
-                        "shell": "bash",
-                        "async": false
-                    },
-                    {
-                        "type": "command",
-                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk3-state-promotion",
-                        "shell": "bash",
-                        "async": false
-                    }
-                ]
-            },
-            {
-                "matcher": "Bash",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk5-commit-guard",
-                        "shell": "bash",
-                        "async": false
-                    }
-                ]
-            }
-        ],
-        "PostToolUse": [
-            {
-                "matcher": "Edit|Write",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk4-watch-reminder",
-                        "shell": "bash",
-                        "async": false
-                    }
-                ]
-            }
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk1-append-only",
+            "shell": "bash",
+            "async": false
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk3-state-promotion",
+            "shell": "bash",
+            "async": false
+          }
         ]
-    }
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk5-commit-guard",
+            "shell": "bash",
+            "async": false
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk4-watch-reminder",
+            "shell": "bash",
+            "async": false
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
@@ -1444,66 +1302,35 @@ const ROOT = toolkitRoot()
 const CONTRATO = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8')
 
 test('RN-0010: o contrato do agente aponta para os artefatos donos', () => {
-    const alvos = [
-        'LIVING-DOCUMENTATION-TOOLKIT.md',
-        'docs/.ownership.yml',
-        'CONTRIBUTING.md',
-        'docs/definition-of-done.md',
-        'docs/requirements/'
-    ]
-    for (const alvo of alvos) {
-        assert.ok(
-            CONTRATO.includes(alvo),
-            `o contrato deveria apontar para ${alvo}`
-        )
-    }
+  const alvos = ['LIVING-DOCUMENTATION-TOOLKIT.md', 'docs/.ownership.yml', 'CONTRIBUTING.md', 'docs/definition-of-done.md', 'docs/requirements/']
+  for (const alvo of alvos) {
+    assert.ok(CONTRATO.includes(alvo), `o contrato deveria apontar para ${alvo}`)
+  }
 })
 
 test('RN-0010: o contrato não copia o enunciado de requisito nenhum', () => {
-    const titulos = ['rules.md', 'functional.md', 'non-functional.md'].flatMap(
-        arquivo =>
-            [
-                ...readFileSync(
-                    join(ROOT, 'docs/requirements', arquivo),
-                    'utf8'
-                ).matchAll(/^## (R[NF]F?-\d{4} — .+)$/gm)
-            ].map(match => match[1] ?? '')
-    )
+  const titulos = ['rules.md', 'functional.md', 'non-functional.md'].flatMap(arquivo =>
+    [...readFileSync(join(ROOT, 'docs/requirements', arquivo), 'utf8').matchAll(/^## (R[NF]F?-\d{4} — .+)$/gm)].map(match => match[1] ?? ''),
+  )
 
-    assert.ok(
-        titulos.length >= 11,
-        `esperava os requisitos das Fases 0 a 3, achei ${titulos.length}`
-    )
-    for (const titulo of titulos) {
-        assert.equal(
-            CONTRATO.includes(titulo),
-            false,
-            `o contrato copia o requisito "${titulo}"`
-        )
-    }
+  assert.ok(titulos.length >= 11, `esperava os requisitos das Fases 0 a 3, achei ${titulos.length}`)
+  for (const titulo of titulos) {
+    assert.equal(CONTRATO.includes(titulo), false, `o contrato copia o requisito "${titulo}"`)
+  }
 })
 
 test('RN-0010: o contrato é índice, não manual — cabe numa tela', () => {
-    const linhas = CONTRATO.split('\n').length
-    assert.ok(
-        linhas <= 60,
-        `contrato com ${linhas} linhas: índice que não cabe numa tela vira manual`
-    )
+  const linhas = CONTRATO.split('\n').length
+  assert.ok(linhas <= 60, `contrato com ${linhas} linhas: índice que não cabe numa tela vira manual`)
 })
 
 test('a Definition of Done nomeia a verificação de cada item', () => {
-    const dod = readFileSync(join(ROOT, 'docs/definition-of-done.md'), 'utf8')
-    const itens = dod
-        .split('\n')
-        .filter(linha => linha.trim().startsWith('- [ ]'))
-    assert.ok(itens.length >= 6, `DoD com apenas ${itens.length} itens`)
-    for (const item of itens) {
-        assert.match(
-            item,
-            /CI-\d|HK-\d|human/i,
-            `item sem verificação nomeada — ${item}`
-        )
-    }
+  const dod = readFileSync(join(ROOT, 'docs/definition-of-done.md'), 'utf8')
+  const itens = dod.split('\n').filter(linha => linha.trim().startsWith('- [ ]'))
+  assert.ok(itens.length >= 6, `DoD com apenas ${itens.length} itens`)
+  for (const item of itens) {
+    assert.match(item, /CI-\d|HK-\d|human/i, `item sem verificação nomeada — ${item}`)
+  }
 })
 ```
 
@@ -1522,8 +1349,8 @@ Esperado: FAIL — `ENOENT` em `CLAUDE.md`.
 title: Definition of Done
 owner: '@esliph/engineering'
 trigger: >
-    Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
-    de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
+  Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
+  de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
 last-reviewed: 2026-08-25
 ---
 
@@ -1557,8 +1384,8 @@ alguém as encontre depois.
 title: Como se contribui aqui
 owner: '@esliph/engineering'
 trigger: >
-    Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
-    errou por falta de contexto que caberia nesta página.
+  Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
+  errou por falta de contexto que caberia nesta página.
 last-reviewed: 2026-08-25
 ---
 
@@ -1678,13 +1505,13 @@ invocá-las pelo nome.
 ---
 name: working-agreements-keeper
 description: >
-    Use quando um agente ou uma pessoa errou por falta de contexto — "ninguém me
-    disse que era assim", "isso não estava escrito em lugar nenhum", "achei que
-    podia rodar direto", "como é que se faz isso aqui?", "quando é que isso está
-    pronto?" — e sempre que o processo de trabalho mudar: comando novo, passo
-    obrigatório novo, regra de commit, política sobre o que agente pode ou não
-    fazer sozinho. Também quando o contrato do agente (CLAUDE.md/AGENTS.md)
-    estiver repetindo conteúdo que pertence a outro documento.
+  Use quando um agente ou uma pessoa errou por falta de contexto — "ninguém me
+  disse que era assim", "isso não estava escrito em lugar nenhum", "achei que
+  podia rodar direto", "como é que se faz isso aqui?", "quando é que isso está
+  pronto?" — e sempre que o processo de trabalho mudar: comando novo, passo
+  obrigatório novo, regra de commit, política sobre o que agente pode ou não
+  fazer sozinho. Também quando o contrato do agente (CLAUDE.md/AGENTS.md)
+  estiver repetindo conteúdo que pertence a outro documento.
 ---
 
 # working-agreements-keeper — dono de como se trabalha aqui
@@ -1771,35 +1598,17 @@ Ao final do arquivo, no mesmo estilo das que já existem para `decision-recorder
 
 ```typescript
 test('working-agreements-keeper: a description nomeia o erro por falta de contexto', () => {
-    const description = String(
-        parseFrontmatter(skillSource('working-agreements-keeper'))?.data
-            .description ?? ''
-    )
-    assert.match(description, /Use quando/i)
-    for (const sintoma of [
-        'falta de contexto',
-        'não estava escrito',
-        'pronto'
-    ]) {
-        assert.ok(
-            description.toLowerCase().includes(sintoma),
-            `a description deveria conter o sintoma "${sintoma}"`
-        )
-    }
+  const description = String(parseFrontmatter(skillSource('working-agreements-keeper'))?.data.description ?? '')
+  assert.match(description, /Use quando/i)
+  for (const sintoma of ['falta de contexto', 'não estava escrito', 'pronto']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
+  }
 })
 
 test('working-agreements-keeper não duplica o conteúdo dos acordos que governa', () => {
-    const source = skillSource('working-agreements-keeper')
-    assert.match(
-        source,
-        /templates\/definition-of-done\.md/,
-        'ela deve apontar para o template, não copiá-lo'
-    )
-    assert.doesNotMatch(
-        source,
-        /^- \[ \] `npm test`/m,
-        'a skill não deve conter a DoD'
-    )
+  const source = skillSource('working-agreements-keeper')
+  assert.match(source, /templates\/definition-of-done\.md/, 'ela deve apontar para o template, não copiá-lo')
+  assert.doesNotMatch(source, /^- \[ \] `npm test`/m, 'a skill não deve conter a DoD')
 })
 ```
 
@@ -1866,102 +1675,78 @@ Acrescente a `test/cli/init.test.ts`:
 
 ```typescript
 test('RF-0004: small-team instala os acordos de trabalho', () => {
-    withTempRepo({}, root => {
-        const result = runInit(root, {
-            owner: '@time',
-            dryRun: false,
-            stage: 'small-team'
-        })
-        for (const path of [
-            'CONTRIBUTING.md',
-            'docs/definition-of-done.md',
-            'CLAUDE.md'
-        ]) {
-            assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
-            assert.ok(
-                result.created.includes(path),
-                `${path} deveria constar como criado`
-            )
-        }
-        assert.match(
-            readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'),
-            /@time/
-        )
+  withTempRepo({}, root => {
+    const result = runInit(root, {
+      owner: '@time',
+      dryRun: false,
+      stage: 'small-team',
     })
+    for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
+      assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
+      assert.ok(result.created.includes(path), `${path} deveria constar como criado`)
+    }
+    assert.match(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), /@time/)
+  })
 })
 
 test('RF-0004: solo não instala acordo de trabalho nenhum', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
-        for (const path of [
-            'CONTRIBUTING.md',
-            'docs/definition-of-done.md',
-            'CLAUDE.md'
-        ]) {
-            assert.equal(
-                existsSync(join(root, path)),
-                false,
-                `${path} não deveria existir no estágio solo`
-            )
-        }
-    })
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
+    for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
+      assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`)
+    }
+  })
 })
 
 test('RF-0004: AGENTS.md existente é adotado; nenhum CLAUDE.md paralelo nasce', () => {
-    withTempRepo({ 'AGENTS.md': '# contrato antigo\n' }, root => {
-        const result = runInit(root, {
-            owner: '@time',
-            dryRun: false,
-            stage: 'small-team'
-        })
-        assert.equal(existsSync(join(root, 'CLAUDE.md')), false)
-        assert.equal(
-            readFileSync(join(root, 'AGENTS.md'), 'utf8'),
-            '# contrato antigo\n'
-        )
-        assert.ok(result.adopted.some(entry => entry.path === 'AGENTS.md'))
+  withTempRepo({ 'AGENTS.md': '# contrato antigo\n' }, root => {
+    const result = runInit(root, {
+      owner: '@time',
+      dryRun: false,
+      stage: 'small-team',
     })
+    assert.equal(existsSync(join(root, 'CLAUDE.md')), false)
+    assert.equal(readFileSync(join(root, 'AGENTS.md'), 'utf8'), '# contrato antigo\n')
+    assert.ok(result.adopted.some(entry => entry.path === 'AGENTS.md'))
+  })
 })
 
 test('RF-0004: acordo já escrito não é reescrito na segunda execução', () => {
-    withTempRepo({ 'CONTRIBUTING.md': '# do jeito deles\n' }, root => {
-        const options = {
-            owner: '@time',
-            dryRun: false,
-            stage: 'small-team' as const
-        }
-        runInit(root, options)
-        const segunda = runInit(root, options)
-        assert.equal(
-            readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'),
-            '# do jeito deles\n'
-        )
-        assert.ok(segunda.skipped.includes('CONTRIBUTING.md'))
-        assert.deepEqual(segunda.created, [])
-    })
+  withTempRepo({ 'CONTRIBUTING.md': '# do jeito deles\n' }, root => {
+    const options = {
+      owner: '@time',
+      dryRun: false,
+      stage: 'small-team' as const,
+    }
+    runInit(root, options)
+    const segunda = runInit(root, options)
+    assert.equal(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), '# do jeito deles\n')
+    assert.ok(segunda.skipped.includes('CONTRIBUTING.md'))
+    assert.deepEqual(segunda.created, [])
+  })
 })
 
 test('RF-0003: small-team não promete mais a Fase 3 como pendente', () => {
-    withTempRepo({}, root => {
-        const result = runInit(root, {
-            owner: '@time',
-            dryRun: false,
-            stage: 'small-team'
-        })
-        assert.equal(
-            result.notInstalled.some(item => /Fase 3/.test(item)),
-            false
-        )
-        assert.ok(result.notInstalled.some(item => /Fase 4/.test(item)))
+  withTempRepo({}, root => {
+    const result = runInit(root, {
+      owner: '@time',
+      dryRun: false,
+      stage: 'small-team',
     })
+    assert.equal(
+      result.notInstalled.some(item => /Fase 3/.test(item)),
+      false,
+    )
+    assert.ok(result.notInstalled.some(item => /Fase 4/.test(item)))
+  })
 })
 
 test('o init não inventa `watches` — o vínculo código→doc é ato humano', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
-        const config = loadOwnership(root)
-        assert.deepEqual(config.watches, [])
-    })
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+    const config = loadOwnership(root)
+    assert.deepEqual(config.watches, [])
+  })
 })
 ```
 
@@ -1984,8 +1769,8 @@ Esperado: FAIL — `CONTRIBUTING.md deveria existir`.
 title: Definition of Done
 owner: '{{OWNER}}'
 trigger: >
-    Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
-    de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
+  Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
+  de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
 last-reviewed: { { TODAY } }
 ---
 
@@ -2016,8 +1801,8 @@ definição de pronto.
 title: Como se contribui aqui
 owner: '{{OWNER}}'
 trigger: >
-    Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
-    errou por falta de contexto que caberia nesta página.
+  Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
+  errou por falta de contexto que caberia nesta página.
 last-reviewed: { { TODAY } }
 ---
 
@@ -2129,55 +1914,38 @@ Depois de `REQUIREMENT_CITED_BY`, acrescente:
 
 ```typescript
 /** Acordos de trabalho (SK-6), instalados a partir do estágio `small-team` (spec §10). */
-const WORKING_AGREEMENTS: readonly { path: string; template: string }[] =
-    Object.freeze([
-        { path: 'CONTRIBUTING.md', template: 'contributing.md' },
-        {
-            path: 'docs/definition-of-done.md',
-            template: 'definition-of-done.md'
-        }
-    ])
+const WORKING_AGREEMENTS: readonly { path: string; template: string }[] = Object.freeze([
+  { path: 'CONTRIBUTING.md', template: 'contributing.md' },
+  {
+    path: 'docs/definition-of-done.md',
+    template: 'definition-of-done.md',
+  },
+])
 ```
 
 Troque `NOT_INSTALLED` por:
 
 ```typescript
 /** O que este estágio pede e a Fase 4 é que vai entregar (spec §10). */
-const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
-    {
-        solo: [],
-        'small-team': [
-            'SK-1, SK-2, AG-2 (Fase 4) — não implementados nesta versão'
-        ]
-    }
-)
+const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
+  solo: [],
+  'small-team': ['SK-1, SK-2, AG-2 (Fase 4) — não implementados nesta versão'],
+})
 ```
 
 Dentro de `runInit`, no bloco `if (options.stage !== 'solo')`, **depois** da escrita dos arquivos de requisito:
 
 ```typescript
 for (const agreement of WORKING_AGREEMENTS) {
-    writeIfAbsent(
-        root,
-        agreement.path,
-        template(agreement.template, values),
-        options,
-        result
-    )
+  writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result)
 }
 
 // O contrato do agente pode já existir com outro nome. Adotar, nunca duplicar
 // (RF-0002): dois contratos é a garantia de que um deles está errado.
 if (existsSync(join(root, 'AGENTS.md'))) {
-    result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' })
+  result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' })
 } else {
-    writeIfAbsent(
-        root,
-        'CLAUDE.md',
-        template('agent-contract.md', values),
-        options,
-        result
-    )
+  writeIfAbsent(root, 'CLAUDE.md', template('agent-contract.md', values), options, result)
 }
 ```
 
@@ -2251,25 +2019,25 @@ Substitua o bloco `watches: []`:
 # Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
 # antes do commit. Na Fase 7, CI-7 lê daqui também.
 watches:
-    - code: 'src/checks/**'
-      doc: docs/requirements/rules.md
-      reason: 'check é regra executável — a RN vem antes, e é ela que o check verifica'
+  - code: 'src/checks/**'
+    doc: docs/requirements/rules.md
+    reason: 'check é regra executável — a RN vem antes, e é ela que o check verifica'
 
-    - code: 'src/hooks/**'
-      doc: docs/requirements/rules.md
-      reason: 'hook bloqueia ou pergunta em nome de uma regra; sem RN citada, o bloqueio não tem origem'
+  - code: 'src/hooks/**'
+    doc: docs/requirements/rules.md
+    reason: 'hook bloqueia ou pergunta em nome de uma regra; sem RN citada, o bloqueio não tem origem'
 
-    - code: 'src/cli/**'
-      doc: docs/requirements/functional.md
-      reason: 'o que o comando faz de observável é RF, não detalhe de implementação'
+  - code: 'src/cli/**'
+    doc: docs/requirements/functional.md
+    reason: 'o que o comando faz de observável é RF, não detalhe de implementação'
 
-    - code: 'src/core/**'
-      doc: docs/requirements/non-functional.md
-      reason: 'as duas raízes são propriedade do sistema (ADR-0003), não comportamento de comando'
+  - code: 'src/core/**'
+    doc: docs/requirements/non-functional.md
+    reason: 'as duas raízes são propriedade do sistema (ADR-0003), não comportamento de comando'
 
-    - code: 'plugin/skills/**'
-      doc: CONTRIBUTING.md
-      reason: 'skill nova ou alterada muda como se trabalha aqui'
+  - code: 'plugin/skills/**'
+    doc: CONTRIBUTING.md
+    reason: 'skill nova ou alterada muda como se trabalha aqui'
 ```
 
 - [ ] **Step 2: Abrir `DA-0002`**
@@ -2306,48 +2074,44 @@ watches:
 `
 
 test('critério 5: alterar caminho vigiado sem tocar o doc dono é lembrado e perguntado', () => {
-    withTempRepo({ [OWNERSHIP_PATH]: WATCHED_CONFIG }, root => {
-        const env = { root, hostRoots: [root] }
+  withTempRepo({ [OWNERSHIP_PATH]: WATCHED_CONFIG }, root => {
+    const env = { root, hostRoots: [root] }
 
-        // Metade 1 — logo depois da edição, HK-4 lembra.
-        const lembrete = decideHk4(
-            {
-                tool_name: 'Edit',
-                tool_input: { file_path: 'src/domain/reembolso.ts' }
-            },
-            env
-        )
-        assert.equal(lembrete.action, 'remind')
+    // Metade 1 — logo depois da edição, HK-4 lembra.
+    const lembrete = decideHk4(
+      {
+        tool_name: 'Edit',
+        tool_input: { file_path: 'src/domain/reembolso.ts' },
+      },
+      env,
+    )
+    assert.equal(lembrete.action, 'remind')
 
-        // Metade 2 — na hora do commit, HK-5 lista os pendentes e pergunta.
-        const staged: GitRunner = () => `src/domain/reembolso.ts${NUL}`
-        const pergunta = decideHk5(
-            {
-                tool_name: 'Bash',
-                tool_input: { command: 'git commit -m "feat: reembolso"' }
-            },
-            env,
-            staged
-        )
-        assert.equal(pergunta.action, 'ask')
-        assert.match(
-            pergunta.action === 'ask' ? pergunta.reason : '',
-            /docs\/requirements\/rules\.md/
-        )
+    // Metade 2 — na hora do commit, HK-5 lista os pendentes e pergunta.
+    const staged: GitRunner = () => `src/domain/reembolso.ts${NUL}`
+    const pergunta = decideHk5(
+      {
+        tool_name: 'Bash',
+        tool_input: { command: 'git commit -m "feat: reembolso"' },
+      },
+      env,
+      staged,
+    )
+    assert.equal(pergunta.action, 'ask')
+    assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /docs\/requirements\/rules\.md/)
 
-        // E com o doc no mesmo commit, o caminho fica livre.
-        const comDoc: GitRunner = () =>
-            `src/domain/reembolso.ts${NUL}docs/requirements/rules.md${NUL}`
-        const livre = decideHk5(
-            {
-                tool_name: 'Bash',
-                tool_input: { command: 'git commit -m "feat: reembolso"' }
-            },
-            env,
-            comDoc
-        )
-        assert.equal(livre.action, 'allow')
-    })
+    // E com o doc no mesmo commit, o caminho fica livre.
+    const comDoc: GitRunner = () => `src/domain/reembolso.ts${NUL}docs/requirements/rules.md${NUL}`
+    const livre = decideHk5(
+      {
+        tool_name: 'Bash',
+        tool_input: { command: 'git commit -m "feat: reembolso"' },
+      },
+      env,
+      comDoc,
+    )
+    assert.equal(livre.action, 'allow')
+  })
 })
 ```
 
@@ -2478,4 +2242,3 @@ decision-adversary. Duas dependências a verificar antes de planejar: os estados
 `banned`/`renamed` de termo na máquina de estados de `src/docs/schema.ts`, e o
 formato de `agents/` num plugin do Claude Code — `AG-2` é o primeiro agent do
 toolkit.
-

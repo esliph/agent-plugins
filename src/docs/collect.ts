@@ -1,43 +1,47 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
-import type { ArtifactRule, DocumentRule, OwnershipConfig } from '../config/ownership.ts';
-import { parseFrontmatter, FrontmatterSyntaxError } from '../frontmatter/parse.ts';
-import type { Frontmatter } from '../frontmatter/parse.ts';
-import { parseItemTable } from './table.ts';
-import { parseItemSections } from './sections.ts';
-import type { IdFormat } from './schema.ts';
-import type { DocItem } from './item.ts';
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { join } from 'node:path'
+import type { ArtifactRule, DocumentRule, OwnershipConfig } from '../config/ownership.ts'
+import { parseFrontmatter, FrontmatterSyntaxError } from '../frontmatter/parse.ts'
+import type { Frontmatter } from '../frontmatter/parse.ts'
+import { parseItemTable } from './table.ts'
+import { parseItemSections } from './sections.ts'
+import type { IdFormat } from './schema.ts'
+import type { DocItem } from './item.ts'
 
 export interface ArtifactDoc {
   /** Caminho relativo à raiz do repositório, sempre com `/`. */
-  file: string;
-  rule: ArtifactRule;
-  source: string;
-  frontmatter: Frontmatter | null;
-  syntaxError: FrontmatterSyntaxError | null;
+  file: string
+  rule: ArtifactRule
+  source: string
+  frontmatter: Frontmatter | null
+  syntaxError: FrontmatterSyntaxError | null
   /** Itens da coleção (`table` ou `sections`); vazio para `per-file`. */
-  items: DocItem[];
+  items: DocItem[]
 }
 
 function listMarkdown(root: string, relativeDir: string): string[] {
-  const absolute = join(root, relativeDir);
-  let entries: string[];
+  const absolute = join(root, relativeDir)
+  let entries: string[]
+
   try {
-    entries = readdirSync(absolute);
+    entries = readdirSync(absolute)
   } catch {
-    return [];
+    return []
   }
 
-  const found: string[] = [];
+  const found: string[] = []
+
   for (const entry of entries) {
-    const relative = `${relativeDir.replace(/\/$/, '')}/${entry}`;
+    const relative = `${relativeDir.replace(/\/$/, '')}/${entry}`
+
     if (statSync(join(root, relative)).isDirectory()) {
-      found.push(...listMarkdown(root, `${relative}/`));
+      found.push(...listMarkdown(root, `${relative}/`))
     } else if (entry.endsWith('.md') && !entry.includes('.gen.')) {
-      found.push(relative);
+      found.push(relative)
     }
   }
-  return found;
+
+  return found
 }
 
 /**
@@ -45,70 +49,72 @@ function listMarkdown(root: string, relativeDir: string): string[] {
  * check: `per-file` não tem itens, `table` os lê em linhas e `sections` em
  * títulos com ID (spec §3).
  */
-function parseItems(
-  rule: ArtifactRule,
-  source: string,
-  body: string | null,
-  bodyStart: number,
-  format: IdFormat,
-): DocItem[] {
-  const text = body ?? source;
-  const start = body === null ? 1 : bodyStart;
-  if (rule.collection === 'table') return parseItemTable(text, start, format);
-  if (rule.collection === 'sections') return parseItemSections(text, start, format);
-  return [];
+function parseItems(rule: ArtifactRule, source: string, body: string | null, bodyStart: number, format: IdFormat): DocItem[] {
+  const text = body ?? source
+  const start = body === null ? 1 : bodyStart
+
+  if (rule.collection === 'table') {
+    return parseItemTable(text, start, format)
+  }
+  if (rule.collection === 'sections') {
+    return parseItemSections(text, start, format)
+  }
+
+  return []
 }
 
 function readDoc(root: string, file: string, rule: ArtifactRule, format: IdFormat): ArtifactDoc | null {
-  let source: string;
+  let source: string
+
   try {
-    source = readFileSync(join(root, file), 'utf8');
+    source = readFileSync(join(root, file), 'utf8')
   } catch {
-    return null;
+    return null
   }
 
-  let frontmatter: Frontmatter | null = null;
-  let syntaxError: FrontmatterSyntaxError | null = null;
+  let frontmatter: Frontmatter | null = null
+  let syntaxError: FrontmatterSyntaxError | null = null
+
   try {
-    frontmatter = parseFrontmatter(source);
+    frontmatter = parseFrontmatter(source)
   } catch (err) {
-    if (!(err instanceof FrontmatterSyntaxError)) throw err;
-    syntaxError = err;
+    if (!(err instanceof FrontmatterSyntaxError)) {
+      throw err
+    }
+    syntaxError = err
   }
 
-  const items = parseItems(
-    rule,
-    source,
-    frontmatter ? frontmatter.body : null,
-    frontmatter ? frontmatter.bodyStartLine : 1,
-    format,
-  );
+  const items = parseItems(rule, source, frontmatter ? frontmatter.body : null, frontmatter ? frontmatter.bodyStartLine : 1, format)
 
-  return { file, rule, source, frontmatter, syntaxError, items };
+  return { file, rule, source, frontmatter, syntaxError, items }
 }
 
 export function collectArtifacts(root: string, config: OwnershipConfig): ArtifactDoc[] {
-  const docs: ArtifactDoc[] = [];
+  const docs: ArtifactDoc[] = []
 
   for (const rule of config.artifacts) {
-    const target = rule.path.replace(/\\/g, '/');
-    const files = target.endsWith('/') ? listMarkdown(root, target) : [target];
+    const target = rule.path.replace(/\\/g, '/')
+    const files = target.endsWith('/') ? listMarkdown(root, target) : [target]
+
     for (const file of files) {
-      const doc = readDoc(root, file, rule, config.idFormat);
-      if (doc) docs.push(doc);
+      const doc = readDoc(root, file, rule, config.idFormat)
+
+      if (doc) {
+        docs.push(doc)
+      }
     }
   }
 
-  return docs;
+  return docs
 }
 
 export interface DocumentDoc {
   /** Caminho relativo à raiz do repositório, sempre com `/`. */
-  file: string;
-  rule: DocumentRule;
-  source: string;
+  file: string
+  rule: DocumentRule
+  source: string
   /** `null` quando o documento não tem frontmatter — o que é legítimo (`CHANGELOG.md`). */
-  frontmatter: Frontmatter | null;
+  frontmatter: Frontmatter | null
 }
 
 /**
@@ -120,32 +126,36 @@ export interface DocumentDoc {
  * e derrubar o `validate` por causa disso seria pior do que não reportar.
  */
 export function collectDocuments(root: string, config: OwnershipConfig): DocumentDoc[] {
-  const documents: DocumentDoc[] = [];
+  const documents: DocumentDoc[] = []
 
   for (const rule of config.documents) {
-    const target = rule.path.replace(/\\/g, '/');
-    const files = target.endsWith('/') ? listMarkdown(root, target) : [target];
+    const target = rule.path.replace(/\\/g, '/')
+    const files = target.endsWith('/') ? listMarkdown(root, target) : [target]
 
     for (const file of files) {
-      if (!file.endsWith('.md')) continue;
-
-      let source: string;
-      try {
-        source = readFileSync(join(root, file), 'utf8');
-      } catch {
-        continue; // declarado e ausente: quem cobra ausência é CI-7, não a coleta
+      if (!file.endsWith('.md')) {
+        continue
       }
 
-      let frontmatter: Frontmatter | null = null;
+      let source: string
+
       try {
-        frontmatter = parseFrontmatter(source);
+        source = readFileSync(join(root, file), 'utf8')
       } catch {
-        frontmatter = null;
+        continue // declarado e ausente: quem cobra ausência é CI-7, não a coleta
       }
 
-      documents.push({ file, rule, source, frontmatter });
+      let frontmatter: Frontmatter | null = null
+
+      try {
+        frontmatter = parseFrontmatter(source)
+      } catch {
+        frontmatter = null
+      }
+
+      documents.push({ file, rule, source, frontmatter })
     }
   }
 
-  return documents;
+  return documents
 }

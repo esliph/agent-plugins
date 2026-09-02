@@ -2,8 +2,8 @@
 title: Requisitos não funcionais
 owner: '@esliph/engineering'
 trigger: >
-    Antes de implementar qualquer comportamento desta família, e a toda regra nova
-    ou alterada.
+  Antes de implementar qualquer comportamento desta família, e a toda regra nova
+  ou alterada.
 last-reviewed: 2026-08-27
 ---
 

@@ -4,7 +4,7 @@ title: Raiz do toolkit e raiz do repositório validado são distintas
 status: accepted
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24
 relates-to: [DA-0001, ADR-0002]
 supersedes: null
@@ -75,4 +75,3 @@ em `/workspace`. `LIVING_DOCS_ROOT` é removida.
   versionado. Um consumidor ainda precisa clonar este repositório e apontar o
   `LIVING_DOCS_TARGET`. Publicar imagem ou pacote é decisão futura, e este ADR
   não a toma.
-

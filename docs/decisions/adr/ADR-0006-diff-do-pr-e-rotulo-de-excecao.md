@@ -4,7 +4,7 @@ title: De onde CI-6 tira o diff, o que conta como rótulo de exceção, e onde e
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-26
 relates-to: [RF-0008, RN-0013]
 supersedes: null
@@ -138,4 +138,3 @@ carregar um `--base` que ele não usa.
   momentos diferentes (o lembrete na edição e a barreira no PR) e um projeto
   pode legitimamente querer um sem o outro; neste repositório, um teste de
   dogfooding cobra a igualdade das duas em vez de deixá-las derivar.
-

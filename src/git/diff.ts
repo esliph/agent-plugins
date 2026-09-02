@@ -1,21 +1,21 @@
-import { execFileSync } from 'node:child_process';
-import type { GitRunner } from './staged.ts';
+import { execFileSync } from 'node:child_process'
+import type { GitRunner } from './staged.ts'
 
 /**
  * Teto de um comando git de leitura. Generoso perto dos 3 s de `staged.ts`:
  * `CI-6` roda no PR, não dentro do orçamento de 5 s de um hook (spec §7).
  */
-export const TIMEOUT_MS = 10_000;
+export const TIMEOUT_MS = 10_000
 
 /** Falha de git que o chamador precisa ver. Não existe atalho para "não sei". */
 export class GitError extends Error {
   constructor(message: string) {
-    super(message);
-    this.name = 'GitError';
+    super(message)
+    this.name = 'GitError'
   }
 }
 
-const NUL = String.fromCharCode(0);
+const NUL = String.fromCharCode(0)
 
 export const runGitDiff: GitRunner = (args, cwd) =>
   execFileSync('git', [...args], {
@@ -25,13 +25,14 @@ export const runGitDiff: GitRunner = (args, cwd) =>
     maxBuffer: 16 * 1024 * 1024,
     // stderr capturado, não herdado: ele vira a mensagem do GitError.
     stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  })
 
 /** A primeira linha útil do erro: stderr se houver, mensagem se não. */
 function reasonOf(err: unknown): string {
-  const stderr = (err as { stderr?: unknown }).stderr;
-  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err));
-  return text.split('\n')[0] ?? text;
+  const stderr = (err as { stderr?: unknown }).stderr
+  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
+
+  return text.split('\n')[0] ?? text
 }
 
 /**
@@ -46,9 +47,9 @@ function reasonOf(err: unknown): string {
  */
 function git(args: readonly string[], root: string, run: GitRunner, what: string): string {
   try {
-    return run(['-c', 'safe.directory=*', ...args], root);
+    return run(['-c', 'safe.directory=*', ...args], root)
   } catch (err) {
-    throw new GitError(`${what} falhou: ${reasonOf(err)}`);
+    throw new GitError(`${what} falhou: ${reasonOf(err)}`)
   }
 }
 
@@ -61,17 +62,12 @@ function git(args: readonly string[], root: string, run: GitRunner, what: string
  * caminho escapado não casa com glob nenhum.
  */
 export function changedPaths(root: string, base: string, run: GitRunner = runGitDiff): string[] {
-  const output = git(
-    ['diff', '--name-only', '-z', `${base}...HEAD`],
-    root,
-    run,
-    `git diff ${base}...HEAD`,
-  );
+  const output = git(['diff', '--name-only', '-z', `${base}...HEAD`], root, run, `git diff ${base}...HEAD`)
 
   return output
     .split(NUL)
-    .map((path) => path.trim().replace(/\\/g, '/'))
-    .filter((path) => path !== '');
+    .map(path => path.trim().replace(/\\/g, '/'))
+    .filter(path => path !== '')
 }
 
 /**
@@ -83,29 +79,24 @@ export function changedPaths(root: string, base: string, run: GitRunner = runGit
  * trailer, e trailer mora depois de uma linha em branco.
  */
 export function commitMessages(root: string, base: string, run: GitRunner = runGitDiff): string[] {
-  const output = git(
-    ['log', '--format=%B%x00', `${base}..HEAD`],
-    root,
-    run,
-    `git log ${base}..HEAD`,
-  );
+  const output = git(['log', '--format=%B%x00', `${base}..HEAD`], root, run, `git log ${base}..HEAD`)
 
   return output
     .split(NUL)
-    .map((message) => message.trim())
-    .filter((message) => message !== '');
+    .map(message => message.trim())
+    .filter(message => message !== '')
 }
 
 /** O que um arquivo ganhou e perdeu neste diff. Ordem de leitura, sem contexto. */
 export interface FileEdit {
   /** Caminho relativo à raiz, sempre com `/`. */
-  path: string;
-  added: string[];
-  removed: string[];
+  path: string
+  added: string[]
+  removed: string[]
 }
 
 /** Só o cabeçalho de destino abre seção — `+++ /dev/null` (remoção) não abre. */
-const FILE_HEADER = /^\+\+\+ b\/(.+)$/;
+const FILE_HEADER = /^\+\+\+ b\/(.+)$/
 
 /**
  * O diff linha a linha, por arquivo (`RN-0027`).
@@ -126,34 +117,40 @@ export function changedLines(root: string, base: string, run: GitRunner = runGit
     root,
     run,
     `git diff --unified=0 ${base}...HEAD`,
-  );
+  )
 
-  const edits: FileEdit[] = [];
-  let current: FileEdit | null = null;
-  let inHunk = false;
+  const edits: FileEdit[] = []
+  let current: FileEdit | null = null
+  let inHunk = false
 
   for (const line of output.split('\n')) {
     if (line.startsWith('diff --git ')) {
-      current = null;
-      inHunk = false;
-      continue;
+      current = null
+      inHunk = false
+      continue
     }
     if (line.startsWith('@@')) {
-      inHunk = true;
-      continue;
+      inHunk = true
+      continue
     }
     if (!inHunk) {
-      const path = FILE_HEADER.exec(line)?.[1];
+      const path = FILE_HEADER.exec(line)?.[1]
+
       if (path !== undefined) {
-        current = { path: path.replace(/\\/g, '/'), added: [], removed: [] };
-        edits.push(current);
+        current = { path: path.replace(/\\/g, '/'), added: [], removed: [] }
+        edits.push(current)
       }
-      continue;
+      continue
     }
-    if (current === null) continue;
-    if (line.startsWith('+')) current.added.push(line.slice(1));
-    else if (line.startsWith('-')) current.removed.push(line.slice(1));
+    if (current === null) {
+      continue
+    }
+    if (line.startsWith('+')) {
+      current.added.push(line.slice(1))
+    } else if (line.startsWith('-')) {
+      current.removed.push(line.slice(1))
+    }
   }
 
-  return edits;
+  return edits
 }

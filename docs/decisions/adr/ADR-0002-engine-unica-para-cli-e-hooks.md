@@ -4,7 +4,7 @@ title: Uma engine de validação para CLI e hooks
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24
 relates-to: [ADR-0001, RN-0001, RNF-0001]
 supersedes: null
@@ -48,4 +48,3 @@ no registry, e ele passa a valer nos dois contextos.
 Os hooks carregam mais código do que precisariam (`loadOwnership` parseia o
 `.ownership.yml` inteiro para responder sobre um arquivo), e mudanças na engine
 afetam simultaneamente CI e hooks — não há como evoluir um sem revalidar o outro.
-

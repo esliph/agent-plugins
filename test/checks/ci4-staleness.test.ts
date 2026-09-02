@@ -1,17 +1,11 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import {
-  ci4Staleness,
-  duePayments,
-  debtsWithoutTrigger,
-  payWhenOf,
-  staleDocs,
-} from '../../src/checks/ci4-staleness.ts';
-import { parseOwnership } from '../../src/config/ownership.ts';
-import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { ci4Staleness, duePayments, debtsWithoutTrigger, payWhenOf, staleDocs } from '../../src/checks/ci4-staleness.ts'
+import { parseOwnership } from '../../src/config/ownership.ts'
+import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
-const HOJE = '2026-08-27';
+const HOJE = '2026-08-27'
 
 const OWNERSHIP = `
 version: 1
@@ -40,17 +34,18 @@ documents:
   - path: CHANGELOG.md
     owner: "@time"
     skill: release-historian
-`;
+`
 
 function contextFor(root: string, ownership = OWNERSHIP) {
-  const config = parseOwnership(ownership);
+  const config = parseOwnership(ownership)
+
   return {
     root,
     config,
     docs: collectArtifacts(root, config),
     documents: collectDocuments(root, config),
     today: HOJE,
-  };
+  }
 }
 
 function adr(status: string, lastReviewed: string): string {
@@ -66,15 +61,11 @@ function adr(status: string, lastReviewed: string): string {
     '---',
     '',
     'corpo',
-  ].join('\n');
+  ].join('\n')
 }
 
 /** `pay-when` em YAML com aspas simples: aspas simples não processam `\`, e o padrão é regex. */
-const PAY_WHEN = [
-  'pay-when:',
-  "  pattern: '^- \\*\\*status:\\*\\* revoked'",
-  '  paths: ["docs/requirements/**"]',
-];
+const PAY_WHEN = ['pay-when:', "  pattern: '^- \\*\\*status:\\*\\* revoked'", '  paths: ["docs/requirements/**"]']
 
 function debt(status: string, extra: readonly string[] = []): string {
   return [
@@ -91,7 +82,7 @@ function debt(status: string, extra: readonly string[] = []): string {
     '# TDR-0001 — Atalho de teste',
     '',
     'O gatilho é o primeiro PR que revogar um requisito.',
-  ].join('\n');
+  ].join('\n')
 }
 
 const RULES_ATIVA = [
@@ -107,9 +98,9 @@ const RULES_ATIVA = [
   '- **status:** active',
   '',
   'O enunciado.',
-].join('\n');
+].join('\n')
 
-const RULES_REVOGADA = RULES_ATIVA.replace('- **status:** active', '- **status:** revoked');
+const RULES_REVOGADA = RULES_ATIVA.replace('- **status:** active', '- **status:** revoked')
 
 test('RN-0018: documento além do limite avisa, e aviso não é erro', () => {
   withTempRepo(
@@ -117,20 +108,23 @@ test('RN-0018: documento além do limite avisa, e aviso não é erro', () => {
       'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2026-01-01'),
       'docs/requirements/rules.md': RULES_ATIVA,
     },
-    (root) => {
-      const findings = ci4Staleness.run(contextFor(root));
-      const aviso = findings.find((finding) => finding.file === 'docs/decisions/adr/ADR-0001-a.md');
+    root => {
+      const findings = ci4Staleness.run(contextFor(root))
+      const aviso = findings.find(finding => finding.file === 'docs/decisions/adr/ADR-0001-a.md')
 
-      assert.ok(aviso, 'ADR revisado em janeiro deveria vencer em agosto');
-      assert.equal(aviso.ruleId, 'CI-4');
-      assert.equal(aviso.severity, 'warning');
-      assert.match(aviso.message, /7 meses/);
-      assert.match(aviso.message, /stale-after-months/);
-      assert.match(aviso.fix, /bump em massa/i);
-      assert.equal(findings.some((finding) => finding.severity === 'error'), false);
+      assert.ok(aviso, 'ADR revisado em janeiro deveria vencer em agosto')
+      assert.equal(aviso.ruleId, 'CI-4')
+      assert.equal(aviso.severity, 'warning')
+      assert.match(aviso.message, /7 meses/)
+      assert.match(aviso.message, /stale-after-months/)
+      assert.match(aviso.fix, /bump em massa/i)
+      assert.equal(
+        findings.some(finding => finding.severity === 'error'),
+        false,
+      )
     },
-  );
-});
+  )
+})
 
 test('ADR-0007: item congelado não vence — avisar sobre ele ensinaria o bump em massa', () => {
   withTempRepo(
@@ -138,26 +132,31 @@ test('ADR-0007: item congelado não vence — avisar sobre ele ensinaria o bump 
       'docs/decisions/adr/ADR-0001-a.md': adr('accepted', '2020-01-01'),
       'docs/requirements/rules.md': RULES_ATIVA,
     },
-    (root) => {
-      assert.deepEqual(staleDocs(contextFor(root)), []);
+    root => {
+      assert.deepEqual(staleDocs(contextFor(root)), [])
     },
-  );
-});
+  )
+})
 
 test('RN-0018: documento de `documents:` vence; sem frontmatter, não tem o que vencer', () => {
   withTempRepo(
     {
       'docs/requirements/rules.md': RULES_ATIVA,
-      'CONTRIBUTING.md': '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2025-01-01\n---\n\n# Como se contribui\n',
+      'CONTRIBUTING.md':
+        '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2025-01-01\n---\n\n# Como se contribui\n',
       'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
     },
-    (root) => {
-      const stale = staleDocs(contextFor(root));
-      assert.deepEqual(stale.map((item) => item.file), ['CONTRIBUTING.md']);
-      assert.equal(stale[0]?.skill, 'working-agreements-keeper');
+    root => {
+      const stale = staleDocs(contextFor(root))
+
+      assert.deepEqual(
+        stale.map(item => item.file),
+        ['CONTRIBUTING.md'],
+      )
+      assert.equal(stale[0]?.skill, 'working-agreements-keeper')
     },
-  );
-});
+  )
+})
 
 test('RN-0018: `last-reviewed` fora do formato ISO não vence — CI-1 já cobra o formato', () => {
   withTempRepo(
@@ -167,12 +166,16 @@ test('RN-0018: `last-reviewed` fora do formato ISO não vence — CI-1 já cobra
       'CONTRIBUTING.md':
         '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 1 de janeiro de 2020\n---\n\n# Como se contribui\n',
     },
-    (root) => {
-      const stale = staleDocs(contextFor(root));
-      assert.deepEqual(stale.map((item) => item.file), []);
+    root => {
+      const stale = staleDocs(contextFor(root))
+
+      assert.deepEqual(
+        stale.map(item => item.file),
+        [],
+      )
     },
-  );
-});
+  )
+})
 
 test('RN-0019: dívida `open` sem `pay-when` é erro, com o problema nomeado', () => {
   withTempRepo(
@@ -180,19 +183,24 @@ test('RN-0019: dívida `open` sem `pay-when` é erro, com o problema nomeado', (
       'docs/decisions/debt/TDR-0001-x.md': debt('open'),
       'docs/requirements/rules.md': RULES_ATIVA,
     },
-    (root) => {
-      const semGatilho = debtsWithoutTrigger(contextFor(root));
-      assert.deepEqual(semGatilho.map((item) => [item.id, item.problem]), [['TDR-0001', 'ausente']]);
+    root => {
+      const semGatilho = debtsWithoutTrigger(contextFor(root))
 
-      const findings = ci4Staleness.run(contextFor(root));
-      const erro = findings.find((finding) => finding.severity === 'error');
-      assert.ok(erro);
-      assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md');
-      assert.match(erro.message, /TDR-0001/);
-      assert.match(erro.fix, /pay-when/);
+      assert.deepEqual(
+        semGatilho.map(item => [item.id, item.problem]),
+        [['TDR-0001', 'ausente']],
+      )
+
+      const findings = ci4Staleness.run(contextFor(root))
+      const erro = findings.find(finding => finding.severity === 'error')
+
+      assert.ok(erro)
+      assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
+      assert.match(erro.message, /TDR-0001/)
+      assert.match(erro.fix, /pay-when/)
     },
-  );
-});
+  )
+})
 
 test('RN-0019: `pay-when` incompleto e padrão que não compila são erros distintos', () => {
   withTempRepo(
@@ -200,21 +208,21 @@ test('RN-0019: `pay-when` incompleto e padrão que não compila são erros disti
       'docs/decisions/debt/TDR-0001-x.md': debt('open', ['pay-when:', '  paths: ["docs/**"]']),
       'docs/requirements/rules.md': RULES_ATIVA,
     },
-    (root) => {
-      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'incompleto');
+    root => {
+      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'incompleto')
     },
-  );
+  )
 
   withTempRepo(
     {
       'docs/decisions/debt/TDR-0001-x.md': debt('open', ['pay-when:', "  pattern: '([('", '  paths: ["docs/**"]']),
       'docs/requirements/rules.md': RULES_ATIVA,
     },
-    (root) => {
-      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'padrão inválido');
+    root => {
+      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'padrão inválido')
     },
-  );
-});
+  )
+})
 
 test('critério 7: dívida com gatilho cumprido reprova, e a evidência aparece', () => {
   withTempRepo(
@@ -222,22 +230,24 @@ test('critério 7: dívida com gatilho cumprido reprova, e a evidência aparece'
       'docs/decisions/debt/TDR-0001-x.md': debt('open', PAY_WHEN),
       'docs/requirements/rules.md': RULES_REVOGADA,
     },
-    (root) => {
-      const due = duePayments(contextFor(root));
-      assert.equal(due.length, 1);
-      assert.equal(due[0]?.id, 'TDR-0001');
-      assert.match(due[0]?.evidence ?? '', /^docs\/requirements\/rules\.md:\d+$/);
+    root => {
+      const due = duePayments(contextFor(root))
 
-      const findings = ci4Staleness.run(contextFor(root));
-      const erro = findings.find((finding) => finding.severity === 'error');
-      assert.ok(erro);
-      assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md');
-      assert.match(erro.message, /gatilho de pagamento já aconteceu/);
-      assert.match(erro.message, /docs\/requirements\/rules\.md/);
-      assert.match(erro.fix, /paid|accepted-permanently/);
+      assert.equal(due.length, 1)
+      assert.equal(due[0]?.id, 'TDR-0001')
+      assert.match(due[0]?.evidence ?? '', /^docs\/requirements\/rules\.md:\d+$/)
+
+      const findings = ci4Staleness.run(contextFor(root))
+      const erro = findings.find(finding => finding.severity === 'error')
+
+      assert.ok(erro)
+      assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
+      assert.match(erro.message, /gatilho de pagamento já aconteceu/)
+      assert.match(erro.message, /docs\/requirements\/rules\.md/)
+      assert.match(erro.fix, /paid|accepted-permanently/)
     },
-  );
-});
+  )
+})
 
 test('critério 7: sem a condição no repositório, a dívida `open` passa', () => {
   withTempRepo(
@@ -245,12 +255,12 @@ test('critério 7: sem a condição no repositório, a dívida `open` passa', ()
       'docs/decisions/debt/TDR-0001-x.md': debt('open', PAY_WHEN),
       'docs/requirements/rules.md': RULES_ATIVA,
     },
-    (root) => {
-      assert.deepEqual(duePayments(contextFor(root)), []);
-      assert.deepEqual(debtsWithoutTrigger(contextFor(root)), []);
+    root => {
+      assert.deepEqual(duePayments(contextFor(root)), [])
+      assert.deepEqual(debtsWithoutTrigger(contextFor(root)), [])
     },
-  );
-});
+  )
+})
 
 test('critério 7: dívida paga ou aceita permanentemente sai da conta', () => {
   for (const status of ['paid', 'accepted-permanently']) {
@@ -259,13 +269,13 @@ test('critério 7: dívida paga ou aceita permanentemente sai da conta', () => {
         'docs/decisions/debt/TDR-0001-x.md': debt(status, PAY_WHEN),
         'docs/requirements/rules.md': RULES_REVOGADA,
       },
-      (root) => {
-        assert.deepEqual(duePayments(contextFor(root)), [], `status ${status} não deveria vencer`);
-        assert.deepEqual(debtsWithoutTrigger(contextFor(root)), []);
+      root => {
+        assert.deepEqual(duePayments(contextFor(root)), [], `status ${status} não deveria vencer`)
+        assert.deepEqual(debtsWithoutTrigger(contextFor(root)), [])
       },
-    );
+    )
   }
-});
+})
 
 test('ADR-0007: o próprio arquivo da dívida não conta como ocorrência do gatilho', () => {
   withTempRepo(
@@ -278,22 +288,22 @@ test('ADR-0007: o próprio arquivo da dívida não conta como ocorrência do gat
       ])}\n\nO gatilho é qualquer seção que vire \`status: revoked\`.\n`,
       'docs/requirements/rules.md': RULES_ATIVA,
     },
-    (root) => {
-      assert.deepEqual(duePayments(contextFor(root)), [], 'citar o gatilho não é cumpri-lo');
+    root => {
+      assert.deepEqual(duePayments(contextFor(root)), [], 'citar o gatilho não é cumpri-lo')
     },
-  );
-});
+  )
+})
 
 test('payWhenOf distingue ausente, incompleto e válido', () => {
-  assert.equal(payWhenOf({}), 'ausente');
-  assert.equal(payWhenOf({ 'pay-when': 'quando der tempo' }), 'incompleto');
-  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x' } }), 'incompleto');
-  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x', paths: [] } }), 'incompleto');
+  assert.equal(payWhenOf({}), 'ausente')
+  assert.equal(payWhenOf({ 'pay-when': 'quando der tempo' }), 'incompleto')
+  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x' } }), 'incompleto')
+  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x', paths: [] } }), 'incompleto')
   assert.deepEqual(payWhenOf({ 'pay-when': { pattern: 'x', paths: ['src/**'] } }), {
     pattern: 'x',
     paths: ['src/**'],
-  });
-});
+  })
+})
 
 test('CI-4 é o único check que avisa: nada aqui reprova por documento vencido', () => {
   withTempRepo(
@@ -301,10 +311,11 @@ test('CI-4 é o único check que avisa: nada aqui reprova por documento vencido'
       'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2019-01-01'),
       'docs/requirements/rules.md': RULES_ATIVA,
     },
-    (root) => {
-      const findings = ci4Staleness.run(contextFor(root));
-      assert.ok(findings.length > 0);
-      assert.ok(findings.every((finding) => finding.severity === 'warning'));
+    root => {
+      const findings = ci4Staleness.run(contextFor(root))
+
+      assert.ok(findings.length > 0)
+      assert.ok(findings.every(finding => finding.severity === 'warning'))
     },
-  );
-});
+  )
+})

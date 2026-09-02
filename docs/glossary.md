@@ -2,8 +2,8 @@
 title: Glossary
 owner: '@esliph/engineering'
 trigger: >
-    Termo de domínio novo em código, spec ou conversa; termo com dois
-    significados; renomeação de conceito.
+  Termo de domínio novo em código, spec ou conversa; termo com dois
+  significados; renomeação de conceito.
 last-reviewed: 2026-08-27
 ---
 
@@ -24,4 +24,3 @@ repositório.
 | Termo                | Entrada do glossary, identificada pelo nome — um significado só, nunca um ID numerado        | linha da tabela em `docs/glossary.md` | "Requisito" (`RN`/`RF`/`RNF`) — o termo nomeia um conceito, o requisito afirma uma regra sobre ele | ADR-0004, RN-0011        | active |
 | Documento            | Arquivo com dono declarado e sem família de IDs, declarado em `documents:`                   | `DocumentRule`, `DocumentDoc`         | "Artefato" — que tem ID, estado e congelamento; e "arquivo qualquer", que não tem dono nenhum      | ADR-0008, RN-0016        | active |
 | Gatilho de pagamento | Condição observável no repositório que torna uma dívida devida, declarada em `pay-when`      | `PayWhen`, `duePayments`              | "Prazo" — dívida não vence no calendário, vence quando a condição aparece                          | ADR-0007, RN-0019        | active |
-

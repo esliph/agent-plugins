@@ -1,26 +1,26 @@
-import { loadOwnership } from '../config/ownership.ts';
-import { collectArtifacts, collectDocuments } from '../docs/collect.ts';
-import { validateChecks } from '../checks/registry.ts';
-import { changedLines, changedPaths, commitMessages } from '../git/diff.ts';
-import type { GitRunner } from '../git/staged.ts';
-import { todayIso } from '../core/dates.ts';
-import { forgetTree } from '../core/files.ts';
-import type { Finding } from '../core/types.ts';
+import { loadOwnership } from '../config/ownership.ts'
+import { collectArtifacts, collectDocuments } from '../docs/collect.ts'
+import { validateChecks } from '../checks/registry.ts'
+import { changedLines, changedPaths, commitMessages } from '../git/diff.ts'
+import type { GitRunner } from '../git/staged.ts'
+import { todayIso } from '../core/dates.ts'
+import { forgetTree } from '../core/files.ts'
+import type { Finding } from '../core/types.ts'
 
 export interface ValidateResult {
-  findings: Finding[];
-  errors: number;
-  warnings: number;
-  exitCode: number;
+  findings: Finding[]
+  errors: number
+  warnings: number
+  exitCode: number
   /** Artefatos gerados declarados — checados por `living-docs drift`, não aqui (ADR-0005). */
-  generated: number;
+  generated: number
   /** Globs de `consumer-visible-paths` — checados por `living-docs changelog`, não aqui (ADR-0006). */
-  consumerVisible: number;
+  consumerVisible: number
   /** Vínculos código→doc declarados — a metade do diff exige `--base` (ADR-0010). */
-  watched: number;
-  base: string | null;
+  watched: number
+  base: string | null
   /** Quanto o conjunto de checks levou, medido (RNF-0005). */
-  elapsedMs: number;
+  elapsedMs: number
 }
 
 /**
@@ -31,20 +31,21 @@ export interface ValidateResult {
  * `CI-5` e `CI-6`.
  */
 export function runValidate(root: string, base: string | null = null, run?: GitRunner): ValidateResult {
-  const inicio = process.hrtime.bigint();
+  const inicio = process.hrtime.bigint()
+
   // A varredura é memoizada por raiz dentro do processo (`src/core/files.ts`).
   // Uma execução do `validate` é uma leitura só da árvore; duas execuções são
   // duas — senão a segunda responderia sobre o repositório de antes.
-  forgetTree(root);
+  forgetTree(root)
 
-  const config = loadOwnership(root);
+  const config = loadOwnership(root)
   const context = {
     root,
     config,
     docs: collectArtifacts(root, config),
     documents: collectDocuments(root, config),
     today: todayIso(),
-  };
+  }
 
   const diff =
     base === null
@@ -54,10 +55,10 @@ export function runValidate(root: string, base: string | null = null, run?: GitR
           changed: changedPaths(root, base, run),
           messages: commitMessages(root, base, run),
           edits: changedLines(root, base, run),
-        };
+        }
 
-  const findings = validateChecks(diff).flatMap((check) => check.run(context));
-  const errors = findings.filter((finding) => finding.severity === 'error').length;
+  const findings = validateChecks(diff).flatMap(check => check.run(context))
+  const errors = findings.filter(finding => finding.severity === 'error').length
 
   return {
     findings,
@@ -69,5 +70,5 @@ export function runValidate(root: string, base: string | null = null, run?: GitR
     watched: config.watches.length,
     base,
     elapsedMs: Number(process.hrtime.bigint() - inicio) / 1e6,
-  };
+  }
 }

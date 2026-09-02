@@ -24,11 +24,11 @@ nunca assuma caminho.
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
-| `RF-nnnn` | Comportamento que o sistema deve ter | Seção com ID em `functional.md` |
-| `RNF-nnnn` | Propriedade que o sistema deve exibir (latência, custo, operação) | Seção com ID em `non-functional.md` |
-| `RN-nnnn` | Regra de negócio — a verdade do domínio, independente de tela e de rota | Seção com ID em `rules.md` |
+| Artefato   | O que é                                                                 | Forma                               |
+| ---------- | ----------------------------------------------------------------------- | ----------------------------------- |
+| `RF-nnnn`  | Comportamento que o sistema deve ter                                    | Seção com ID em `functional.md`     |
+| `RNF-nnnn` | Propriedade que o sistema deve exibir (latência, custo, operação)       | Seção com ID em `non-functional.md` |
+| `RN-nnnn`  | Regra de negócio — a verdade do domínio, independente de tela e de rota | Seção com ID em `rules.md`          |
 
 Formato da seção: `templates/requirements.md`. Não o reproduza aqui.
 
@@ -72,13 +72,13 @@ o caminho é `decision-recorder` (`/open-decision`), que abre uma `DA-nnnn` e
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| Dizer o que o sistema deve fazer, com ID citável | Dizer como implementar |
-| Marcar ambiguidade e delimitar o fora de escopo | Resolver a ambiguidade por conta própria (→ `decision-recorder`) |
-| Revogar regra apontando a substituta | Deletar regra |
-| Exigir que exista teste citando a regra | Escrever o teste |
-| Recusar requisito sem ID | Promover para `active` — isso é humano |
+| É seu                                            | Não é seu                                                        |
+| ------------------------------------------------ | ---------------------------------------------------------------- |
+| Dizer o que o sistema deve fazer, com ID citável | Dizer como implementar                                           |
+| Marcar ambiguidade e delimitar o fora de escopo  | Resolver a ambiguidade por conta própria (→ `decision-recorder`) |
+| Revogar regra apontando a substituta             | Deletar regra                                                    |
+| Exigir que exista teste citando a regra          | Escrever o teste                                                 |
+| Recusar requisito sem ID                         | Promover para `active` — isso é humano                           |
 
 ## Checklist
 

@@ -4,7 +4,7 @@ title: Execução no Node do host, TypeScript sem build step
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-09-01
 relates-to: [RNF-0002, RNF-0003]
 supersedes: ADR-0001

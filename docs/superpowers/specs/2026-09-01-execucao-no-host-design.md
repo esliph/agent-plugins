@@ -21,11 +21,11 @@ migração supersede) e `ADR-0003` (as duas raízes, que **continuam valendo**).
 
 Três escolhas foram tomadas antes desta spec e não são reabertas aqui:
 
-| # | Escolha | Consequência aceita |
-| --- | --- | --- |
-| `E-1` | `compose.yaml`, `Dockerfile` e `bin/living-docs` ficam **intactos** | `bin/living-docs` continua exigindo Docker enquanto nenhum documento, teste ou passo de CI o invoca — vira wrapper órfão (`M-11`) |
-| `E-2` | O apagamento de Docker cobre só os **documentos vivos** | ADRs antigos, `docs/superpowers/plans/`, `research/` e o `CHANGELOG` mantêm suas menções: eles narram o passado, e a trilha é o que o toolkit existe para proteger |
-| `E-3` | `RNF-0002` é **reescrito no lugar**, mantendo o ID | Um commit antigo que cita `RNF-0002` passa a apontar para uma regra de sentido oposto. É perda real, escolhida em troca de zero menção a Docker no documento de requisitos |
+| #     | Escolha                                                             | Consequência aceita                                                                                                                                                        |
+| ----- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `E-1` | `compose.yaml`, `Dockerfile` e `bin/living-docs` ficam **intactos** | `bin/living-docs` continua exigindo Docker enquanto nenhum documento, teste ou passo de CI o invoca — vira wrapper órfão (`M-11`)                                          |
+| `E-2` | O apagamento de Docker cobre só os **documentos vivos**             | ADRs antigos, `docs/superpowers/plans/`, `research/` e o `CHANGELOG` mantêm suas menções: eles narram o passado, e a trilha é o que o toolkit existe para proteger         |
+| `E-3` | `RNF-0002` é **reescrito no lugar**, mantendo o ID                  | Um commit antigo que cita `RNF-0002` passa a apontar para uma regra de sentido oposto. É perda real, escolhida em troca de zero menção a Docker no documento de requisitos |
 
 `E-3` é a única das três que contraria o hábito do próprio repositório — o
 vocabulário de `RNF` tem `revoked`, e `CI-3` regra 3 existe justamente para
@@ -37,19 +37,19 @@ descartada, e quem ler o diff daqui a um ano merece saber que houve escolha.
 
 ## 2. As onze mudanças
 
-| ID | Mudança | Arquivo |
-| --- | --- | --- |
-| `M-1` | O wrapper de hooks chama `node` direto, derivando a raiz do toolkit do próprio caminho | `plugin/hooks/run-hook.sh` |
-| `M-2` | O CI troca `docker compose` por `actions/setup-node` e `npm ci` | `.github/workflows/living-docs.yml` |
-| `M-3` | `ADR-0015` nasce e supersede `ADR-0001` | `docs/decisions/adr/` |
-| `M-4` | `RNF-0002` passa a enunciar a execução no host | `docs/requirements/non-functional.md` |
-| `M-5` | O princípio 6 é emendado; a Constitution vai a `version: 2` | `docs/charter/constitution.md` |
-| `M-6` | O comando do gerador deixa de ser caminho absoluto de container | `docs/.ownership.yml` |
-| `M-7` | A prosa passa a host-first | `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`, `docs/definition-of-done.md`, `.gitattributes` |
-| `M-8` | Os testes que afirmam o container passam a afirmar o host | `test/core/roots.test.ts`, `test/plugin/manifest.test.ts` |
-| `M-9` | As fixtures e mensagens que citam Docker são trocadas | `test/checks/ci7-ownership-coverage.test.ts`, `test/cli/init-enforcement.test.ts` |
-| `M-10` | A entrada de `## [Unreleased]` registra a mudança visível | `CHANGELOG.md` |
-| `M-11` | O wrapper órfão vira dívida com gatilho observável | `docs/decisions/debt/` |
+| ID     | Mudança                                                                                | Arquivo                                                                                     |
+| ------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `M-1`  | O wrapper de hooks chama `node` direto, derivando a raiz do toolkit do próprio caminho | `plugin/hooks/run-hook.sh`                                                                  |
+| `M-2`  | O CI troca `docker compose` por `actions/setup-node` e `npm ci`                        | `.github/workflows/living-docs.yml`                                                         |
+| `M-3`  | `ADR-0015` nasce e supersede `ADR-0001`                                                | `docs/decisions/adr/`                                                                       |
+| `M-4`  | `RNF-0002` passa a enunciar a execução no host                                         | `docs/requirements/non-functional.md`                                                       |
+| `M-5`  | O princípio 6 é emendado; a Constitution vai a `version: 2`                            | `docs/charter/constitution.md`                                                              |
+| `M-6`  | O comando do gerador deixa de ser caminho absoluto de container                        | `docs/.ownership.yml`                                                                       |
+| `M-7`  | A prosa passa a host-first                                                             | `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`, `docs/definition-of-done.md`, `.gitattributes` |
+| `M-8`  | Os testes que afirmam o container passam a afirmar o host                              | `test/core/roots.test.ts`, `test/plugin/manifest.test.ts`                                   |
+| `M-9`  | As fixtures e mensagens que citam Docker são trocadas                                  | `test/checks/ci7-ownership-coverage.test.ts`, `test/cli/init-enforcement.test.ts`           |
+| `M-10` | A entrada de `## [Unreleased]` registra a mudança visível                              | `CHANGELOG.md`                                                                              |
+| `M-11` | O wrapper órfão vira dívida com gatilho observável                                     | `docs/decisions/debt/`                                                                      |
 
 ### `M-1` — o wrapper de hooks
 
@@ -229,7 +229,7 @@ Além deles, duas provas que nenhum check faz sozinho:
    `container` em `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`,
    `docs/definition-of-done.md`, `docs/.ownership.yml`,
    `docs/requirements/`, `docs/charter/` e `.gitattributes`. As ocorrências de
-   "container" em `src/` que nomeiam o *arquivo-container de uma coleção* são
+   "container" em `src/` que nomeiam o _arquivo-container de uma coleção_ são
    outra palavra e ficam.
 2. **Um hook realmente roda.** `M-1` reescreve o caminho que nenhum teste
    executa de ponta a ponta — `test/hooks/` exercita as decisões por payload,

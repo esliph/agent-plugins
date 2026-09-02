@@ -4,7 +4,7 @@ title: Runtime em container Docker, TypeScript sem build step
 status: superseded
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-24
 relates-to: [RNF-0002, RNF-0003]
 supersedes: null
@@ -56,4 +56,3 @@ silenciosamente enquanto o container estiver parado**. É uma perda real, mitiga
 apenas pelo CI, que roda o mesmo código sem depender do estado da máquina de
 ninguém. Além disso, ficamos restritos à sintaxe TypeScript apagável: sem `enum`,
 sem `namespace`, sem decorators.
-

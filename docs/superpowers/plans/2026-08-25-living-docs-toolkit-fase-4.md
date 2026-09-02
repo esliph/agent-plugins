@@ -129,7 +129,7 @@ title: Termo do glossary é identificado pelo nome, não por ID numerado
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-25
 relates-to: [DA-0002, RN-0011]
 supersedes: null
@@ -321,71 +321,50 @@ Adicione ao final do arquivo:
 
 ```typescript
 test('RF-0005: small-team instala glossary e charter', () => {
-    withTempRepo({}, root => {
-        const result = runInit(root, {
-            owner: '@time',
-            dryRun: false,
-            stage: 'small-team'
-        })
-        for (const path of [
-            'docs/glossary.md',
-            'docs/charter/constitution.md',
-            'docs/charter/vision.md'
-        ]) {
-            assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
-            assert.ok(
-                result.created.includes(path),
-                `${path} deveria constar como criado`
-            )
-        }
-        assert.match(
-            readFileSync(join(root, 'docs/glossary.md'), 'utf8'),
-            /@time/
-        )
+  withTempRepo({}, root => {
+    const result = runInit(root, {
+      owner: '@time',
+      dryRun: false,
+      stage: 'small-team',
     })
+    for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
+      assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
+      assert.ok(result.created.includes(path), `${path} deveria constar como criado`)
+    }
+    assert.match(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), /@time/)
+  })
 })
 
 test('RF-0005: solo não instala glossary nem charter', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
-        for (const path of [
-            'docs/glossary.md',
-            'docs/charter/constitution.md',
-            'docs/charter/vision.md'
-        ]) {
-            assert.equal(
-                existsSync(join(root, path)),
-                false,
-                `${path} não deveria existir no estágio solo`
-            )
-        }
-    })
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'solo' })
+    for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
+      assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`)
+    }
+  })
 })
 
 test('RF-0005: glossary já escrito não é reescrito na segunda execução', () => {
-    withTempRepo({ 'docs/glossary.md': '# do jeito deles\n' }, root => {
-        const options = {
-            owner: '@time',
-            dryRun: false,
-            stage: 'small-team' as const
-        }
-        runInit(root, options)
-        const segunda = runInit(root, options)
-        assert.equal(
-            readFileSync(join(root, 'docs/glossary.md'), 'utf8'),
-            '# do jeito deles\n'
-        )
-        assert.ok(segunda.skipped.includes('docs/glossary.md'))
-    })
+  withTempRepo({ 'docs/glossary.md': '# do jeito deles\n' }, root => {
+    const options = {
+      owner: '@time',
+      dryRun: false,
+      stage: 'small-team' as const,
+    }
+    runInit(root, options)
+    const segunda = runInit(root, options)
+    assert.equal(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), '# do jeito deles\n')
+    assert.ok(segunda.skipped.includes('docs/glossary.md'))
+  })
 })
 
 test('RF-0005: o CODEOWNERS semeado dá dono a glossary e charter', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
-        const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
-        assert.match(codeowners, /docs\/glossary\.md\s+@time/)
-        assert.match(codeowners, /docs\/charter\/\s+@time/)
-    })
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+    const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
+    assert.match(codeowners, /docs\/glossary\.md\s+@time/)
+    assert.match(codeowners, /docs\/charter\/\s+@time/)
+  })
 })
 ```
 
@@ -399,36 +378,29 @@ o requisito passa a ser provado por uma asserção de lista vazia:
 
 ```typescript
 test('RF-0003: small-team não deixa nada de fora nesta versão — Fases 2, 3 e 4 completas', () => {
-    withTempRepo({ 'README.md': '# projeto\n' }, root => {
-        const result = runInit(root, SMALL_TEAM)
-        assert.deepEqual(result.notInstalled, [])
-    })
+  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+    const result = runInit(root, SMALL_TEAM)
+    assert.deepEqual(result.notInstalled, [])
+  })
 })
 
 test('RF-0003: quando algo realmente fica de fora, o resultado diz o que é', () => {
-    withTempRepo({ 'README.md': '# projeto\n' }, root => {
-        runInit(root, OPTIONS) // solo: o .ownership.yml nasce sem RF/RNF/RN
-        const file = join(root, OWNERSHIP_PATH)
-        // A linha some inteira, não vira outra chave: `generated` é opcional no
-        // parser, e uma chave estranha testaria o parser em vez da honestidade.
-        // Sem a âncora, subir de estágio não adivinha onde declarar os requisitos.
-        const sem = readFileSync(file, 'utf8').replace(
-            /\ngenerated: \[\]\n/,
-            '\n'
-        )
-        assert.notEqual(
-            sem,
-            readFileSync(file, 'utf8'),
-            'a âncora precisa ter sido removida de fato'
-        )
-        writeFileSync(file, sem, 'utf8')
+  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+    runInit(root, OPTIONS) // solo: o .ownership.yml nasce sem RF/RNF/RN
+    const file = join(root, OWNERSHIP_PATH)
+    // A linha some inteira, não vira outra chave: `generated` é opcional no
+    // parser, e uma chave estranha testaria o parser em vez da honestidade.
+    // Sem a âncora, subir de estágio não adivinha onde declarar os requisitos.
+    const sem = readFileSync(file, 'utf8').replace(/\ngenerated: \[\]\n/, '\n')
+    assert.notEqual(sem, readFileSync(file, 'utf8'), 'a âncora precisa ter sido removida de fato')
+    writeFileSync(file, sem, 'utf8')
 
-        const result = runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner })
-        assert.ok(
-            result.notInstalled.some(item => item.includes(OWNERSHIP_PATH)),
-            `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`
-        )
-    })
+    const result = runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner })
+    assert.ok(
+      result.notInstalled.some(item => item.includes(OWNERSHIP_PATH)),
+      `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`,
+    )
+  })
 })
 ```
 
@@ -463,8 +435,8 @@ segura a metade de `RF-0003` que o Step 6 vai desligar.
 title: Glossary
 owner: '{{OWNER}}'
 trigger: >
-    Termo de domínio novo em código, spec ou conversa; termo com dois
-    significados; renomeação de conceito.
+  Termo de domínio novo em código, spec ou conversa; termo com dois
+  significados; renomeação de conceito.
 last-reviewed: { { TODAY } }
 ---
 
@@ -490,7 +462,7 @@ last-reviewed: { { TODAY } }
 title: Constitution
 owner: '{{OWNER}}'
 trigger: >
-    Emenda deliberada — nunca como efeito colateral de outra tarefa.
+  Emenda deliberada — nunca como efeito colateral de outra tarefa.
 last-reviewed: { { TODAY } }
 version: 1
 ---
@@ -521,8 +493,8 @@ lint | teste | revisão | check>`. Princípio sem enforcement nomeado é
 title: Product Vision
 owner: '{{OWNER}}'
 trigger: >
-    Mudança de estratégia de produto — nunca como efeito colateral de outra
-    tarefa.
+  Mudança de estratégia de produto — nunca como efeito colateral de outra
+  tarefa.
 last-reviewed: { { TODAY } }
 ---
 
@@ -546,24 +518,21 @@ Depois da declaração de `WORKING_AGREEMENTS` (linha ~50), acrescente:
 
 ```typescript
 /** Linguagem e intenção (SK-1, SK-2), instalados a partir do estágio `small-team` (spec §10, Fase 4). */
-const LANGUAGE_AND_INTENT: readonly { path: string; template: string }[] =
-    Object.freeze([
-        { path: 'docs/glossary.md', template: 'glossary.md' },
-        { path: 'docs/charter/constitution.md', template: 'constitution.md' },
-        { path: 'docs/charter/vision.md', template: 'vision.md' }
-    ])
+const LANGUAGE_AND_INTENT: readonly { path: string; template: string }[] = Object.freeze([
+  { path: 'docs/glossary.md', template: 'glossary.md' },
+  { path: 'docs/charter/constitution.md', template: 'constitution.md' },
+  { path: 'docs/charter/vision.md', template: 'vision.md' },
+])
 ```
 
 Troque a constante `NOT_INSTALLED` (ela deixa de prometer a Fase 4):
 
 ```typescript
 /** O que este estágio pede. Vazio: `small-team` cobre as Fases 2, 3 e 4 por completo nesta versão. */
-const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
-    {
-        solo: [],
-        'small-team': []
-    }
-)
+const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
+  solo: [],
+  'small-team': [],
+})
 ```
 
 No objeto `values` dentro de `runInit`, troque o valor de `AGREEMENTS_CODEOWNERS`:
@@ -580,13 +549,7 @@ Logo depois do laço `for (const agreement of WORKING_AGREEMENTS) { ... }` dentr
 
 ```typescript
 for (const agreement of LANGUAGE_AND_INTENT) {
-    writeIfAbsent(
-        root,
-        agreement.path,
-        template(agreement.template, values),
-        options,
-        result
-    )
+  writeIfAbsent(root, agreement.path, template(agreement.template, values), options, result)
 }
 ```
 
@@ -695,122 +658,77 @@ const ROOT = toolkitRoot()
  * com `|` entra: prosa depois da tabela não pode virar um termo fantasma.
  */
 function rows(source: string, header: string): string[][] {
-    const start = source.indexOf(header)
-    assert.ok(
-        start !== -1,
-        `tabela não encontrada — esperava o cabeçalho ${header}`
+  const start = source.indexOf(header)
+  assert.ok(start !== -1, `tabela não encontrada — esperava o cabeçalho ${header}`)
+  return source
+    .slice(start)
+    .split('\n')
+    .filter(line => line.trim().startsWith('|'))
+    .slice(2) // cabeçalho + separador
+    .map(line =>
+      line
+        .trim()
+        .replace(/^\|/, '')
+        .replace(/\|$/, '')
+        .split('|')
+        .map(cell => cell.trim()),
     )
-    return source
-        .slice(start)
-        .split('\n')
-        .filter(line => line.trim().startsWith('|'))
-        .slice(2) // cabeçalho + separador
-        .map(line =>
-            line
-                .trim()
-                .replace(/^\|/, '')
-                .replace(/\|$/, '')
-                .split('|')
-                .map(cell => cell.trim())
-        )
 }
 
 const GLOSSARY_HEADER = '| Termo |'
-const glossary = (): string =>
-    readFileSync(join(ROOT, 'docs/glossary.md'), 'utf8')
+const glossary = (): string => readFileSync(join(ROOT, 'docs/glossary.md'), 'utf8')
 
 test('RN-0011: todo termo do glossary tem um nome único, e nenhum tem ID numerado', () => {
-    const source = glossary()
-    const entries = rows(source, GLOSSARY_HEADER)
+  const source = glossary()
+  const entries = rows(source, GLOSSARY_HEADER)
 
-    const nomes = entries.map(row => row[0])
-    assert.ok(
-        nomes.length >= 5,
-        `esperava ao menos 5 termos, achei ${nomes.length}`
-    )
-    assert.equal(
-        new Set(nomes).size,
-        nomes.length,
-        'há termo com nome duplicado'
-    )
+  const nomes = entries.map(row => row[0])
+  assert.ok(nomes.length >= 5, `esperava ao menos 5 termos, achei ${nomes.length}`)
+  assert.equal(new Set(nomes).size, nomes.length, 'há termo com nome duplicado')
 
-    const start = source.indexOf(GLOSSARY_HEADER)
-    const header = source.slice(start, source.indexOf('\n', start))
-    assert.doesNotMatch(
-        header,
-        /\|\s*ID\s*\|/i,
-        'a tabela não tem coluna de ID — o termo é identificado pelo nome (RN-0011)'
-    )
+  const start = source.indexOf(GLOSSARY_HEADER)
+  const header = source.slice(start, source.indexOf('\n', start))
+  assert.doesNotMatch(header, /\|\s*ID\s*\|/i, 'a tabela não tem coluna de ID — o termo é identificado pelo nome (RN-0011)')
 
-    for (const row of entries) {
-        const status = row[row.length - 1] ?? ''
-        // `renamed(para X)` é o estado com destino; a spec §4 o escreve assim.
-        assert.match(
-            status,
-            /^(active|banned|renamed(\(para .+\))?)$/,
-            `status "${status}" fora do ciclo de vida do termo (RN-0011)`
-        )
-    }
+  for (const row of entries) {
+    const status = row[row.length - 1] ?? ''
+    // `renamed(para X)` é o estado com destino; a spec §4 o escreve assim.
+    assert.match(status, /^(active|banned|renamed(\(para .+\))?)$/, `status "${status}" fora do ciclo de vida do termo (RN-0011)`)
+  }
 })
 
 test('RN-0011: todo termo aponta a fonte que o define', () => {
-    for (const row of rows(glossary(), GLOSSARY_HEADER)) {
-        assert.notEqual(row[4] ?? '', '', `termo "${row[0]}" sem fonte`)
-    }
+  for (const row of rows(glossary(), GLOSSARY_HEADER)) {
+    assert.notEqual(row[4] ?? '', '', `termo "${row[0]}" sem fonte`)
+  }
 })
 
 test('a Constitution: todo princípio nomeia o que o verifica', () => {
-    const source = readFileSync(
-        join(ROOT, 'docs/charter/constitution.md'),
-        'utf8'
-    )
-    const secao = source.slice(
-        source.indexOf('## Princípios'),
-        source.indexOf('## Log de emendas')
-    )
-    const principios = secao
-        .split('\n')
-        .filter(line => /^\d+\./.test(line.trim()))
-    assert.ok(
-        principios.length >= 3,
-        `esperava ao menos 3 princípios, achei ${principios.length}`
-    )
-    for (const principio of principios) {
-        assert.match(
-            principio,
-            /verificado por/,
-            `princípio sem enforcement nomeado — ${principio}`
-        )
-    }
+  const source = readFileSync(join(ROOT, 'docs/charter/constitution.md'), 'utf8')
+  const secao = source.slice(source.indexOf('## Princípios'), source.indexOf('## Log de emendas'))
+  const principios = secao.split('\n').filter(line => /^\d+\./.test(line.trim()))
+  assert.ok(principios.length >= 3, `esperava ao menos 3 princípios, achei ${principios.length}`)
+  for (const principio of principios) {
+    assert.match(principio, /verificado por/, `princípio sem enforcement nomeado — ${principio}`)
+  }
 })
 
 test('a Constitution tem log de emendas — emenda é append, nunca reescrita no lugar', () => {
-    const source = readFileSync(
-        join(ROOT, 'docs/charter/constitution.md'),
-        'utf8'
-    )
-    assert.match(source, /## Log de emendas/)
+  const source = readFileSync(join(ROOT, 'docs/charter/constitution.md'), 'utf8')
+  assert.match(source, /## Log de emendas/)
 })
 
 test('a Vision responde só as três perguntas da spec §5', () => {
-    const source = readFileSync(join(ROOT, 'docs/charter/vision.md'), 'utf8')
-    for (const pergunta of [
-        'Que problema',
-        'Para quem',
-        'Métrica de sucesso'
-    ]) {
-        assert.match(
-            source,
-            new RegExp(`\\*\\*${pergunta}:\\*\\*`),
-            `Vision sem a pergunta "${pergunta}"`
-        )
-    }
+  const source = readFileSync(join(ROOT, 'docs/charter/vision.md'), 'utf8')
+  for (const pergunta of ['Que problema', 'Para quem', 'Métrica de sucesso']) {
+    assert.match(source, new RegExp(`\\*\\*${pergunta}:\\*\\*`), `Vision sem a pergunta "${pergunta}"`)
+  }
 })
 
 test('RN-0001: glossary e charter têm dono no CODEOWNERS, como todo artefato', () => {
-    const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
-    assert.match(codeowners, /^docs\/glossary\.md\s+@\S+$/m)
-    assert.match(codeowners, /^docs\/charter\/\s+@\S+$/m)
+  const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
+  assert.match(codeowners, /^docs\/glossary\.md\s+@\S+$/m)
+  assert.match(codeowners, /^docs\/charter\/\s+@\S+$/m)
 })
 ```
 
@@ -833,8 +751,8 @@ e é assim que se quer — eles guardam o formato, não o conteúdo.
 title: Glossary
 owner: '@esliph/engineering'
 trigger: >
-    Termo de domínio novo em código, spec ou conversa; termo com dois
-    significados; renomeação de conceito.
+  Termo de domínio novo em código, spec ou conversa; termo com dois
+  significados; renomeação de conceito.
 last-reviewed: 2026-08-25
 ---
 
@@ -862,7 +780,7 @@ repositório.
 title: Constitution
 owner: '@esliph/engineering'
 trigger: >
-    Emenda deliberada — nunca como efeito colateral de outra tarefa.
+  Emenda deliberada — nunca como efeito colateral de outra tarefa.
 last-reviewed: 2026-08-25
 version: 1
 ---
@@ -893,8 +811,8 @@ sem enforcement nomeado é slogan — nenhum entra aqui sem ele.
 title: Product Vision
 owner: '@esliph/engineering'
 trigger: >
-    Mudança de estratégia de produto — nunca como efeito colateral de outra
-    tarefa.
+  Mudança de estratégia de produto — nunca como efeito colateral de outra
+  tarefa.
 last-reviewed: 2026-08-25
 ---
 
@@ -988,58 +906,32 @@ acrescente as duas asserções de glossary-keeper:
 
 ```typescript
 test('os cinco comandos existem, têm description e não contêm lógica própria', () => {
-    const esperados = [
-        'adr.md',
-        'open-decision.md',
-        'debt.md',
-        'docs-setup.md',
-        'term.md'
-    ]
-    const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort()
-    assert.deepEqual(encontrados, esperados.sort())
+  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'term.md']
+  const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort()
+  assert.deepEqual(encontrados, esperados.sort())
 
-    for (const nome of esperados) {
-        const source = readFileSync(join(ROOT, 'plugin/commands', nome), 'utf8')
-        const frontmatter = parseFrontmatter(source)
-        assert.ok(frontmatter, `${nome} sem frontmatter`)
-        assert.equal(typeof frontmatter.data.description, 'string')
-        assert.ok(
-            source.split('\n').length < 25,
-            `${nome} é longo demais para um atalho fino`
-        )
-        assert.match(
-            source,
-            /decision-recorder|living-docs-bootstrap|glossary-keeper/,
-            `${nome} deve apontar a skill que aciona`
-        )
-    }
+  for (const nome of esperados) {
+    const source = readFileSync(join(ROOT, 'plugin/commands', nome), 'utf8')
+    const frontmatter = parseFrontmatter(source)
+    assert.ok(frontmatter, `${nome} sem frontmatter`)
+    assert.equal(typeof frontmatter.data.description, 'string')
+    assert.ok(source.split('\n').length < 25, `${nome} é longo demais para um atalho fino`)
+    assert.match(source, /decision-recorder|living-docs-bootstrap|glossary-keeper/, `${nome} deve apontar a skill que aciona`)
+  }
 })
 
 test('glossary-keeper: a description nomeia os sintomas de termo novo, ambíguo ou renomeado', () => {
-    const description = String(
-        parseFrontmatter(skillSource('glossary-keeper'))?.data.description ?? ''
-    )
-    assert.match(description, /Use quando/i)
-    for (const sintoma of ['termo', 'renome']) {
-        assert.ok(
-            description.toLowerCase().includes(sintoma),
-            `a description deveria conter o sintoma "${sintoma}"`
-        )
-    }
+  const description = String(parseFrontmatter(skillSource('glossary-keeper'))?.data.description ?? '')
+  assert.match(description, /Use quando/i)
+  for (const sintoma of ['termo', 'renome']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
+  }
 })
 
 test('glossary-keeper não duplica o formato da tabela que governa', () => {
-    const source = skillSource('glossary-keeper')
-    assert.doesNotMatch(
-        source,
-        /\| Termo exemplo \|/,
-        'a skill não deve conter a linha de exemplo do template'
-    )
-    assert.match(
-        source,
-        /templates\/glossary\.md/,
-        'ela deve apontar para o template, não copiá-lo'
-    )
+  const source = skillSource('glossary-keeper')
+  assert.doesNotMatch(source, /\| Termo exemplo \|/, 'a skill não deve conter a linha de exemplo do template')
+  assert.match(source, /templates\/glossary\.md/, 'ela deve apontar para o template, não copiá-lo')
 })
 ```
 
@@ -1061,12 +953,12 @@ Esperado: FAIL — `plugin/skills/glossary-keeper/SKILL.md` e
 ---
 name: glossary-keeper
 description: >
-    Use quando um termo de domínio novo aparecer em código, spec ou conversa,
-    quando a mesma palavra estiver sendo usada para duas coisas diferentes,
-    quando alguém perguntar "isso já tem um nome?", "que termo a gente usa pra
-    isso?", "isso é sinônimo do que já existe?", "por que o código chama de X e
-    o requisito chama de Y?" — ou quando um conceito for renomeado e o nome
-    antigo continuar aparecendo no código.
+  Use quando um termo de domínio novo aparecer em código, spec ou conversa,
+  quando a mesma palavra estiver sendo usada para duas coisas diferentes,
+  quando alguém perguntar "isso já tem um nome?", "que termo a gente usa pra
+  isso?", "isso é sinônimo do que já existe?", "por que o código chama de X e
+  o requisito chama de Y?" — ou quando um conceito for renomeado e o nome
+  antigo continuar aparecendo no código.
 ---
 
 # glossary-keeper — dono do vocabulário do domínio
@@ -1217,42 +1109,21 @@ Acrescente a `test/plugin/authoring.test.ts`:
 
 ```typescript
 test('charter-keeper: a description nomeia princípio, visão e emenda', () => {
-    const description = String(
-        parseFrontmatter(skillSource('charter-keeper'))?.data.description ?? ''
-    )
-    assert.match(description, /Use quando/i)
-    for (const sintoma of ['princípio', 'visão']) {
-        assert.ok(
-            description.toLowerCase().includes(sintoma),
-            `a description deveria conter o sintoma "${sintoma}"`
-        )
-    }
+  const description = String(parseFrontmatter(skillSource('charter-keeper'))?.data.description ?? '')
+  assert.match(description, /Use quando/i)
+  for (const sintoma of ['princípio', 'visão']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
+  }
 })
 
 test('charter-keeper não duplica o conteúdo dos artefatos que governa', () => {
-    const source = skillSource('charter-keeper')
-    // Título de seção, não menção em prosa: é o corpo da Constitution que não
-    // pode ser copiado para cá, e é ele que começa a linha com `## `.
-    assert.doesNotMatch(
-        source,
-        /^## Log de emendas/m,
-        'a skill não deve conter o corpo da Constitution'
-    )
-    assert.doesNotMatch(
-        source,
-        /^## Princípios/m,
-        'a skill não deve conter os princípios deste repositório'
-    )
-    assert.match(
-        source,
-        /templates\/constitution\.md/,
-        'ela deve apontar para o template, não copiá-lo'
-    )
-    assert.match(
-        source,
-        /templates\/vision\.md/,
-        'os dois templates, porque são dois artefatos'
-    )
+  const source = skillSource('charter-keeper')
+  // Título de seção, não menção em prosa: é o corpo da Constitution que não
+  // pode ser copiado para cá, e é ele que começa a linha com `## `.
+  assert.doesNotMatch(source, /^## Log de emendas/m, 'a skill não deve conter o corpo da Constitution')
+  assert.doesNotMatch(source, /^## Princípios/m, 'a skill não deve conter os princípios deste repositório')
+  assert.match(source, /templates\/constitution\.md/, 'ela deve apontar para o template, não copiá-lo')
+  assert.match(source, /templates\/vision\.md/, 'os dois templates, porque são dois artefatos')
 })
 ```
 
@@ -1272,13 +1143,13 @@ docker compose exec toolkit npm test -- --test-name-pattern="charter-keeper"
 ---
 name: charter-keeper
 description: >
-    Use quando alguém quiser emendar a Constitution ou a Product Vision, quando
-    perguntar "isso é um princípio nosso?", "isso está na nossa visão de
-    produto?", "quais são os valores invioláveis daqui?", "pra quem é esse
-    produto e qual problema ele resolve?" — nunca como efeito colateral de
-    outra tarefa. Também quando um princípio proposto não tiver enforcement
-    nomeado, ou uma emenda tentar reescrever um princípio no lugar em vez de
-    registrar a mudança no log de emendas.
+  Use quando alguém quiser emendar a Constitution ou a Product Vision, quando
+  perguntar "isso é um princípio nosso?", "isso está na nossa visão de
+  produto?", "quais são os valores invioláveis daqui?", "pra quem é esse
+  produto e qual problema ele resolve?" — nunca como efeito colateral de
+  outra tarefa. Também quando um princípio proposto não tiver enforcement
+  nomeado, ou uma emenda tentar reescrever um princípio no lugar em vez de
+  registrar a mudança no log de emendas.
 ---
 
 # charter-keeper — dono da Constitution e da Product Vision
@@ -1419,64 +1290,33 @@ Acrescente a `test/plugin/manifest.test.ts`:
  * skills: um agent novo entra nas convenções no dia em que nasce, sem ninguém
  * lembrar de acrescentá-lo aqui.
  */
-const AGENTS = readdirSync(join(ROOT, 'plugin/agents')).filter(name =>
-    name.endsWith('.md')
-)
+const AGENTS = readdirSync(join(ROOT, 'plugin/agents')).filter(name => name.endsWith('.md'))
 
 test('AG-2: o diretório de agents existe e traz decision-adversary', () => {
-    assert.ok(
-        AGENTS.includes('decision-adversary.md'),
-        `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`
-    )
+  assert.ok(AGENTS.includes('decision-adversary.md'), `plugin/agents: ${AGENTS.join(', ') || 'vazio'}`)
 })
 
 for (const file of AGENTS) {
-    test(`${file}: frontmatter com name casando o arquivo, description e tools declaradas`, () => {
-        const source = readFileSync(join(ROOT, 'plugin/agents', file), 'utf8')
-        const name = file.replace(/\.md$/, '')
+  test(`${file}: frontmatter com name casando o arquivo, description e tools declaradas`, () => {
+    const source = readFileSync(join(ROOT, 'plugin/agents', file), 'utf8')
+    const name = file.replace(/\.md$/, '')
 
-        assert.match(
-            source,
-            new RegExp(`^name:\\s*${name}\\s*$`, 'm'),
-            `${file} declara outro name`
-        )
-        assert.match(
-            source,
-            /^description:/m,
-            `${file} sem description — é ela que diz quando usar`
-        )
-        assert.notEqual(
-            source.match(/^tools:\s*(.+)$/m)?.[1] ?? '',
-            '',
-            `${file} precisa declarar tools explicitamente — agent sem allowlist herda tudo`
-        )
-    })
+    assert.match(source, new RegExp(`^name:\\s*${name}\\s*$`, 'm'), `${file} declara outro name`)
+    assert.match(source, /^description:/m, `${file} sem description — é ela que diz quando usar`)
+    assert.notEqual(source.match(/^tools:\s*(.+)$/m)?.[1] ?? '', '', `${file} precisa declarar tools explicitamente — agent sem allowlist herda tudo`)
+  })
 }
 
 test('AG-2: decision-adversary aponta e para — sem Edit nem Write', () => {
-    const source = readFileSync(
-        join(ROOT, 'plugin/agents/decision-adversary.md'),
-        'utf8'
-    )
-    const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? ''
-    assert.doesNotMatch(
-        toolsLine,
-        /\bEdit\b/,
-        'AG-2 aponta e para — nunca reescreve (spec §6)'
-    )
-    assert.doesNotMatch(
-        toolsLine,
-        /\bWrite\b/,
-        'AG-2 aponta e para — nunca reescreve (spec §6)'
-    )
+  const source = readFileSync(join(ROOT, 'plugin/agents/decision-adversary.md'), 'utf8')
+  const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? ''
+  assert.doesNotMatch(toolsLine, /\bEdit\b/, 'AG-2 aponta e para — nunca reescreve (spec §6)')
+  assert.doesNotMatch(toolsLine, /\bWrite\b/, 'AG-2 aponta e para — nunca reescreve (spec §6)')
 })
 
 test('decision-recorder referencia o agent decision-adversary antes da aceitação', () => {
-    const source = readFileSync(
-        join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'),
-        'utf8'
-    )
-    assert.match(source, /decision-adversary/)
+  const source = readFileSync(join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'), 'utf8')
+  assert.match(source, /decision-adversary/)
 })
 ```
 
@@ -1499,10 +1339,10 @@ existir é parte do que o teste garante.
 ---
 name: decision-adversary
 description: >
-    Use este agent para tentar refutar UMA proposta — um ADR em draft, uma
-    emenda de Constitution, ou um TDR — antes de pedir a aceitação humana
-    dela. Isolado de propósito: quem propôs não deve revisar com o mesmo
-    raciocínio que produziu a proposta.
+  Use este agent para tentar refutar UMA proposta — um ADR em draft, uma
+  emenda de Constitution, ou um TDR — antes de pedir a aceitação humana
+  dela. Isolado de propósito: quem propôs não deve revisar com o mesmo
+  raciocínio que produziu a proposta.
 tools: Glob, Grep, Read
 model: inherit
 ---
@@ -1635,13 +1475,13 @@ acrescente ao array `alvos`:
 
 ```typescript
 const alvos = [
-    'LIVING-DOCUMENTATION-TOOLKIT.md',
-    'docs/.ownership.yml',
-    'CONTRIBUTING.md',
-    'docs/definition-of-done.md',
-    'docs/requirements/',
-    'docs/glossary.md',
-    'docs/charter/'
+  'LIVING-DOCUMENTATION-TOOLKIT.md',
+  'docs/.ownership.yml',
+  'CONTRIBUTING.md',
+  'docs/definition-of-done.md',
+  'docs/requirements/',
+  'docs/glossary.md',
+  'docs/charter/',
 ]
 ```
 
@@ -1874,4 +1714,3 @@ git commit -m "docs(ADR-0004, RF-0005, RN-0011): decisão e requisitos da Fase 4
 - **Não inventa `CI-9`** para medir "um significado por termo" ou "princípio
   com enforcement nomeado" — ambos ficam com a skill e com o teste de
   dogfooding da Task 3, como o backlog recomendou.
-

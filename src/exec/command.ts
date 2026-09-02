@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execSync } from 'node:child_process'
 
 /**
  * Executor de comando do repositório validado, injetável: o teste prova `CI-5`
@@ -9,10 +9,10 @@ import { execSync } from 'node:child_process';
  * custo do silêncio é uma pergunta a menos; aqui o custo é um contrato mentindo
  * com a autoridade de um check que passou. Quem trata o erro é `CI-5`.
  */
-export type CommandRunner = (command: string, cwd: string) => string;
+export type CommandRunner = (command: string, cwd: string) => string
 
 /** Teto de um gerador. Generoso: `CI-5` roda no PR, não dentro de um hook. */
-export const TIMEOUT_MS = 60_000;
+export const TIMEOUT_MS = 60_000
 
 export const runCommand: CommandRunner = (command, cwd) =>
   execSync(command, {
@@ -22,4 +22,4 @@ export const runCommand: CommandRunner = (command, cwd) =>
     maxBuffer: 16 * 1024 * 1024,
     // stderr capturado, não herdado: ele vira a mensagem da finding.
     stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  })

@@ -1,6 +1,6 @@
 ---
 description: Registra uma lacuna (Open Decision) e para a implementação até ela ser decidida
-argument-hint: "[a lacuna encontrada]"
+argument-hint: '[a lacuna encontrada]'
 ---
 
 Use a skill `decision-recorder` para registrar uma Open Decision sobre: $ARGUMENTS

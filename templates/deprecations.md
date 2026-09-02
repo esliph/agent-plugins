@@ -1,10 +1,10 @@
 ---
 title: Depreciações
-owner: "{{OWNER}}"
+owner: '{{OWNER}}'
 trigger: >
   Quando algo publicado é anunciado para remoção, e quando uma depreciação
   anunciada é de fato removida.
-last-reviewed: {{TODAY}}
+last-reviewed: { { TODAY } }
 ---
 
 # Depreciações
@@ -15,6 +15,6 @@ Faltando qualquer uma, não é depreciação — é quebra de compatibilidade, e
 por um ADR.
 
 | O que | Anunciado em | Removido em | Substituto | Guia de migração | Status |
-| --- | --- | --- | --- | --- | --- |
+| ----- | ------------ | ----------- | ---------- | ---------------- | ------ |
 
 <!-- Skill dona: release-historian. -->

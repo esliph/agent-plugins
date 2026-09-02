@@ -9,36 +9,48 @@
  * edição é a implementação da regra que falta ou outra coisa qualquer no mesmo
  * caminho, e hook que julga está no lugar errado (spec §1, corolário 1).
  */
-import { loadOwnership } from '../config/ownership.ts';
-import { collectArtifacts } from '../docs/collect.ts';
-import { blockedClaims, claimsFor } from '../docs/blocked.ts';
-import { toRepoPath } from './lib/paths.ts';
-import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts';
-import type { HookEnv, HookPayload } from './lib/io.ts';
+import { loadOwnership } from '../config/ownership.ts'
+import { collectArtifacts } from '../docs/collect.ts'
+import { blockedClaims, claimsFor } from '../docs/blocked.ts'
+import { toRepoPath } from './lib/paths.ts'
+import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts'
+import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk8Decision = { action: 'allow' } | { action: 'ask'; reason: string };
+export type Hk8Decision = { action: 'allow' } | { action: 'ask'; reason: string }
 
-const ALLOW: Hk8Decision = { action: 'allow' };
+const ALLOW: Hk8Decision = { action: 'allow' }
 
 export function decideHk8(payload: HookPayload, env: HookEnv): Hk8Decision {
-  const filePath = payload.tool_input?.file_path;
-  if (typeof filePath !== 'string') return ALLOW;
+  const filePath = payload.tool_input?.file_path
 
-  const repoPath = toRepoPath(filePath, env.hostRoots);
-  if (repoPath === null) return ALLOW;
-
-  let hits;
-  try {
-    const config = loadOwnership(env.root);
-    hits = claimsFor(blockedClaims(collectArtifacts(env.root, config)), [repoPath]);
-  } catch {
-    return ALLOW; // falha aberta (`RNF-0001`)
+  if (typeof filePath !== 'string') {
+    return ALLOW
   }
 
-  const hit = hits[0];
-  if (hit === undefined) return ALLOW;
+  const repoPath = toRepoPath(filePath, env.hostRoots)
 
-  const { claim } = hit;
+  if (repoPath === null) {
+    return ALLOW
+  }
+
+  let hits
+
+  try {
+    const config = loadOwnership(env.root)
+
+    hits = claimsFor(blockedClaims(collectArtifacts(env.root, config)), [repoPath])
+  } catch {
+    return ALLOW // falha aberta (`RNF-0001`)
+  }
+
+  const hit = hits[0]
+
+  if (hit === undefined) {
+    return ALLOW
+  }
+
+  const { claim } = hit
+
   return {
     action: 'ask',
     reason:
@@ -49,16 +61,20 @@ export function decideHk8(payload: HookPayload, env: HookEnv): Hk8Decision {
       'decisão aberta, e a implementação não acontece enquanto ela estiver aberta. ' +
       `Resolva a decisão primeiro (skill dona: ${claim.skill}; dono: ${claim.owner}), ou confirme que esta edição ` +
       'não é a implementação da regra que falta.',
-  };
+  }
 }
 
 async function main(): Promise<void> {
-  const payload = await readPayload();
-  if (!payload) return;
-  const decision = decideHk8(payload, hookEnv());
-  emit(decision.action === 'ask' ? askOutput(decision.reason) : null);
+  const payload = await readPayload()
+
+  if (!payload) {
+    return
+  }
+  const decision = decideHk8(payload, hookEnv())
+
+  emit(decision.action === 'ask' ? askOutput(decision.reason) : null)
 }
 
 if (process.argv[1]?.endsWith('hk8-open-decision-guard.ts')) {
-  main().catch(() => process.exit(0));
+  main().catch(() => process.exit(0))
 }

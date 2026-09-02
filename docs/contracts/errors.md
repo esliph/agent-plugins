@@ -2,8 +2,8 @@
 title: Catálogo de erros
 owner: '@esliph/engineering'
 trigger: >
-    Código de saída novo ou com significado alterado; classe de falha nova na
-    linha de comando; mudança no que um código significa para quem consome o CLI.
+  Código de saída novo ou com significado alterado; classe de falha nova na
+  linha de comando; mudança no que um código significa para quem consome o CLI.
 last-reviewed: 2026-08-25
 ---
 
@@ -32,4 +32,3 @@ os confunde trata configuração quebrada como documentação errada, e manda
 consertar o lugar errado.
 
 <!-- Skill dona: contract-keeper. -->
-

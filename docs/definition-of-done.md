@@ -2,8 +2,8 @@
 title: Definition of Done
 owner: '@esliph/engineering'
 trigger: >
-    Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
-    de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
+  Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
+  de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
 last-reviewed: 2026-09-01
 ---
 
@@ -36,4 +36,3 @@ verifica não pertence a esta lista — vira intenção, e intenção não é de
 Não é checklist de revisão de código, e não mede volume: nada aqui pede "documentar
 o que foi feito". O que ela pede é que a **regra** e a **decisão** existam onde
 alguém as encontre depois.
-

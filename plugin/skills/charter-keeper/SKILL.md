@@ -21,10 +21,10 @@ mudança neles é rara o bastante para não precisar.
 
 ## Do que você é dono
 
-| Artefato | O que é | Forma |
-| --- | --- | --- |
+| Artefato                       | O que é                                               | Forma                                                          |
+| ------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------- |
 | `docs/charter/constitution.md` | O que é inviolável, e como se verifica cada princípio | Arquivo único, seções estáveis, com log de emendas append-only |
-| `docs/charter/vision.md` | Que problema, para quem, e a métrica de sucesso | Arquivo único, três respostas |
+| `docs/charter/vision.md`       | Que problema, para quem, e a métrica de sucesso       | Arquivo único, três respostas                                  |
 
 Sementes: `templates/constitution.md` e `templates/vision.md`. Não reproduza
 o formato aqui.
@@ -46,7 +46,7 @@ regra do domínio.
    problema/público/métrica de sucesso → Vision. Se a mudança não altera
    nenhuma das três perguntas da Vision, não é mudança de Vision.
 2. **Todo princípio precisa de enforcement nomeado.** Formato: `<princípio> —
-   verificado por <hook | lint | teste | revisão | check>`. Sem isso, é
+verificado por <hook | lint | teste | revisão | check>`. Sem isso, é
    slogan — recuse e peça a versão verificável.
 3. **Emenda é append, nunca reescrita no lugar.** A seção **Log de emendas**
    recebe data, o que mudou, o porquê, e a versão sobe. Um princípio revogado
@@ -61,12 +61,12 @@ regra do domínio.
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
+| É seu                                  | Não é seu                                       |
+| -------------------------------------- | ----------------------------------------------- |
 | O que é inviolável, e como se verifica | Decisão técnica pontual (→ `decision-recorder`) |
-| Métrica de sucesso do produto | Regra de negócio (→ `requirements-keeper`) |
-| Rejeitar princípio não testável | Aceitar a emenda — isso é humano |
-| Registrar a emenda como append no log | Reescrever um princípio existente no lugar |
+| Métrica de sucesso do produto          | Regra de negócio (→ `requirements-keeper`)      |
+| Rejeitar princípio não testável        | Aceitar a emenda — isso é humano                |
+| Registrar a emenda como append no log  | Reescrever um princípio existente no lugar      |
 
 ## Checklist
 

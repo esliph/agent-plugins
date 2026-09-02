@@ -1,10 +1,10 @@
 ---
-title: {{TITLE}}
-owner: "{{OWNER}}"
+title: { { TITLE } }
+owner: '{{OWNER}}'
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: {{TODAY}}
+last-reviewed: { { TODAY } }
 ---
 
 # {{TITLE}}

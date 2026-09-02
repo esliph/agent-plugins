@@ -8,16 +8,16 @@ Cada peça desta spec tem ID estável e citável — `SK-n` (skill), `AG-n` (age
 
 **Dentro** — os artefatos destacados como prioritários:
 
-| Camada | Artefatos | Dono |
-| --- | --- | --- |
-| 1 — Intenção | Constitution, Product Vision | `SK-1` |
-| 1 — Intenção | Glossary / ubiquitous language | `SK-2` |
-| 2 — Decisões | ADR, Open Decisions, Debt Register (TDR) | `SK-3` |
-| 3 — Especificação | Requirements com IDs estáveis | `SK-4` |
-| 5 — Contratos | OpenAPI (gerado), Error catalog, política de versionamento | `SK-5` |
-| 7 — Como se trabalha | CONTRIBUTING, Definition of Done, contrato do agente | `SK-6` |
-| 8 — Rastro histórico | CHANGELOG, release notes, migration guides, depreciações | `SK-7` |
-| — | Os seis mecanismos que fazem a documentação ser viva | codificados em `HK-*` e `CI-*` |
+| Camada               | Artefatos                                                  | Dono                           |
+| -------------------- | ---------------------------------------------------------- | ------------------------------ |
+| 1 — Intenção         | Constitution, Product Vision                               | `SK-1`                         |
+| 1 — Intenção         | Glossary / ubiquitous language                             | `SK-2`                         |
+| 2 — Decisões         | ADR, Open Decisions, Debt Register (TDR)                   | `SK-3`                         |
+| 3 — Especificação    | Requirements com IDs estáveis                              | `SK-4`                         |
+| 5 — Contratos        | OpenAPI (gerado), Error catalog, política de versionamento | `SK-5`                         |
+| 7 — Como se trabalha | CONTRIBUTING, Definition of Done, contrato do agente       | `SK-6`                         |
+| 8 — Rastro histórico | CHANGELOG, release notes, migration guides, depreciações   | `SK-7`                         |
+| —                    | Os seis mecanismos que fazem a documentação ser viva       | codificados em `HK-*` e `CI-*` |
 
 **Fora** — deliberadamente não coberto: C4/ERD/threat model (camada 4), runbooks/SLO/postmortems (camada 6), event catalog, RFC longo, feature specs por feature. O toolkit é extensível a eles pelo mesmo mecanismo (`docs/.ownership.yml` + uma skill dona), mas nada aqui os pressupõe.
 
@@ -29,13 +29,13 @@ Cada peça desta spec tem ID estável e citável — `SK-n` (skill), `AG-n` (age
 
 A decisão errada aqui é a causa de toolkit que ninguém usa. A regra:
 
-| A regra é… | Peça | Por quê |
-| --- | --- | --- |
-| **Semântica** — "isso merece um ADR?", "esse termo já existe com outro nome?", "essa regra cobre o caso?" | **Skill** | Exige leitura e julgamento; determinismo é impossível |
-| **Semântica, mas contaminada por quem escreveu** — "o que este diff deveria ter atualizado e não atualizou?" | **Agent** (contexto isolado) | Quem produziu o código revisa com o mesmo raciocínio que o gerou |
-| **Sintática / estrutural** — campo faltando, ID duplicado, caminho proibido, arquivo congelado | **Hook** | Barato, determinístico, não negociável, e acontece no momento do erro |
-| **Ponto de entrada humano** — "abre um ADR", "registra essa dívida" | **Comando** | Atalho para a skill; não contém lógica própria |
-| **Precisa valer sem agente presente** | **CI** | O único enforcement que sobrevive a alguém editando pelo navegador |
+| A regra é…                                                                                                   | Peça                         | Por quê                                                               |
+| ------------------------------------------------------------------------------------------------------------ | ---------------------------- | --------------------------------------------------------------------- |
+| **Semântica** — "isso merece um ADR?", "esse termo já existe com outro nome?", "essa regra cobre o caso?"    | **Skill**                    | Exige leitura e julgamento; determinismo é impossível                 |
+| **Semântica, mas contaminada por quem escreveu** — "o que este diff deveria ter atualizado e não atualizou?" | **Agent** (contexto isolado) | Quem produziu o código revisa com o mesmo raciocínio que o gerou      |
+| **Sintática / estrutural** — campo faltando, ID duplicado, caminho proibido, arquivo congelado               | **Hook**                     | Barato, determinístico, não negociável, e acontece no momento do erro |
+| **Ponto de entrada humano** — "abre um ADR", "registra essa dívida"                                          | **Comando**                  | Atalho para a skill; não contém lógica própria                        |
+| **Precisa valer sem agente presente**                                                                        | **CI**                       | O único enforcement que sobrevive a alguém editando pelo navegador    |
 
 Corolários:
 
@@ -52,14 +52,14 @@ Corolários:
 
 ```yaml
 ---
-id: ADR-0042                    # estável, citável, nunca reciclado
+id: ADR-0042 # estável, citável, nunca reciclado
 title: Fila de eventos em vez de chamada síncrona
-status: accepted                # ver a máquina de estados (§4)
-owner: "@team-platform"         # pessoa ou time; espelha o CODEOWNERS
-trigger: >                      # QUANDO atualizar — condição observável
+status: accepted # ver a máquina de estados (§4)
+owner: '@team-platform' # pessoa ou time; espelha o CODEOWNERS
+trigger: > # QUANDO atualizar — condição observável
   Nunca. Imutável após aceito; uma decisão nova o supersede.
-last-reviewed: 2026-08-21       # data ISO; alimenta CI-4
-relates-to: [RN-014, DA-0007]   # rastreabilidade bidirecional
+last-reviewed: 2026-08-21 # data ISO; alimenta CI-4
+relates-to: [RN-014, DA-0007] # rastreabilidade bidirecional
 supersedes: ADR-0031
 superseded-by: null
 ---
@@ -67,14 +67,14 @@ superseded-by: null
 
 Os seis mecanismos de "o que faz a documentação ser viva" ficam todos codificados nesse bloco:
 
-| Mecanismo | Campo / peça que o materializa | Enforcement |
-| --- | --- | --- |
-| 1 — Docs-as-code, no mesmo PR | `docs/.ownership.yml` mapeia caminho de código → doc dono | `HK-4`, `HK-5`, `CI-7` |
-| 2 — Gatilho, não cadência | `trigger:` — texto livre, mas com vocabulário de cadência proibido | `CI-1` |
-| 3 — Rastreabilidade por ID | `id:`, `relates-to:` e a sintaxe de citação (§8) | `CI-2`, `CI-3` |
-| 4 — Automação no CI | `last-reviewed:` + os checks | `CI-1`…`CI-8` |
-| 5 — Ciclo de vida em vez de deleção | `status:`, `supersedes:`, `superseded-by:` | `HK-1`, `CI-3` |
-| 6 — Fonte única com dono | `owner:` + a regra "um artefato, um dono" | `CI-7` |
+| Mecanismo                           | Campo / peça que o materializa                                     | Enforcement            |
+| ----------------------------------- | ------------------------------------------------------------------ | ---------------------- |
+| 1 — Docs-as-code, no mesmo PR       | `docs/.ownership.yml` mapeia caminho de código → doc dono          | `HK-4`, `HK-5`, `CI-7` |
+| 2 — Gatilho, não cadência           | `trigger:` — texto livre, mas com vocabulário de cadência proibido | `CI-1`                 |
+| 3 — Rastreabilidade por ID          | `id:`, `relates-to:` e a sintaxe de citação (§8)                   | `CI-2`, `CI-3`         |
+| 4 — Automação no CI                 | `last-reviewed:` + os checks                                       | `CI-1`…`CI-8`          |
+| 5 — Ciclo de vida em vez de deleção | `status:`, `supersedes:`, `superseded-by:`                         | `HK-1`, `CI-3`         |
+| 6 — Fonte única com dono            | `owner:` + a regra "um artefato, um dono"                          | `CI-7`                 |
 
 Regras do frontmatter:
 
@@ -115,11 +115,11 @@ AGENTS.md / CLAUDE.md       # SK-6 — índice e política, nunca conteúdo
 
 **Regra de granularidade** (um arquivo por item vs. arquivo único):
 
-| Natureza do item | Forma | Exemplos |
-| --- | --- | --- |
-| Append-only, imutável depois de aceito, com corpo longo | **Um arquivo por item**, numerado | ADR, TDR, release note |
-| Mutável, curto, lido como lista/tabela | **Arquivo único** com tabela | Open Decisions, Glossary, Error catalog, depreciações |
-| Corpo longo mas vivo, com seções estáveis | **Arquivo único**, seções com ID | Constitution, Requirements |
+| Natureza do item                                        | Forma                             | Exemplos                                              |
+| ------------------------------------------------------- | --------------------------------- | ----------------------------------------------------- |
+| Append-only, imutável depois de aceito, com corpo longo | **Um arquivo por item**, numerado | ADR, TDR, release note                                |
+| Mutável, curto, lido como lista/tabela                  | **Arquivo único** com tabela      | Open Decisions, Glossary, Error catalog, depreciações |
+| Corpo longo mas vivo, com seções estáveis               | **Arquivo único**, seções com ID  | Constitution, Requirements                            |
 
 O critério não é gosto: um item imutável em arquivo próprio dá diff limpo e histórico legível; um item mutável em arquivo próprio produz centenas de arquivos que ninguém varre — e "se ninguém lê, não está vivo".
 
@@ -134,37 +134,37 @@ stale-after-months: 6
 artifacts:
   - id-prefix: ADR
     path: docs/decisions/adr/
-    owner: "@team-platform"
+    owner: '@team-platform'
     skill: decision-recorder
-    append-only: true                 # HK-1
+    append-only: true # HK-1
     mutable-fields: [status, superseded-by, last-reviewed]
   - id-prefix: DA
     path: docs/open-decisions.md
-    owner: "@product"
+    owner: '@product'
     skill: decision-recorder
   - id-prefix: RN
     path: docs/requirements/
-    owner: "@product"
+    owner: '@product'
     skill: requirements-keeper
-    cited-by: ["test/**", "src/**"]   # CI-3
+    cited-by: ['test/**', 'src/**'] # CI-3
 
 generated:
-  - path: docs/contracts/openapi.gen.yaml   # HK-2
-    command: <comando do gerador>            # CI-5
+  - path: docs/contracts/openapi.gen.yaml # HK-2
+    command: <comando do gerador> # CI-5
 
-watches:                                     # mecanismo 1: código → doc dono
-  - code: "src/domain/**"
-    doc: "docs/requirements/"
-    reason: "comportamento novo exige regra com ID antes do código"
-  - code: "src/**/*.controller.*"
-    doc: "docs/contracts/"
-  - code: "src/**/errors/**"
-    doc: "docs/contracts/errors.md"
-  - code: "src/**"
-    doc: "CHANGELOG.md"
-    consumer-visible: true                   # CI-6
+watches: # mecanismo 1: código → doc dono
+  - code: 'src/domain/**'
+    doc: 'docs/requirements/'
+    reason: 'comportamento novo exige regra com ID antes do código'
+  - code: 'src/**/*.controller.*'
+    doc: 'docs/contracts/'
+  - code: 'src/**/errors/**'
+    doc: 'docs/contracts/errors.md'
+  - code: 'src/**'
+    doc: 'CHANGELOG.md'
+    consumer-visible: true # CI-6
 
-consumer-visible-paths: ["src/api/**", "src/public/**"]
+consumer-visible-paths: ['src/api/**', 'src/public/**']
 ```
 
 ---
@@ -173,16 +173,16 @@ consumer-visible-paths: ["src/api/**", "src/public/**"]
 
 Deletar apaga o "por quê"; marcar preserva. Estados válidos por artefato:
 
-| Artefato | Máquina de estados | Quem promove |
-| --- | --- | --- |
-| ADR | `draft → accepted → superseded` | humano promove para `accepted` (`HK-3`) |
-| Constitution / Vision | `draft → accepted` + log de emendas com `version` | humano |
-| Open Decision (DA) | `open → resolved(ADR-nnnn)` \| `open → dropped` | humano |
-| TDR | `open → paid` \| `accepted-permanently` | humano |
-| Requisito (RF/RNF/RN) | `draft → active → revoked(por RN-mmm)` | humano |
-| Termo do glossary | `active → renamed(para X)` \| `banned` | agente pode propor, humano aceita |
-| Código de erro | `active → deprecated(usar X) → removed(em vN)` | segue a política de versionamento |
-| Entrada de CHANGELOG | `Unreleased → <versão>` | release |
+| Artefato              | Máquina de estados                                | Quem promove                            |
+| --------------------- | ------------------------------------------------- | --------------------------------------- |
+| ADR                   | `draft → accepted → superseded`                   | humano promove para `accepted` (`HK-3`) |
+| Constitution / Vision | `draft → accepted` + log de emendas com `version` | humano                                  |
+| Open Decision (DA)    | `open → resolved(ADR-nnnn)` \| `open → dropped`   | humano                                  |
+| TDR                   | `open → paid` \| `accepted-permanently`           | humano                                  |
+| Requisito (RF/RNF/RN) | `draft → active → revoked(por RN-mmm)`            | humano                                  |
+| Termo do glossary     | `active → renamed(para X)` \| `banned`            | agente pode propor, humano aceita       |
+| Código de erro        | `active → deprecated(usar X) → removed(em vN)`    | segue a política de versionamento       |
+| Entrada de CHANGELOG  | `Unreleased → <versão>`                           | release                                 |
 
 **Nenhum estado terminal permite edição do corpo.** Um ADR aceito que se revelou errado não é corrigido: ganha `status: superseded` e `superseded-by`, e a decisão nova explica o erro. A história das decisões é o ativo.
 
@@ -198,11 +198,11 @@ Convenções de autoria em §11. Cada skill declara, na mesma ordem: do que é d
 
 ### SK-0 `living-docs-bootstrap` — o setup
 
-| | |
-| --- | --- |
-| **Dona de** | `docs/.ownership.yml`, a estrutura de diretórios, os templates, a instalação de `HK-*` e `CI-*` |
-| **Gatilho** | Uma vez por projeto; de novo a cada mudança de estágio de maturidade (§9) |
-| **Fronteira** | Não escreve o conteúdo de nenhum artefato — cria a moldura e o enforcement |
+|               |                                                                                                 |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| **Dona de**   | `docs/.ownership.yml`, a estrutura de diretórios, os templates, a instalação de `HK-*` e `CI-*` |
+| **Gatilho**   | Uma vez por projeto; de novo a cada mudança de estágio de maturidade (§9)                       |
+| **Fronteira** | Não escreve o conteúdo de nenhum artefato — cria a moldura e o enforcement                      |
 
 Procedimento:
 
@@ -217,9 +217,9 @@ Idempotência é requisito: rodar duas vezes não duplica arquivo, não reescrev
 
 ### SK-1 `charter-keeper` — Constitution + Product Vision
 
-| | |
-| --- | --- |
-| **Dona de** | `docs/charter/constitution.md`, `docs/charter/vision.md` |
+|             |                                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Dona de** | `docs/charter/constitution.md`, `docs/charter/vision.md`                                                         |
 | **Gatilho** | Emenda deliberada da Constitution; mudança de estratégia na Vision. Jamais como efeito colateral de outra tarefa |
 
 Regras:
@@ -229,17 +229,17 @@ Regras:
 3. **Emenda é append.** Nunca reescrever um princípio no lugar: a seção `## Log de emendas` recebe data, o que mudou, o porquê, e `version` sobe. Um princípio revogado fica com `status: revoked` e a emenda que o revogou.
 4. **A Vision responde três coisas** e só: que problema, para quem, qual métrica de sucesso. Se a alteração não muda nenhuma das três, não é mudança de Vision.
 
-| É seu | Não é seu |
-| --- | --- |
+| É seu                                  | Não é seu                          |
+| -------------------------------------- | ---------------------------------- |
 | O que é inviolável, e como se verifica | Decisão técnica pontual (→ `SK-3`) |
-| Métrica de sucesso do produto | Regra de negócio (→ `SK-4`) |
-| Rejeitar princípio não testável | Aceitar a emenda — isso é humano |
+| Métrica de sucesso do produto          | Regra de negócio (→ `SK-4`)        |
+| Rejeitar princípio não testável        | Aceitar a emenda — isso é humano   |
 
 ### SK-2 `glossary-keeper` — ubiquitous language
 
-| | |
-| --- | --- |
-| **Dona de** | `docs/glossary.md` |
+|             |                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| **Dona de** | `docs/glossary.md`                                                                                     |
 | **Gatilho** | Termo de domínio novo em código, spec ou conversa; termo com dois significados; renomeação de conceito |
 
 Formato de entrada: `Termo \| Definição \| Nome no código \| Não confundir com \| Fonte (RN/ADR)`.
@@ -255,9 +255,9 @@ Regras:
 
 A skill mais importante do toolkit. ADR e Open Decisions capturam a única informação que **não** é reconstruível a partir do código: o "por quê" e o "ainda não sabemos".
 
-| | |
-| --- | --- |
-| **Dona de** | `docs/decisions/adr/`, `docs/open-decisions.md`, `docs/decisions/debt/` |
+|             |                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| **Dona de** | `docs/decisions/adr/`, `docs/open-decisions.md`, `docs/decisions/debt/`                           |
 | **Gatilho** | (a) decisão custosa de reverter; (b) alguém trombou numa lacuna; (c) atalho assumido de propósito |
 
 Os três artefatos são estados de um fluxo:
@@ -280,18 +280,18 @@ Regras:
 6. **Numeração sequencial, nunca reciclada** (`docs/ids-retired.txt`).
 7. **Toda DA fechada aponta o ADR que a fechou**, e o ADR aponta de volta (`CI-3` verifica os dois lados).
 
-| É seu | Não é seu |
-| --- | --- |
-| Registrar por que isto e não aquilo, e o que se perde | Tomar a decisão |
-| Transformar lacuna em item bloqueante com ID | Implementar a regra que falta |
-| Registrar a dívida com gatilho de pagamento | Pagar a dívida |
+| É seu                                                 | Não é seu                     |
+| ----------------------------------------------------- | ----------------------------- |
+| Registrar por que isto e não aquilo, e o que se perde | Tomar a decisão               |
+| Transformar lacuna em item bloqueante com ID          | Implementar a regra que falta |
+| Registrar a dívida com gatilho de pagamento           | Pagar a dívida                |
 
 ### SK-4 `requirements-keeper` — requisitos com IDs estáveis
 
-| | |
-| --- | --- |
+|             |                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
 | **Dona de** | `docs/requirements/` — `RF-nnn` (funcionais), `RNF-nnn` (não funcionais), `RN-nnn` (regras de negócio) |
-| **Gatilho** | Antes de implementar qualquer comportamento; toda regra nova ou alterada |
+| **Gatilho** | Antes de implementar qualquer comportamento; toda regra nova ou alterada                               |
 
 Regras:
 
@@ -305,10 +305,10 @@ Regras:
 
 ### SK-5 `contract-keeper` — OpenAPI + Error catalog
 
-| | |
-| --- | --- |
-| **Dona de** | a *pipeline* que gera `docs/contracts/openapi.gen.yaml`; e, escritos à mão, `errors.md` e `versioning-policy.md` |
-| **Gatilho** | Mudança de interface pública; código de erro novo; mudança de política de versionamento |
+|             |                                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Dona de** | a _pipeline_ que gera `docs/contracts/openapi.gen.yaml`; e, escritos à mão, `errors.md` e `versioning-policy.md` |
+| **Gatilho** | Mudança de interface pública; código de erro novo; mudança de política de versionamento                          |
 
 Regras:
 
@@ -320,12 +320,12 @@ Regras:
 
 ### SK-6 `working-agreements-keeper` — CONTRIBUTING + DoD + contrato do agente
 
-| | |
-| --- | --- |
-| **Dona de** | `CONTRIBUTING.md`, `docs/definition-of-done.md`, `AGENTS.md`/`CLAUDE.md` |
+|             |                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| **Dona de** | `CONTRIBUTING.md`, `docs/definition-of-done.md`, `AGENTS.md`/`CLAUDE.md`                        |
 | **Gatilho** | Mudança de processo; **e toda vez que um agente ou uma pessoa nova erra por falta de contexto** |
 
-Esse segundo gatilho é o melhor que existe no catálogo: torna o documento auto-corretivo. A skill formaliza o loop — erro observado vira uma linha, e a linha tem uma de duas formas: *onde está a verdade* ou *o que nunca fazer*.
+Esse segundo gatilho é o melhor que existe no catálogo: torna o documento auto-corretivo. A skill formaliza o loop — erro observado vira uma linha, e a linha tem uma de duas formas: _onde está a verdade_ ou _o que nunca fazer_.
 
 Regras:
 
@@ -334,16 +334,16 @@ Regras:
 3. **A DoD é a fonte do `CI-7`**: cada item verificável nela tem um check, ou é explicitamente marcado como verificação humana.
 4. Style guide entra aqui **só com o que o linter não pega** (nomenclatura, idioma, granularidade). O resto é configuração de ferramenta, não documento.
 
-| É seu | Não é seu |
-| --- | --- |
-| Como se trabalha e quando algo está pronto | A regra de negócio que o CONTRIBUTING referencia |
-| Transformar erro por falta de contexto em linha nova | Duplicar conteúdo de outro artefato |
+| É seu                                                | Não é seu                                        |
+| ---------------------------------------------------- | ------------------------------------------------ |
+| Como se trabalha e quando algo está pronto           | A regra de negócio que o CONTRIBUTING referencia |
+| Transformar erro por falta de contexto em linha nova | Duplicar conteúdo de outro artefato              |
 
 ### SK-7 `release-historian` — CHANGELOG, releases, depreciações
 
-| | |
-| --- | --- |
-| **Dona de** | `CHANGELOG.md`, `docs/releases/`, `docs/deprecations.md`, `docs/migrations/` |
+|             |                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| **Dona de** | `CHANGELOG.md`, `docs/releases/`, `docs/deprecations.md`, `docs/migrations/`                           |
 | **Gatilho** | Toda mudança visível ao consumidor (no mesmo PR, em `## [Unreleased]`); toda release; toda depreciação |
 
 Regras:
@@ -385,15 +385,15 @@ Checklist adversarial fixo: a alternativa descartada foi realmente avaliada? qua
 
 Determinísticos, sem julgamento. Um hook que precisa interpretar intenção está no lugar errado. Contrato: JSON no stdin; resposta em `hookSpecificOutput` com `permissionDecision` (`deny`/`ask`) ou `additionalContext`; toda mensagem de bloqueio nomeia **a regra de origem, o artefato dono e o caminho válido para fazer o que se queria**.
 
-| ID | Evento / matcher | Decisão | O que faz |
-| --- | --- | --- | --- |
-| `HK-1` | `PreToolUse` / `Edit\|Write` | `deny` | Bloqueia alterar item append-only em estado congelado (ADR `accepted`/`superseded`, release note publicada, TDR `paid`). **Permite** mudança restrita à `mutable-fields` do `.ownership.yml` — é assim que se supersede um ADR sem violar a imutabilidade. |
-| `HK-2` | `PreToolUse` / `Edit\|Write` | `deny` | Bloqueia editar artefato gerado (`generated[].path` ou marcador `generated: do not edit`). Aponta a fonte anotada e o comando do gerador. |
-| `HK-3` | `PreToolUse` / `Edit\|Write` | `ask` | Intercepta promoção de estado que exige ato humano (`draft → accepted`, `open → resolved`). Nenhum agente aceita uma decisão sozinho. |
-| `HK-4` | `PostToolUse` / `Edit\|Write` | `additionalContext` | Editou caminho vigiado em `watches` → injeta o doc dono, o gatilho e a skill responsável. Lembrete, nunca bloqueio. |
-| `HK-5` | `PreToolUse` / `Bash` (`git commit`) | `ask` | O staged toca caminho vigiado e o doc dono não está no commit → lista os pendentes e pergunta. É o mecanismo 1 no ponto mais barato possível. |
-| `HK-6` | `SessionStart` | `additionalContext` | Injeta o inventário: artefatos presentes e ausentes, DAs abertas, TDRs com gatilho vencido, docs com `last-reviewed` estourado. Resolve "se ninguém lê, não está vivo" na origem. |
-| `HK-7` | `PostToolUse` / `Edit\|Write` | `additionalContext` | Marcador de atalho novo (`TODO`, `FIXME`, supressão de tipo/lint, teste ignorado) sem `TDR-` próximo → sugere registrar a dívida. Aviso: um atalho legítimo não pode ser bloqueado. |
+| ID     | Evento / matcher                     | Decisão             | O que faz                                                                                                                                                                                                                                                  |
+| ------ | ------------------------------------ | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `HK-1` | `PreToolUse` / `Edit\|Write`         | `deny`              | Bloqueia alterar item append-only em estado congelado (ADR `accepted`/`superseded`, release note publicada, TDR `paid`). **Permite** mudança restrita à `mutable-fields` do `.ownership.yml` — é assim que se supersede um ADR sem violar a imutabilidade. |
+| `HK-2` | `PreToolUse` / `Edit\|Write`         | `deny`              | Bloqueia editar artefato gerado (`generated[].path` ou marcador `generated: do not edit`). Aponta a fonte anotada e o comando do gerador.                                                                                                                  |
+| `HK-3` | `PreToolUse` / `Edit\|Write`         | `ask`               | Intercepta promoção de estado que exige ato humano (`draft → accepted`, `open → resolved`). Nenhum agente aceita uma decisão sozinho.                                                                                                                      |
+| `HK-4` | `PostToolUse` / `Edit\|Write`        | `additionalContext` | Editou caminho vigiado em `watches` → injeta o doc dono, o gatilho e a skill responsável. Lembrete, nunca bloqueio.                                                                                                                                        |
+| `HK-5` | `PreToolUse` / `Bash` (`git commit`) | `ask`               | O staged toca caminho vigiado e o doc dono não está no commit → lista os pendentes e pergunta. É o mecanismo 1 no ponto mais barato possível.                                                                                                              |
+| `HK-6` | `SessionStart`                       | `additionalContext` | Injeta o inventário: artefatos presentes e ausentes, DAs abertas, TDRs com gatilho vencido, docs com `last-reviewed` estourado. Resolve "se ninguém lê, não está vivo" na origem.                                                                          |
+| `HK-7` | `PostToolUse` / `Edit\|Write`        | `additionalContext` | Marcador de atalho novo (`TODO`, `FIXME`, supressão de tipo/lint, teste ignorado) sem `TDR-` próximo → sugere registrar a dívida. Aviso: um atalho legítimo não pode ser bloqueado.                                                                        |
 
 Esqueleto de referência (`HK-1`), no runtime que o projeto já usa para hooks:
 
@@ -471,16 +471,16 @@ Exigências verificadas:
 
 ## 9. Checks de CI
 
-| ID | Check | Falha quando |
-| --- | --- | --- |
-| `CI-1` | **Structure lint** | Frontmatter ausente/inválido; `status` fora da máquina de estados; `owner` vazio; `trigger` ausente **ou descrevendo cadência** |
-| `CI-2` | **ID lint** | ID duplicado, fora de sequência, ou reaproveitado de `ids-retired.txt`; citação que não resolve |
-| `CI-3` | **Traceability** | Par bidirecional aberto; RN `active` sem citação; ADR `accepted` sem `relates-to`; DA `resolved` sem ADR |
-| `CI-4` | **Staleness** | `last-reviewed` além de `stale-after-months` (aviso); TDR com gatilho de pagamento vencido (falha) |
-| `CI-5` | **Contract drift** | Regenerar o contrato produz diff ≠ 0 |
-| `CI-6` | **Changelog required** | Diff toca `consumer-visible-paths` sem entrada em `Unreleased` nem rótulo de exceção |
+| ID     | Check                  | Falha quando                                                                                                                                              |
+| ------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CI-1` | **Structure lint**     | Frontmatter ausente/inválido; `status` fora da máquina de estados; `owner` vazio; `trigger` ausente **ou descrevendo cadência**                           |
+| `CI-2` | **ID lint**            | ID duplicado, fora de sequência, ou reaproveitado de `ids-retired.txt`; citação que não resolve                                                           |
+| `CI-3` | **Traceability**       | Par bidirecional aberto; RN `active` sem citação; ADR `accepted` sem `relates-to`; DA `resolved` sem ADR                                                  |
+| `CI-4` | **Staleness**          | `last-reviewed` além de `stale-after-months` (aviso); TDR com gatilho de pagamento vencido (falha)                                                        |
+| `CI-5` | **Contract drift**     | Regenerar o contrato produz diff ≠ 0                                                                                                                      |
+| `CI-6` | **Changelog required** | Diff toca `consumer-visible-paths` sem entrada em `Unreleased` nem rótulo de exceção                                                                      |
 | `CI-7` | **Ownership coverage** | Artefato sem entrada no CODEOWNERS ou no `.ownership.yml`; caminho de código vigiado sem doc dono; contrato do agente repetindo texto de um artefato dono |
-| `CI-8` | **Links** | Link interno quebrado; `[[wikilink]]` sem destino; anexo em formato binário sob `docs/` |
+| `CI-8` | **Links**              | Link interno quebrado; `[[wikilink]]` sem destino; anexo em formato binário sob `docs/`                                                                   |
 
 Regras de projeto dos checks: rodam **em minutos, no PR**, e a saída nomeia o arquivo, a linha e a correção. `CI-4` é o único autorizado a apenas avisar — os demais falham, porque aviso ignorado é o começo da wiki morta. Nenhum check mede volume ou "cobertura documental": produz número, não verdade.
 
@@ -490,39 +490,39 @@ Regras de projeto dos checks: rodam **em minutos, no PR**, e a saída nomeia o a
 
 ### Comandos (atalhos finos, sem lógica própria)
 
-| ID | Comando | Aciona |
-| --- | --- | --- |
-| `CM-1` | `/adr [assunto]` | `SK-3` — novo ADR `draft`, ou supersedir um existente |
+| ID     | Comando                   | Aciona                                                |
+| ------ | ------------------------- | ----------------------------------------------------- |
+| `CM-1` | `/adr [assunto]`          | `SK-3` — novo ADR `draft`, ou supersedir um existente |
 | `CM-2` | `/open-decision [lacuna]` | `SK-3` — registra `DA-nnn` e **para** a implementação |
-| `CM-3` | `/debt [atalho]` | `SK-3` — registra `TDR-nnn` com gatilho de pagamento |
-| `CM-4` | `/term [termo]` | `SK-2` |
-| `CM-5` | `/docs-audit [escopo]` | `AG-1` |
-| `CM-6` | `/docs-setup` | `SK-0` |
-| `CM-7` | `/release [versão]` | `SK-7` |
+| `CM-3` | `/debt [atalho]`          | `SK-3` — registra `TDR-nnn` com gatilho de pagamento  |
+| `CM-4` | `/term [termo]`           | `SK-2`                                                |
+| `CM-5` | `/docs-audit [escopo]`    | `AG-1`                                                |
+| `CM-6` | `/docs-setup`             | `SK-0`                                                |
+| `CM-7` | `/release [versão]`       | `SK-7`                                                |
 
 ### Fases
 
 A ordem importa mais que o conteúdo: **ADR e Open Decisions antes de tudo** — custam quase nada e capturam a única informação que se perde de verdade. O resto se reconstrói a partir do código; esses dois, não.
 
-| Fase | Entrega | Por que aqui |
-| --- | --- | --- |
-| **0** | `docs/.ownership.yml`, frontmatter padrão, `CI-1`, `CI-2`, CODEOWNERS | Sem contrato de máquina nada é enforceável |
-| **1** | `SK-3`, `HK-1`, `HK-3`, `CM-1`–`CM-3` | O núcleo: "por quê" e "ainda não sabemos" |
-| **2** | `SK-4`, `CI-3` | A spec citável, e a rastreabilidade que ela habilita |
-| **3** | `SK-6`, DoD, `HK-4`, `HK-5` | Amarra doc ao PR — o mecanismo 1 |
-| **4** | `SK-2`, `SK-1`, `AG-2` | Linguagem e intenção, depois que já há decisões para destilar |
-| **5** | `SK-5`, `HK-2`, `CI-5` | Contratos gerados; exige pipeline de build madura |
-| **6** | `SK-7`, `CI-6`, `HK-7` | Rastro histórico, quando já há consumidor externo |
-| **7** | `AG-1`, `HK-6`, `CI-4`, `CI-7`, `CI-8` | Manutenção contínua e detecção de apodrecimento |
+| Fase  | Entrega                                                               | Por que aqui                                                  |
+| ----- | --------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **0** | `docs/.ownership.yml`, frontmatter padrão, `CI-1`, `CI-2`, CODEOWNERS | Sem contrato de máquina nada é enforceável                    |
+| **1** | `SK-3`, `HK-1`, `HK-3`, `CM-1`–`CM-3`                                 | O núcleo: "por quê" e "ainda não sabemos"                     |
+| **2** | `SK-4`, `CI-3`                                                        | A spec citável, e a rastreabilidade que ela habilita          |
+| **3** | `SK-6`, DoD, `HK-4`, `HK-5`                                           | Amarra doc ao PR — o mecanismo 1                              |
+| **4** | `SK-2`, `SK-1`, `AG-2`                                                | Linguagem e intenção, depois que já há decisões para destilar |
+| **5** | `SK-5`, `HK-2`, `CI-5`                                                | Contratos gerados; exige pipeline de build madura             |
+| **6** | `SK-7`, `CI-6`, `HK-7`                                                | Rastro histórico, quando já há consumidor externo             |
+| **7** | `AG-1`, `HK-6`, `CI-4`, `CI-7`, `CI-8`                                | Manutenção contínua e detecção de apodrecimento               |
 
 Mapeamento por estágio de maturidade — instale só o que o estágio pede:
 
-| Estágio | Fases |
-| --- | --- |
-| Solo / protótipo | 0, 1 |
+| Estágio                     | Fases     |
+| --------------------------- | --------- |
+| Solo / protótipo            | 0, 1      |
 | Time pequeno / produto real | + 2, 3, 4 |
-| Produção com usuários | + 5, 6 |
-| Múltiplos times | + 7 |
+| Produção com usuários       | + 5, 6    |
+| Múltiplos times             | + 7       |
 
 ---
 
@@ -539,12 +539,17 @@ description: >
 
 # <Nome> — dono de <artefatos>
 
-## Overview                     — o que existe hoje e o que esta skill decide
-## Do que você é dono           — tabela artefato → o que é
-## Quando usar / quando não     — inclusive o custo de usar à toa
-## Procedimento                 — passos numerados, verificáveis
-## Fronteiras                   — tabela "é seu / não é seu"
-## Checklist                    — caixas marcáveis, uma por invariante
+## Overview — o que existe hoje e o que esta skill decide
+
+## Do que você é dono — tabela artefato → o que é
+
+## Quando usar / quando não — inclusive o custo de usar à toa
+
+## Procedimento — passos numerados, verificáveis
+
+## Fronteiras — tabela "é seu / não é seu"
+
+## Checklist — caixas marcáveis, uma por invariante
 ```
 
 A `description` **é o gatilho do documento traduzido para o índice de skills** — a seleção acontece por semelhança com essa frase, então ela precisa conter os sintomas que a pessoa realmente digita ("qual é a regra de X", "isso está documentado?", "por que isso foi feito assim?"), os sinônimos e os termos do domínio. Uma `description` categórica ("gerencia ADRs") não é encontrada quando importa.

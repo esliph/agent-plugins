@@ -1,10 +1,10 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process'
 
 /** Executor de git, injetável: o teste não precisa de um repositório para provar o resto. */
-export type GitRunner = (args: readonly string[], cwd: string) => string;
+export type GitRunner = (args: readonly string[], cwd: string) => string
 
 /** Teto local; o orçamento do hook inteiro é 5 s (spec §7). */
-const TIMEOUT_MS = 3_000;
+const TIMEOUT_MS = 3_000
 
 const runGit: GitRunner = (args, cwd) =>
   execFileSync('git', [...args], {
@@ -12,7 +12,7 @@ const runGit: GitRunner = (args, cwd) =>
     encoding: 'utf8',
     timeout: TIMEOUT_MS,
     stdio: ['ignore', 'pipe', 'ignore'],
-  });
+  })
 
 /**
  * Caminhos no índice, relativos à raiz do repositório e sempre com `/`.
@@ -26,15 +26,16 @@ const runGit: GitRunner = (args, cwd) =>
  * sei", e quem chama trata "não sei" como "deixe passar".
  */
 export function stagedPaths(root: string, run: GitRunner = runGit): string[] {
-  let output: string;
+  let output: string
+
   try {
-    output = run(['-c', 'safe.directory=*', 'diff', '--cached', '--name-only', '-z'], root);
+    output = run(['-c', 'safe.directory=*', 'diff', '--cached', '--name-only', '-z'], root)
   } catch {
-    return [];
+    return []
   }
 
   return output
     .split(String.fromCharCode(0))
-    .map((path) => path.trim().replace(/\\/g, '/'))
-    .filter((path) => path !== '');
+    .map(path => path.trim().replace(/\\/g, '/'))
+    .filter(path => path !== '')
 }

@@ -11,9 +11,9 @@
  * regressão de ordem de grandeza, não ruído de máquina carregada. Subir este
  * número sem uma medida nova ao lado é transformá-lo de volta em intenção.
  */
-export const CHECK_BUDGET_MS = 120_000;
+export const CHECK_BUDGET_MS = 120_000
 
 /** Milissegundos como quem lê o log do PR os lê. */
 export function formatElapsed(ms: number): string {
-  return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`;
+  return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`
 }

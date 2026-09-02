@@ -1,9 +1,9 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
-const HOJE = '2026-08-27';
+const HOJE = '2026-08-27'
 
 const OWNERSHIP = `
 version: 1
@@ -33,7 +33,7 @@ documents:
   - path: CONTRIBUTING.md
     owner: "@time"
     skill: working-agreements-keeper
-`;
+`
 
 const DAS = [
   '---',
@@ -47,7 +47,7 @@ const DAS = [
   '| --- | --- | --- | --- | --- |',
   '| DA-0001 | Como declarar X | open | — | 2026-08-01 |',
   '',
-].join('\n');
+].join('\n')
 
 const REGRAS_REVOGADA = [
   '---',
@@ -62,7 +62,7 @@ const REGRAS_REVOGADA = [
   '- **status:** revoked',
   '- **revoked-by:** RN-0002',
   '',
-].join('\n');
+].join('\n')
 
 const DIVIDA = [
   '---',
@@ -79,7 +79,7 @@ const DIVIDA = [
   '',
   '# TDR-0001 — Atalho',
   '',
-].join('\n');
+].join('\n')
 
 const ARVORE = {
   'docs/.ownership.yml': OWNERSHIP,
@@ -87,70 +87,72 @@ const ARVORE = {
   'docs/requirements/rules.md': REGRAS_REVOGADA,
   'docs/decisions/debt/TDR-0001-x.md': DIVIDA,
   'CONTRIBUTING.md': '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2024-01-01\n---\n\n# Como\n',
-};
+}
 
 test('critério 8: o inventário chega ao contexto sem ninguém procurar', () => {
-  withTempRepo(ARVORE, (root) => {
-    const decision = decideHk6({ root, hostRoots: [root] }, HOJE);
-    assert.equal(decision.action, 'inform');
+  withTempRepo(ARVORE, root => {
+    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
 
-    const context = decision.action === 'inform' ? decision.context : '';
-    assert.match(context, /HK-6/);
-    assert.match(context, /DA-0001/, 'decisão aberta');
-    assert.match(context, /TDR-0001/, 'dívida com gatilho cumprido');
-    assert.match(context, /CONTRIBUTING\.md/, 'documento vencido');
-    assert.match(context, /docs\/decisions\/adr\//, 'artefato declarado e ausente');
-  });
-});
+    assert.equal(decision.action, 'inform')
+
+    const context = decision.action === 'inform' ? decision.context : ''
+
+    assert.match(context, /HK-6/)
+    assert.match(context, /DA-0001/, 'decisão aberta')
+    assert.match(context, /TDR-0001/, 'dívida com gatilho cumprido')
+    assert.match(context, /CONTRIBUTING\.md/, 'documento vencido')
+    assert.match(context, /docs\/decisions\/adr\//, 'artefato declarado e ausente')
+  })
+})
 
 test('RN-0022: é injeção de contexto, nunca decisão de permissão', () => {
-  withTempRepo(ARVORE, (root) => {
-    const decision = decideHk6({ root, hostRoots: [root] }, HOJE);
-    const context = decision.action === 'inform' ? decision.context : '';
+  withTempRepo(ARVORE, root => {
+    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const context = decision.action === 'inform' ? decision.context : ''
 
-    assert.doesNotMatch(context, /\bdeny\b/);
-    assert.doesNotMatch(context, /permissionDecision/);
-    assert.match(context, /não bloqueia|contexto/i);
-  });
-});
+    assert.doesNotMatch(context, /\bdeny\b/)
+    assert.doesNotMatch(context, /permissionDecision/)
+    assert.match(context, /não bloqueia|contexto/i)
+  })
+})
 
 test('RN-0022: o inventário é curto — lista longa aparece truncada com a contagem', () => {
   const muitas = [
     ...DAS.split('\n').slice(0, -1),
     ...Array.from({ length: 9 }, (_, i) => `| DA-${String(i + 2).padStart(4, '0')} | Lacuna ${i} | open | — | 2026-08-01 |`),
     '',
-  ].join('\n');
+  ].join('\n')
 
-  withTempRepo({ ...ARVORE, 'docs/open-decisions.md': muitas }, (root) => {
-    const decision = decideHk6({ root, hostRoots: [root] }, HOJE);
-    const context = decision.action === 'inform' ? decision.context : '';
+  withTempRepo({ ...ARVORE, 'docs/open-decisions.md': muitas }, root => {
+    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const context = decision.action === 'inform' ? decision.context : ''
 
-    assert.match(context, /\(10\)/, 'a contagem total aparece');
-    assert.equal((context.match(/DA-\d{4}/g) ?? []).length <= 6, true, 'só os primeiros entram');
-  });
-});
+    assert.match(context, /\(10\)/, 'a contagem total aparece')
+    assert.equal((context.match(/DA-\d{4}/g) ?? []).length <= 6, true, 'só os primeiros entram')
+  })
+})
 
 test('RNF-0001: configuração ilegível cala o hook em vez de estourar', () => {
-  withTempRepo({ 'docs/.ownership.yml': 'version: 99\n' }, (root) => {
-    assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), { action: 'silent' });
-  });
-  withTempRepo({ 'README.md': '' }, (root) => {
-    assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), { action: 'silent' });
-  });
-});
+  withTempRepo({ 'docs/.ownership.yml': 'version: 99\n' }, root => {
+    assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
+  })
+  withTempRepo({ 'README.md': '' }, root => {
+    assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
+  })
+})
 
 test('HK-6 não reimplementa CI-4: sem dívida vencida e sem doc velho, as duas linhas não aparecem', () => {
-  const semDivida = { ...ARVORE };
-  delete (semDivida as Record<string, string>)['docs/decisions/debt/TDR-0001-x.md'];
-  semDivida['CONTRIBUTING.md'] =
-    '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-20\n---\n\n# Como\n';
+  const semDivida = { ...ARVORE }
 
-  withTempRepo(semDivida, (root) => {
-    const decision = decideHk6({ root, hostRoots: [root] }, HOJE);
-    const context = decision.action === 'inform' ? decision.context : '';
+  delete (semDivida as Record<string, string>)['docs/decisions/debt/TDR-0001-x.md']
+  semDivida['CONTRIBUTING.md'] = '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-20\n---\n\n# Como\n'
 
-    assert.doesNotMatch(context, /gatilho de pagamento/);
-    assert.doesNotMatch(context, /vencid/);
-    assert.match(context, /DA-0001/, 'o resto do inventário continua');
-  });
-});
+  withTempRepo(semDivida, root => {
+    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const context = decision.action === 'inform' ? decision.context : ''
+
+    assert.doesNotMatch(context, /gatilho de pagamento/)
+    assert.doesNotMatch(context, /vencid/)
+    assert.match(context, /DA-0001/, 'o resto do inventário continua')
+  })
+})

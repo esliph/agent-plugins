@@ -26,11 +26,11 @@ Caminhos e donos vêm de `docs/.ownership.yml` e do `CODEOWNERS`; não assuma.
 
 ## Do que você é dono
 
-| Artefato | O que é |
-| --- | --- |
-| `CONTRIBUTING.md` | O processo: ambiente, ciclo, idioma, onde a verdade mora |
+| Artefato                     | O que é                                                            |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `CONTRIBUTING.md`            | O processo: ambiente, ciclo, idioma, onde a verdade mora           |
 | `docs/definition-of-done.md` | A lista do que precisa estar feito, com a verificação de cada item |
-| `CLAUDE.md` / `AGENTS.md` | Contrato do agente: índice e política, nunca conteúdo |
+| `CLAUDE.md` / `AGENTS.md`    | Contrato do agente: índice e política, nunca conteúdo              |
 
 As sementes estão em `templates/contributing.md`,
 `templates/definition-of-done.md` e `templates/agent-contract.md`. Não reproduza
@@ -39,8 +39,8 @@ o conteúdo delas aqui.
 ## Quando usar / quando não
 
 **Use** quando o processo mudar, e quando um erro por falta de contexto
-acontecer — a correção é uma linha nova, e ela tem uma de duas formas: *onde
-está a verdade* ou *o que nunca fazer*.
+acontecer — a correção é uma linha nova, e ela tem uma de duas formas: _onde
+está a verdade_ ou _o que nunca fazer_.
 
 **Não use** para registrar regra de negócio (é `requirements-keeper`), decisão
 técnica (é `decision-recorder`) ou o que o linter já pega — configuração de
@@ -58,8 +58,8 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
    contrato do agente.
 3. **Procure a linha que já cobre isso.** Erro repetido costuma ser linha
    existente mal colocada, não linha faltando.
-4. **Escreva uma linha, não um parágrafo.** Forma: *onde está a verdade* ("a
-   regra de X mora em `docs/requirements/rules.md`") ou *o que nunca fazer*
+4. **Escreva uma linha, não um parágrafo.** Forma: _onde está a verdade_ ("a
+   regra de X mora em `docs/requirements/rules.md`") ou _o que nunca fazer_
    ("nunca promova uma decisão sem revisão humana").
 5. **Item novo na DoD nomeia sua verificação**: um `CI-n`, um `HK-n`, ou
    explicitamente "humana". Item sem verificação não entra.
@@ -77,12 +77,12 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 
 ## Fronteiras
 
-| É seu | Não é seu |
-| --- | --- |
-| Como se trabalha, e quando algo está pronto | A regra de negócio que o CONTRIBUTING referencia |
-| Transformar erro por falta de contexto em linha nova | Duplicar conteúdo de outro artefato |
-| A política sobre o que um agente pode fazer sozinho | Aceitar a decisão em si (é ato humano, `HK-3`) |
-| O item da DoD e a verificação que o cobre | Escrever o check que verifica (é `CI-n`, na engine) |
+| É seu                                                | Não é seu                                           |
+| ---------------------------------------------------- | --------------------------------------------------- |
+| Como se trabalha, e quando algo está pronto          | A regra de negócio que o CONTRIBUTING referencia    |
+| Transformar erro por falta de contexto em linha nova | Duplicar conteúdo de outro artefato                 |
+| A política sobre o que um agente pode fazer sozinho  | Aceitar a decisão em si (é ato humano, `HK-3`)      |
+| O item da DoD e a verificação que o cobre            | Escrever o check que verifica (é `CI-n`, na engine) |
 
 ## Checklist
 

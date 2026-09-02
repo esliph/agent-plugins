@@ -2,7 +2,7 @@
 title: Constitution
 owner: '@esliph/engineering'
 trigger: >
-    Emenda deliberada — nunca como efeito colateral de outra tarefa.
+  Emenda deliberada — nunca como efeito colateral de outra tarefa.
 last-reviewed: 2026-09-01
 version: 3
 ---
@@ -26,4 +26,3 @@ sem enforcement nomeado é slogan — nenhum entra aqui sem ele.
 - 2026-08-25 — v1 — Criação inicial, seis princípios refletindo `RN-0001`–`RN-0010` e `RNF-0002` — humana, dogfooding da Fase 4.
 - 2026-09-01 — v2 — Princípio 6 passa a afirmar a execução no Node do host, acompanhando `ADR-0015`, que supersede `ADR-0001` — humana, migração da execução para o host.
 - 2026-09-01 — v3 — O princípio 6 nomeia o workflow `living-docs` como a verificação de registro e declara opcional o caminho conteinerizado de `RNF-0006` — humana, acompanhando `ADR-0016`, que carrega `ADR-0015` sem supersedê-lo.
-

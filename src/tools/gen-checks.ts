@@ -10,7 +10,7 @@
  * contagem. Um gerador que imprime "gerado em <hoje>" produz deriva a cada
  * execução e desliga `CI-5` no segundo dia.
  */
-import { CHECK_CATALOG } from '../checks/catalog.ts';
+import { CHECK_CATALOG } from '../checks/catalog.ts'
 
 const HEADER = `<!-- generated: do not edit -->
 <!-- fonte: src/checks/catalog.ts (CHECK_CATALOG) — regerar: rode este arquivo com node -->
@@ -23,16 +23,13 @@ pela Definition of Done de quem usa o toolkit, e não mudam de significado
 
 | ID | Check | Falha quando | Comando |
 | --- | --- | --- | --- |
-`;
+`
 
 /** `|` numa célula quebraria a tabela — escapar é do gerador, não de quem escreve. */
 function cell(value: string): string {
-  return value.replaceAll('|', '\\|');
+  return value.replaceAll('|', '\\|')
 }
 
-const rows = CHECK_CATALOG.map(
-  (entry) =>
-    `| ${cell(entry.id)} | ${cell(entry.name)} | ${cell(entry.failsWhen)} | \`${cell(entry.command)}\` |`,
-).join('\n');
+const rows = CHECK_CATALOG.map(entry => `| ${cell(entry.id)} | ${cell(entry.name)} | ${cell(entry.failsWhen)} | \`${cell(entry.command)}\` |`).join('\n')
 
-process.stdout.write(`${HEADER}${rows}\n`);
+process.stdout.write(`${HEADER}${rows}\n`)

@@ -4,7 +4,7 @@ title: Os dois limiares do fechamento — bump em massa e semelhança de gatilho
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-28
 relates-to: [RN-0027, RN-0029]
 supersedes: null
@@ -85,4 +85,3 @@ exceção dentro do check, e não baixar o número em silêncio.
 inteiros não compartilha raiz nenhuma e reprova mesmo dizendo a mesma coisa; um
 `trigger` que compartilha duas raízes por acaso passa dizendo outra. É o preço de
 uma comparação que cabe numa frase de mensagem de erro.
-

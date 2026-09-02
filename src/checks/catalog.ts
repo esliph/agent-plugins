@@ -1,10 +1,10 @@
 export interface CatalogEntry {
-  id: string;
-  name: string;
+  id: string
+  name: string
   /** O comando do CLI que roda este check. */
-  command: string;
+  command: string
   /** A condição de falha — a coluna "Falha quando" da spec §9. */
-  failsWhen: string;
+  failsWhen: string
 }
 
 /**
@@ -22,15 +22,13 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     id: 'CI-1',
     name: 'structure lint',
     command: 'living-docs validate',
-    failsWhen:
-      'Frontmatter ausente ou inválido; `status` fora da máquina de estados; `owner` vazio ou sem `@`; `trigger` ausente ou descrevendo cadência.',
+    failsWhen: 'Frontmatter ausente ou inválido; `status` fora da máquina de estados; `owner` vazio ou sem `@`; `trigger` ausente ou descrevendo cadência.',
   },
   {
     id: 'CI-2',
     name: 'ID lint',
     command: 'living-docs validate',
-    failsWhen:
-      'ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente.',
+    failsWhen: 'ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente.',
   },
   {
     id: 'CI-3',
@@ -50,8 +48,7 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     id: 'CI-5',
     name: 'contract drift',
     command: 'living-docs drift',
-    failsWhen:
-      'A saída do gerador difere do artefato versionado; o gerador falha; ou o artefato declarado em `generated[]` não existe.',
+    failsWhen: 'A saída do gerador difere do artefato versionado; o gerador falha; ou o artefato declarado em `generated[]` não existe.',
   },
   {
     id: 'CI-6',
@@ -88,4 +85,4 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     failsWhen:
       'O `trigger` de um documento e a `description` da skill declarada como dona dele compartilham menos raízes de palavra do que o piso declarado. Skill dona ausente da raiz do toolkit produz aviso, não falha; e o `trigger` de um item de coleção não é comparado.',
   },
-]);
+])

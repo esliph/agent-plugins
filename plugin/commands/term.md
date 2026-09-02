@@ -1,6 +1,6 @@
 ---
 description: Registra ou atualiza um termo do glossary
-argument-hint: "[termo]"
+argument-hint: '[termo]'
 ---
 
 Use a skill `glossary-keeper` para registrar ou atualizar em `docs/glossary.md` o termo: $ARGUMENTS

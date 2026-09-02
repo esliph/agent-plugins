@@ -1,25 +1,13 @@
-import type { ArtifactRule } from '../config/ownership.ts';
+import type { ArtifactRule } from '../config/ownership.ts'
 
 /** Campos obrigatórios de um artefato individual (spec §2). */
-export const REQUIRED_FIELDS: readonly string[] = [
-  'id',
-  'title',
-  'status',
-  'owner',
-  'trigger',
-  'last-reviewed',
-];
+export const REQUIRED_FIELDS: readonly string[] = ['id', 'title', 'status', 'owner', 'trigger', 'last-reviewed']
 
 /** Campos obrigatórios do arquivo-container de uma coleção em tabela. */
-export const CONTAINER_REQUIRED_FIELDS: readonly string[] = [
-  'title',
-  'owner',
-  'trigger',
-  'last-reviewed',
-];
+export const CONTAINER_REQUIRED_FIELDS: readonly string[] = ['title', 'owner', 'trigger', 'last-reviewed']
 
 /** Allowlist padrão de mutação de item congelado (spec §2 e §7). */
-export const MUTABLE_FIELDS_DEFAULT: readonly string[] = ['status', 'superseded-by', 'last-reviewed'];
+export const MUTABLE_FIELDS_DEFAULT: readonly string[] = ['status', 'superseded-by', 'last-reviewed']
 
 /** Máquina de estados por prefixo (spec §4). Prefixos das fases 2+ vêm de `states` no .ownership.yml. */
 export const STATUS_MACHINE: Readonly<Record<string, readonly string[]>> = Object.freeze({
@@ -30,17 +18,10 @@ export const STATUS_MACHINE: Readonly<Record<string, readonly string[]>> = Objec
   RNF: ['draft', 'active', 'revoked'],
   RN: ['draft', 'active', 'revoked'],
   REL: ['draft', 'published'],
-});
+})
 
 /** "Nenhum estado terminal permite edição do corpo" (spec §4). */
-export const FROZEN_STATUSES: ReadonlySet<string> = new Set([
-  'accepted',
-  'superseded',
-  'deprecated',
-  'published',
-  'paid',
-  'revoked',
-]);
+export const FROZEN_STATUSES: ReadonlySet<string> = new Set(['accepted', 'superseded', 'deprecated', 'published', 'paid', 'revoked'])
 
 /** "Nenhum agente promove estado sozinho" (spec §4); é o gatilho de HK-3. */
 export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.freeze([
@@ -49,11 +30,14 @@ export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.
   { from: 'draft', to: 'active' },
   { from: 'active', to: 'revoked' },
   { from: 'draft', to: 'published' },
-]);
+])
 
 export function statesFor(rule: ArtifactRule): readonly string[] | null {
-  if (rule.states !== null) return rule.states;
-  return STATUS_MACHINE[rule.idPrefix] ?? null;
+  if (rule.states !== null) {
+    return rule.states
+  }
+
+  return STATUS_MACHINE[rule.idPrefix] ?? null
 }
 
 /**
@@ -78,24 +62,33 @@ const CADENCE_PATTERNS: readonly RegExp[] = [
   /\bevery\s+\w+/i,
   /\bsprint\b/i,
   /\btod[oa]\s+(?:m[êe]s|ano|semana|sprint)\b/i,
-];
+]
 
 /** Devolve o trecho que caracteriza cadência, ou null. */
 export function findCadence(trigger: string): string | null {
   for (const pattern of CADENCE_PATTERNS) {
-    const match = pattern.exec(trigger);
-    if (match) return match[0];
+    const match = pattern.exec(trigger)
+
+    if (match) {
+      return match[0]
+    }
   }
-  return null;
+
+  return null
 }
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
 export function isIsoDate(value: unknown): boolean {
-  if (value instanceof Date) return !Number.isNaN(value.getTime());
-  if (typeof value !== 'string' || !ISO_DATE.test(value)) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  if (value instanceof Date) {
+    return !Number.isNaN(value.getTime())
+  }
+  if (typeof value !== 'string' || !ISO_DATE.test(value)) {
+    return false
+  }
+  const date = new Date(`${value}T00:00:00Z`)
+
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
 }
 
 /**
@@ -107,25 +100,25 @@ export function isIsoDate(value: unknown): boolean {
  * IDs já se escrevem de outro jeito sem reescrever um arquivo dele.
  */
 export interface IdFormat {
-  separator: string;
-  padding: number;
+  separator: string
+  padding: number
 }
 
-export const DEFAULT_ID_FORMAT: IdFormat = Object.freeze({ separator: '-', padding: 4 });
+export const DEFAULT_ID_FORMAT: IdFormat = Object.freeze({ separator: '-', padding: 4 })
 
 /**
  * Vocabulário fechado (`ADR-0011`). Separador arbitrário viraria um padrão de
  * expressão regular vindo de configuração — superfície que este toolkit recusa.
  */
-export const SEPARATORS_ALLOWED: readonly string[] = Object.freeze(['-', '_', '.', ':', '']);
+export const SEPARATORS_ALLOWED: readonly string[] = Object.freeze(['-', '_', '.', ':', ''])
 
-export const PADDING_RANGE = Object.freeze({ min: 2, max: 6 });
+export const PADDING_RANGE = Object.freeze({ min: 2, max: 6 })
 
 /** Padding da chave canônica. Interno, nunca exibido, nunca configurável. */
-const CANONICAL_PADDING = 4;
+const CANONICAL_PADDING = 4
 
 function escapeForRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 /**
@@ -136,23 +129,27 @@ function escapeForRegExp(value: string): string {
  * 4 dígitos, que é exatamente o que o toolkit lê desde a Fase 0.
  */
 export function digitRange(format: IdFormat): { min: number; max: number } {
-  return { min: Math.max(1, format.padding - 1), max: format.padding };
+  return { min: Math.max(1, format.padding - 1), max: format.padding }
 }
 
 /** O corpo do padrão de um ID: grupo 1 é o prefixo, grupo 2 é o número. */
 export function idPatternSource(format: IdFormat = DEFAULT_ID_FORMAT): string {
-  const { min, max } = digitRange(format);
-  return `([A-Z]{2,4})${escapeForRegExp(format.separator)}(\\d{${min},${max}})`;
+  const { min, max } = digitRange(format)
+
+  return `([A-Z]{2,4})${escapeForRegExp(format.separator)}(\\d{${min},${max}})`
 }
 
-export function parseId(
-  value: unknown,
-  format: IdFormat = DEFAULT_ID_FORMAT,
-): { prefix: string; number: number } | null {
-  if (typeof value !== 'string') return null;
-  const match = new RegExp(`^${idPatternSource(format)}$`).exec(value.trim());
-  if (!match?.[1] || !match[2]) return null;
-  return { prefix: match[1], number: Number.parseInt(match[2], 10) };
+export function parseId(value: unknown, format: IdFormat = DEFAULT_ID_FORMAT): { prefix: string; number: number } | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+  const match = new RegExp(`^${idPatternSource(format)}$`).exec(value.trim())
+
+  if (!match?.[1] || !match[2]) {
+    return null
+  }
+
+  return { prefix: match[1], number: Number.parseInt(match[2], 10) }
 }
 
 /**
@@ -162,7 +159,7 @@ export function parseId(
  * sem canonizar, repadding burlaria "ID nunca é reciclado" (spec §2).
  */
 export function canonicalId(parsed: { prefix: string; number: number }): string {
-  return `${parsed.prefix}-${String(parsed.number).padStart(CANONICAL_PADDING, '0')}`;
+  return `${parsed.prefix}-${String(parsed.number).padStart(CANONICAL_PADDING, '0')}`
 }
 
 /**
@@ -171,5 +168,5 @@ export function canonicalId(parsed: { prefix: string; number: number }): string 
  * projeto que declarar outra forma.
  */
 export function writeId(prefix: string, number: number, format: IdFormat = DEFAULT_ID_FORMAT): string {
-  return `${prefix}${format.separator}${String(number).padStart(format.padding, '0')}`;
+  return `${prefix}${format.separator}${String(number).padStart(format.padding, '0')}`
 }

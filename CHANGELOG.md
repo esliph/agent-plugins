@@ -161,4 +161,3 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   congelado na forma do estágio anterior, e os documentos recém-instalados
   nasciam sem quem os revise — o que `CI-7` agora reprova. Linha que já está lá
   não é reescrita.
-

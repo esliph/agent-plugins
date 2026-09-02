@@ -1,19 +1,20 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { decideHk7, shortcutsWithoutDebt } from '../../src/hooks/hk7-shortcut-debt.ts';
-import { withTempRepo } from '../helpers/tmp.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { writeFileSync, mkdirSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { decideHk7, shortcutsWithoutDebt } from '../../src/hooks/hk7-shortcut-debt.ts'
+import { withTempRepo } from '../helpers/tmp.ts'
 
 function seed(root: string, relative: string, content: string): void {
-  const absolute = join(root, relative);
-  mkdirSync(dirname(absolute), { recursive: true });
-  writeFileSync(absolute, content, 'utf8');
+  const absolute = join(root, relative)
+
+  mkdirSync(dirname(absolute), { recursive: true })
+  writeFileSync(absolute, content, 'utf8')
 }
 
 test('RN-0014: marcador novo sem TDR por perto vira lembrete', () => {
-  withTempRepo({}, (root) => {
-    seed(root, 'src/cobranca.ts', 'export const taxa = 0.05;\n');
+  withTempRepo({}, root => {
+    seed(root, 'src/cobranca.ts', 'export const taxa = 0.05;\n')
 
     const decision = decideHk7(
       {
@@ -25,19 +26,19 @@ test('RN-0014: marcador novo sem TDR por perto vira lembrete', () => {
         },
       },
       { root, hostRoots: [root] },
-    );
+    )
 
-    assert.equal(decision.action, 'remind');
-    assert.match(decision.action === 'remind' ? decision.context : '', /HK-7/);
-    assert.match(decision.action === 'remind' ? decision.context : '', /TODO: a taxa/);
-    assert.match(decision.action === 'remind' ? decision.context : '', /\/debt/);
-    assert.doesNotMatch(decision.action === 'remind' ? decision.context : '', /deny|bloque/i);
-  });
-});
+    assert.equal(decision.action, 'remind')
+    assert.match(decision.action === 'remind' ? decision.context : '', /HK-7/)
+    assert.match(decision.action === 'remind' ? decision.context : '', /TODO: a taxa/)
+    assert.match(decision.action === 'remind' ? decision.context : '', /\/debt/)
+    assert.doesNotMatch(decision.action === 'remind' ? decision.context : '', /deny|bloque/i)
+  })
+})
 
 test('RN-0014: marcador com TDR a duas linhas de distância é silêncio', () => {
-  withTempRepo({}, (root) => {
-    seed(root, 'src/cobranca.ts', 'export const taxa = 0.05;\n');
+  withTempRepo({}, root => {
+    seed(root, 'src/cobranca.ts', 'export const taxa = 0.05;\n')
 
     const decision = decideHk7(
       {
@@ -45,20 +46,19 @@ test('RN-0014: marcador com TDR a duas linhas de distância é silêncio', () =>
         tool_input: {
           file_path: 'src/cobranca.ts',
           old_string: 'export const taxa = 0.05;',
-          new_string:
-            '// Atalho registrado em TDR-0002.\n//\n// TODO: ler da configuração\nexport const taxa = 0.05;',
+          new_string: '// Atalho registrado em TDR-0002.\n//\n// TODO: ler da configuração\nexport const taxa = 0.05;',
         },
       },
       { root, hostRoots: [root] },
-    );
+    )
 
-    assert.equal(decision.action, 'silent');
-  });
-});
+    assert.equal(decision.action, 'silent')
+  })
+})
 
 test('RN-0014: marcador que já existia não é atalho novo', () => {
-  withTempRepo({}, (root) => {
-    seed(root, 'src/cobranca.ts', '// TODO: antigo\nexport const taxa = 0.05;\n');
+  withTempRepo({}, root => {
+    seed(root, 'src/cobranca.ts', '// TODO: antigo\nexport const taxa = 0.05;\n')
 
     const decision = decideHk7(
       {
@@ -70,15 +70,15 @@ test('RN-0014: marcador que já existia não é atalho novo', () => {
         },
       },
       { root, hostRoots: [root] },
-    );
+    )
 
-    assert.equal(decision.action, 'silent');
-  });
-});
+    assert.equal(decision.action, 'silent')
+  })
+})
 
 test('RN-0014: supressão de tipo e teste ignorado também contam', () => {
-  withTempRepo({}, (root) => {
-    seed(root, 'src/cobranca.ts', 'const x = 1;\n');
+  withTempRepo({}, root => {
+    seed(root, 'src/cobranca.ts', 'const x = 1;\n')
 
     const decision = decideHk7(
       {
@@ -89,23 +89,19 @@ test('RN-0014: supressão de tipo e teste ignorado também contam', () => {
         },
       },
       { root, hostRoots: [root] },
-    );
+    )
 
-    assert.equal(decision.action, 'remind');
-  });
+    assert.equal(decision.action, 'remind')
+  })
 
-  assert.deepEqual(shortcutsWithoutDebt('test.skip("cobra taxa", () => {});'), [
-    'test.skip("cobra taxa", () => {});',
-  ]);
-  assert.deepEqual(shortcutsWithoutDebt('// eslint-disable-next-line no-console'), [
-    '// eslint-disable-next-line no-console',
-  ]);
-  assert.deepEqual(shortcutsWithoutDebt('const x = 1; // TODO_LIST não é marcador'), []);
-});
+  assert.deepEqual(shortcutsWithoutDebt('test.skip("cobra taxa", () => {});'), ['test.skip("cobra taxa", () => {});'])
+  assert.deepEqual(shortcutsWithoutDebt('// eslint-disable-next-line no-console'), ['// eslint-disable-next-line no-console'])
+  assert.deepEqual(shortcutsWithoutDebt('const x = 1; // TODO_LIST não é marcador'), [])
+})
 
 test('RN-0014: arquivo Markdown é ignorado — ali TODO é prosa sobre o marcador', () => {
-  withTempRepo({}, (root) => {
-    seed(root, 'docs/requirements/rules.md', '# regras\n');
+  withTempRepo({}, root => {
+    seed(root, 'docs/requirements/rules.md', '# regras\n')
 
     const decision = decideHk7(
       {
@@ -117,24 +113,18 @@ test('RN-0014: arquivo Markdown é ignorado — ali TODO é prosa sobre o marcad
         },
       },
       { root, hostRoots: [root] },
-    );
+    )
 
-    assert.equal(decision.action, 'silent');
-  });
-});
+    assert.equal(decision.action, 'silent')
+  })
+})
 
 test('RNF-0001: arquivo fora do repositório e edição imprevisível são silêncio', () => {
-  withTempRepo({}, (root) => {
-    const env = { root, hostRoots: [root] };
+  withTempRepo({}, root => {
+    const env = { root, hostRoots: [root] }
 
-    assert.equal(
-      decideHk7({ tool_name: 'Edit', tool_input: { file_path: '/fora/x.ts', content: '// TODO: x' } }, env).action,
-      'silent',
-    );
-    assert.equal(
-      decideHk7({ tool_name: 'Edit', tool_input: { file_path: 'src/x.ts', old_string: 'nada-disso' } }, env).action,
-      'silent',
-    );
-    assert.equal(decideHk7({ tool_name: 'Edit' }, env).action, 'silent');
-  });
-});
+    assert.equal(decideHk7({ tool_name: 'Edit', tool_input: { file_path: '/fora/x.ts', content: '// TODO: x' } }, env).action, 'silent')
+    assert.equal(decideHk7({ tool_name: 'Edit', tool_input: { file_path: 'src/x.ts', old_string: 'nada-disso' } }, env).action, 'silent')
+    assert.equal(decideHk7({ tool_name: 'Edit' }, env).action, 'silent')
+  })
+})

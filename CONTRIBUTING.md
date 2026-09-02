@@ -2,8 +2,8 @@
 title: Como se contribui aqui
 owner: '@esliph/engineering'
 trigger: >
-    Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
-    errou por falta de contexto que caberia nesta página.
+  Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
+  errou por falta de contexto que caberia nesta página.
 last-reviewed: 2026-08-27
 ---
 
@@ -97,4 +97,3 @@ Mensagem de commit em português, no formato `tipo(ID): assunto`.
 Isso não é acidente, é sintoma: falta uma linha em algum documento. A correção é
 acrescentar essa linha — em `CLAUDE.md` se for política ou índice, no artefato
 dono se for regra. A skill `working-agreements-keeper` é dona desse loop.
-

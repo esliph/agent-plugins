@@ -1,13 +1,13 @@
-import type { Check, CheckContext, Finding } from '../core/types.ts';
-import type { DiffFacts } from './ci6-changelog-required.ts';
-import type { FileEdit } from '../git/diff.ts';
-import type { ArtifactDoc } from '../docs/collect.ts';
-import { findArtifactRule } from '../config/ownership.ts';
-import { canonicalId, parseId } from '../docs/schema.ts';
-import type { IdFormat } from '../docs/schema.ts';
-import { findCitations } from '../ids/citations.ts';
+import type { Check, CheckContext, Finding } from '../core/types.ts'
+import type { DiffFacts } from './ci6-changelog-required.ts'
+import type { FileEdit } from '../git/diff.ts'
+import type { ArtifactDoc } from '../docs/collect.ts'
+import { findArtifactRule } from '../config/ownership.ts'
+import { canonicalId, parseId } from '../docs/schema.ts'
+import type { IdFormat } from '../docs/schema.ts'
+import { findCitations } from '../ids/citations.ts'
 
-const RULE = 'CI-9';
+const RULE = 'CI-9'
 
 /**
  * O diff com as linhas, e não só os caminhos. É o fato a mais que `CI-9` pede e
@@ -16,19 +16,14 @@ const RULE = 'CI-9';
  * check que se cala sem dizer que se calou.
  */
 export interface CommitFacts extends DiffFacts {
-  edits: readonly FileEdit[];
+  edits: readonly FileEdit[]
 }
 
-const LAST_REVIEWED = /^\s*last-reviewed\s*:/i;
+const LAST_REVIEWED = /^\s*last-reviewed\s*:/i
 
 /** A edição mexeu na data de revisão e em mais nada (`RN-0027`). */
 export function isPureDateBump(edit: FileEdit): boolean {
-  return (
-    edit.added.length === 1 &&
-    edit.removed.length === 1 &&
-    LAST_REVIEWED.test(edit.added[0] ?? '') &&
-    LAST_REVIEWED.test(edit.removed[0] ?? '')
-  );
+  return edit.added.length === 1 && edit.removed.length === 1 && LAST_REVIEWED.test(edit.added[0] ?? '') && LAST_REVIEWED.test(edit.removed[0] ?? '')
 }
 
 /**
@@ -36,23 +31,27 @@ export function isPureDateBump(edit: FileEdit): boolean {
  * individual declara um no frontmatter; coleção declara um por item.
  */
 export function declaredIds(doc: ArtifactDoc, format: IdFormat): string[] {
-  const raw: unknown[] =
-    doc.rule.collection === 'per-file' ? [doc.frontmatter?.data?.id] : doc.items.map((item) => item.id);
+  const raw: unknown[] = doc.rule.collection === 'per-file' ? [doc.frontmatter?.data?.id] : doc.items.map(item => item.id)
 
-  const ids: string[] = [];
+  const ids: string[] = []
+
   for (const value of raw) {
-    const parsed = parseId(value, format);
-    if (parsed !== null) ids.push(canonicalId(parsed));
+    const parsed = parseId(value, format)
+
+    if (parsed !== null) {
+      ids.push(canonicalId(parsed))
+    }
   }
-  return ids;
+
+  return ids
 }
 
 function normalizePath(path: string): string {
-  return path.replace(/\\/g, '/').replace(/^\.\//, '');
+  return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 function error(file: string, message: string, fix: string): Finding {
-  return { ruleId: RULE, file, line: 0, severity: 'error', message, fix };
+  return { ruleId: RULE, file, line: 0, severity: 'error', message, fix }
 }
 
 /**
@@ -73,16 +72,20 @@ export function ci9CommitDiscipline(facts: CommitFacts | null): Check {
     id: RULE,
     name: 'commit discipline',
     run(context: CheckContext): Finding[] {
-      if (facts === null) return [];
-      const findings: Finding[] = [];
-      const { config } = context;
+      if (facts === null) {
+        return []
+      }
+      const findings: Finding[] = []
+      const { config } = context
 
       // 1 — bump em massa de `last-reviewed` (`RN-0027`).
       // Sem rótulo de exceção, de propósito: o rótulo seria a caixinha marcada
       // que o anti-requisito da spec §13 descreve (`ADR-0013`).
-      const bumps = facts.edits.filter(isPureDateBump).map((edit) => normalizePath(edit.path));
+      const bumps = facts.edits.filter(isPureDateBump).map(edit => normalizePath(edit.path))
+
       if (bumps.length >= config.lastReviewedBumpLimit) {
-        const lista = bumps.slice(0, 5).join(', ') + (bumps.length > 5 ? `, … (+${bumps.length - 5})` : '');
+        const lista = bumps.slice(0, 5).join(', ') + (bumps.length > 5 ? `, … (+${bumps.length - 5})` : '')
+
         findings.push(
           error(
             bumps[0] ?? '',
@@ -92,41 +95,55 @@ export function ci9CommitDiscipline(facts: CommitFacts | null): Check {
               'sendo desligado enquanto se finge cumpri-lo. Reverta a data dos que não foram revisados, ou revise-os ' +
               '(`RN-0027`, `ADR-0013`; o limiar é `last-reviewed-bump-limit` no `.ownership.yml`).',
           ),
-        );
+        )
       }
 
       // 2 — commit que altera artefato sem citar o ID afetado (`RN-0028`).
-      const citados = new Set<string>();
+      const citados = new Set<string>()
+
       for (const message of facts.messages) {
         for (const citation of findCitations(message, config.idFormat)) {
-          const parsed = parseId(citation.id, config.idFormat);
-          if (parsed !== null) citados.add(canonicalId(parsed));
+          const parsed = parseId(citation.id, config.idFormat)
+
+          if (parsed !== null) {
+            citados.add(canonicalId(parsed))
+          }
         }
       }
 
       for (const path of facts.changed.map(normalizePath)) {
-        if (findArtifactRule(config, path) === null) continue;
-        const doc = context.docs.find((candidate) => candidate.file === path);
-        if (doc === undefined) continue; // apagado no diff: não há ID a citar
+        if (findArtifactRule(config, path) === null) {
+          continue
+        }
+        const doc = context.docs.find(candidate => candidate.file === path)
 
-        const ids = declaredIds(doc, config.idFormat);
-        if (ids.length === 0) continue; // arquivo de artefato sem item: nada a citar
-        if (ids.some((id) => citados.has(id))) continue;
+        if (doc === undefined) {
+          continue
+        } // apagado no diff: não há ID a citar
 
-        const lista = ids.slice(0, 5).join(', ') + (ids.length > 5 ? `, … (+${ids.length - 5})` : '');
+        const ids = declaredIds(doc, config.idFormat)
+
+        if (ids.length === 0) {
+          continue
+        } // arquivo de artefato sem item: nada a citar
+        if (ids.some(id => citados.has(id))) {
+          continue
+        }
+
+        const lista = ids.slice(0, 5).join(', ') + (ids.length > 5 ? `, … (+${ids.length - 5})` : '')
+
         findings.push(
           error(
             path,
-            `O diff \`${facts.base}...HEAD\` altera \`${path}\` e nenhuma mensagem de commit cita um dos IDs ` +
-              `declarados nele (${lista}).`,
+            `O diff \`${facts.base}...HEAD\` altera \`${path}\` e nenhuma mensagem de commit cita um dos IDs ` + `declarados nele (${lista}).`,
             'Cite o ID afetado na mensagem de commit — o formato deste projeto está em `CONTRIBUTING.md`. É a ' +
               'citação que torna o `git log` navegável por regra: sem ela o histórico responde "o que mudou" e ' +
               `nunca "por causa de qual regra" (\`RN-0028\`; skill dona: ${doc.rule.skill}).`,
           ),
-        );
+        )
       }
 
-      return findings;
+      return findings
     },
-  };
+  }
 }

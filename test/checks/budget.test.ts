@@ -1,55 +1,60 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { CHECK_BUDGET_MS, formatElapsed } from '../../src/checks/budget.ts';
-import { runValidate } from '../../src/cli/validate.ts';
-import { runDrift } from '../../src/cli/drift.ts';
-import { runChangelog } from '../../src/cli/changelog.ts';
-import { toolkitRoot } from '../../src/core/roots.ts';
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { CHECK_BUDGET_MS, formatElapsed } from '../../src/checks/budget.ts'
+import { runValidate } from '../../src/cli/validate.ts'
+import { runDrift } from '../../src/cli/drift.ts'
+import { runChangelog } from '../../src/cli/changelog.ts'
+import { toolkitRoot } from '../../src/core/roots.ts'
 
-const NUL = String.fromCharCode(0);
+const NUL = String.fromCharCode(0)
 
 /** O git falso deste teste: o custo medido e o dos checks, nao o do git. */
 const git = (args: readonly string[]): string => {
-  if (args.includes('log')) return `docs(RN-0001): x${NUL}\n`;
-  if (args.includes('--unified=0')) return '';
-  return `src/cli/index.ts${NUL}CHANGELOG.md${NUL}`;
-};
+  if (args.includes('log')) {
+    return `docs(RN-0001): x${NUL}\n`
+  }
+  if (args.includes('--unified=0')) {
+    return ''
+  }
+
+  return `src/cli/index.ts${NUL}CHANGELOG.md${NUL}`
+}
 
 test('RNF-0005: o conjunto completo de checks cabe no teto declarado, medido', () => {
-  const root = toolkitRoot();
-  const inicio = process.hrtime.bigint();
+  const root = toolkitRoot()
+  const inicio = process.hrtime.bigint()
 
   // O conjunto e o que roda no PR: as duas execucoes de `validate`, o `drift`
   // com o gerador de verdade, e o `changelog`. Nao e o tempo de um check.
-  runValidate(root);
-  runValidate(root, 'origin/master', git);
-  runDrift(root);
-  runChangelog(root, 'origin/master', git);
+  runValidate(root)
+  runValidate(root, 'origin/master', git)
+  runDrift(root)
+  runChangelog(root, 'origin/master', git)
 
-  const decorrido = Number(process.hrtime.bigint() - inicio) / 1e6;
+  const decorrido = Number(process.hrtime.bigint() - inicio) / 1e6
 
   assert.ok(
     decorrido < CHECK_BUDGET_MS,
-    `o conjunto levou ${formatElapsed(decorrido)}, e o teto declarado e ${formatElapsed(CHECK_BUDGET_MS)} ` +
-      '(RNF-0005) — meça antes de subir o teto',
-  );
-});
+    `o conjunto levou ${formatElapsed(decorrido)}, e o teto declarado e ${formatElapsed(CHECK_BUDGET_MS)} ` + '(RNF-0005) — meça antes de subir o teto',
+  )
+})
 
 test('RNF-0005: cada comando devolve o que mediu, e a medida nao e estimada', () => {
-  const root = toolkitRoot();
+  const root = toolkitRoot()
 
-  const validado = runValidate(root);
-  assert.equal(typeof validado.elapsedMs, 'number');
-  assert.ok(validado.elapsedMs >= 0);
+  const validado = runValidate(root)
+
+  assert.equal(typeof validado.elapsedMs, 'number')
+  assert.ok(validado.elapsedMs >= 0)
   // Uma varredura da arvore inteira nao custa zero: medida zerada e medida
   // que ninguem tomou.
-  assert.ok(validado.elapsedMs > 0, 'elapsedMs veio zerado — o relogio nao foi lido');
+  assert.ok(validado.elapsedMs > 0, 'elapsedMs veio zerado — o relogio nao foi lido')
 
-  assert.equal(typeof runDrift(root).elapsedMs, 'number');
-});
+  assert.equal(typeof runDrift(root).elapsedMs, 'number')
+})
 
 test('RNF-0005: formatElapsed e legivel por quem le o log do PR', () => {
-  assert.equal(formatElapsed(842), '842 ms');
-  assert.equal(formatElapsed(1500), '1.5 s');
-  assert.equal(formatElapsed(120_000), '120.0 s');
-});
+  assert.equal(formatElapsed(842), '842 ms')
+  assert.equal(formatElapsed(1500), '1.5 s')
+  assert.equal(formatElapsed(120_000), '120.0 s')
+})

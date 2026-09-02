@@ -198,7 +198,7 @@ title: De onde CI-6 tira o diff, o que conta como rótulo de exceção, e onde e
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-    Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-08-26
 relates-to: [RF-0008, RN-0013]
 supersedes: null
@@ -469,11 +469,11 @@ relação a `src/git/staged.ts`: erro sobe, não vira lista vazia.
 - Consome: `GitRunner` de `src/git/staged.ts` — o mesmo tipo, duas políticas.
   `export type GitRunner = (args: readonly string[], cwd: string) => string`.
 - Produz:
-    - `changedPaths(root: string, base: string, run?: GitRunner): string[]`
-    - `commitMessages(root: string, base: string, run?: GitRunner): string[]`
-    - `class GitError extends Error`
-    - `const TIMEOUT_MS: number`
-    - `const runGitDiff: GitRunner`
+  - `changedPaths(root: string, base: string, run?: GitRunner): string[]`
+  - `commitMessages(root: string, base: string, run?: GitRunner): string[]`
+  - `class GitError extends Error`
+  - `const TIMEOUT_MS: number`
+  - `const runGitDiff: GitRunner`
 
 **Requisitos:**
 
@@ -496,93 +496,67 @@ const NUL = String.fromCharCode(0)
 
 /** Runner falso: grava os argumentos recebidos e devolve a saída combinada. */
 function fake(output: string): {
-    run: (args: readonly string[], cwd: string) => string
-    calls: string[][]
+  run: (args: readonly string[], cwd: string) => string
+  calls: string[][]
 } {
-    const calls: string[][] = []
-    return {
-        calls,
-        run: args => {
-            calls.push([...args])
-            return output
-        }
-    }
+  const calls: string[][] = []
+  return {
+    calls,
+    run: args => {
+      calls.push([...args])
+      return output
+    },
+  }
 }
 
 test('ADR-0006: changedPaths usa três pontos, -z e safe.directory', () => {
-    const git = fake(`src/cli/index.ts${NUL}CHANGELOG.md${NUL}`)
-    const paths = changedPaths('/workspace', 'origin/master', git.run)
+  const git = fake(`src/cli/index.ts${NUL}CHANGELOG.md${NUL}`)
+  const paths = changedPaths('/workspace', 'origin/master', git.run)
 
-    assert.deepEqual(paths, ['src/cli/index.ts', 'CHANGELOG.md'])
-    assert.deepEqual(git.calls[0], [
-        '-c',
-        'safe.directory=*',
-        'diff',
-        '--name-only',
-        '-z',
-        'origin/master...HEAD'
-    ])
+  assert.deepEqual(paths, ['src/cli/index.ts', 'CHANGELOG.md'])
+  assert.deepEqual(git.calls[0], ['-c', 'safe.directory=*', 'diff', '--name-only', '-z', 'origin/master...HEAD'])
 })
 
 test('ADR-0006: caminho com acento volta inteiro, sem aspas nem escape', () => {
-    const git = fake(`docs/decisões.md${NUL}`)
-    assert.deepEqual(changedPaths('/workspace', 'base', git.run), [
-        'docs/decisões.md'
-    ])
+  const git = fake(`docs/decisões.md${NUL}`)
+  assert.deepEqual(changedPaths('/workspace', 'base', git.run), ['docs/decisões.md'])
 })
 
 test('changedPaths normaliza a barra e descarta entrada vazia', () => {
-    const git = fake(`src\\cli\\index.ts${NUL}${NUL}`)
-    assert.deepEqual(changedPaths('/workspace', 'base', git.run), [
-        'src/cli/index.ts'
-    ])
+  const git = fake(`src\\cli\\index.ts${NUL}${NUL}`)
+  assert.deepEqual(changedPaths('/workspace', 'base', git.run), ['src/cli/index.ts'])
 })
 
 test('ADR-0006: commitMessages usa dois pontos e separa por NUL', () => {
-    const git = fake(
-        `feat: um${NUL}\nfix: dois\n\nChangelog: none — razão${NUL}\n`
-    )
-    const messages = commitMessages('/workspace', 'origin/master', git.run)
+  const git = fake(`feat: um${NUL}\nfix: dois\n\nChangelog: none — razão${NUL}\n`)
+  const messages = commitMessages('/workspace', 'origin/master', git.run)
 
-    assert.deepEqual(messages, [
-        'feat: um',
-        'fix: dois\n\nChangelog: none — razão'
-    ])
-    assert.deepEqual(git.calls[0], [
-        '-c',
-        'safe.directory=*',
-        'log',
-        '--format=%B%x00',
-        'origin/master..HEAD'
-    ])
+  assert.deepEqual(messages, ['feat: um', 'fix: dois\n\nChangelog: none — razão'])
+  assert.deepEqual(git.calls[0], ['-c', 'safe.directory=*', 'log', '--format=%B%x00', 'origin/master..HEAD'])
 })
 
 test('ADR-0006: erro de git vira GitError — este módulo não falha aberta', () => {
-    const run = () => {
-        const err = new Error('Command failed') as Error & { stderr: string }
-        err.stderr = "fatal: bad revision 'origem/nao-existe'\n"
-        throw err
-    }
+  const run = () => {
+    const err = new Error('Command failed') as Error & { stderr: string }
+    err.stderr = "fatal: bad revision 'origem/nao-existe'\n"
+    throw err
+  }
 
-    assert.throws(
-        () => changedPaths('/workspace', 'origem/nao-existe', run),
-        (err: unknown) =>
-            err instanceof GitError &&
-            /bad revision/.test((err as Error).message)
-    )
-    assert.throws(() => commitMessages('/workspace', 'x', run), GitError)
+  assert.throws(
+    () => changedPaths('/workspace', 'origem/nao-existe', run),
+    (err: unknown) => err instanceof GitError && /bad revision/.test((err as Error).message),
+  )
+  assert.throws(() => commitMessages('/workspace', 'x', run), GitError)
 })
 
 test('GitError nomeia o comando que falhou, não só a causa', () => {
-    const run = () => {
-        throw new Error('spawn git ENOENT')
-    }
-    assert.throws(
-        () => changedPaths('/workspace', 'base', run),
-        (err: unknown) =>
-            err instanceof GitError &&
-            /git diff base\.\.\.HEAD/.test((err as Error).message)
-    )
+  const run = () => {
+    throw new Error('spawn git ENOENT')
+  }
+  assert.throws(
+    () => changedPaths('/workspace', 'base', run),
+    (err: unknown) => err instanceof GitError && /git diff base\.\.\.HEAD/.test((err as Error).message),
+  )
 })
 ```
 
@@ -608,31 +582,29 @@ export const TIMEOUT_MS = 10_000
 
 /** Falha de git que o chamador precisa ver. Não existe atalho para "não sei". */
 export class GitError extends Error {
-    constructor(message: string) {
-        super(message)
-        this.name = 'GitError'
-    }
+  constructor(message: string) {
+    super(message)
+    this.name = 'GitError'
+  }
 }
 
 const NUL = String.fromCharCode(0)
 
 export const runGitDiff: GitRunner = (args, cwd) =>
-    execFileSync('git', [...args], {
-        cwd,
-        encoding: 'utf8',
-        timeout: TIMEOUT_MS,
-        maxBuffer: 16 * 1024 * 1024,
-        // stderr capturado, não herdado: ele vira a mensagem do GitError.
-        stdio: ['ignore', 'pipe', 'pipe']
-    })
+  execFileSync('git', [...args], {
+    cwd,
+    encoding: 'utf8',
+    timeout: TIMEOUT_MS,
+    maxBuffer: 16 * 1024 * 1024,
+    // stderr capturado, não herdado: ele vira a mensagem do GitError.
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
 
 /** A primeira linha útil do erro: stderr se houver, mensagem se não. */
 function reasonOf(err: unknown): string {
-    const stderr = (err as { stderr?: unknown }).stderr
-    const text =
-        String(stderr ?? '').trim() ||
-        (err instanceof Error ? err.message : String(err))
-    return text.split('\n')[0] ?? text
+  const stderr = (err as { stderr?: unknown }).stderr
+  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
+  return text.split('\n')[0] ?? text
 }
 
 /**
@@ -645,17 +617,12 @@ function reasonOf(err: unknown): string {
  * custa um contrato quebrado passando com a autoridade de um CI verde
  * (`ADR-0006`, decisão 3).
  */
-function git(
-    args: readonly string[],
-    root: string,
-    run: GitRunner,
-    what: string
-): string {
-    try {
-        return run(['-c', 'safe.directory=*', ...args], root)
-    } catch (err) {
-        throw new GitError(`${what} falhou: ${reasonOf(err)}`)
-    }
+function git(args: readonly string[], root: string, run: GitRunner, what: string): string {
+  try {
+    return run(['-c', 'safe.directory=*', ...args], root)
+  } catch (err) {
+    throw new GitError(`${what} falhou: ${reasonOf(err)}`)
+  }
 }
 
 /**
@@ -666,22 +633,13 @@ function git(
  * `-z` porque sem ele o git envolve em aspas e escapa caminho com acento, e
  * caminho escapado não casa com glob nenhum.
  */
-export function changedPaths(
-    root: string,
-    base: string,
-    run: GitRunner = runGitDiff
-): string[] {
-    const output = git(
-        ['diff', '--name-only', '-z', `${base}...HEAD`],
-        root,
-        run,
-        `git diff ${base}...HEAD`
-    )
+export function changedPaths(root: string, base: string, run: GitRunner = runGitDiff): string[] {
+  const output = git(['diff', '--name-only', '-z', `${base}...HEAD`], root, run, `git diff ${base}...HEAD`)
 
-    return output
-        .split(NUL)
-        .map(path => path.trim().replace(/\\/g, '/'))
-        .filter(path => path !== '')
+  return output
+    .split(NUL)
+    .map(path => path.trim().replace(/\\/g, '/'))
+    .filter(path => path !== '')
 }
 
 /**
@@ -692,22 +650,13 @@ export function changedPaths(
  * porque elas têm linhas em branco por dentro — o rótulo de exceção é um
  * trailer, e trailer mora depois de uma linha em branco.
  */
-export function commitMessages(
-    root: string,
-    base: string,
-    run: GitRunner = runGitDiff
-): string[] {
-    const output = git(
-        ['log', '--format=%B%x00', `${base}..HEAD`],
-        root,
-        run,
-        `git log ${base}..HEAD`
-    )
+export function commitMessages(root: string, base: string, run: GitRunner = runGitDiff): string[] {
+  const output = git(['log', '--format=%B%x00', `${base}..HEAD`], root, run, `git log ${base}..HEAD`)
 
-    return output
-        .split(NUL)
-        .map(message => message.trim())
-        .filter(message => message !== '')
+  return output
+    .split(NUL)
+    .map(message => message.trim())
+    .filter(message => message !== '')
 }
 ```
 
@@ -746,10 +695,10 @@ configuração e o arquivo, e devolve achados. Não fala com o git.
 - Consome: `Check`, `CheckContext`, `Finding` de `src/core/types.ts`;
   `OWNERSHIP_PATH` de `src/config/ownership.ts`; `picomatch`.
 - Produz:
-    - `interface DiffFacts { base: string; changed: readonly string[]; messages: readonly string[] }`
-    - `ci6ChangelogRequired(diff: DiffFacts): Check`
-    - `exceptionReason(messages: readonly string[]): string | null`
-    - `unreleasedEntries(source: string): string[]`
+  - `interface DiffFacts { base: string; changed: readonly string[]; messages: readonly string[] }`
+  - `ci6ChangelogRequired(diff: DiffFacts): Check`
+  - `exceptionReason(messages: readonly string[]): string | null`
+  - `unreleasedEntries(source: string): string[]`
 
 **Requisitos:**
 
@@ -773,11 +722,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import {
-    ci6ChangelogRequired,
-    exceptionReason,
-    unreleasedEntries
-} from '../../src/checks/ci6-changelog-required.ts'
+import { ci6ChangelogRequired, exceptionReason, unreleasedEntries } from '../../src/checks/ci6-changelog-required.ts'
 import { parseOwnership } from '../../src/config/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
@@ -817,178 +762,152 @@ const CHANGELOG_VAZIO = `# Changelog
 `
 
 function contextFor(root: string, ownership = OWNERSHIP) {
-    return { root, config: parseOwnership(ownership), docs: [] }
+  return { root, config: parseOwnership(ownership), docs: [] }
 }
 
 function seedChangelog(root: string, content: string): void {
-    mkdirSync(root, { recursive: true })
-    writeFileSync(join(root, 'CHANGELOG.md'), content, 'utf8')
+  mkdirSync(root, { recursive: true })
+  writeFileSync(join(root, 'CHANGELOG.md'), content, 'utf8')
 }
 
 test('RN-0013: a entrada precisa viajar no mesmo diff, não só existir no arquivo', () => {
-    withTempRepo({}, root => {
-        // O arquivo TEM entrada, mas o diff não o toca: é a entrada de um PR
-        // anterior satisfazendo este. É exatamente o que a decisão 6 recusa.
-        seedChangelog(root, CHANGELOG_COM_ENTRADA)
-        const findings = ci6ChangelogRequired({
-            base: 'origin/master',
-            changed: ['src/api/pedidos.ts'],
-            messages: ['feat: total em centavos']
-        }).run(contextFor(root))
+  withTempRepo({}, root => {
+    // O arquivo TEM entrada, mas o diff não o toca: é a entrada de um PR
+    // anterior satisfazendo este. É exatamente o que a decisão 6 recusa.
+    seedChangelog(root, CHANGELOG_COM_ENTRADA)
+    const findings = ci6ChangelogRequired({
+      base: 'origin/master',
+      changed: ['src/api/pedidos.ts'],
+      messages: ['feat: total em centavos'],
+    }).run(contextFor(root))
 
-        assert.equal(findings.length, 1)
-        assert.equal(findings[0]?.ruleId, 'CI-6')
-        assert.equal(findings[0]?.severity, 'error')
-        assert.equal(findings[0]?.file, 'CHANGELOG.md')
-        assert.match(
-            findings[0]?.message ?? '',
-            /não está entre os caminhos alterados/
-        )
-        assert.match(findings[0]?.message ?? '', /src\/api\/pedidos\.ts/)
-        assert.match(findings[0]?.fix ?? '', /Changelog: none/)
-    })
+    assert.equal(findings.length, 1)
+    assert.equal(findings[0]?.ruleId, 'CI-6')
+    assert.equal(findings[0]?.severity, 'error')
+    assert.equal(findings[0]?.file, 'CHANGELOG.md')
+    assert.match(findings[0]?.message ?? '', /não está entre os caminhos alterados/)
+    assert.match(findings[0]?.message ?? '', /src\/api\/pedidos\.ts/)
+    assert.match(findings[0]?.fix ?? '', /Changelog: none/)
+  })
 })
 
 test('RN-0013: entrada no mesmo diff e Unreleased preenchido aprova', () => {
-    withTempRepo({}, root => {
-        seedChangelog(root, CHANGELOG_COM_ENTRADA)
-        const findings = ci6ChangelogRequired({
-            base: 'origin/master',
-            changed: ['src/api/pedidos.ts', 'CHANGELOG.md'],
-            messages: ['feat: total em centavos']
-        }).run(contextFor(root))
+  withTempRepo({}, root => {
+    seedChangelog(root, CHANGELOG_COM_ENTRADA)
+    const findings = ci6ChangelogRequired({
+      base: 'origin/master',
+      changed: ['src/api/pedidos.ts', 'CHANGELOG.md'],
+      messages: ['feat: total em centavos'],
+    }).run(contextFor(root))
 
-        assert.deepEqual(findings, [])
-    })
+    assert.deepEqual(findings, [])
+  })
 })
 
 test('RN-0013: CHANGELOG no diff com Unreleased vazio não conta', () => {
-    withTempRepo({}, root => {
-        seedChangelog(root, CHANGELOG_VAZIO)
-        const findings = ci6ChangelogRequired({
-            base: 'origin/master',
-            changed: ['src/api/pedidos.ts', 'CHANGELOG.md'],
-            messages: ['feat: total em centavos']
-        }).run(contextFor(root))
+  withTempRepo({}, root => {
+    seedChangelog(root, CHANGELOG_VAZIO)
+    const findings = ci6ChangelogRequired({
+      base: 'origin/master',
+      changed: ['src/api/pedidos.ts', 'CHANGELOG.md'],
+      messages: ['feat: total em centavos'],
+    }).run(contextFor(root))
 
-        assert.equal(findings.length, 1)
-        assert.match(findings[0]?.message ?? '', /\[Unreleased\]/)
-    })
+    assert.equal(findings.length, 1)
+    assert.match(findings[0]?.message ?? '', /\[Unreleased\]/)
+  })
 })
 
 test('ADR-0006: o rótulo com razão libera; sem razão, não', () => {
-    withTempRepo({}, root => {
-        seedChangelog(root, CHANGELOG_COM_ENTRADA)
-        const diff = { base: 'origin/master', changed: ['src/api/pedidos.ts'] }
+  withTempRepo({}, root => {
+    seedChangelog(root, CHANGELOG_COM_ENTRADA)
+    const diff = { base: 'origin/master', changed: ['src/api/pedidos.ts'] }
 
-        assert.deepEqual(
-            ci6ChangelogRequired({
-                ...diff,
-                messages: [
-                    'refactor: renomeia interno\n\nChangelog: none — nada muda para quem consome'
-                ]
-            }).run(contextFor(root)),
-            []
-        )
+    assert.deepEqual(
+      ci6ChangelogRequired({
+        ...diff,
+        messages: ['refactor: renomeia interno\n\nChangelog: none — nada muda para quem consome'],
+      }).run(contextFor(root)),
+      [],
+    )
 
-        const semRazao = ci6ChangelogRequired({
-            ...diff,
-            messages: ['refactor: renomeia interno\n\nChangelog: none']
-        }).run(contextFor(root))
-        assert.equal(
-            semRazao.length,
-            1,
-            'rótulo sem razão é caixinha marcada, não exceção'
-        )
-    })
+    const semRazao = ci6ChangelogRequired({
+      ...diff,
+      messages: ['refactor: renomeia interno\n\nChangelog: none'],
+    }).run(contextFor(root))
+    assert.equal(semRazao.length, 1, 'rótulo sem razão é caixinha marcada, não exceção')
+  })
 })
 
 test('caminho fora de consumer-visible-paths não dispara nada', () => {
-    withTempRepo({}, root => {
-        seedChangelog(root, CHANGELOG_COM_ENTRADA)
-        const findings = ci6ChangelogRequired({
-            base: 'origin/master',
-            changed: ['src/interno/cache.ts', 'test/interno/cache.test.ts'],
-            messages: ['refactor: cache']
-        }).run(contextFor(root))
+  withTempRepo({}, root => {
+    seedChangelog(root, CHANGELOG_COM_ENTRADA)
+    const findings = ci6ChangelogRequired({
+      base: 'origin/master',
+      changed: ['src/interno/cache.ts', 'test/interno/cache.test.ts'],
+      messages: ['refactor: cache'],
+    }).run(contextFor(root))
 
-        assert.deepEqual(findings, [])
-    })
+    assert.deepEqual(findings, [])
+  })
 })
 
 test('consumer-visible-paths vazio: o check não tem gatilho e se cala', () => {
-    withTempRepo({}, root => {
-        seedChangelog(root, CHANGELOG_COM_ENTRADA)
-        const semGatilho = OWNERSHIP.replace(
-            'consumer-visible-paths: ["src/api/**"]',
-            'consumer-visible-paths: []'
-        )
-        const findings = ci6ChangelogRequired({
-            base: 'origin/master',
-            changed: ['src/api/pedidos.ts'],
-            messages: ['feat: x']
-        }).run(contextFor(root, semGatilho))
+  withTempRepo({}, root => {
+    seedChangelog(root, CHANGELOG_COM_ENTRADA)
+    const semGatilho = OWNERSHIP.replace('consumer-visible-paths: ["src/api/**"]', 'consumer-visible-paths: []')
+    const findings = ci6ChangelogRequired({
+      base: 'origin/master',
+      changed: ['src/api/pedidos.ts'],
+      messages: ['feat: x'],
+    }).run(contextFor(root, semGatilho))
 
-        assert.deepEqual(findings, [])
-    })
+    assert.deepEqual(findings, [])
+  })
 })
 
 test('ADR-0006: gatilho declarado sem doc marcado consumer-visible é erro de configuração', () => {
-    withTempRepo({}, root => {
-        const semAlvo = OWNERSHIP.replace('    consumer-visible: true\n', '')
-        const findings = ci6ChangelogRequired({
-            base: 'origin/master',
-            changed: ['src/api/pedidos.ts'],
-            messages: ['feat: x']
-        }).run(contextFor(root, semAlvo))
+  withTempRepo({}, root => {
+    const semAlvo = OWNERSHIP.replace('    consumer-visible: true\n', '')
+    const findings = ci6ChangelogRequired({
+      base: 'origin/master',
+      changed: ['src/api/pedidos.ts'],
+      messages: ['feat: x'],
+    }).run(contextFor(root, semAlvo))
 
-        assert.equal(findings.length, 1)
-        assert.equal(findings[0]?.file, 'docs/.ownership.yml')
-        assert.match(findings[0]?.fix ?? '', /consumer-visible: true/)
-    })
+    assert.equal(findings.length, 1)
+    assert.equal(findings[0]?.file, 'docs/.ownership.yml')
+    assert.match(findings[0]?.fix ?? '', /consumer-visible: true/)
+  })
 })
 
 test('doc alvo declarado e ausente do repositório é achado, não silêncio', () => {
-    withTempRepo({}, root => {
-        const findings = ci6ChangelogRequired({
-            base: 'origin/master',
-            changed: ['src/api/pedidos.ts', 'CHANGELOG.md'],
-            messages: ['feat: x']
-        }).run(contextFor(root))
+  withTempRepo({}, root => {
+    const findings = ci6ChangelogRequired({
+      base: 'origin/master',
+      changed: ['src/api/pedidos.ts', 'CHANGELOG.md'],
+      messages: ['feat: x'],
+    }).run(contextFor(root))
 
-        assert.equal(findings.length, 1)
-        assert.match(findings[0]?.message ?? '', /ausente/)
-    })
+    assert.equal(findings.length, 1)
+    assert.match(findings[0]?.message ?? '', /ausente/)
+  })
 })
 
 test('unreleasedEntries lê só a seção Unreleased, e reconhece - e *', () => {
-    assert.deepEqual(unreleasedEntries(CHANGELOG_COM_ENTRADA), [
-        '- `GET /pedidos` devolve o total em centavos.'
-    ])
-    assert.deepEqual(unreleasedEntries(CHANGELOG_VAZIO), [])
-    assert.deepEqual(
-        unreleasedEntries('# Changelog\n\n## Unreleased\n\n* item\n'),
-        ['* item']
-    )
-    assert.deepEqual(
-        unreleasedEntries('# Changelog\n\n## [1.0.0]\n\n- item\n'),
-        []
-    )
+  assert.deepEqual(unreleasedEntries(CHANGELOG_COM_ENTRADA), ['- `GET /pedidos` devolve o total em centavos.'])
+  assert.deepEqual(unreleasedEntries(CHANGELOG_VAZIO), [])
+  assert.deepEqual(unreleasedEntries('# Changelog\n\n## Unreleased\n\n* item\n'), ['* item'])
+  assert.deepEqual(unreleasedEntries('# Changelog\n\n## [1.0.0]\n\n- item\n'), [])
 })
 
 test('exceptionReason aceita travessão, hífen e dois-pontos, e recusa razão vazia', () => {
-    assert.equal(exceptionReason(['Changelog: none — só teste']), 'só teste')
-    assert.equal(exceptionReason(['Changelog: none - só teste']), 'só teste')
-    assert.equal(exceptionReason(['Changelog: none: só teste']), 'só teste')
-    assert.equal(exceptionReason(['Changelog: none']), null)
-    assert.equal(exceptionReason(['Changelog: none —   ']), null)
-    assert.equal(
-        exceptionReason([
-            'feat: x',
-            'fix: y\n\nchangelog: NONE — minúscula também'
-        ]),
-        'minúscula também'
-    )
+  assert.equal(exceptionReason(['Changelog: none — só teste']), 'só teste')
+  assert.equal(exceptionReason(['Changelog: none - só teste']), 'só teste')
+  assert.equal(exceptionReason(['Changelog: none: só teste']), 'só teste')
+  assert.equal(exceptionReason(['Changelog: none']), null)
+  assert.equal(exceptionReason(['Changelog: none —   ']), null)
+  assert.equal(exceptionReason(['feat: x', 'fix: y\n\nchangelog: NONE — minúscula também']), 'minúscula também')
 })
 ```
 
@@ -1013,9 +932,9 @@ const RULE = 'CI-6'
 
 /** O que o check precisa saber sobre o diff. Quem fala com o git é o CLI. */
 export interface DiffFacts {
-    base: string
-    changed: readonly string[]
-    messages: readonly string[]
+  base: string
+  changed: readonly string[]
+  messages: readonly string[]
 }
 
 /**
@@ -1026,12 +945,12 @@ export interface DiffFacts {
 const EXCEPTION_LABEL = /^[ \t]*Changelog:[ \t]*none[ \t]*[—–:-][ \t]*(\S.*)$/im
 
 export function exceptionReason(messages: readonly string[]): string | null {
-    for (const message of messages) {
-        const match = EXCEPTION_LABEL.exec(message)
-        const reason = match?.[1]?.trim()
-        if (reason) return reason
-    }
-    return null
+  for (const message of messages) {
+    const match = EXCEPTION_LABEL.exec(message)
+    const reason = match?.[1]?.trim()
+    if (reason) return reason
+  }
+  return null
 }
 
 /**
@@ -1040,27 +959,25 @@ export function exceptionReason(messages: readonly string[]): string | null {
  * delas seria o check ensinando estilo em vez de cobrar a entrada.
  */
 export function unreleasedEntries(source: string): string[] {
-    const lines = source.replace(/\r\n/g, '\n').split('\n')
-    const start = lines.findIndex(line =>
-        /^##\s+\[?unreleased\]?/i.test(line.trim())
-    )
-    if (start === -1) return []
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
+  const start = lines.findIndex(line => /^##\s+\[?unreleased\]?/i.test(line.trim()))
+  if (start === -1) return []
 
-    const entries: string[] = []
-    for (let i = start + 1; i < lines.length; i++) {
-        const line = lines[i] ?? ''
-        if (/^##\s/.test(line)) break
-        if (/^\s*[-*]\s+\S/.test(line)) entries.push(line.trim())
-    }
-    return entries
+  const entries: string[] = []
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i] ?? ''
+    if (/^##\s/.test(line)) break
+    if (/^\s*[-*]\s+\S/.test(line)) entries.push(line.trim())
+  }
+  return entries
 }
 
 function normalize(path: string): string {
-    return path.replace(/\\/g, '/').replace(/^\.\//, '')
+  return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
 function error(file: string, message: string, fix: string): Finding {
-    return { ruleId: RULE, file, line: 0, severity: 'error', message, fix }
+  return { ruleId: RULE, file, line: 0, severity: 'error', message, fix }
 }
 
 /**
@@ -1071,93 +988,83 @@ function error(file: string, message: string, fix: string): Finding {
  * Regra de origem: `RN-0013`.
  */
 export function ci6ChangelogRequired(diff: DiffFacts): Check {
-    return {
-        id: RULE,
-        name: 'changelog required',
-        run(context: CheckContext): Finding[] {
-            const globs = context.config.consumerVisiblePaths
-            if (globs.length === 0) return []
+  return {
+    id: RULE,
+    name: 'changelog required',
+    run(context: CheckContext): Finding[] {
+      const globs = context.config.consumerVisiblePaths
+      if (globs.length === 0) return []
 
-            const changed = diff.changed.map(normalize)
-            const matches = picomatch(globs)
-            const hits = changed.filter(path => matches(path))
-            if (hits.length === 0) return []
+      const changed = diff.changed.map(normalize)
+      const matches = picomatch(globs)
+      const hits = changed.filter(path => matches(path))
+      if (hits.length === 0) return []
 
-            // O toolkit não conhece o caminho `CHANGELOG.md` e não vai passar a
-            // conhecer: o alvo vem da configuração (spec §3, ADR-0006 decisão 5).
-            const targets = [
-                ...new Set(
-                    context.config.watches
-                        .filter(watch => watch.consumerVisible)
-                        .map(watch => normalize(watch.doc))
-                )
-            ]
+      // O toolkit não conhece o caminho `CHANGELOG.md` e não vai passar a
+      // conhecer: o alvo vem da configuração (spec §3, ADR-0006 decisão 5).
+      const targets = [...new Set(context.config.watches.filter(watch => watch.consumerVisible).map(watch => normalize(watch.doc)))]
 
-            if (targets.length === 0) {
-                return [
-                    error(
-                        OWNERSHIP_PATH,
-                        '`consumer-visible-paths` está declarado e nenhuma regra de `watches` traz `consumer-visible: true` — ' +
-                            'CI-6 não sabe onde a entrada deveria estar.',
-                        'Marque com `consumer-visible: true` a regra de `watches` cujo `doc` é o changelog do projeto ' +
-                            '(skill dona: release-historian).'
-                    )
-                ]
-            }
+      if (targets.length === 0) {
+        return [
+          error(
+            OWNERSHIP_PATH,
+            '`consumer-visible-paths` está declarado e nenhuma regra de `watches` traz `consumer-visible: true` — ' +
+              'CI-6 não sabe onde a entrada deveria estar.',
+            'Marque com `consumer-visible: true` a regra de `watches` cujo `doc` é o changelog do projeto ' + '(skill dona: release-historian).',
+          ),
+        ]
+      }
 
-            // Razão escrita no histórico libera — é a exceção da spec §5, SK-7, regra 2.
-            if (exceptionReason(diff.messages) !== null) return []
+      // Razão escrita no histórico libera — é a exceção da spec §5, SK-7, regra 2.
+      if (exceptionReason(diff.messages) !== null) return []
 
-            const gatilho =
-                hits.slice(0, 5).join(', ') +
-                (hits.length > 5 ? `, … (+${hits.length - 5})` : '')
-            const findings: Finding[] = []
+      const gatilho = hits.slice(0, 5).join(', ') + (hits.length > 5 ? `, … (+${hits.length - 5})` : '')
+      const findings: Finding[] = []
 
-            for (const target of targets) {
-                if (!changed.includes(target)) {
-                    findings.push(
-                        error(
-                            target,
-                            `O diff \`${diff.base}...HEAD\` toca caminho visível ao consumidor (${gatilho}) e ` +
-                                `\`${target}\` não está entre os caminhos alterados.`,
-                            `Acrescente a entrada em \`## [Unreleased]\` de \`${target}\`, voltada a quem consome — ou escreva a razão ` +
-                                'na mensagem de commit, no formato `Changelog: none — <razão>` (RN-0013; skill dona: release-historian).'
-                        )
-                    )
-                    continue
-                }
-
-                let source: string
-                try {
-                    source = readFileSync(join(context.root, target), 'utf8')
-                } catch {
-                    findings.push(
-                        error(
-                            target,
-                            `\`${target}\` está declarado como doc de mudança visível ao consumidor e está ausente do repositório.`,
-                            `Crie \`${target}\` no formato Keep a Changelog, com \`## [Unreleased]\` no topo ` +
-                                '(`living-docs init --stage production` o instala; skill dona: release-historian).'
-                        )
-                    )
-                    continue
-                }
-
-                if (unreleasedEntries(source).length === 0) {
-                    findings.push(
-                        error(
-                            target,
-                            `O diff toca caminho visível ao consumidor (${gatilho}) e \`## [Unreleased]\` de \`${target}\` não tem nenhum item.`,
-                            'Escreva a entrada sob a subseção certa (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`). ' +
-                                'Se a entrada só faz sentido para quem escreveu o código, ela não pertence ao CHANGELOG — nesse caso o ' +
-                                'caminho é `Changelog: none — <razão>` (RN-0013).'
-                        )
-                    )
-                }
-            }
-
-            return findings
+      for (const target of targets) {
+        if (!changed.includes(target)) {
+          findings.push(
+            error(
+              target,
+              `O diff \`${diff.base}...HEAD\` toca caminho visível ao consumidor (${gatilho}) e ` + `\`${target}\` não está entre os caminhos alterados.`,
+              `Acrescente a entrada em \`## [Unreleased]\` de \`${target}\`, voltada a quem consome — ou escreva a razão ` +
+                'na mensagem de commit, no formato `Changelog: none — <razão>` (RN-0013; skill dona: release-historian).',
+            ),
+          )
+          continue
         }
-    }
+
+        let source: string
+        try {
+          source = readFileSync(join(context.root, target), 'utf8')
+        } catch {
+          findings.push(
+            error(
+              target,
+              `\`${target}\` está declarado como doc de mudança visível ao consumidor e está ausente do repositório.`,
+              `Crie \`${target}\` no formato Keep a Changelog, com \`## [Unreleased]\` no topo ` +
+                '(`living-docs init --stage production` o instala; skill dona: release-historian).',
+            ),
+          )
+          continue
+        }
+
+        if (unreleasedEntries(source).length === 0) {
+          findings.push(
+            error(
+              target,
+              `O diff toca caminho visível ao consumidor (${gatilho}) e \`## [Unreleased]\` de \`${target}\` não tem nenhum item.`,
+              'Escreva a entrada sob a subseção certa (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`). ' +
+                'Se a entrada só faz sentido para quem escreveu o código, ela não pertence ao CHANGELOG — nesse caso o ' +
+                'caminho é `Changelog: none — <razão>` (RN-0013).',
+            ),
+          )
+        }
+      }
+
+      return findings
+    },
+  }
 }
 ```
 
@@ -1205,10 +1112,10 @@ que `CONTRIBUTING.md` exige.
   `ci6ChangelogRequired`, `DiffFacts` (Task 3); `loadOwnership`,
   `formatFindings`.
 - Produz:
-    - `runChangelog(root: string, base: string, run?: GitRunner): ChangelogResult`
-    - `interface ChangelogResult { findings: Finding[]; declared: number; exitCode: number }`
-    - `changelogChecks(diff?: DiffFacts): readonly Check[]` em `src/checks/registry.ts`
-    - `ValidateResult.consumerVisible: number`
+  - `runChangelog(root: string, base: string, run?: GitRunner): ChangelogResult`
+  - `interface ChangelogResult { findings: Finding[]; declared: number; exitCode: number }`
+  - `changelogChecks(diff?: DiffFacts): readonly Check[]` em `src/checks/registry.ts`
+  - `ValidateResult.consumerVisible: number`
 
 **Requisitos:**
 
@@ -1262,85 +1169,59 @@ const CHANGELOG = `# Changelog
 
 /** Runner falso: responde ao `diff` e ao `log` pela subposição do verbo. */
 function gitFake(changed: string[], messages: string[]) {
-    return (args: readonly string[]): string => {
-        if (args.includes('diff')) return changed.join(NUL) + NUL
-        if (args.includes('log')) return messages.join(`${NUL}\n`) + NUL + '\n'
-        throw new Error(`comando git inesperado: ${args.join(' ')}`)
-    }
+  return (args: readonly string[]): string => {
+    if (args.includes('diff')) return changed.join(NUL) + NUL
+    if (args.includes('log')) return messages.join(`${NUL}\n`) + NUL + '\n'
+    throw new Error(`comando git inesperado: ${args.join(' ')}`)
+  }
 }
 
 test('RF-0008: o comando reprova quando a entrada não viaja no diff', () => {
-    withTempRepo(
-        { 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG },
-        root => {
-            const result = runChangelog(
-                root,
-                'origin/master',
-                gitFake(['src/api/pedidos.ts'], ['feat: total'])
-            )
+  withTempRepo({ 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG }, root => {
+    const result = runChangelog(root, 'origin/master', gitFake(['src/api/pedidos.ts'], ['feat: total']))
 
-            assert.equal(result.exitCode, 1)
-            assert.equal(result.declared, 1)
-            assert.equal(result.findings[0]?.ruleId, 'CI-6')
-        }
-    )
+    assert.equal(result.exitCode, 1)
+    assert.equal(result.declared, 1)
+    assert.equal(result.findings[0]?.ruleId, 'CI-6')
+  })
 })
 
 test('RF-0008: com a entrada no diff, sai com 0', () => {
-    withTempRepo(
-        { 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG },
-        root => {
-            const result = runChangelog(
-                root,
-                'origin/master',
-                gitFake(['src/api/pedidos.ts', 'CHANGELOG.md'], ['feat: total'])
-            )
+  withTempRepo({ 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG }, root => {
+    const result = runChangelog(root, 'origin/master', gitFake(['src/api/pedidos.ts', 'CHANGELOG.md'], ['feat: total']))
 
-            assert.equal(result.exitCode, 0)
-            assert.deepEqual(result.findings, [])
-        }
-    )
+    assert.equal(result.exitCode, 0)
+    assert.deepEqual(result.findings, [])
+  })
 })
 
 test('RF-0008: sem consumer-visible-paths declarado, não há o que checar', () => {
-    const semGatilho = OWNERSHIP.replace(
-        'consumer-visible-paths: ["src/api/**"]',
-        'consumer-visible-paths: []'
-    )
-    withTempRepo(
-        { 'docs/.ownership.yml': semGatilho, 'CHANGELOG.md': CHANGELOG },
-        root => {
-            const result = runChangelog(root, 'origin/master', () => {
-                throw new Error(
-                    'não deveria falar com o git sem gatilho declarado'
-                )
-            })
+  const semGatilho = OWNERSHIP.replace('consumer-visible-paths: ["src/api/**"]', 'consumer-visible-paths: []')
+  withTempRepo({ 'docs/.ownership.yml': semGatilho, 'CHANGELOG.md': CHANGELOG }, root => {
+    const result = runChangelog(root, 'origin/master', () => {
+      throw new Error('não deveria falar com o git sem gatilho declarado')
+    })
 
-            assert.equal(result.declared, 0)
-            assert.equal(result.exitCode, 0)
-            assert.deepEqual(result.findings, [])
-        }
-    )
+    assert.equal(result.declared, 0)
+    assert.equal(result.exitCode, 0)
+    assert.deepEqual(result.findings, [])
+  })
 })
 
 test('RF-0008: base que não resolve vira GitError — o comando não inventa diff vazio', () => {
-    withTempRepo(
-        { 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG },
-        root => {
-            assert.throws(
-                () =>
-                    runChangelog(root, 'origem/inexistente', () => {
-                        const err = new Error('Command failed') as Error & {
-                            stderr: string
-                        }
-                        err.stderr =
-                            "fatal: bad revision 'origem/inexistente'\n"
-                        throw err
-                    }),
-                GitError
-            )
-        }
+  withTempRepo({ 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG }, root => {
+    assert.throws(
+      () =>
+        runChangelog(root, 'origem/inexistente', () => {
+          const err = new Error('Command failed') as Error & {
+            stderr: string
+          }
+          err.stderr = "fatal: bad revision 'origem/inexistente'\n"
+          throw err
+        }),
+      GitError,
     )
+  })
 })
 ```
 
@@ -1362,10 +1243,10 @@ import type { GitRunner } from '../git/staged.ts'
 import type { Finding } from '../core/types.ts'
 
 export interface ChangelogResult {
-    findings: Finding[]
-    /** Globs de `consumer-visible-paths` declarados. Zero significa "sem gatilho". */
-    declared: number
-    exitCode: number
+  findings: Finding[]
+  /** Globs de `consumer-visible-paths` declarados. Zero significa "sem gatilho". */
+  declared: number
+  exitCode: number
 }
 
 /**
@@ -1374,35 +1255,31 @@ export interface ChangelogResult {
  * Fala com o git aqui, e não dentro do check: o check continua sendo uma
  * função pura de (fatos, configuração, arquivo) → achados.
  */
-export function runChangelog(
-    root: string,
-    base: string,
-    run?: GitRunner
-): ChangelogResult {
-    const config = loadOwnership(root)
+export function runChangelog(root: string, base: string, run?: GitRunner): ChangelogResult {
+  const config = loadOwnership(root)
 
-    // Sem gatilho declarado não se toca no git: falar com o repositório para
-    // depois descobrir que não havia o que checar é custo sem resposta.
-    if (config.consumerVisiblePaths.length === 0) {
-        return { findings: [], declared: 0, exitCode: 0 }
-    }
+  // Sem gatilho declarado não se toca no git: falar com o repositório para
+  // depois descobrir que não havia o que checar é custo sem resposta.
+  if (config.consumerVisiblePaths.length === 0) {
+    return { findings: [], declared: 0, exitCode: 0 }
+  }
 
-    const diff = {
-        base,
-        changed: changedPaths(root, base, run),
-        messages: commitMessages(root, base, run)
-    }
+  const diff = {
+    base,
+    changed: changedPaths(root, base, run),
+    messages: commitMessages(root, base, run),
+  }
 
-    // `docs: []` de propósito: CI-6 não lê artefato nenhum — ele lê o diff, a
-    // configuração e o doc alvo.
-    const context = { root, config, docs: [] }
-    const findings = changelogChecks(diff).flatMap(check => check.run(context))
+  // `docs: []` de propósito: CI-6 não lê artefato nenhum — ele lê o diff, a
+  // configuração e o doc alvo.
+  const context = { root, config, docs: [] }
+  const findings = changelogChecks(diff).flatMap(check => check.run(context))
 
-    return {
-        findings,
-        declared: config.consumerVisiblePaths.length,
-        exitCode: findings.some(finding => finding.severity === 'error') ? 1 : 0
-    }
+  return {
+    findings,
+    declared: config.consumerVisiblePaths.length,
+    exitCode: findings.some(finding => finding.severity === 'error') ? 1 : 0,
+  }
 }
 ```
 
@@ -1420,9 +1297,9 @@ E, depois de `driftChecks`:
 ```typescript
 /** Diff vazio: só para enumerar o check quando ninguém tem fatos a dar. */
 const NO_DIFF: DiffFacts = Object.freeze({
-    base: '',
-    changed: [],
-    messages: []
+  base: '',
+  changed: [],
+  messages: [],
 })
 
 /**
@@ -1431,7 +1308,7 @@ const NO_DIFF: DiffFacts = Object.freeze({
  * teste não precise de um repositório git.
  */
 export function changelogChecks(diff: DiffFacts = NO_DIFF): readonly Check[] {
-    return [ci6ChangelogRequired(diff)]
+  return [ci6ChangelogRequired(diff)]
 }
 ```
 
@@ -1457,62 +1334,34 @@ Troque o corpo dos três testes por:
 ```typescript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-    CHECKS,
-    CHECK_CATALOG,
-    changelogChecks,
-    driftChecks
-} from '../../src/checks/registry.ts'
+import { CHECKS, CHECK_CATALOG, changelogChecks, driftChecks } from '../../src/checks/registry.ts'
 
 test('RF-0006 e RF-0008: o catálogo cobre exatamente os checks que existem, com os mesmos nomes', () => {
-    const reais = [
-        ...CHECKS,
-        ...driftChecks(() => ''),
-        ...changelogChecks()
-    ].map(check => `${check.id}|${check.name}`)
-    const catalogados = CHECK_CATALOG.map(entry => `${entry.id}|${entry.name}`)
-    assert.deepEqual(
-        catalogados,
-        reais,
-        'catálogo e registry divergiram — o contrato gerado mentiria'
-    )
+  const reais = [...CHECKS, ...driftChecks(() => ''), ...changelogChecks()].map(check => `${check.id}|${check.name}`)
+  const catalogados = CHECK_CATALOG.map(entry => `${entry.id}|${entry.name}`)
+  assert.deepEqual(catalogados, reais, 'catálogo e registry divergiram — o contrato gerado mentiria')
 })
 
 test('RF-0006: todo item do catálogo diz quando falha e por qual comando roda', () => {
-    for (const entry of CHECK_CATALOG) {
-        assert.ok(
-            entry.failsWhen.length > 20,
-            `${entry.id} sem condição de falha escrita`
-        )
-        assert.match(
-            entry.command,
-            /^living-docs (validate|drift|changelog --base <ref>)$/,
-            `${entry.id} com comando estranho`
-        )
-    }
+  for (const entry of CHECK_CATALOG) {
+    assert.ok(entry.failsWhen.length > 20, `${entry.id} sem condição de falha escrita`)
+    assert.match(entry.command, /^living-docs (validate|drift|changelog --base <ref>)$/, `${entry.id} com comando estranho`)
+  }
 })
 
 test('ADR-0005 e ADR-0006: cada check roda no comando que o catálogo nomeia', () => {
-    const esperado: Record<string, string> = {
-        'CI-1': 'living-docs validate',
-        'CI-2': 'living-docs validate',
-        'CI-3': 'living-docs validate',
-        'CI-5': 'living-docs drift',
-        'CI-6': 'living-docs changelog --base <ref>'
-    }
+  const esperado: Record<string, string> = {
+    'CI-1': 'living-docs validate',
+    'CI-2': 'living-docs validate',
+    'CI-3': 'living-docs validate',
+    'CI-5': 'living-docs drift',
+    'CI-6': 'living-docs changelog --base <ref>',
+  }
 
-    for (const entry of CHECK_CATALOG) {
-        assert.equal(
-            entry.command,
-            esperado[entry.id],
-            `${entry.id} no comando errado`
-        )
-    }
-    assert.equal(
-        CHECK_CATALOG.length,
-        Object.keys(esperado).length,
-        'check novo sem comando esperado declarado'
-    )
+  for (const entry of CHECK_CATALOG) {
+    assert.equal(entry.command, esperado[entry.id], `${entry.id} no comando errado`)
+  }
+  assert.equal(CHECK_CATALOG.length, Object.keys(esperado).length, 'check novo sem comando esperado declarado')
 })
 ```
 
@@ -1553,9 +1402,9 @@ Dentro de `validate`, depois do ponteiro de `drift`:
 
 ```typescript
 if (result.consumerVisible > 0) {
-    process.stdout.write(
-        `living-docs: ${result.consumerVisible} caminho(s) visível(is) ao consumidor declarado(s) — a entrada de CHANGELOG é verificada por \`living-docs changelog --base <ref>\` (CI-6).\n`
-    )
+  process.stdout.write(
+    `living-docs: ${result.consumerVisible} caminho(s) visível(is) ao consumidor declarado(s) — a entrada de CHANGELOG é verificada por \`living-docs changelog --base <ref>\` (CI-6).\n`,
+  )
 }
 ```
 
@@ -1563,24 +1412,20 @@ E o comando novo, depois do bloco de `drift`:
 
 ```typescript
 if (command === 'changelog') {
-    const baseIndex = argv.indexOf('--base')
-    const base = baseIndex === -1 ? '' : (argv[baseIndex + 1] ?? '')
-    if (base === '') {
-        process.stderr.write(
-            'living-docs: `changelog` precisa de `--base <ref>` — a base do diff não se adivinha (CI-6, ADR-0006).\n'
-        )
-        return 2
-    }
+  const baseIndex = argv.indexOf('--base')
+  const base = baseIndex === -1 ? '' : (argv[baseIndex + 1] ?? '')
+  if (base === '') {
+    process.stderr.write('living-docs: `changelog` precisa de `--base <ref>` — a base do diff não se adivinha (CI-6, ADR-0006).\n')
+    return 2
+  }
 
-    const result = runChangelog(root, base)
-    if (result.declared === 0) {
-        process.stdout.write(
-            'living-docs: `consumer-visible-paths` vazio em docs/.ownership.yml — nada a checar (CI-6).\n'
-        )
-        return 0
-    }
-    process.stdout.write(`${formatFindings(result.findings)}\n`)
-    return result.exitCode
+  const result = runChangelog(root, base)
+  if (result.declared === 0) {
+    process.stdout.write('living-docs: `consumer-visible-paths` vazio em docs/.ownership.yml — nada a checar (CI-6).\n')
+    return 0
+  }
+  process.stdout.write(`${formatFindings(result.findings)}\n`)
+  return result.exitCode
 }
 ```
 
@@ -1588,11 +1433,8 @@ E, no `catch` do `main`, antes do `throw err`:
 
 ```typescript
 if (err instanceof GitError) {
-    process.stderr.write(
-        `living-docs: ${err.message}\n` +
-            '             o clone precisa conter a base (em CI: `actions/checkout` com `fetch-depth: 0`).\n'
-    )
-    return 2
+  process.stderr.write(`living-docs: ${err.message}\n` + '             o clone precisa conter a base (em CI: `actions/checkout` com `fetch-depth: 0`).\n')
+  return 2
 }
 ```
 
@@ -1662,9 +1504,9 @@ nunca `deny`. É o primeiro hook que não lê o `.ownership.yml`.
   `src/hooks/lib/paths.ts`; `contextOutput`, `emit`, `hookEnv`, `readPayload`,
   `HookEnv`, `HookPayload` de `src/hooks/lib/io.ts`.
 - Produz:
-    - `type Hk7Decision = { action: 'silent' } | { action: 'remind'; context: string }`
-    - `decideHk7(payload: HookPayload, env: HookEnv): Hk7Decision`
-    - `shortcutsWithoutDebt(source: string): string[]`
+  - `type Hk7Decision = { action: 'silent' } | { action: 'remind'; context: string }`
+  - `decideHk7(payload: HookPayload, env: HookEnv): Hk7Decision`
+  - `shortcutsWithoutDebt(source: string): string[]`
 
 **Requisitos:**
 
@@ -1686,186 +1528,154 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
-import {
-    decideHk7,
-    shortcutsWithoutDebt
-} from '../../src/hooks/hk7-shortcut-debt.ts'
+import { decideHk7, shortcutsWithoutDebt } from '../../src/hooks/hk7-shortcut-debt.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 function seed(root: string, relative: string, content: string): void {
-    const absolute = join(root, relative)
-    mkdirSync(dirname(absolute), { recursive: true })
-    writeFileSync(absolute, content, 'utf8')
+  const absolute = join(root, relative)
+  mkdirSync(dirname(absolute), { recursive: true })
+  writeFileSync(absolute, content, 'utf8')
 }
 
 test('RN-0014: marcador novo sem TDR por perto vira lembrete', () => {
-    withTempRepo({}, root => {
-        seed(root, 'src/cobranca.ts', 'export const taxa = 0.05;\n')
+  withTempRepo({}, root => {
+    seed(root, 'src/cobranca.ts', 'export const taxa = 0.05;\n')
 
-        const decision = decideHk7(
-            {
-                tool_name: 'Edit',
-                tool_input: {
-                    file_path: 'src/cobranca.ts',
-                    old_string: 'export const taxa = 0.05;',
-                    new_string:
-                        '// TODO: a taxa deveria vir da configuração\nexport const taxa = 0.05;'
-                }
-            },
-            { root, hostRoots: [root] }
-        )
+    const decision = decideHk7(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: 'src/cobranca.ts',
+          old_string: 'export const taxa = 0.05;',
+          new_string: '// TODO: a taxa deveria vir da configuração\nexport const taxa = 0.05;',
+        },
+      },
+      { root, hostRoots: [root] },
+    )
 
-        assert.equal(decision.action, 'remind')
-        assert.match(
-            decision.action === 'remind' ? decision.context : '',
-            /HK-7/
-        )
-        assert.match(
-            decision.action === 'remind' ? decision.context : '',
-            /TODO: a taxa/
-        )
-        assert.match(
-            decision.action === 'remind' ? decision.context : '',
-            /\/debt/
-        )
-        assert.doesNotMatch(
-            decision.action === 'remind' ? decision.context : '',
-            /deny|bloque/i
-        )
-    })
+    assert.equal(decision.action, 'remind')
+    assert.match(decision.action === 'remind' ? decision.context : '', /HK-7/)
+    assert.match(decision.action === 'remind' ? decision.context : '', /TODO: a taxa/)
+    assert.match(decision.action === 'remind' ? decision.context : '', /\/debt/)
+    assert.doesNotMatch(decision.action === 'remind' ? decision.context : '', /deny|bloque/i)
+  })
 })
 
 test('RN-0014: marcador com TDR a duas linhas de distância é silêncio', () => {
-    withTempRepo({}, root => {
-        seed(root, 'src/cobranca.ts', 'export const taxa = 0.05;\n')
+  withTempRepo({}, root => {
+    seed(root, 'src/cobranca.ts', 'export const taxa = 0.05;\n')
 
-        const decision = decideHk7(
-            {
-                tool_name: 'Edit',
-                tool_input: {
-                    file_path: 'src/cobranca.ts',
-                    old_string: 'export const taxa = 0.05;',
-                    new_string:
-                        '// Atalho registrado em TDR-0002.\n//\n// TODO: ler da configuração\nexport const taxa = 0.05;'
-                }
-            },
-            { root, hostRoots: [root] }
-        )
+    const decision = decideHk7(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: 'src/cobranca.ts',
+          old_string: 'export const taxa = 0.05;',
+          new_string: '// Atalho registrado em TDR-0002.\n//\n// TODO: ler da configuração\nexport const taxa = 0.05;',
+        },
+      },
+      { root, hostRoots: [root] },
+    )
 
-        assert.equal(decision.action, 'silent')
-    })
+    assert.equal(decision.action, 'silent')
+  })
 })
 
 test('RN-0014: marcador que já existia não é atalho novo', () => {
-    withTempRepo({}, root => {
-        seed(
-            root,
-            'src/cobranca.ts',
-            '// TODO: antigo\nexport const taxa = 0.05;\n'
-        )
+  withTempRepo({}, root => {
+    seed(root, 'src/cobranca.ts', '// TODO: antigo\nexport const taxa = 0.05;\n')
 
-        const decision = decideHk7(
-            {
-                tool_name: 'Edit',
-                tool_input: {
-                    file_path: 'src/cobranca.ts',
-                    old_string: 'export const taxa = 0.05;',
-                    new_string: 'export const taxa = 0.07;'
-                }
-            },
-            { root, hostRoots: [root] }
-        )
+    const decision = decideHk7(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: 'src/cobranca.ts',
+          old_string: 'export const taxa = 0.05;',
+          new_string: 'export const taxa = 0.07;',
+        },
+      },
+      { root, hostRoots: [root] },
+    )
 
-        assert.equal(decision.action, 'silent')
-    })
+    assert.equal(decision.action, 'silent')
+  })
 })
 
 test('RN-0014: supressão de tipo e teste ignorado também contam', () => {
-    withTempRepo({}, root => {
-        seed(root, 'src/cobranca.ts', 'const x = 1;\n')
+  withTempRepo({}, root => {
+    seed(root, 'src/cobranca.ts', 'const x = 1;\n')
 
-        const decision = decideHk7(
-            {
-                tool_name: 'Write',
-                tool_input: {
-                    file_path: 'src/cobranca.ts',
-                    content:
-                        '// @ts-expect-error contorno temporário\nconst x: string = 1;\n'
-                }
-            },
-            { root, hostRoots: [root] }
-        )
+    const decision = decideHk7(
+      {
+        tool_name: 'Write',
+        tool_input: {
+          file_path: 'src/cobranca.ts',
+          content: '// @ts-expect-error contorno temporário\nconst x: string = 1;\n',
+        },
+      },
+      { root, hostRoots: [root] },
+    )
 
-        assert.equal(decision.action, 'remind')
-    })
+    assert.equal(decision.action, 'remind')
+  })
 
-    assert.deepEqual(
-        shortcutsWithoutDebt('test.skip("cobra taxa", () => {});'),
-        ['test.skip("cobra taxa", () => {});']
-    )
-    assert.deepEqual(
-        shortcutsWithoutDebt('// eslint-disable-next-line no-console'),
-        ['// eslint-disable-next-line no-console']
-    )
-    assert.deepEqual(
-        shortcutsWithoutDebt('const x = 1; // TODO_LIST não é marcador'),
-        []
-    )
+  assert.deepEqual(shortcutsWithoutDebt('test.skip("cobra taxa", () => {});'), ['test.skip("cobra taxa", () => {});'])
+  assert.deepEqual(shortcutsWithoutDebt('// eslint-disable-next-line no-console'), ['// eslint-disable-next-line no-console'])
+  assert.deepEqual(shortcutsWithoutDebt('const x = 1; // TODO_LIST não é marcador'), [])
 })
 
 test('RN-0014: arquivo Markdown é ignorado — ali TODO é prosa sobre o marcador', () => {
-    withTempRepo({}, root => {
-        seed(root, 'docs/requirements/rules.md', '# regras\n')
+  withTempRepo({}, root => {
+    seed(root, 'docs/requirements/rules.md', '# regras\n')
 
-        const decision = decideHk7(
-            {
-                tool_name: 'Edit',
-                tool_input: {
-                    file_path: 'docs/requirements/rules.md',
-                    old_string: '# regras',
-                    new_string:
-                        '# regras\n\nMarcador de atalho: TODO, FIXME, teste ignorado.'
-                }
-            },
-            { root, hostRoots: [root] }
-        )
+    const decision = decideHk7(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: 'docs/requirements/rules.md',
+          old_string: '# regras',
+          new_string: '# regras\n\nMarcador de atalho: TODO, FIXME, teste ignorado.',
+        },
+      },
+      { root, hostRoots: [root] },
+    )
 
-        assert.equal(decision.action, 'silent')
-    })
+    assert.equal(decision.action, 'silent')
+  })
 })
 
 test('RNF-0001: arquivo fora do repositório e edição imprevisível são silêncio', () => {
-    withTempRepo({}, root => {
-        const env = { root, hostRoots: [root] }
+  withTempRepo({}, root => {
+    const env = { root, hostRoots: [root] }
 
-        assert.equal(
-            decideHk7(
-                {
-                    tool_name: 'Edit',
-                    tool_input: {
-                        file_path: '/fora/x.ts',
-                        content: '// TODO: x'
-                    }
-                },
-                env
-            ).action,
-            'silent'
-        )
-        assert.equal(
-            decideHk7(
-                {
-                    tool_name: 'Edit',
-                    tool_input: {
-                        file_path: 'src/x.ts',
-                        old_string: 'nada-disso'
-                    }
-                },
-                env
-            ).action,
-            'silent'
-        )
-        assert.equal(decideHk7({ tool_name: 'Edit' }, env).action, 'silent')
-    })
+    assert.equal(
+      decideHk7(
+        {
+          tool_name: 'Edit',
+          tool_input: {
+            file_path: '/fora/x.ts',
+            content: '// TODO: x',
+          },
+        },
+        env,
+      ).action,
+      'silent',
+    )
+    assert.equal(
+      decideHk7(
+        {
+          tool_name: 'Edit',
+          tool_input: {
+            file_path: 'src/x.ts',
+            old_string: 'nada-disso',
+          },
+        },
+        env,
+      ).action,
+      'silent',
+    )
+    assert.equal(decideHk7({ tool_name: 'Edit' }, env).action, 'silent')
+  })
 })
 ```
 
@@ -1900,9 +1710,7 @@ import { toRepoPath } from './lib/paths.ts'
 import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk7Decision =
-    | { action: 'silent' }
-    | { action: 'remind'; context: string }
+export type Hk7Decision = { action: 'silent' } | { action: 'remind'; context: string }
 
 const SILENT: Hk7Decision = { action: 'silent' }
 
@@ -1912,15 +1720,15 @@ const SILENT: Hk7Decision = { action: 'silent' }
  * prosa, supressão de tipo ou de lint, e teste ignorado.
  */
 const SHORTCUT_MARKERS: readonly RegExp[] = Object.freeze([
-    /\bTODO\b/,
-    /\bFIXME\b/,
-    /\bHACK\b/,
-    /\bXXX\b/,
-    /@ts-ignore\b/,
-    /@ts-expect-error\b/,
-    /eslint-disable/,
-    /\b(?:test|it|describe)\.(?:skip|todo)\b/,
-    /\bskip:\s*true\b/
+  /\bTODO\b/,
+  /\bFIXME\b/,
+  /\bHACK\b/,
+  /\bXXX\b/,
+  /@ts-ignore\b/,
+  /@ts-expect-error\b/,
+  /eslint-disable/,
+  /\b(?:test|it|describe)\.(?:skip|todo)\b/,
+  /\bskip:\s*true\b/,
 ])
 
 /** Citação de dívida. Mesmo formato da spec §8, restrito ao prefixo TDR. */
@@ -1931,96 +1739,84 @@ const NEAR_LINES = 2
 
 /** Linhas com marcador de atalho e sem `TDR-` na vizinhança, já aparadas. */
 export function shortcutsWithoutDebt(source: string): string[] {
-    const lines = source.replace(/\r\n/g, '\n').split('\n')
-    const found: string[] = []
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
+  const found: string[] = []
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i] ?? ''
-        if (!SHORTCUT_MARKERS.some(marker => marker.test(line))) continue
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? ''
+    if (!SHORTCUT_MARKERS.some(marker => marker.test(line))) continue
 
-        const window = lines
-            .slice(Math.max(0, i - NEAR_LINES), i + NEAR_LINES + 1)
-            .join('\n')
-        if (DEBT.test(window)) continue
+    const window = lines.slice(Math.max(0, i - NEAR_LINES), i + NEAR_LINES + 1).join('\n')
+    if (DEBT.test(window)) continue
 
-        found.push(line.trim())
-    }
+    found.push(line.trim())
+  }
 
-    return found
+  return found
 }
 
 /** O que `after` tem e `before` não — contando repetição, não só presença. */
-function onlyInAfter(
-    before: readonly string[],
-    after: readonly string[]
-): string[] {
-    const remaining = [...before]
-    const novos: string[] = []
+function onlyInAfter(before: readonly string[], after: readonly string[]): string[] {
+  const remaining = [...before]
+  const novos: string[] = []
 
-    for (const line of after) {
-        const at = remaining.indexOf(line)
-        if (at === -1) novos.push(line)
-        else remaining.splice(at, 1)
-    }
+  for (const line of after) {
+    const at = remaining.indexOf(line)
+    if (at === -1) novos.push(line)
+    else remaining.splice(at, 1)
+  }
 
-    return novos
+  return novos
 }
 
 export function decideHk7(payload: HookPayload, env: HookEnv): Hk7Decision {
-    const toolInput = payload.tool_input
-    if (!toolInput) return SILENT
+  const toolInput = payload.tool_input
+  if (!toolInput) return SILENT
 
-    const filePath = toolInput.file_path
-    if (typeof filePath !== 'string') return SILENT
+  const filePath = toolInput.file_path
+  if (typeof filePath !== 'string') return SILENT
 
-    const repoPath = toRepoPath(filePath, env.hostRoots)
-    if (repoPath === null) return SILENT
+  const repoPath = toRepoPath(filePath, env.hostRoots)
+  if (repoPath === null) return SILENT
 
-    // Em Markdown, `TODO` é prosa **sobre** o marcador — a própria RN-0014 o
-    // escreve. Um lembrete a cada edição de doc ensina a ignorar o lembrete.
-    if (repoPath.toLowerCase().endsWith('.md')) return SILENT
+  // Em Markdown, `TODO` é prosa **sobre** o marcador — a própria RN-0014 o
+  // escreve. Um lembrete a cada edição de doc ensina a ignorar o lembrete.
+  if (repoPath.toLowerCase().endsWith('.md')) return SILENT
 
-    let current: string
-    try {
-        current = readFileSync(join(env.root, repoPath), 'utf8')
-    } catch {
-        current = '' // arquivo novo: tudo que vier é novo
-    }
+  let current: string
+  try {
+    current = readFileSync(join(env.root, repoPath), 'utf8')
+  } catch {
+    current = '' // arquivo novo: tudo que vier é novo
+  }
 
-    const next = applyToolInput(current, toolInput)
-    if (next === null) return SILENT // não dá para prever o resultado
+  const next = applyToolInput(current, toolInput)
+  if (next === null) return SILENT // não dá para prever o resultado
 
-    const novos = onlyInAfter(
-        shortcutsWithoutDebt(current),
-        shortcutsWithoutDebt(next)
-    )
-    if (novos.length === 0) return SILENT
+  const novos = onlyInAfter(shortcutsWithoutDebt(current), shortcutsWithoutDebt(next))
+  if (novos.length === 0) return SILENT
 
-    return {
-        action: 'remind',
-        context:
-            `HK-7: \`${repoPath}\` ganhou marcador de atalho sem dívida registrada por perto.\n` +
-            `${novos.map(line => `- \`${line}\``).join('\n')}\n` +
-            'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 e `RN-0014` — atalho consciente vira `TDR-nnnn` ' +
-            'com gatilho de pagamento observável, não `TODO` órfão. Caminho válido: `/debt <o atalho>` ' +
-            '(skill dona: decision-recorder), e cite o `TDR-nnnn` na linha do marcador.\n' +
-            'Isto é lembrete, não é bloqueio: um atalho legítimo existe, e a decisão de registrá-lo ou não é humana.'
-    }
+  return {
+    action: 'remind',
+    context:
+      `HK-7: \`${repoPath}\` ganhou marcador de atalho sem dívida registrada por perto.\n` +
+      `${novos.map(line => `- \`${line}\``).join('\n')}\n` +
+      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §7 e `RN-0014` — atalho consciente vira `TDR-nnnn` ' +
+      'com gatilho de pagamento observável, não `TODO` órfão. Caminho válido: `/debt <o atalho>` ' +
+      '(skill dona: decision-recorder), e cite o `TDR-nnnn` na linha do marcador.\n' +
+      'Isto é lembrete, não é bloqueio: um atalho legítimo existe, e a decisão de registrá-lo ou não é humana.',
+  }
 }
 
 async function main(): Promise<void> {
-    const payload = await readPayload()
-    if (!payload) return // falha aberta
-    const decision = decideHk7(payload, hookEnv())
-    emit(
-        decision.action === 'remind'
-            ? contextOutput('PostToolUse', decision.context)
-            : null
-    )
+  const payload = await readPayload()
+  if (!payload) return // falha aberta
+  const decision = decideHk7(payload, hookEnv())
+  emit(decision.action === 'remind' ? contextOutput('PostToolUse', decision.context) : null)
 }
 
 if (process.argv[1]?.endsWith('hk7-shortcut-debt.ts')) {
-    main().catch(() => process.exit(0)) // falha aberta, sempre
+  main().catch(() => process.exit(0)) // falha aberta, sempre
 }
 ```
 
@@ -2030,10 +1826,10 @@ No grupo `PostToolUse` / `Edit|Write`, depois de `hk4-watch-reminder`:
 
 ```json
 {
-    "type": "command",
-    "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk7-shortcut-debt",
-    "shell": "bash",
-    "async": false
+  "type": "command",
+  "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk7-shortcut-debt",
+  "shell": "bash",
+  "async": false
 }
 ```
 
@@ -2053,11 +1849,7 @@ e o título dele passa a ser `'hooks.json registra os seis hooks nos eventos e m
 No teste de existência dos arquivos, a contagem final:
 
 ```typescript
-assert.equal(
-    vistos,
-    6,
-    'a varredura deveria ver os seis hooks das Fases 1, 3, 5 e 6'
-)
+assert.equal(vistos, 6, 'a varredura deveria ver os seis hooks das Fases 1, 3, 5 e 6')
 ```
 
 - [ ] **Step 6: Rodar e ver passar**
@@ -2127,94 +1919,59 @@ Acrescente ao final de `test/cli/init.test.ts`:
 
 ```typescript
 test('RF-0009: production instala a moldura de rastro histórico', () => {
-    withTempRepo({}, root => {
-        runInit(root, PRODUCTION)
+  withTempRepo({}, root => {
+    runInit(root, PRODUCTION)
 
-        for (const path of [
-            'CHANGELOG.md',
-            'docs/deprecations.md',
-            'docs/releases/.gitkeep',
-            'docs/migrations/.gitkeep'
-        ]) {
-            assert.ok(
-                existsSync(join(root, path)),
-                `${path} pertence a production`
-            )
-        }
+    for (const path of ['CHANGELOG.md', 'docs/deprecations.md', 'docs/releases/.gitkeep', 'docs/migrations/.gitkeep']) {
+      assert.ok(existsSync(join(root, path)), `${path} pertence a production`)
+    }
 
-        const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8')
-        assert.match(
-            changelog,
-            /^## \[Unreleased\]$/m,
-            'o CHANGELOG precisa abrir com Unreleased'
-        )
-        assert.doesNotMatch(
-            changelog,
-            /^---$/m,
-            'CHANGELOG é voltado ao consumidor: sem frontmatter'
-        )
-    })
+    const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8')
+    assert.match(changelog, /^## \[Unreleased\]$/m, 'o CHANGELOG precisa abrir com Unreleased')
+    assert.doesNotMatch(changelog, /^---$/m, 'CHANGELOG é voltado ao consumidor: sem frontmatter')
+  })
 })
 
 test('RF-0009: production declara o artefato REL, para que HK-1 congele release note publicada', () => {
-    withTempRepo({}, root => {
-        runInit(root, PRODUCTION)
+  withTempRepo({}, root => {
+    runInit(root, PRODUCTION)
 
-        const config = loadOwnership(root)
-        const rel = config.artifacts.find(
-            artifact => artifact.idPrefix === 'REL'
-        )
-        assert.ok(
-            rel,
-            'sem REL em artifacts:, HK-1 não tem como congelar release note'
-        )
-        assert.equal(rel?.path, 'docs/releases/')
-        assert.equal(rel?.appendOnly, true)
-        assert.equal(rel?.skill, 'release-historian')
-    })
+    const config = loadOwnership(root)
+    const rel = config.artifacts.find(artifact => artifact.idPrefix === 'REL')
+    assert.ok(rel, 'sem REL em artifacts:, HK-1 não tem como congelar release note')
+    assert.equal(rel?.path, 'docs/releases/')
+    assert.equal(rel?.appendOnly, true)
+    assert.equal(rel?.skill, 'release-historian')
+  })
 })
 
 test('RF-0009: production não inventa consumer-visible-paths', () => {
-    withTempRepo({}, root => {
-        runInit(root, PRODUCTION)
-        assert.deepEqual(loadOwnership(root).consumerVisiblePaths, [])
-    })
+  withTempRepo({}, root => {
+    runInit(root, PRODUCTION)
+    assert.deepEqual(loadOwnership(root).consumerVisiblePaths, [])
+  })
 })
 
 test('RF-0009: production não deixa nada da spec §10 de fora', () => {
-    withTempRepo({}, root => {
-        const result = runInit(root, PRODUCTION)
-        assert.deepEqual(
-            result.notInstalled,
-            [],
-            `production deveria estar completo — ${JSON.stringify(result.notInstalled)}`
-        )
-    })
+  withTempRepo({}, root => {
+    const result = runInit(root, PRODUCTION)
+    assert.deepEqual(result.notInstalled, [], `production deveria estar completo — ${JSON.stringify(result.notInstalled)}`)
+  })
 })
 
 test('RF-0009: subir de small-team para production declara REL no .ownership.yml existente', () => {
-    withTempRepo({}, root => {
-        runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
-        assert.equal(
-            loadOwnership(root).artifacts.some(
-                artifact => artifact.idPrefix === 'REL'
-            ),
-            false,
-            'small-team não instala rastro histórico'
-        )
+  withTempRepo({}, root => {
+    runInit(root, { owner: '@time', dryRun: false, stage: 'small-team' })
+    assert.equal(
+      loadOwnership(root).artifacts.some(artifact => artifact.idPrefix === 'REL'),
+      false,
+      'small-team não instala rastro histórico',
+    )
 
-        runInit(root, PRODUCTION)
-        assert.ok(
-            loadOwnership(root).artifacts.some(
-                artifact => artifact.idPrefix === 'REL'
-            )
-        )
-        assert.equal(
-            runValidate(root).exitCode,
-            0,
-            'o repositório recém-subido de estágio precisa passar limpo'
-        )
-    })
+    runInit(root, PRODUCTION)
+    assert.ok(loadOwnership(root).artifacts.some(artifact => artifact.idPrefix === 'REL'))
+    assert.equal(runValidate(root).exitCode, 0, 'o repositório recém-subido de estágio precisa passar limpo')
+  })
 })
 ```
 
@@ -2286,8 +2043,8 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 title: Depreciações
 owner: '{{OWNER}}'
 trigger: >
-    Quando algo publicado é anunciado para remoção, e quando uma depreciação
-    anunciada é de fato removida.
+  Quando algo publicado é anunciado para remoção, e quando uma depreciação
+  anunciada é de fato removida.
 last-reviewed: { { TODAY } }
 ---
 
@@ -2313,7 +2070,7 @@ title: v0.0.0
 status: draft
 owner: '{{OWNER}}'
 trigger: >
-    Nunca. Congelada depois de publicada; uma versão nova nasce ao lado.
+  Nunca. Congelada depois de publicada; uma versão nova nasce ao lado.
 last-reviewed: { { TODAY } }
 relates-to: []
 ---
@@ -2341,7 +2098,7 @@ o destaque da versão, o que exige atenção de quem atualiza, e os links.
 title: Migração — <de> para <para>
 owner: '{{OWNER}}'
 trigger: >
-    Quando uma mudança quebra compatibilidade, no mesmo PR que a decide.
+  Quando uma mudança quebra compatibilidade, no mesmo PR que a decide.
 last-reviewed: { { TODAY } }
 ---
 
@@ -2417,8 +2174,8 @@ type Kind = 'ADR' | 'DA' | 'TDR' | 'RF' | 'RNF' | 'RN' | 'REL'
 ```typescript
 /** Rastro histórico (SK-7), instalado a partir do estágio `production` (spec §10, Fase 6). */
 const HISTORY: readonly { path: string; template: string }[] = Object.freeze([
-    { path: 'CHANGELOG.md', template: 'changelog.md' },
-    { path: 'docs/deprecations.md', template: 'deprecations.md' }
+  { path: 'CHANGELOG.md', template: 'changelog.md' },
+  { path: 'docs/deprecations.md', template: 'deprecations.md' },
 ])
 
 /** Diretórios de item por arquivo que o rastro histórico usa (spec §3). */
@@ -2428,14 +2185,12 @@ const HISTORY_DIRS: readonly string[] = Object.freeze(['docs/migrations/'])
 4. `NOT_INSTALLED.production` passa a `[]`:
 
 ```typescript
-const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
-    {
-        solo: [],
-        'small-team': [],
-        // `production` cobre as Fases 5 e 6 da spec §10, e as duas existem.
-        production: []
-    }
-)
+const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
+  solo: [],
+  'small-team': [],
+  // `production` cobre as Fases 5 e 6 da spec §10, e as duas existem.
+  production: [],
+})
 ```
 
 5. O bloco de `REL` do `.ownership.yml`, ao lado de `requirementsBlock`:
@@ -2443,21 +2198,21 @@ const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze(
 ```typescript
 /** O artefato REL do `.ownership.yml`, ou vazio fora do estágio `production`. */
 function releasesBlock(owner: string, path: string, stage: Stage): string {
-    if (stage !== 'production') return ''
+  if (stage !== 'production') return ''
 
-    return (
-        '\n' +
-        [
-            '  - id-prefix: REL',
-            `    path: ${path}`,
-            `    owner: "${owner}"`,
-            '    skill: release-historian',
-            '    # Release note publicada é congelada por HK-1 (spec §5, SK-7, regra 4).',
-            '    append-only: true',
-            '    mutable-fields: [status, last-reviewed]'
-        ].join('\n') +
-        '\n'
-    )
+  return (
+    '\n' +
+    [
+      '  - id-prefix: REL',
+      `    path: ${path}`,
+      `    owner: "${owner}"`,
+      '    skill: release-historian',
+      '    # Release note publicada é congelada por HK-1 (spec §5, SK-7, regra 4).',
+      '    append-only: true',
+      '    mutable-fields: [status, last-reviewed]',
+    ].join('\n') +
+    '\n'
+  )
 }
 ```
 
@@ -2465,11 +2220,11 @@ function releasesBlock(owner: string, path: string, stage: Stage): string {
 
 ```typescript
 const kinds: Kind[] =
-    options.stage === 'solo'
-        ? ['ADR', 'DA', 'TDR']
-        : options.stage === 'production'
-          ? ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS, 'REL']
-          : ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS]
+  options.stage === 'solo'
+    ? ['ADR', 'DA', 'TDR']
+    : options.stage === 'production'
+      ? ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS, 'REL']
+      : ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS]
 ```
 
 7. Em `values`, dois campos novos. O `??` não é enfeite: `paths` só ganha a
@@ -2495,28 +2250,19 @@ const kinds: Kind[] =
  * arquivo reorganizado à mão — o init não adivinha: ele diz o que falta e
  * deixa a edição para quem é dono do arquivo.
  */
-function declareArtifacts(
-    root: string,
-    options: InitOptions,
-    result: InitResult,
-    block: string,
-    what: string
-): void {
-    const file = join(root, OWNERSHIP_PATH)
-    const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
-    const anchor = '\ngenerated:'
+function declareArtifacts(root: string, options: InitOptions, result: InitResult, block: string, what: string): void {
+  const file = join(root, OWNERSHIP_PATH)
+  const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
+  const anchor = '\ngenerated:'
 
-    if (!source.includes(anchor)) {
-        result.notInstalled.push(
-            `${what} em ${OWNERSHIP_PATH} — âncora \`generated:\` não encontrada; ` +
-                'declare-os à mão para que os artefatos tenham dono'
-        )
-        return
-    }
+  if (!source.includes(anchor)) {
+    result.notInstalled.push(`${what} em ${OWNERSHIP_PATH} — âncora \`generated:\` não encontrada; ` + 'declare-os à mão para que os artefatos tenham dono')
+    return
+  }
 
-    result.created.push(`${OWNERSHIP_PATH} (${what})`)
-    if (options.dryRun) return
-    writeFileSync(file, source.replace(anchor, `${block}\ngenerated:`), 'utf8')
+  result.created.push(`${OWNERSHIP_PATH} (${what})`)
+  if (options.dryRun) return
+  writeFileSync(file, source.replace(anchor, `${block}\ngenerated:`), 'utf8')
 }
 ```
 
@@ -2524,13 +2270,7 @@ E a chamada que existia vira:
 
 ```typescript
 if (existing && faltando.length > 0) {
-    declareArtifacts(
-        root,
-        options,
-        result,
-        values.REQUIREMENTS_BLOCK,
-        'artefatos RF, RNF e RN'
-    )
+  declareArtifacts(root, options, result, values.REQUIREMENTS_BLOCK, 'artefatos RF, RNF e RN')
 }
 ```
 
@@ -2538,43 +2278,22 @@ if (existing && faltando.length > 0) {
 
 ```typescript
 if (options.stage === 'production') {
-    for (const contract of CONTRACTS) {
-        writeIfAbsent(
-            root,
-            contract.path,
-            template(contract.template, values),
-            options,
-            result
-        )
-    }
+  for (const contract of CONTRACTS) {
+    writeIfAbsent(root, contract.path, template(contract.template, values), options, result)
+  }
 
-    // Subir de estágio: o REL precisa ser declarado num `.ownership.yml` que
-    // já existe, senão a release note nasce sem dono — e artefato órfão não é
-    // enforceável (spec §3), nem congelável por HK-1.
-    if (
-        existing &&
-        !existing.artifacts.some(artifact => artifact.idPrefix === 'REL')
-    ) {
-        declareArtifacts(
-            root,
-            options,
-            result,
-            values.RELEASES_BLOCK,
-            'artefato REL'
-        )
-    }
+  // Subir de estágio: o REL precisa ser declarado num `.ownership.yml` que
+  // já existe, senão a release note nasce sem dono — e artefato órfão não é
+  // enforceável (spec §3), nem congelável por HK-1.
+  if (existing && !existing.artifacts.some(artifact => artifact.idPrefix === 'REL')) {
+    declareArtifacts(root, options, result, values.RELEASES_BLOCK, 'artefato REL')
+  }
 
-    for (const item of HISTORY) {
-        writeIfAbsent(
-            root,
-            item.path,
-            template(item.template, values),
-            options,
-            result
-        )
-    }
-    ensureDirectory(root, paths.REL ?? DEFAULT_PATHS.REL, options, result)
-    for (const dir of HISTORY_DIRS) ensureDirectory(root, dir, options, result)
+  for (const item of HISTORY) {
+    writeIfAbsent(root, item.path, template(item.template, values), options, result)
+  }
+  ensureDirectory(root, paths.REL ?? DEFAULT_PATHS.REL, options, result)
+  for (const dir of HISTORY_DIRS) ensureDirectory(root, dir, options, result)
 }
 ```
 
@@ -2664,95 +2383,55 @@ const ROOT = toolkitRoot()
 const config = loadOwnership(ROOT)
 
 test('RN-0013: este repositório declara o que é visível ao consumidor', () => {
-    assert.ok(
-        config.consumerVisiblePaths.length > 0,
-        'consumer-visible-paths vazio: CI-6 estaria instalado e inerte'
-    )
+  assert.ok(config.consumerVisiblePaths.length > 0, 'consumer-visible-paths vazio: CI-6 estaria instalado e inerte')
 })
 
 test('ADR-0006: as duas listas do mecanismo concordam, e um teste as impede de derivar', () => {
-    const gatilhos = new Set(config.consumerVisiblePaths)
-    const vigiados = new Set(
-        config.watches
-            .filter(watch => watch.consumerVisible)
-            .map(watch => watch.code)
-    )
+  const gatilhos = new Set(config.consumerVisiblePaths)
+  const vigiados = new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code))
 
-    assert.deepEqual(
-        [...vigiados].sort(),
-        [...gatilhos].sort(),
-        'consumer-visible-paths e as regras `consumer-visible: true` derivaram — CI-6 e HK-5 passariam a cobrar coisas diferentes'
-    )
+  assert.deepEqual(
+    [...vigiados].sort(),
+    [...gatilhos].sort(),
+    'consumer-visible-paths e as regras `consumer-visible: true` derivaram — CI-6 e HK-5 passariam a cobrar coisas diferentes',
+  )
 })
 
 test('ADR-0006: alguma regra de watches diz onde a entrada deveria estar', () => {
-    const alvos = new Set(
-        config.watches
-            .filter(watch => watch.consumerVisible)
-            .map(watch => watch.doc)
-    )
-    assert.deepEqual([...alvos], ['CHANGELOG.md'])
+  const alvos = new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.doc))
+  assert.deepEqual([...alvos], ['CHANGELOG.md'])
 })
 
 test('RN-0013: o CHANGELOG é voltado ao consumidor — Keep a Changelog, sem frontmatter', () => {
-    const source = readFileSync(join(ROOT, 'CHANGELOG.md'), 'utf8')
+  const source = readFileSync(join(ROOT, 'CHANGELOG.md'), 'utf8')
 
-    assert.doesNotMatch(
-        source,
-        /^---$/m,
-        'frontmatter de documentação viva não pertence ao CHANGELOG'
-    )
-    assert.match(source, /^## \[Unreleased\]$/m)
-    assert.ok(
-        unreleasedEntries(source).length > 0,
-        'a Fase 6 muda o contrato público: Unreleased não pode estar vazio'
-    )
+  assert.doesNotMatch(source, /^---$/m, 'frontmatter de documentação viva não pertence ao CHANGELOG')
+  assert.match(source, /^## \[Unreleased\]$/m)
+  assert.ok(unreleasedEntries(source).length > 0, 'a Fase 6 muda o contrato público: Unreleased não pode estar vazio')
 })
 
 test('RN-0015: a tabela de depreciações cobra as quatro coisas', () => {
-    const source = readFileSync(join(ROOT, 'docs/deprecations.md'), 'utf8')
-    const header = source
-        .split('\n')
-        .find(line => line.trim().startsWith('| O que |'))
+  const source = readFileSync(join(ROOT, 'docs/deprecations.md'), 'utf8')
+  const header = source.split('\n').find(line => line.trim().startsWith('| O que |'))
 
-    assert.ok(header, 'docs/deprecations.md sem a tabela')
-    for (const coluna of [
-        'Anunciado em',
-        'Removido em',
-        'Substituto',
-        'Guia de migração'
-    ]) {
-        assert.ok(
-            header.includes(coluna),
-            `a tabela precisa da coluna "${coluna}"`
-        )
-    }
+  assert.ok(header, 'docs/deprecations.md sem a tabela')
+  for (const coluna of ['Anunciado em', 'Removido em', 'Substituto', 'Guia de migração']) {
+    assert.ok(header.includes(coluna), `a tabela precisa da coluna "${coluna}"`)
+  }
 })
 
 test('RN-0001: o rastro histórico tem dono no CODEOWNERS, como todo artefato', () => {
-    const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
-    for (const path of [
-        'CHANGELOG.md',
-        'docs/deprecations.md',
-        'docs/releases/',
-        'docs/migrations/'
-    ]) {
-        assert.match(
-            codeowners,
-            new RegExp(
-                `^${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+@\\S+$`,
-                'm'
-            ),
-            `${path} sem dono`
-        )
-    }
+  const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
+  for (const path of ['CHANGELOG.md', 'docs/deprecations.md', 'docs/releases/', 'docs/migrations/']) {
+    assert.match(codeowners, new RegExp(`^${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+@\\S+$`, 'm'), `${path} sem dono`)
+  }
 })
 
 test('REL está declarado, para que HK-1 congele release note publicada', () => {
-    const rel = config.artifacts.find(artifact => artifact.idPrefix === 'REL')
-    assert.ok(rel)
-    assert.equal(rel?.appendOnly, true)
-    assert.equal(rel?.skill, 'release-historian')
+  const rel = config.artifacts.find(artifact => artifact.idPrefix === 'REL')
+  assert.ok(rel)
+  assert.equal(rel?.appendOnly, true)
+  assert.equal(rel?.skill, 'release-historian')
 })
 ```
 
@@ -2813,8 +2492,8 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 title: Depreciações
 owner: '@esliph/engineering'
 trigger: >
-    Quando algo publicado é anunciado para remoção, e quando uma depreciação
-    anunciada é de fato removida.
+  Quando algo publicado é anunciado para remoção, e quando uma depreciação
+  anunciada é de fato removida.
 last-reviewed: 2026-08-26
 ---
 
@@ -2899,12 +2578,12 @@ E troque a última linha do arquivo:
 
 ```yaml
 consumer-visible-paths:
-    - 'src/cli/**'
-    - 'src/checks/catalog.ts'
-    - 'src/config/ownership.ts'
-    - 'plugin/**'
-    - 'templates/**'
-    - 'bin/living-docs'
+  - 'src/cli/**'
+  - 'src/checks/catalog.ts'
+  - 'src/config/ownership.ts'
+  - 'plugin/**'
+  - 'templates/**'
+  - 'bin/living-docs'
 ```
 
 Em `CODEOWNERS`, acrescente:
@@ -2976,13 +2655,13 @@ git commit -m "docs(RN-0013, RN-0015): o toolkit passa a cumprir o rastro histó
 ---
 name: release-historian
 description: >
-    Use quando algo mudar para quem consome este software — endpoint, opção de
-    linha de comando, formato de saída, comportamento observável —, quando for
-    hora de publicar uma versão, quando alguém perguntar "o que mudou na versão
-    X?", "isso quebra quem já usa?", "quando isso vai ser removido?", "por onde
-    eu migro?", "isso precisa de entrada no CHANGELOG?", ou quando o CI reclamar
-    que falta a entrada. Também ao anunciar ou concluir uma depreciação, e ao
-    escrever o guia de migração de uma mudança quebra-compatibilidade.
+  Use quando algo mudar para quem consome este software — endpoint, opção de
+  linha de comando, formato de saída, comportamento observável —, quando for
+  hora de publicar uma versão, quando alguém perguntar "o que mudou na versão
+  X?", "isso quebra quem já usa?", "quando isso vai ser removido?", "por onde
+  eu migro?", "isso precisa de entrada no CHANGELOG?", ou quando o CI reclamar
+  que falta a entrada. Também ao anunciar ou concluir uma depreciação, e ao
+  escrever o guia de migração de uma mudança quebra-compatibilidade.
 ---
 
 # release-historian — dono do rastro histórico
@@ -3100,24 +2779,13 @@ e a resposta não é sua. Depois de `published`, `HK-1` congela o arquivo.
 Em `test/plugin/manifest.test.ts`, no teste dos comandos:
 
 ```typescript
-const esperados = [
-    'adr.md',
-    'open-decision.md',
-    'debt.md',
-    'docs-setup.md',
-    'term.md',
-    'release.md'
-]
+const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'term.md', 'release.md']
 ```
 
 e, no laço, a expressão que exige o apontamento de skill:
 
 ```typescript
-assert.match(
-    source,
-    /decision-recorder|living-docs-bootstrap|glossary-keeper|release-historian/,
-    `${nome} deve apontar a skill que aciona`
-)
+assert.match(source, /decision-recorder|living-docs-bootstrap|glossary-keeper|release-historian/, `${nome} deve apontar a skill que aciona`)
 ```
 
 Troque também o título do teste, de "os cinco comandos" para "os seis comandos".
@@ -3126,36 +2794,18 @@ Em `test/plugin/authoring.test.ts`, acrescente ao final:
 
 ```typescript
 test('release-historian: a description nomeia os sintomas de mudança visível, versão e depreciação', () => {
-    const description = String(
-        parseFrontmatter(skillSource('release-historian'))?.data.description ??
-            ''
-    )
-    assert.match(description, /Use quando/i)
-    for (const sintoma of ['consome', 'versão', 'migr', 'depreci']) {
-        assert.ok(
-            description.toLowerCase().includes(sintoma),
-            `a description deveria conter o sintoma "${sintoma}"`
-        )
-    }
+  const description = String(parseFrontmatter(skillSource('release-historian'))?.data.description ?? '')
+  assert.match(description, /Use quando/i)
+  for (const sintoma of ['consome', 'versão', 'migr', 'depreci']) {
+    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
+  }
 })
 
 test('release-historian não duplica o conteúdo dos artefatos que governa', () => {
-    const source = skillSource('release-historian')
-    assert.match(
-        source,
-        /templates\/changelog\.md/,
-        'ela deve apontar para o template, não copiá-lo'
-    )
-    assert.match(
-        source,
-        /templates\/migration\.md/,
-        'os quatro templates, porque são quatro artefatos'
-    )
-    assert.doesNotMatch(
-        source,
-        /^## \[Unreleased\]$/m,
-        'a skill não deve conter o CHANGELOG deste repositório'
-    )
+  const source = skillSource('release-historian')
+  assert.match(source, /templates\/changelog\.md/, 'ela deve apontar para o template, não copiá-lo')
+  assert.match(source, /templates\/migration\.md/, 'os quatro templates, porque são quatro artefatos')
+  assert.doesNotMatch(source, /^## \[Unreleased\]$/m, 'a skill não deve conter o CHANGELOG deste repositório')
 })
 ```
 
@@ -3247,107 +2897,66 @@ Acrescente ao final de `test/acceptance/spec-criteria.test.ts`:
 
 ```typescript
 test('mecanismo da Fase 6: mudança visível ao consumidor é cobrada, e a razão escrita libera', () => {
-    const OWNERSHIP = [
-        'version: 1',
-        'artifacts:',
-        '  - id-prefix: ADR',
-        '    path: docs/decisions/adr/',
-        '    owner: "@time"',
-        '    skill: decision-recorder',
-        'watches:',
-        '  - code: "src/api/**"',
-        '    doc: CHANGELOG.md',
-        '    consumer-visible: true',
-        'consumer-visible-paths: ["src/api/**"]',
-        ''
-    ].join('\n')
+  const OWNERSHIP = [
+    'version: 1',
+    'artifacts:',
+    '  - id-prefix: ADR',
+    '    path: docs/decisions/adr/',
+    '    owner: "@time"',
+    '    skill: decision-recorder',
+    'watches:',
+    '  - code: "src/api/**"',
+    '    doc: CHANGELOG.md',
+    '    consumer-visible: true',
+    'consumer-visible-paths: ["src/api/**"]',
+    '',
+  ].join('\n')
 
-    const CHANGELOG =
-        '# Changelog\n\n## [Unreleased]\n\n### Added\n\n- `GET /pedidos` responde em centavos.\n'
-    const NUL = String.fromCharCode(0)
+  const CHANGELOG = '# Changelog\n\n## [Unreleased]\n\n### Added\n\n- `GET /pedidos` responde em centavos.\n'
+  const NUL = String.fromCharCode(0)
 
-    const git =
-        (changed: string[], messages: string[]) =>
-        (args: readonly string[]): string =>
-            args.includes('diff')
-                ? changed.join(NUL) + NUL
-                : messages.join(`${NUL}\n`) + NUL + '\n'
+  const git =
+    (changed: string[], messages: string[]) =>
+    (args: readonly string[]): string =>
+      args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n'
 
-    withTempRepo(
-        { 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG },
-        root => {
-            // sem a entrada no diff: reprova, nomeando o arquivo e o caminho vigiado
-            const reprovado = runChangelog(
-                root,
-                'base',
-                git(['src/api/pedidos.ts'], ['feat: centavos'])
-            )
-            assert.equal(reprovado.exitCode, 1)
-            assert.equal(reprovado.findings[0]?.file, 'CHANGELOG.md')
+  withTempRepo({ 'docs/.ownership.yml': OWNERSHIP, 'CHANGELOG.md': CHANGELOG }, root => {
+    // sem a entrada no diff: reprova, nomeando o arquivo e o caminho vigiado
+    const reprovado = runChangelog(root, 'base', git(['src/api/pedidos.ts'], ['feat: centavos']))
+    assert.equal(reprovado.exitCode, 1)
+    assert.equal(reprovado.findings[0]?.file, 'CHANGELOG.md')
 
-            // com a entrada no mesmo diff: aprova
-            assert.equal(
-                runChangelog(
-                    root,
-                    'base',
-                    git(
-                        ['src/api/pedidos.ts', 'CHANGELOG.md'],
-                        ['feat: centavos']
-                    )
-                ).exitCode,
-                0
-            )
+    // com a entrada no mesmo diff: aprova
+    assert.equal(runChangelog(root, 'base', git(['src/api/pedidos.ts', 'CHANGELOG.md'], ['feat: centavos'])).exitCode, 0)
 
-            // sem entrada, mas com a razão escrita no histórico: aprova
-            assert.equal(
-                runChangelog(
-                    root,
-                    'base',
-                    git(
-                        ['src/api/pedidos.ts'],
-                        [
-                            'refactor: renomeia interno\n\nChangelog: none — nada muda para quem consome'
-                        ]
-                    )
-                ).exitCode,
-                0
-            )
-        }
+    // sem entrada, mas com a razão escrita no histórico: aprova
+    assert.equal(
+      runChangelog(root, 'base', git(['src/api/pedidos.ts'], ['refactor: renomeia interno\n\nChangelog: none — nada muda para quem consome'])).exitCode,
+      0,
     )
+  })
 })
 
 test('mecanismo da Fase 6: atalho novo sem TDR é lembrado, nunca bloqueado', () => {
-    withTempRepo({}, root => {
-        mkdirSync(join(root, 'src'), { recursive: true })
-        writeFileSync(
-            join(root, 'src/cobranca.ts'),
-            'export const taxa = 0.05;\n',
-            'utf8'
-        )
+  withTempRepo({}, root => {
+    mkdirSync(join(root, 'src'), { recursive: true })
+    writeFileSync(join(root, 'src/cobranca.ts'), 'export const taxa = 0.05;\n', 'utf8')
 
-        const decision = decideHk7(
-            {
-                tool_name: 'Edit',
-                tool_input: {
-                    file_path: 'src/cobranca.ts',
-                    old_string: 'export const taxa = 0.05;',
-                    new_string:
-                        '// FIXME: arredondamento errado em centavos\nexport const taxa = 0.05;'
-                }
-            },
-            { root, hostRoots: [root] }
-        )
+    const decision = decideHk7(
+      {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: 'src/cobranca.ts',
+          old_string: 'export const taxa = 0.05;',
+          new_string: '// FIXME: arredondamento errado em centavos\nexport const taxa = 0.05;',
+        },
+      },
+      { root, hostRoots: [root] },
+    )
 
-        assert.equal(
-            decision.action,
-            'remind',
-            'HK-7 é additionalContext: lembra e devolve o controle'
-        )
-        assert.match(
-            decision.action === 'remind' ? decision.context : '',
-            /TDR/
-        )
-    })
+    assert.equal(decision.action, 'remind', 'HK-7 é additionalContext: lembra e devolve o controle')
+    assert.match(decision.action === 'remind' ? decision.context : '', /TDR/)
+  })
 })
 ```
 
@@ -3389,8 +2998,8 @@ Em `.github/workflows/living-docs.yml`, o checkout ganha profundidade:
 ```yaml
 - uses: actions/checkout@v4
   with:
-      # CI-6 compara <base>...HEAD; um clone raso não tem a base (ADR-0006).
-      fetch-depth: 0
+    # CI-6 compara <base>...HEAD; um clone raso não tem a base (ADR-0006).
+    fetch-depth: 0
 ```
 
 E um passo novo, depois do de `drift`:
@@ -3399,9 +3008,9 @@ E um passo novo, depois do de `drift`:
 - name: CI-6 — entrada de CHANGELOG
   if: github.event_name == 'pull_request'
   run: >
-      docker compose run --rm -w /workspace toolkit
-      node /opt/living-docs/src/cli/index.ts changelog
-      --base ${{ github.event.pull_request.base.sha }}
+    docker compose run --rm -w /workspace toolkit
+    node /opt/living-docs/src/cli/index.ts changelog
+    --base ${{ github.event.pull_request.base.sha }}
 ```
 
 O `if` não é preguiça: em `push` não existe "a base do PR", e inventar uma
@@ -3690,4 +3299,3 @@ escreva no backlog o estado real ("`ADR-0006` segue `draft`").
   melhoria de graça em código que funciona.
 - **Não cria `--stage multi-team`.** Ele nasce junto com a Fase 7, não antes:
   estágio que instala moldura vazia é a wiki morta nascendo de fábrica.
-

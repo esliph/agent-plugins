@@ -38,13 +38,13 @@ da raiz deste checkout, ele valida a si mesmo: o toolkit usa-se como teste.
 
 Comandos disponíveis:
 
-| Comando | O que faz |
-| --- | --- |
-| `node src/cli/index.ts init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou. |
-| `node src/cli/index.ts validate` | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono. |
-| `node src/cli/index.ts validate --base <ref>` | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
-| `node src/cli/index.ts drift` | Confere se cada documento gerado ainda bate com o comando que o gera. |
-| `node src/cli/index.ts changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit. |
+| Comando                                        | O que faz                                                                                                                                           |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `node src/cli/index.ts init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou.                                                                 |
+| `node src/cli/index.ts validate`               | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono.                                        |
+| `node src/cli/index.ts validate --base <ref>`  | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
+| `node src/cli/index.ts drift`                  | Confere se cada documento gerado ainda bate com o comando que o gera.                                                                               |
+| `node src/cli/index.ts changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit.                                     |
 
 Opções de `init`: `--owner <@time>` define o dono declarado nos documentos
 criados; `--dry-run` mostra o que seria criado sem escrever; `--id-separator` e
@@ -56,11 +56,11 @@ criados; `--dry-run` mostra o que seria criado sem escrever; `--id-separator` e
 O `init` instala só o conjunto que cada estágio pede, e cada estágio inclui os
 anteriores:
 
-| Estágio | Acrescenta |
-| --- | --- |
-| `solo` | Decisões (ADR), decisões em aberto e dívida técnica. |
-| `small-team` | Requisitos (funcionais, não funcionais e regras de negócio), acordos de trabalho (`CONTRIBUTING.md`, definição de pronto), glossário e princípios. |
-| `production` | Contratos (catálogo de erros e política de versionamento) e histórico de versões (`CHANGELOG.md`, notas de release, depreciações e guias de migração). |
+| Estágio      | Acrescenta                                                                                                                                                       |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `solo`       | Decisões (ADR), decisões em aberto e dívida técnica.                                                                                                             |
+| `small-team` | Requisitos (funcionais, não funcionais e regras de negócio), acordos de trabalho (`CONTRIBUTING.md`, definição de pronto), glossário e princípios.               |
+| `production` | Contratos (catálogo de erros e política de versionamento) e histórico de versões (`CHANGELOG.md`, notas de release, depreciações e guias de migração).           |
 | `multi-team` | A verificação de CI que compara com o diff da branch — documento e código que precisam mudar juntos, e mudança visível a quem consome sem registro no histórico. |
 
 Todo documento criado é declarado em `docs/.ownership.yml`: documento sem dono é
@@ -83,14 +83,14 @@ LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node src/cli/index.ts validate
 
 **Skills e comandos:**
 
-| Comando | Skill | Papel |
-| --- | --- | --- |
-| `/adr`, `/open-decision`, `/debt` | `decision-recorder` | Registra decisões, decisões em aberto e dívida técnica. |
-| `/docs-setup` | `living-docs-bootstrap` | Prepara o `docs/.ownership.yml` e a estrutura. |
-| `/term` | `glossary-keeper` | Mantém o vocabulário do domínio. |
-| `/release` | `release-historian` | Mantém `CHANGELOG.md`, notas de release, depreciações e migrações. |
-| `/docs-audit` | `docs-divergence-auditor` | Aponta o que um diff deveria ter atualizado e não atualizou. |
-| — | `requirements-keeper`, `working-agreements-keeper`, `charter-keeper`, `contract-keeper` | Selecionadas pela descrição, sem comando próprio. |
+| Comando                           | Skill                                                                                   | Papel                                                              |
+| --------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `/adr`, `/open-decision`, `/debt` | `decision-recorder`                                                                     | Registra decisões, decisões em aberto e dívida técnica.            |
+| `/docs-setup`                     | `living-docs-bootstrap`                                                                 | Prepara o `docs/.ownership.yml` e a estrutura.                     |
+| `/term`                           | `glossary-keeper`                                                                       | Mantém o vocabulário do domínio.                                   |
+| `/release`                        | `release-historian`                                                                     | Mantém `CHANGELOG.md`, notas de release, depreciações e migrações. |
+| `/docs-audit`                     | `docs-divergence-auditor`                                                               | Aponta o que um diff deveria ter atualizado e não atualizou.       |
+| —                                 | `requirements-keeper`, `working-agreements-keeper`, `charter-keeper`, `contract-keeper` | Selecionadas pela descrição, sem comando próprio.                  |
 
 **Ganchos:** bloqueiam a edição de um documento já aceito; exigem aprovação de
 uma pessoa para promover o estado de uma decisão; depois de você editar um trecho
