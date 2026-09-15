@@ -4,15 +4,15 @@ owner: '@esliph/engineering'
 trigger: >
   Quando algo publicado é anunciado para remoção, e quando uma depreciação
   anunciada é de fato removida.
-last-reviewed: 2026-08-26
+last-reviewed: 2026-09-15
 ---
 
 # Depreciações
 
 Uma depreciação registra quatro coisas, sem exceção: a data do anúncio, a
-versão ou data de remoção, o substituto, e o link para o guia de migração
-(`RN-0015`). Faltando qualquer uma, não é depreciação — é quebra de
-compatibilidade, e passa por um ADR.
+versão ou data de remoção, o substituto, e o link para o guia de migração.
+Faltando qualquer uma, não é depreciação — é quebra de compatibilidade, e passa
+por um ADR.
 
 O que é público, e portanto pode ser depreciado, está em
 `docs/contracts/versioning-policy.md`.
