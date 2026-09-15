@@ -99,6 +99,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   fora, e os identificadores da interface pública (`CI-n`, `HK-n`, `SK-n`,
   `CM-n`, `EXIT-n`) continuam citáveis. Não há rótulo de exceção: o conserto é
   reescrever em texto corrido.
+- `living-docs init --stage production` passa a declarar `CHANGELOG.md`,
+  `docs/deprecations.md`, `docs/migrations/` e as release notes com
+  `audience: external`. Num repositório que já declara essas entradas sem a
+  marca, o `init` não reescreve a linha: avisa, entre o que não instalou, que
+  marcá-la é o que liga `CI-11` para ela.
 
 ### Changed
 

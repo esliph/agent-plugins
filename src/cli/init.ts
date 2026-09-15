@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts'
-import type { DocumentRole, OwnershipConfig } from '../config/ownership.ts'
+import type { Audience, DocumentRole, OwnershipConfig } from '../config/ownership.ts'
 import { parseCodeowners } from '../config/codeowners.ts'
 import { SETTINGS_PATH, SettingsError, mergeSettings } from '../config/claude-settings.ts'
 import { RETIRED_IDS_PATH } from '../ids/citations.ts'
@@ -90,27 +90,34 @@ interface DocumentSeed {
   path: string
   skill: string | null
   role: DocumentRole | null
+  /** `external` para o que é escrito para quem vem de fora (`RF-0015`). */
+  audience: Audience
 }
 
 /** Declarados em todo estágio: os dois nascem já no `solo`. */
 const BASE_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
-  { path: OWNERSHIP_PATH, skill: 'living-docs-bootstrap', role: null },
-  { path: RETIRED_IDS_PATH, skill: 'living-docs-bootstrap', role: null },
+  { path: OWNERSHIP_PATH, skill: 'living-docs-bootstrap', role: null, audience: 'internal' },
+  { path: RETIRED_IDS_PATH, skill: 'living-docs-bootstrap', role: null, audience: 'internal' },
 ])
 
 const SMALL_TEAM_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
-  { path: 'CONTRIBUTING.md', skill: 'working-agreements-keeper', role: null },
-  { path: 'docs/definition-of-done.md', skill: 'working-agreements-keeper', role: 'definition-of-done' },
-  { path: 'docs/glossary.md', skill: 'glossary-keeper', role: null },
-  { path: 'docs/charter/', skill: 'charter-keeper', role: null },
+  { path: 'CONTRIBUTING.md', skill: 'working-agreements-keeper', role: null, audience: 'internal' },
+  { path: 'docs/definition-of-done.md', skill: 'working-agreements-keeper', role: 'definition-of-done', audience: 'internal' },
+  { path: 'docs/glossary.md', skill: 'glossary-keeper', role: null, audience: 'internal' },
+  { path: 'docs/charter/', skill: 'charter-keeper', role: null, audience: 'internal' },
 ])
 
+/**
+ * O rastro histórico nasce externo: é escrito para quem consome (`RF-0015`).
+ * Os contratos não — citam as próprias fontes, e marcá-los é decisão de quem os
+ * mantém.
+ */
 const PRODUCTION_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
-  { path: 'docs/contracts/errors.md', skill: 'contract-keeper', role: null },
-  { path: 'docs/contracts/versioning-policy.md', skill: 'contract-keeper', role: null },
-  { path: 'CHANGELOG.md', skill: 'release-historian', role: null },
-  { path: 'docs/deprecations.md', skill: 'release-historian', role: null },
-  { path: 'docs/migrations/', skill: 'release-historian', role: null },
+  { path: 'docs/contracts/errors.md', skill: 'contract-keeper', role: null, audience: 'internal' },
+  { path: 'docs/contracts/versioning-policy.md', skill: 'contract-keeper', role: null, audience: 'internal' },
+  { path: 'CHANGELOG.md', skill: 'release-historian', role: null, audience: 'external' },
+  { path: 'docs/deprecations.md', skill: 'release-historian', role: null, audience: 'external' },
+  { path: 'docs/migrations/', skill: 'release-historian', role: null, audience: 'external' },
 ])
 
 /** O contrato do agente: adota `AGENTS.md` quando ele já existe (`RF-0002`). */
@@ -126,7 +133,7 @@ function documentSeeds(root: string, stage: Stage): DocumentSeed[] {
   const seeds: DocumentSeed[] = [
     ...BASE_DOCUMENTS,
     ...SMALL_TEAM_DOCUMENTS,
-    { path: agentContractPath(root), skill: 'working-agreements-keeper', role: 'agent-contract' },
+    { path: agentContractPath(root), skill: 'working-agreements-keeper', role: 'agent-contract', audience: 'internal' },
   ]
 
   if (reaches(stage, 5)) {
@@ -145,6 +152,9 @@ function documentEntry(seed: DocumentSeed, owner: string): string {
   if (seed.role !== null) {
     lines.push(`    role: ${seed.role}`)
   }
+  if (seed.audience === 'external') {
+    lines.push('    audience: external')
+  }
 
   return lines.join('\n')
 }
@@ -157,6 +167,7 @@ function documentsBlock(root: string, owner: string, stage: Stage): string {
     '# Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).',
     '# CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.',
     '# `role` é vocabulário fechado: agent-contract, definition-of-done.',
+    '# `audience` diz quem lê: ausente é internal; external liga CI-11, que reprova ID de artefato no texto.',
     'documents:',
     ...entries,
     '',
@@ -384,6 +395,8 @@ function releasesBlock(owner: string, path: string, stage: Stage): string {
       `    path: ${path}`,
       `    owner: "${owner}"`,
       '    skill: release-historian',
+      '    # A release note é lida por quem consome: CI-11 cobra que ela não cite ID de artefato.',
+      '    audience: external',
       '    # Release note publicada é congelada por HK-1 (spec §5, SK-7, regra 4).',
       '    append-only: true',
       '    mutable-fields: [status, last-reviewed]',
@@ -537,6 +550,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
   // um `.ownership.yml` — de uma versão anterior, ou de um estágio menor.
   if (existing !== null) {
     declareDocuments(root, options, result, existing)
+    reportUnmarkedExternal(root, options.stage, result, existing)
   }
 
   return result
@@ -695,5 +709,40 @@ function declareDocuments(root: string, options: InitOptions, result: InitResult
   result.created.pop()
   result.notInstalled.push(
     `documents: em ${OWNERSHIP_PATH} — âncora \`documents:\` ou \`watches:\` não encontrada; ` + 'declare os documentos à mão para que eles tenham dono (CI-7)',
+  )
+}
+
+/**
+ * Relata a entrada já declarada que este estágio marcaria como externa e que
+ * não está marcada (`RF-0015`).
+ *
+ * Não reescreve a linha: mesma política de `declareDocuments`,
+ * `declareArtifacts` e `declareCodeowners`. A entrada é de quem a escreveu, e
+ * marcá-la liga `CI-11` sobre um texto que talvez ainda cite ID — a decisão é de
+ * quem responde por ele.
+ */
+function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, existing: OwnershipConfig): void {
+  for (const seed of documentSeeds(root, stage)) {
+    if (seed.audience !== 'external') {
+      continue
+    }
+    const declared = existing.documents.find(document => document.path === seed.path)
+
+    if (declared !== undefined && declared.audience !== 'external') {
+      result.notInstalled.push(unmarkedExternal(`\`${seed.path}\` em documents:`))
+    }
+  }
+
+  const rel = existing.artifacts.find(artifact => artifact.idPrefix === 'REL')
+
+  if (reaches(stage, 6) && rel !== undefined && rel.audience !== 'external') {
+    result.notInstalled.push(unmarkedExternal('o artefato REL em artifacts:'))
+  }
+}
+
+function unmarkedExternal(what: string): string {
+  return (
+    `audience: external para ${what}, em ${OWNERSHIP_PATH} — a entrada já estava declarada sem a marca, ` +
+    'e o init não reescreve linha já escrita; marcá-la é o que liga CI-11 para ela'
   )
 }
