@@ -45,7 +45,10 @@ export function externalTexts(context: CheckContext): ExternalText[] {
  * `CI-1` (`RN-0030`).
  */
 export function bodyOf(source: string, frontmatter: Frontmatter | null): string {
-  const lines = source.replace(/^﻿/, '').replace(/\r\n/g, '\n').split('\n')
+  const lines = source
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
 
   if (frontmatter === null) {
     return lines.join('\n')
