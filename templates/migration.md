@@ -12,7 +12,7 @@ last-reviewed: {{TODAY}}
 
 ## Por que
 
-<!-- O ADR que decidiu. Migração sem decisão registrada é quebra sem porquê. -->
+<!-- Em texto corrido, o que foi decidido e por quê — sem o ID do ADR: quem lê este guia está do lado de fora. O commit que cria o guia cita o ADR. Migração sem decisão registrada é quebra sem porquê. -->
 
 ## Como migrar
 

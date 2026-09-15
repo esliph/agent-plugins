@@ -34,6 +34,9 @@ artefato dono e é lida de lá (`RN-0010`).
 - **Mudança visível a quem consome viaja com a entrada de `CHANGELOG.md`** —
   ou com a razão escrita no commit. `CI-6` cobra; o formato do rótulo está no
   contrato.
+- **Texto para quem lê de fora não carrega ID de artefato.** O que está marcado
+  `audience: external` explica em texto corrido; o vínculo fica no artefato ou
+  no commit — `CI-11` cobra.
 - **Todo documento tem dono declarado.** `docs/.ownership.yml` diz qual skill
   responde; o CODEOWNERS, quem revisa — `CI-7` cobra os dois.
 

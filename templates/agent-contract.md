@@ -22,6 +22,9 @@ artefato dono e é lida de lá.
 - **Documento e código viajam juntos.** Caminho vigiado em `watches` tem doc
   dono; `HK-4` lembra e `HK-5` pergunta.
 - **Atalho consciente vira `TDR`** (`/debt`) com gatilho de pagamento observável.
+- **Texto para quem lê de fora não carrega ID de artefato.** O que está marcado
+  `audience: external` explica em texto corrido; o vínculo fica no artefato ou
+  no commit — `CI-11` cobra.
 
 ## O que nunca fazer
 

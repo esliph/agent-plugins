@@ -70,8 +70,10 @@ legível é humano.
    remoção, substituto, link para o guia de migração. Faltando qualquer uma,
    **pare** e traga a lacuna: não registre depreciação pela metade.
 5. **Guia de migração por mudança quebra-compatibilidade**, em
-   `docs/migrations/`, apontando o ADR que a decidiu. Quebra sem ADR é decisão
-   sem porquê — o caminho é `/adr` antes.
+   `docs/migrations/`. O guia diz, em texto corrido, por que a quebra foi
+   decidida — sem o ID do ADR, porque quem o lê está do lado de fora —, e o
+   commit que cria o guia cita o ADR. Quebra sem ADR é decisão sem porquê — o
+   caminho é `/adr` antes.
 6. **Release note é derivada do CHANGELOG**, não escrita de novo: mova as
    entradas de `Unreleased` para a seção da versão, e escreva só a moldura.
 7. **Nasce `draft`.** Publicar é ato humano — `HK-3` intercepta, e a resposta
@@ -95,7 +97,8 @@ legível é humano.
 - [ ] A entrada é legível por quem consome, e não narra o código — verificação: humana.
 - [ ] Quando não há entrada, existe `Changelog: none — <razão>` com razão escrita — verificação: `CI-6`.
 - [ ] Toda depreciação registrada tem as quatro coisas — verificação: humana (`RN-0015`).
-- [ ] Toda quebra de compatibilidade tem guia de migração apontando o ADR — verificação: humana.
+- [ ] Toda quebra de compatibilidade tem guia de migração que diz em texto corrido por que foi decidida, e o commit que o cria cita o ADR — verificação: humana.
+- [ ] Nenhum documento externo cita ID de artefato — verificação: `CI-11`.
 - [ ] A release note nasceu `draft` e foi promovida por uma pessoa — verificação: `HK-3`.
 - [ ] Nenhuma release note publicada foi editada no corpo — verificação: `HK-1`.
 - [ ] Nenhum atalho novo ficou sem `TDR-nnnn` — verificação: `HK-7` lembra; registrar é humano.

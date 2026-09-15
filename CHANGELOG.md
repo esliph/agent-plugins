@@ -152,6 +152,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   container antes de executar. O que se invoca não mudou; o que acontece com o
   ambiente parado, sim.
 
+- A skill `release-historian` e o template de guia de migração deixam de pedir
+  que o guia aponte a decisão pelo ID: o guia diz, em texto corrido, por que a
+  quebra foi decidida, e o commit que o cria cita a decisão. O contrato do agente
+  semeado pelo `init` ganha a mesma política.
+
 ### Fixed
 
 - Os templates que `living-docs init` semeia voltam a trazer os placeholders

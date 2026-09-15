@@ -49,3 +49,15 @@ test('a Definition of Done nomeia a verificação de cada item', () => {
     assert.match(item, /CI-\d|HK-\d|human/i, `item sem verificação nomeada — ${item}`)
   }
 })
+
+test('RN-0030: o contrato do agente e o template dele dizem que texto para fora não carrega ID, e quem cobra', () => {
+  const template = readFileSync(join(ROOT, 'templates/agent-contract.md'), 'utf8')
+
+  for (const [nome, fonte] of [
+    ['CLAUDE.md', CONTRATO],
+    ['templates/agent-contract.md', template],
+  ] as const) {
+    assert.match(fonte, /quem lê de fora/, `${nome} sem a política de fronteira de leitor`)
+    assert.match(fonte, /CI-11/, `${nome} sem nomear quem cobra`)
+  }
+})
