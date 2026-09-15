@@ -93,6 +93,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 - `audience` em `documents:` e em `artifacts:` do `docs/.ownership.yml`:
   declara quem lê o documento. Aceita `internal` e `external`; ausente, vale
   `internal`, e nenhum `.ownership.yml` já escrito muda de significado.
+- `CI-11` (`living-docs validate`): documento ou artefato declarado
+  `audience: external` não pode citar ID de artefato — em prosa, entre crases ou
+  no caminho de um link. O frontmatter e os blocos de código cercados ficam de
+  fora, e os identificadores da interface pública (`CI-n`, `HK-n`, `SK-n`,
+  `CM-n`, `EXIT-n`) continuam citáveis. Não há rótulo de exceção: o conserto é
+  reescrever em texto corrido.
 
 ### Changed
 

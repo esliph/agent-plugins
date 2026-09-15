@@ -85,4 +85,11 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     failsWhen:
       'O `trigger` de um documento e a `description` da skill declarada como dona dele compartilham menos raízes de palavra do que o piso declarado. Skill dona ausente da raiz do toolkit produz aviso, não falha; e o `trigger` de um item de coleção não é comparado.',
   },
+  {
+    id: 'CI-11',
+    name: 'external audience',
+    command: 'living-docs validate',
+    failsWhen:
+      'Documento ou artefato declarado `audience: external` cita, fora do frontmatter e de bloco de código cercado, um ID cujo prefixo está declarado em `artifacts:` — em prosa, entre crases ou no caminho de um link.',
+  },
 ])
