@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-08-27
+last-reviewed: 2026-09-15
 ---
 
 # Regras de negócio
@@ -396,3 +396,20 @@ encontrar, e o documento passa a depender de alguém lembrar dele.
 Quando a skill dona declarada não existe na raiz do toolkit, o resultado é aviso
 e não falha — um projeto pode declarar skill própria, e reprovar por isso seria
 exigir que todo dono fosse do plugin.
+
+## RN-0030 — Documento para quem vem de fora não cita ID de artefato
+
+- **status:** draft
+- **relates-to:** ADR-0017, RN-0013
+- **fora de escopo:** os identificadores da interface pública, que a política de versionamento declara; o frontmatter, que é contrato de máquina e é de `CI-1`; e o bloco de código cercado, que é exemplo
+
+O corpo de um documento ou artefato declarado `audience: external` não contém
+citação a um prefixo declarado em `artifacts:` — nem em prosa, nem entre
+crases, nem no caminho de um link. Quem lê de fora não tem como resolver o ID, e
+um link até o artefato o leva a um documento escrito para quem mantém o
+repositório.
+
+O vínculo que o ID carregaria não se perde: ele existe e mora do lado de dentro,
+no próprio artefato ou na mensagem de commit. Conta toda citação a prefixo
+declarado — a que resolve, a retirada e a que não resolve —, porque a regra é
+sobre o que o leitor vê, e não sobre o item existir.
