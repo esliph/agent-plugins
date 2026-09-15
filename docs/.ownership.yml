@@ -56,6 +56,8 @@ artifacts:
     path: docs/releases/
     owner: '@esliph/engineering'
     skill: release-historian
+    # Lida por quem consome: CI-11 cobra que ela não cite ID de artefato (ADR-0017).
+    audience: external
     # Release note publicada é congelada por HK-1 (spec §5, SK-7, regra 4).
     # É por isso que REL tem família de IDs e CHANGELOG.md não: HK-1 só
     # congela caminho que `findArtifactRule` resolve.
@@ -72,6 +74,8 @@ generated:
 
 # Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).
 # CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.
+# `audience: external` marca o que é escrito para quem lê de fora; CI-11 cobra
+# que esse texto não cite ID de artefato (ADR-0017).
 documents:
   - path: docs/.ownership.yml
     owner: '@esliph/engineering'
@@ -105,12 +109,15 @@ documents:
   - path: CHANGELOG.md
     owner: '@esliph/engineering'
     skill: release-historian
+    audience: external
   - path: docs/deprecations.md
     owner: '@esliph/engineering'
     skill: release-historian
+    audience: external
   - path: docs/migrations/
     owner: '@esliph/engineering'
     skill: release-historian
+    audience: external
 
   # Sem skill dona, e isso é informação: plano, spec e README têm dono e não têm
   # keeper. Ficam fora do corpus de duplicação de CI-7 (ADR-0009) porque citam os
@@ -124,6 +131,7 @@ documents:
     owner: '@esliph/engineering'
   - path: README.md
     owner: '@esliph/engineering'
+    audience: external
 
 # Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
 # antes do commit. Na Fase 7, CI-7 lê daqui também.
