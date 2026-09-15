@@ -90,6 +90,10 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   ou `bin/dev` sozinho para um shell. Exige o daemon do Docker; o caminho de
   registro continua sendo o Node do host (`RNF-0006`, `ADR-0016`).
 
+- `audience` em `documents:` e em `artifacts:` do `docs/.ownership.yml`:
+  declara quem lê o documento. Aceita `internal` e `external`; ausente, vale
+  `internal`, e nenhum `.ownership.yml` já escrito muda de significado.
+
 ### Changed
 
 - O toolkit passa a rodar no Node do host: os ganchos do plugin invocam `node`

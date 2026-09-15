@@ -29,6 +29,7 @@ function rule(overrides: Partial<ArtifactRule> = {}): ArtifactRule {
     collection: 'per-file',
     fieldMap: {},
     states: null,
+    audience: 'internal',
     ...overrides,
   }
 }
