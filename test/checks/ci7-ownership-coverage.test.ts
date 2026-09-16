@@ -108,9 +108,9 @@ test('RN-0008 (config): vínculo de watches que aponta doc inexistente ou sem do
     const achado = findings.find(finding => /não existe/.test(finding.message) && finding.file === 'docs/.ownership.yml')
 
     assert.ok(achado)
-    // A regra citada é a do vínculo código→doc, não a da Definition of Done.
-    assert.match(achado.fix, /RN-0008/)
-    assert.doesNotMatch(achado.fix, /RN-0017/)
+    // A correção dita é a do vínculo código→doc, não a da Definition of Done.
+    assert.match(achado.fix, /ninguém pode atualizar/)
+    assert.doesNotMatch(achado.fix, /intenção não é definição de pronto/)
   })
 
   // O doc existe, mas ninguém o declarou: watches aponta para documento órfão.
@@ -121,9 +121,8 @@ test('RN-0008 (config): vínculo de watches que aponta doc inexistente ou sem do
     const achado = findings.find(finding => /não tem dono declarado/.test(finding.message))
 
     assert.ok(achado)
-    assert.match(achado.fix, /RN-0016/)
-    assert.match(achado.fix, /RN-0008/)
-    assert.doesNotMatch(achado.fix, /RN-0017/)
+    assert.match(achado.fix, /só é cobrável se o doc tiver dono/)
+    assert.doesNotMatch(achado.fix, /intenção não é definição de pronto/)
   })
 })
 

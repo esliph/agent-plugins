@@ -43,9 +43,10 @@ Opções de changelog:
  * máquina estava carregada trocaria um enforcement por um teste instável.
  */
 function reportElapsed(elapsedMs: number): void {
-  process.stdout.write(`living-docs: conjunto de checks em ${formatElapsed(elapsedMs)} ` + `(teto declarado: ${formatElapsed(CHECK_BUDGET_MS)} — RNF-0005).\n`)
+  // Regra de origem: RNF-0005.
+  process.stdout.write(`living-docs: conjunto de checks em ${formatElapsed(elapsedMs)} ` + `(teto declarado: ${formatElapsed(CHECK_BUDGET_MS)}).\n`)
   if (elapsedMs > CHECK_BUDGET_MS) {
-    process.stderr.write('living-docs: o conjunto passou do teto declarado. Meça o que ficou lento antes de subir o número ' + '(RNF-0005).\n')
+    process.stderr.write('living-docs: o conjunto passou do teto declarado. Meça o que ficou lento antes de subir o número.\n')
   }
 }
 
@@ -65,7 +66,8 @@ function main(argv: readonly string[]): number {
       const base = baseIndex === -1 ? null : (argv[baseIndex + 1] ?? '')
 
       if (base === '') {
-        process.stderr.write('living-docs: `--base` precisa de uma ref — a base do diff não se adivinha (CI-7, ADR-0010).\n')
+        // Regra de origem: ADR-0010.
+        process.stderr.write('living-docs: `--base` precisa de uma ref — a base do diff não se adivinha (CI-7).\n')
 
         return 2
       }
@@ -117,7 +119,8 @@ function main(argv: readonly string[]): number {
       const base = baseIndex === -1 ? '' : (argv[baseIndex + 1] ?? '')
 
       if (base === '') {
-        process.stderr.write('living-docs: `changelog` precisa de `--base <ref>` — a base do diff não se adivinha (CI-6, ADR-0006).\n')
+        // Regra de origem: ADR-0006.
+        process.stderr.write('living-docs: `changelog` precisa de `--base <ref>` — a base do diff não se adivinha (CI-6).\n')
 
         return 2
       }
@@ -155,9 +158,10 @@ function main(argv: readonly string[]): number {
       const padding = paddingIndex === -1 ? DEFAULT_ID_FORMAT.padding : Number.parseInt(argv[paddingIndex + 1] ?? '', 10)
 
       if (!SEPARATORS_ALLOWED.includes(separator) || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
+        // Regra de origem: ADR-0011.
         process.stderr.write(
           `living-docs: forma de ID inválida. --id-separator aceita ${SEPARATORS_ALLOWED.map(s => `"${s}"`).join(', ')} ` +
-            `e --id-padding um inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).\n`,
+            `e --id-padding um inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max}.\n`,
         )
 
         return 2
@@ -167,7 +171,8 @@ function main(argv: readonly string[]): number {
       const invoke = invokeIndex === -1 ? 'npx living-docs' : (argv[invokeIndex + 1] ?? '')
 
       if (invoke.trim() === '') {
-        process.stderr.write('living-docs: `--invoke` precisa do comando que roda o CLI no seu CI — ele não se adivinha (DA-0003).\n')
+        // Regra de origem: DA-0003.
+        process.stderr.write('living-docs: `--invoke` precisa do comando que roda o CLI no seu CI — ele não se adivinha.\n')
 
         return 2
       }
@@ -199,7 +204,8 @@ function main(argv: readonly string[]): number {
         process.stdout.write(
           `formato   ${sample}  (${count} ocorrência(s) nesta forma) — o repositório escreve IDs de outro jeito.\n` +
             `          Para adotá-la: --id-separator "${format.separator}" --id-padding ${format.padding}. ` +
-            'Nenhum arquivo foi alterado (RF-0014).\n',
+            // Regra de origem: RF-0014.
+            'Nenhum arquivo foi alterado.\n',
         )
       }
       for (const path of result.created) {

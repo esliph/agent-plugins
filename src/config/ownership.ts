@@ -10,6 +10,17 @@ export const OWNERSHIP_PATH = 'docs/.ownership.yml'
 
 export type Collection = 'per-file' | 'table' | 'sections'
 
+/**
+ * Quem lê um documento ou artefato (`ADR-0017`).
+ *
+ * Vocabulário fechado, no mesmo desenho de `DOCUMENT_ROLES`: é o que permite a
+ * `CI-11` achar o texto escrito para quem vem de fora sem conhecer caminho
+ * nenhum. Ausente, vale `internal` — nenhum `.ownership.yml` escrito antes muda
+ * de significado.
+ */
+export const AUDIENCES = ['internal', 'external'] as const
+export type Audience = (typeof AUDIENCES)[number]
+
 export interface ArtifactRule {
   idPrefix: string
   path: string
@@ -23,6 +34,8 @@ export interface ArtifactRule {
   fieldMap: Record<string, string>
   /** Máquina de estados declarada pelo projeto; null usa a embutida em src/docs/schema.ts. */
   states: string[] | null
+  /** Quem lê este artefato (`ADR-0017`). `external` liga `CI-11` sobre ele. */
+  audience: Audience
 }
 
 export interface GeneratedRule {
@@ -59,6 +72,8 @@ export interface DocumentRule {
   /** Skill dona, quando existe uma. `null` é informação, não erro. */
   skill: string | null
   role: DocumentRole | null
+  /** Quem lê este documento (`ADR-0017`). `external` liga `CI-11` sobre ele. */
+  audience: Audience
 }
 
 export interface OwnershipConfig {
@@ -99,8 +114,8 @@ function parseIdFormat(raw: unknown): IdFormat {
 
   if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
     throw new OwnershipError(
-      `${OWNERSHIP_PATH}: id-format.separator "${String(separator)}" não é aceito. ` +
-        `Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')} (ADR-0011).`,
+      // Regra de origem: ADR-0011.
+      `${OWNERSHIP_PATH}: id-format.separator "${String(separator)}" não é aceito. ` + `Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`,
     )
   }
 
@@ -108,7 +123,8 @@ function parseIdFormat(raw: unknown): IdFormat {
 
   if (typeof padding !== 'number' || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
     throw new OwnershipError(
-      `${OWNERSHIP_PATH}: id-format.padding "${String(padding)}" precisa ser inteiro entre ` + `${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).`,
+      // Regra de origem: ADR-0011.
+      `${OWNERSHIP_PATH}: id-format.padding "${String(padding)}" precisa ser inteiro entre ` + `${PADDING_RANGE.min} e ${PADDING_RANGE.max}.`,
     )
   }
 
@@ -142,6 +158,17 @@ function requireString(source: Record<string, unknown>, key: string, where: stri
   }
 
   return value
+}
+
+function parseAudience(raw: unknown, where: string): Audience {
+  if (raw === undefined) {
+    return 'internal'
+  }
+  if (!AUDIENCES.includes(raw as Audience)) {
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.audience "${String(raw)}" desconhecido. Válidos: ${AUDIENCES.join(', ')}.`)
+  }
+
+  return raw as Audience
 }
 
 function parseArtifact(raw: unknown, index: number): ArtifactRule {
@@ -191,6 +218,7 @@ function parseArtifact(raw: unknown, index: number): ArtifactRule {
     collection: collectionRaw,
     fieldMap,
     states,
+    audience: parseAudience(item.audience, where),
   }
 }
 
@@ -206,8 +234,9 @@ function parseBumpLimit(raw: unknown): number {
   }
   if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
     throw new OwnershipError(
+      // Regra de origem: ADR-0013.
       `${OWNERSHIP_PATH}: last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 ` +
-        '(limiar 1 reprovaria a revisão legítima de um documento só — ADR-0013).',
+        '(limiar 1 reprovaria a revisão legítima de um documento só).',
     )
   }
 
@@ -381,6 +410,7 @@ function parseDocument(raw: unknown, index: number): DocumentRule {
     owner,
     skill: skill === undefined ? null : skill,
     role: role === undefined ? null : (role as DocumentRole),
+    audience: parseAudience(item.audience, where),
   }
 }
 

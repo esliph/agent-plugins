@@ -82,7 +82,8 @@ export const ci2Ids: Check = {
             declaration.file,
             declaration.line,
             `ID ${declaration.id} está em ${RETIRED_IDS_PATH} e não pode ser reciclado.`,
-            'Use o próximo número livre; IDs retirados nunca voltam (spec §2).',
+            // Regra de origem: spec §2.
+            'Use o próximo número livre; IDs retirados nunca voltam.',
           ),
         )
       }

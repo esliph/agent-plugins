@@ -63,3 +63,15 @@ test('REL está declarado, para que HK-1 congele release note publicada', () => 
   assert.equal(rel?.appendOnly, true)
   assert.equal(rel?.skill, 'release-historian')
 })
+
+test('RN-0030: este repositório marca como externo o que escreve para quem vem de fora', () => {
+  for (const path of ['README.md', 'CHANGELOG.md', 'docs/deprecations.md', 'docs/migrations/']) {
+    assert.equal(config.documents.find(document => document.path === path)?.audience, 'external', `${path} deveria estar marcado`)
+  }
+  assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
+
+  // docs/contracts/ fica de fora: cita as próprias fontes, e marcá-lo é decisão própria.
+  for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md']) {
+    assert.equal(config.documents.find(document => document.path === path)?.audience, 'internal', `${path} não é marcado por esta entrega`)
+  }
+})

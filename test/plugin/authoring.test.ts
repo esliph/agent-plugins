@@ -214,3 +214,18 @@ test('a SK-0 não manda escolher estágio que o CLI rejeita', () => {
     assert.ok(source.includes(stage), `a SK-0 precisa nomear o estágio \`${stage}\` como o CLI o chama`)
   }
 })
+
+test('RN-0030: release-historian não pede que o guia de migração aponte o ADR pelo ID', () => {
+  const source = skillSource('release-historian')
+
+  assert.doesNotMatch(source, /apontando o ADR/, 'o guia é lido por quem vem de fora: o porquê vai em texto corrido')
+  assert.match(source, /commit que cria o guia cita o ADR/, 'o vínculo passa a morar no commit')
+  assert.match(source, /CI-11/, 'o checklist nomeia quem verifica')
+})
+
+test('RN-0030: o template de migração pede o porquê em texto corrido, não o ID do ADR', () => {
+  const template = readFileSync(join(ROOT, 'templates/migration.md'), 'utf8')
+
+  assert.doesNotMatch(template, /O ADR que decidiu\./)
+  assert.match(template, /commit que cria o guia cita o ADR/)
+})

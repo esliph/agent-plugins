@@ -340,3 +340,54 @@ test('RN-0024: id-format declarado é lido, e o inválido é erro e não padrão
   assert.throws(() => parseOwnership(`${MINIMO}\nid-format:\n  separator: "~"\n`), /separator "~" não é aceito/)
   assert.throws(() => parseOwnership(`${MINIMO}\nid-format:\n  padding: 9\n`), /padding "9"/)
 })
+
+const COM_AUDIENCE = `
+version: 1
+artifacts:
+  - id-prefix: ADR
+    path: docs/decisions/adr/
+    owner: "@time"
+    skill: decision-recorder
+  - id-prefix: REL
+    path: docs/releases/
+    owner: "@time"
+    skill: release-historian
+    audience: external
+documents:
+  - path: CONTRIBUTING.md
+    owner: "@time"
+  - path: CHANGELOG.md
+    owner: "@time"
+    skill: release-historian
+    audience: external
+`
+
+test('ADR-0017: audience ausente é internal — nenhum .ownership.yml escrito antes muda de significado', () => {
+  const config = parseOwnership(COM_AUDIENCE)
+
+  assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'ADR')?.audience, 'internal')
+  assert.equal(config.documents.find(document => document.path === 'CONTRIBUTING.md')?.audience, 'internal')
+  assert.ok(parseOwnership(VALID).artifacts.every(artifact => artifact.audience === 'internal'))
+})
+
+test('ADR-0017: audience external é lido em artifacts: e em documents:', () => {
+  const config = parseOwnership(COM_AUDIENCE)
+
+  assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
+  assert.equal(config.documents.find(document => document.path === 'CHANGELOG.md')?.audience, 'external')
+})
+
+test('ADR-0017: audience fora do vocabulário é erro e nomeia os válidos', () => {
+  // O artefato REL é o único seguido de `documents:`; o CHANGELOG é a última linha do YAML.
+  const noArtefato = COM_AUDIENCE.replace('audience: external\ndocuments:', 'audience: publico\ndocuments:')
+  const noDocumento = COM_AUDIENCE.replace(/audience: external\n$/, 'audience: publico\n')
+
+  assert.notEqual(noDocumento, COM_AUDIENCE, 'o replace do documento precisa casar')
+  assert.notEqual(noArtefato, COM_AUDIENCE, 'o replace do artefato precisa casar')
+  for (const source of [noDocumento, noArtefato]) {
+    assert.throws(
+      () => parseOwnership(source),
+      (err: unknown) => err instanceof OwnershipError && /audience "publico"/.test(err.message) && /internal, external/.test(err.message),
+    )
+  }
+})

@@ -57,7 +57,8 @@ export function decideHk8(payload: HookPayload, env: HookEnv): Hk8Decision {
       `HK-8: \`${repoPath}\` está reivindicado por ${claim.id}, uma decisão **aberta** em ${claim.doc}` +
       `${claim.gap === null ? '' : ` — "${claim.gap}"`}. ` +
       `Ela bloqueia: ${claim.paths.join(', ')}. ` +
-      'Regra de origem: `RN-0026` e o critério de aceite 4 da spec §12 — comportamento sem regra escrita vira ' +
+      // Regra de origem: RN-0026 e o critério de aceite 4 da spec §12.
+      'Comportamento sem regra escrita vira ' +
       'decisão aberta, e a implementação não acontece enquanto ela estiver aberta. ' +
       `Resolva a decisão primeiro (skill dona: ${claim.skill}; dono: ${claim.owner}), ou confirme que esta edição ` +
       'não é a implementação da regra que falta.',

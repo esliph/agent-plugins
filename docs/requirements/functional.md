@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-08-27
+last-reviewed: 2026-09-15
 ---
 
 # Requisitos funcionais
@@ -193,3 +193,19 @@ recusa: o enforcement é o que faz a regra valer.
 relata qual forma encontrou e quantos itens leu naquela forma. Declarar a forma é
 ato de quem instala, não do inventário: adoção silenciosa de formato é a mesma
 classe de erro que adoção silenciosa de caminho, e a `SK-0` já recusa a segunda.
+
+## RF-0015 — `init` marca como externo o que é escrito para quem vem de fora
+
+- **status:** draft
+- **relates-to:** RF-0009, RF-0012, RN-0030
+- **fora de escopo:** o `README.md` de quem instala, que o `init` não declara como documentação e não passa a declarar por causa disto
+
+No estágio `production` em diante, uma instalação nova declara `CHANGELOG.md`,
+`docs/deprecations.md`, `docs/migrations/` e o artefato `REL` com
+`audience: external`. É o rastro histórico, e ele é escrito para quem consome.
+
+Num repositório que já declara essas entradas sem a marca, o `init` não
+reescreve a linha: relata, entre o que não instalou, cada entrada declarada sem
+a marca, dizendo que marcá-la é o que liga a verificação para ela. É a mesma
+política de quando ele acrescenta ao `.ownership.yml` e ao CODEOWNERS: o que já
+está escrito é de quem escreveu.

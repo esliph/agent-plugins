@@ -133,7 +133,8 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
     action: 'ask',
     reason:
       `HK-3: esta edição promove ${promotion.id} de \`${promotion.from}\` para \`${promotion.to}\`. ` +
-      'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §4 — nenhum agente promove estado sozinho; ' +
+      // Regra de origem: spec §4.
+      'Nenhum agente promove estado sozinho: ' +
       'o máximo que uma skill escreve é `draft`/`open`, e a aceitação é ato humano. ' +
       `Confirme se a decisão foi realmente tomada por uma pessoa. Artefato dono: ${rule.path} (${rule.owner}); ` +
       `skill dona: ${rule.skill}.`,

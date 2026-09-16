@@ -135,7 +135,8 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
             0,
             'CODEOWNERS ausente: nenhum documento deste repositório tem dono declarado do lado de quem revisa.',
             'Crie `CODEOWNERS` na raiz (ou em `.github/`), espelhando o campo `owner` de cada entrada de ' +
-              '`docs/.ownership.yml` (`RN-0016`; `living-docs init` o escreve).',
+              // Regra de origem: RN-0016.
+              '`docs/.ownership.yml` (`living-docs init` o escreve).',
           ),
         )
       }
@@ -149,8 +150,8 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               0,
               `\`${file}\` não tem entrada em \`${OWNERSHIP_PATH}\`.`,
               'Declare-o em `artifacts:` (se tem família de IDs e ciclo de vida), em `documents:` (se tem dono e ' +
-                'não tem IDs) ou em `generated:` (se é gerado) — `RN-0016`, `ADR-0008`. Documento sem dono é o ' +
-                'anti-requisito da spec §13.',
+                // Regra de origem: RN-0016, ADR-0008; documento sem dono é anti-requisito da spec §13.
+                'não tem IDs) ou em `generated:` (se é gerado). Documento sem dono é documento que ninguém mantém.',
             ),
           )
         }
@@ -179,7 +180,8 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               0,
               `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse caminho não existe no repositório.`,
               'Crie o documento, ou corrija o `doc` da regra. Vínculo que aponta para o vazio faz `HK-4` e `HK-5` ' +
-                'pedirem um documento que ninguém pode atualizar (`RN-0008`).',
+                // Regra de origem: RN-0008.
+                'pedirem um documento que ninguém pode atualizar.',
             ),
           )
           continue
@@ -190,7 +192,8 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               OWNERSHIP_PATH,
               0,
               `\`watches\` exige \`${doc}\` para \`${watch.code}\`, e esse documento não tem dono declarado.`,
-              `Declare \`${doc}\` em \`artifacts:\` ou \`documents:\` — o vínculo código→doc só é cobrável se o doc ` + 'tiver dono (`RN-0016`, `RN-0008`).',
+              // Regra de origem: RN-0016, RN-0008.
+              `Declare \`${doc}\` em \`artifacts:\` ou \`documents:\` — o vínculo código→doc só é cobrável se o doc ` + 'tiver dono.',
             ),
           )
         }
@@ -223,8 +226,9 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
                 duplication.line,
                 `O contrato do agente repete, palavra por palavra, uma frase de \`${duplication.source}\`: ` + `"${duplication.sentence.slice(0, 120)}".`,
                 'Apague a frase e deixe o ponteiro para o artefato dono. O contrato do agente é índice e política, ' +
-                  'não conteúdo (`RN-0010`, `RN-0020`; skill dona: working-agreements-keeper) — e o limiar não se ' +
-                  'baixa: mudá-lo é `ADR-0009` novo.',
+                  // Regra de origem: RN-0010, RN-0020; o limiar é o de ADR-0009.
+                  'não conteúdo (skill dona: working-agreements-keeper). O limiar é do toolkit, não deste projeto: ' +
+                  'não se baixa aqui.',
               ),
             )
           }
@@ -246,7 +250,8 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
                 item.line,
                 `Item da Definition of Done sem verificação nomeada: "${item.text.slice(0, 120)}".`,
                 'Nomeie o que verifica o item — um `CI-n`, um `HK-n`, ou a palavra que marca verificação humana. ' +
-                  'Item que ninguém verifica é intenção, e intenção não é definição de pronto (`RN-0017`).',
+                  // Regra de origem: RN-0017.
+                  'Item que ninguém verifica é intenção, e intenção não é definição de pronto.',
               ),
             )
           }
@@ -263,9 +268,10 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               pending.doc,
               0,
               `O diff \`${diff.base}...HEAD\` toca caminho vigiado (${gatilho}) e \`${pending.doc}\` não está entre ` + 'os caminhos alterados.',
+              // Regra de origem: RN-0021, ADR-0010.
               `Atualize \`${pending.doc}\`${
                 pending.skill === null ? '' : ` (skill dona: ${pending.skill})`
-              } no mesmo PR — ou escreva a razão numa mensagem de commit, no formato \`Docs: none — <razão>\` ` + '(`RN-0021`, `ADR-0010`).',
+              } no mesmo PR — ou escreva a razão numa mensagem de commit, no formato \`Docs: none — <razão>\`.`,
             ),
           )
         }
@@ -280,10 +286,10 @@ export function ci7OwnershipCoverage(diff: DiffFacts | null = null): Check {
               claim.line,
               `O diff \`${diff.base}...HEAD\` toca caminho reivindicado por ${claim.id}, que está \`open\`` +
                 `${claim.gap === null ? '' : ` — "${claim.gap}"`}: ${levados}.`,
+              // Regra de origem: RN-0026, ADR-0010.
               `Resolva ${claim.id} antes de implementar (skill dona: ${claim.skill}) — enquanto a decisão está ` +
                 'aberta não há regra, e a saída é o ID, não o código. Se esta mudança não é a implementação da ' +
-                'regra que falta, escreva a razão numa mensagem de commit, no formato `Docs: none — <razão>` ' +
-                '(`RN-0026`, `ADR-0010`).',
+                'regra que falta, escreva a razão numa mensagem de commit, no formato `Docs: none — <razão>`.',
             ),
           )
         }

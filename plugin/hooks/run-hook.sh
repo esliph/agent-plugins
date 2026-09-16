@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Wrapper dos hooks de documentação viva: executa o toolkit no node do host.
 #
-# Falha aberta por contrato (docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7):
+# Falha aberta por contrato:
 # node ausente, dependência faltando, timeout ou erro de execução resultam em
 # saída vazia e exit 0. Um hook quebrado não pode travar o trabalho.
 #
-# Duas raízes, e elas não se confundem (ADR-0003): o código do **toolkit** sai
+# Duas raízes, e elas não se confundem: o código do **toolkit** sai
 # do caminho deste script, dois níveis acima dele; o `.ownership.yml` lido é o do
 # **repositório validado**, que vem de CLAUDE_PROJECT_DIR.
 

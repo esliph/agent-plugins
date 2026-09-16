@@ -11,6 +11,7 @@ import { ci8Links } from './ci8-links.ts'
 import { ci9CommitDiscipline } from './ci9-commit-discipline.ts'
 import type { CommitFacts } from './ci9-commit-discipline.ts'
 import { ci10TriggerRouting } from './ci10-trigger-routing.ts'
+import { ci11ExternalAudience } from './ci11-external-audience.ts'
 import { runCommand } from '../exec/command.ts'
 import type { CommandRunner } from '../exec/command.ts'
 import { CHECK_CATALOG } from './catalog.ts'
@@ -24,7 +25,17 @@ import type { CatalogEntry } from './catalog.ts'
  * `CI-7` simplesmente não roda (`ADR-0010`).
  */
 export function validateChecks(diff: CommitFacts | null = null): readonly Check[] {
-  return [ci1Structure, ci2Ids, ci3Traceability, ci4Staleness, ci7OwnershipCoverage(diff), ci8Links, ci9CommitDiscipline(diff), ci10TriggerRouting()]
+  return [
+    ci1Structure,
+    ci2Ids,
+    ci3Traceability,
+    ci4Staleness,
+    ci7OwnershipCoverage(diff),
+    ci8Links,
+    ci9CommitDiscipline(diff),
+    ci10TriggerRouting(),
+    ci11ExternalAudience,
+  ]
 }
 
 /**

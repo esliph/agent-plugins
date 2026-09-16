@@ -81,7 +81,8 @@ export function ci5ContractDrift(exec: CommandRunner): Check {
               rule.path,
               0,
               'Artefato gerado declarado em `generated[]` e ausente do repositório.',
-              `Gere-o e versione o resultado: \`${rule.command} > ${rule.path}\` (spec §3).`,
+              // Regra de origem: spec §3.
+              `Gere-o e versione o resultado: \`${rule.command} > ${rule.path}\`.`,
             ),
           )
           continue
@@ -95,7 +96,8 @@ export function ci5ContractDrift(exec: CommandRunner): Check {
               rule.path,
               line,
               'O artefato gerado diverge da saída do gerador — o contrato em disco não é o que a fonte produz.',
-              `Regenere: \`${rule.command} > ${rule.path}\`. Nunca edite o arquivo à mão ` + '(`HK-2` bloqueia; regra de origem: spec §5, SK-5, regra 1).',
+              // Regra de origem: spec §5, SK-5, regra 1.
+              `Regenere: \`${rule.command} > ${rule.path}\`. Nunca edite o arquivo à mão ` + '(`HK-2` bloqueia).',
             ),
           )
         }

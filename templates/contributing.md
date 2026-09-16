@@ -9,9 +9,6 @@ last-reviewed: {{TODAY}}
 
 # Como se contribui
 
-> Semente criada por `living-docs init`. Substitua o que não for verdade neste
-> projeto; apagar o que sobra é parte do trabalho.
-
 ## O ciclo
 
 1. **A regra antes do código.** Comportamento novo começa por um requisito com

@@ -66,14 +66,14 @@ garantida.
    `docs/.ownership.yml`. **Nunca** crie um paralelo.
 
    Leia também a linha `formato`: quando o repositório escreve IDs de outro
-   jeito (`RN001` em vez de `RN-0009`), o inventário diz qual forma achou e
-   quantas ocorrências leu nela. **Confirme com quem é dono do repositório** e
-   declare com `--id-separator` e `--id-padding` — nunca renumere o que já
-   existe para caber no padrão do toolkit (`ADR-0011`, `RF-0014`).
+   jeito (sem separador, ou com outra quantidade de zeros), o inventário diz
+   qual forma achou e quantas ocorrências leu nela. **Confirme com quem é dono
+   do repositório** e declare com `--id-separator` e `--id-padding` — nunca
+   renumere o que já existe para caber no padrão do toolkit.
 
 2. **Determine o estágio** — `solo` (protótipo), `small-team` (time pequeno),
    `production` (produção com usuários) ou `multi-team` (múltiplos times) — e
-   derive o conjunto **mínimo** de fases (spec §10). Os quatro nomes são os que
+   derive o conjunto **mínimo** de fases. Os quatro nomes são os que
    `living-docs init --stage` aceita. Não instale o que o estágio não pede, e
    diga em voz alta qual estágio você concluiu e por quê.
 3. **Rode `living-docs init --owner <@handle>`** para escrever a moldura. Ele
@@ -85,12 +85,12 @@ garantida.
      (`CONTRIBUTING.md`, a Definition of Done, o contrato do agente, o glossary, o
      charter, o CHANGELOG, e o que mais o projeto tiver). `artifacts:` continua
      exigindo `id-prefix`; `CI-1`, `CI-2` e `HK-1` não leem `documents:`, e `CI-4` e
-     `CI-7` leem (`ADR-0008`).
+     `CI-7` leem.
 4. **Instale na ordem das fases.** Frontmatter + `CI-1` primeiro: sem contrato
    de máquina nada mais é enforceável. Só depois `CI-2`, os hooks e as skills
    donas.
 5. **Registre o índice no contrato do agente** (`AGENTS.md`/`CLAUDE.md`, via
-   `SK-6` quando existir): qual artefato responde a quê e qual skill é dona.
+   `working-agreements-keeper`): qual artefato responde a quê e qual skill é dona.
    Apenas o índice — nada de conteúdo copiado.
 6. **Confirme a idempotência**: rode `living-docs init` uma segunda vez e
    confira que nada foi criado, nada foi reescrito e nenhum caminho foi

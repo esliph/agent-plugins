@@ -176,7 +176,8 @@ export function ci10TriggerRouting(descriptions: ReadonlyMap<string, string> = l
               'skill com esse nome — o gatilho deste documento não pôde ser cruzado com o roteamento.',
             fix:
               `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
-              'confira o nome em `plugin/skills/` (`RN-0029`).',
+              // Regra de origem: RN-0029.
+              'confira o nome em `plugin/skills/`.',
           })
           continue
         }
@@ -199,7 +200,8 @@ export function ci10TriggerRouting(descriptions: ReadonlyMap<string, string> = l
           fix:
             'Reescreva um dos dois para nomear o mesmo evento — quem mantém o documento e quem roteia a skill ' +
             'precisam estar falando da mesma coisa, senão o documento declara um gatilho que nada dispara ' +
-            `(\`RN-0029\`, \`ADR-0013\`; skill dona: ${routed.skill}).`,
+            // Regra de origem: RN-0029, ADR-0013.
+            `(skill dona: ${routed.skill}).`,
         })
       }
 

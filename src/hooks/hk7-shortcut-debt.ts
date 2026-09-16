@@ -142,7 +142,8 @@ export function decideHk7(payload: HookPayload, env: HookEnv): Hk7Decision {
     context:
       `HK-7: \`${repoPath}\` ganhou marcador de atalho sem dívida registrada por perto.\n` +
       `${novos.map(line => `- \`${line}\``).join('\n')}\n` +
-      'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 e `RN-0014` — atalho consciente vira `TDR-nnnn` ' +
+      // Regra de origem: spec §7 e RN-0014.
+      'Atalho consciente vira `TDR-nnnn` ' +
       'com gatilho de pagamento observável, não `TODO` órfão. Caminho válido: `/debt <o atalho>` ' +
       '(skill dona: decision-recorder), e cite o `TDR-nnnn` na linha do marcador.\n' +
       'Isto é lembrete e devolve o controle: um atalho legítimo existe, e a decisão de registrá-lo ou não é humana.',

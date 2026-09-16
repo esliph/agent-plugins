@@ -16,8 +16,8 @@ description: >
 
 Dois artefatos, gatilho raríssimo e deliberado: a Constitution muda por
 emenda (nunca no meio de outra tarefa), a Vision muda por mudança real de
-estratégia. Nenhum dos dois tem família de ID numerada (`ADR-0004`) —
-mudança neles é rara o bastante para não precisar.
+estratégia. Nenhum dos dois tem família de ID numerada — mudança neles é rara
+o bastante para não precisar.
 
 ## Do que você é dono
 
@@ -58,6 +58,8 @@ verificado por <hook | lint | teste | revisão | check>`. Sem isso, é
    princípio que virou requisito — mova para `requirements-keeper`.
 6. **Pare depois de escrever a emenda.** Aceitar é ato humano — não altere
    o corpo publicado por conta própria.
+7. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
+   semeou, substitua o exemplo pelo real e apague o que sobrar.
 
 ## Fronteiras
 

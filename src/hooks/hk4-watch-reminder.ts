@@ -63,7 +63,8 @@ export function decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision {
     action: 'remind',
     context:
       `HK-4: \`${repoPath}\` é caminho vigiado em \`docs/.ownership.yml\` (\`watches\`). ` +
-      'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 — a atualização do doc dono cabe no mesmo PR; ' +
+      // Regra de origem: spec §7.
+      'A atualização do doc dono cabe no mesmo PR; ' +
       'se não couber, ela não acontece.\n' +
       `Doc dono a atualizar:\n${pending.map(describe).join('\n')}\n` +
       'Isto é lembrete, não é bloqueio: se a mudança realmente não afeta o doc, siga em frente.',

@@ -11,8 +11,7 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 ### Added
 
 - `validate`, `drift` e `changelog` passam a relatar quanto o conjunto de checks
-  levou e qual é o teto declarado (`RNF-0005`). A medida não altera o código de
-  saída.
+  levou e qual é o teto declarado. A medida não altera o código de saída.
 - `CI-9` (`living-docs validate --base <ref>`): reprova o diff que só altera a
   data de revisão de vários documentos, e o que altera um arquivo de artefato sem
   que nenhuma mensagem de commit cite um ID declarado nele.
@@ -88,7 +87,22 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   dentro do container do repositório, subindo-o e instalando as dependências
   quando preciso — `bin/dev npm test`, `bin/dev node src/cli/index.ts validate`,
   ou `bin/dev` sozinho para um shell. Exige o daemon do Docker; o caminho de
-  registro continua sendo o Node do host (`RNF-0006`, `ADR-0016`).
+  registro continua sendo o Node do host, e os ganchos nunca entram no container.
+
+- `audience` em `documents:` e em `artifacts:` do `docs/.ownership.yml`:
+  declara quem lê o documento. Aceita `internal` e `external`; ausente, vale
+  `internal`, e nenhum `.ownership.yml` já escrito muda de significado.
+- `CI-11` (`living-docs validate`): documento ou artefato declarado
+  `audience: external` não pode citar ID de artefato — em prosa, entre crases ou
+  no caminho de um link. O frontmatter e os blocos de código cercados ficam de
+  fora, e os identificadores da interface pública (`CI-n`, `HK-n`, `SK-n`,
+  `CM-n`, `EXIT-n`) continuam citáveis. Não há rótulo de exceção: o conserto é
+  reescrever em texto corrido.
+- `living-docs init --stage production` passa a declarar `CHANGELOG.md`,
+  `docs/deprecations.md`, `docs/migrations/` e as release notes com
+  `audience: external`. Num repositório que já declara essas entradas sem a
+  marca, o `init` não reescreve a linha: avisa, entre o que não instalou, que
+  marcá-la é o que liga `CI-11` para ela.
 
 ### Changed
 
@@ -98,12 +112,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   antes do primeiro comando; em troca, os ganchos param de calar quando o
   container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
   continuam no repositório, agora como o caminho de execução opcional descrito
-  acima — registrado em `ADR-0015` e `ADR-0016`.
+  acima.
 - O nome do pacote passa a ser `@esliph/living-docs` e o container Docker do
   repositório passa a se chamar `esliph-living-docs` (era `living-docs-toolkit`
   nos dois). Quem sobe o ambiente com `docker compose` ou invoca `./bin/living-docs`
   sem `LIVING_DOCS_CONTAINER` definido passa a falar com o container pelo nome
-  novo; o comando `living-docs` em si não muda. Registrado em `ADR-0014`.
+  novo; o comando `living-docs` em si não muda.
 - `CI-7` ganha uma sexta classe de achado: com `--base <ref>`, o diff que toca
   caminho reivindicado por uma decisão aberta reprova. A saída continua sendo
   `Docs: none — <razão>`.
@@ -137,6 +151,19 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   container antes de executar. O que se invoca não mudou; o que acontece com o
   ambiente parado, sim.
 
+- A skill `release-historian` e o template de guia de migração deixam de pedir
+  que o guia aponte a decisão pelo ID: o guia diz, em texto corrido, por que a
+  quebra foi decidida, e o commit que o cria cita a decisão. O contrato do agente
+  semeado pelo `init` ganha a mesma política.
+
+- As sementes que `living-docs init` escreve e os comentários do
+  `docs/.ownership.yml` e do workflow instalados deixam de citar decisões
+  internas do toolkit e de trazer instrução de preenchimento; o que ajudava a
+  ler o documento virou prosa, e a orientação de quem escreve passou para as
+  skills. As mensagens dos checks, dos hooks e do CLI e o texto das skills
+  deixam de citar regras internas do toolkit. Repositório já instalado mantém o
+  texto antigo.
+
 ### Fixed
 
 - Os templates que `living-docs init` semeia voltam a trazer os placeholders
@@ -156,8 +183,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 - `CI-7` deixa de acusar item de Definition of Done sem verificação quando o
   item é um **exemplo do formato** dentro de um bloco de código cercado. A
   documentação que ensina o próprio formato não reprova por ensiná-lo.
-- As mensagens de `CI-7` sobre um vínculo de `watches` quebrado passam a citar
-  `RN-0008`, a regra que de fato governa o vínculo código→doc.
+- As mensagens de `CI-7` sobre um vínculo de `watches` quebrado passam a apontar
+  a regra que de fato governa o vínculo código→doc: caminho vigiado e documento
+  dono viajam no mesmo commit.
 - `living-docs validate` e o inventário de início de sessão (`HK-6`) passam a
   varrer a árvore do repositório uma vez por execução, e não uma vez por
   pergunta. Repositório grande com muitas dívidas `open` sentia isso no teto de

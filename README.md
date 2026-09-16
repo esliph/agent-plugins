@@ -68,9 +68,9 @@ reprovado na verificação.
 
 ## Validar outro projeto
 
-A fonte do toolkit e o repositório validado são raízes independentes
-(`ADR-0003`): a primeira sai do caminho do próprio código, a segunda do
-diretório de trabalho ou de `LIVING_DOCS_REPO_ROOT`.
+A fonte do toolkit e o repositório validado são raízes independentes, e
+nenhuma é deduzida da outra: a primeira sai do caminho do próprio código, a
+segunda do diretório de trabalho ou de `LIVING_DOCS_REPO_ROOT`.
 
 ```bash
 LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node src/cli/index.ts init --stage small-team --owner @time
@@ -127,8 +127,8 @@ Para contribuir, veja `CONTRIBUTING.md`.
 
 ### Opcional: sem Node no host
 
-Há um segundo caminho de execução, para quem prefere um ambiente previsível a
-instalar Node (`RNF-0006`). `bin/dev` recebe um comando e o roda dentro do
+Há um segundo caminho de execução, opcional, para quem prefere um ambiente
+previsível a instalar Node. `bin/dev` recebe um comando e o roda dentro do
 container, subindo-o quando preciso:
 
 ```bash

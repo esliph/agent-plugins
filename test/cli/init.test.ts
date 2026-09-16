@@ -747,3 +747,66 @@ test('RN-0019: o template de TDR traz o `pay-when` como exemplo comentado, não 
   assert.match(template, /# pay-when:/, 'o exemplo é comentado — o init não inventa gatilho')
   assert.doesNotMatch(template, /^pay-when:/m, 'gatilho preenchido de fábrica passaria em CI-4 sem significar nada')
 })
+
+test('RF-0015: production declara o rastro histórico como externo, e só ele', () => {
+  withTempRepo({}, root => {
+    const result = runInit(root, PRODUCTION)
+    const config = loadOwnership(root)
+    const byPath = new Map(config.documents.map(document => [document.path, document]))
+
+    for (const path of ['CHANGELOG.md', 'docs/deprecations.md', 'docs/migrations/']) {
+      assert.equal(byPath.get(path)?.audience, 'external', `${path} é escrito para quem consome`)
+    }
+    assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
+
+    for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md', 'CONTRIBUTING.md', 'docs/.ownership.yml']) {
+      assert.equal(byPath.get(path)?.audience, 'internal', `${path} não é marcado pelo init`)
+    }
+    assert.ok(
+      config.artifacts.filter(artifact => artifact.idPrefix !== 'REL').every(artifact => artifact.audience === 'internal'),
+      'só REL nasce externo',
+    )
+
+    assert.deepEqual(result.notInstalled, [])
+    assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
+  })
+})
+
+test('RF-0015: small-team não declara nada como externo', () => {
+  withTempRepo({}, root => {
+    runInit(root, SMALL_TEAM)
+    const config = loadOwnership(root)
+
+    assert.ok(config.documents.every(document => document.audience === 'internal'))
+    assert.ok(config.artifacts.every(artifact => artifact.audience === 'internal'))
+  })
+})
+
+test('RF-0015: entrada já declarada sem a marca vira aviso, e o .ownership.yml não é reescrito', () => {
+  withTempRepo({}, root => {
+    runInit(root, PRODUCTION)
+
+    // O repositório instalado por uma versão anterior: as mesmas entradas, sem a chave.
+    const file = join(root, OWNERSHIP_PATH)
+    const semMarca = readFileSync(file, 'utf8').replace(/^ {4}audience: external\r?\n/gm, '')
+
+    writeFileSync(file, semMarca, 'utf8')
+    assert.ok(
+      loadOwnership(root).documents.every(document => document.audience === 'internal'),
+      'o cenário precisa estar sem marca',
+    )
+
+    const changelogAntes = readFileSync(join(root, 'CHANGELOG.md'), 'utf8')
+    const result = runInit(root, PRODUCTION)
+
+    assert.equal(readFileSync(file, 'utf8'), semMarca, 'o init não reescreve linha já declarada')
+    assert.equal(readFileSync(join(root, 'CHANGELOG.md'), 'utf8'), changelogAntes)
+
+    for (const alvo of [/CHANGELOG\.md/, /docs\/deprecations\.md/, /docs\/migrations\//, /REL/]) {
+      assert.ok(
+        result.notInstalled.some(item => alvo.test(item) && /audience: external/.test(item) && /CI-11/.test(item)),
+        `esperava aviso para ${alvo} — ${JSON.stringify(result.notInstalled)}`,
+      )
+    }
+  })
+})

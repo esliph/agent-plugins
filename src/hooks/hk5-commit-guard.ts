@@ -85,7 +85,8 @@ export function decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): 
     action: 'ask',
     reason:
       'HK-5: este commit leva código de caminho vigiado sem o doc dono. ' +
-      'Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 — se a atualização da documentação não cabe no ' +
+      // Regra de origem: spec §7.
+      'Se a atualização da documentação não cabe no ' +
       'PR que mudou o código, ela não acontece.\n' +
       `Pendente:\n${pending.map(describe).join('\n')}\n` +
       'Caminho válido: atualize o doc agora (skill dona acima) e refaça o `git add`. ' +

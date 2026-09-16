@@ -291,9 +291,10 @@ export const ci4Staleness: Check = {
           stale.file,
           stale.line,
           `\`last-reviewed\` tem ${stale.months} meses e o limite deste projeto é ${limit} (\`stale-after-months\`).`,
+          // Regra de origem: spec §13 (bump sem leitura é anti-requisito).
           `Releia o documento e, se ele ainda é verdade, atualize \`last-reviewed\`${
             stale.skill === null ? '' : ` (skill dona: ${stale.skill})`
-          }. Bump sem leitura, ou bump em massa, é anti-requisito da spec §13: desliga o mecanismo fingindo cumpri-lo.`,
+          }. Bump sem leitura, ou bump em massa, desliga o mecanismo de revisão fingindo cumpri-lo.`,
         ),
       )
     }
@@ -305,7 +306,8 @@ export const ci4Staleness: Check = {
           debt.line,
           `${debt.id} está \`open\` e o gatilho de pagamento não é verificável: \`pay-when\` ${debt.problem}.`,
           'Declare `pay-when` com `pattern` (regex, em aspas simples) e `paths` (globs onde procurá-lo) — ' +
-            'uma condição que alguém consegue apontar acontecendo (`RN-0019`, `ADR-0007`; skill dona: decision-recorder). ' +
+            // Regra de origem: RN-0019, ADR-0007.
+            'uma condição que alguém consegue apontar acontecendo (skill dona: decision-recorder). ' +
             'Dívida sem gatilho verificável é `TODO` órfão com número.',
         ),
       )
@@ -317,9 +319,9 @@ export const ci4Staleness: Check = {
           payment.file,
           payment.line,
           `${payment.id} está \`open\` e o gatilho de pagamento já aconteceu: ${payment.evidence} casa \`${payment.pattern}\`.`,
-          'Pague a dívida, ou reclassifique-a (`paid`, `accepted-permanently`) — as duas coisas são ato humano ' +
-            '(`RN-0005`, e `HK-3` intercepta). Enquanto ela seguir `open` com o gatilho cumprido, o CI reprova ' +
-            '(spec §12, critério 7).',
+          // Regra de origem: RN-0005; spec §12, critério 7.
+          'Pague a dívida, ou reclassifique-a (`paid`, `accepted-permanently`) — as duas coisas são ato humano, ' +
+            'e `HK-3` intercepta. Enquanto ela seguir `open` com o gatilho cumprido, o CI reprova.',
         ),
       )
     }

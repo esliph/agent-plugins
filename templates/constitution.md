@@ -9,11 +9,8 @@ version: 1
 
 # Constitution
 
-> Semente criada por `living-docs init`. Cada princípio precisa ser testável
-> e nomear o que o verifica — formato `<princípio> — verificado por <hook |
-> lint | teste | revisão | check>`. Princípio sem enforcement nomeado é
-> slogan; a skill `charter-keeper` recusa e pede a versão verificável.
-> Substitua o exemplo pelos princípios reais deste projeto.
+O que é inviolável neste projeto. Cada princípio nomeia o que o verifica: um
+hook, um lint, um teste, uma revisão ou um check.
 
 ## Princípios
 
@@ -22,5 +19,3 @@ version: 1
 ## Log de emendas
 
 - {{TODAY}} — v1 — Criação inicial — humana.
-
-<!-- Skill dona: charter-keeper. -->

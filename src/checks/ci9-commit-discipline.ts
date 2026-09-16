@@ -93,7 +93,8 @@ export function ci9CommitDiscipline(facts: CommitFacts | null): Check {
               `mais no corpo de nenhum deles (limiar: ${config.lastReviewedBumpLimit}): ${lista}.`,
             'Um documento revisado de verdade muda em mais do que a data — bump em massa é o mecanismo de revisão ' +
               'sendo desligado enquanto se finge cumpri-lo. Reverta a data dos que não foram revisados, ou revise-os ' +
-              '(`RN-0027`, `ADR-0013`; o limiar é `last-reviewed-bump-limit` no `.ownership.yml`).',
+              // Regra de origem: RN-0027, ADR-0013.
+              '(o limiar é `last-reviewed-bump-limit` no `.ownership.yml`).',
           ),
         )
       }
@@ -138,7 +139,8 @@ export function ci9CommitDiscipline(facts: CommitFacts | null): Check {
             `O diff \`${facts.base}...HEAD\` altera \`${path}\` e nenhuma mensagem de commit cita um dos IDs ` + `declarados nele (${lista}).`,
             'Cite o ID afetado na mensagem de commit — o formato deste projeto está em `CONTRIBUTING.md`. É a ' +
               'citação que torna o `git log` navegável por regra: sem ela o histórico responde "o que mudou" e ' +
-              `nunca "por causa de qual regra" (\`RN-0028\`; skill dona: ${doc.rule.skill}).`,
+              // Regra de origem: RN-0028.
+              `nunca "por causa de qual regra" (skill dona: ${doc.rule.skill}).`,
           ),
         )
       }

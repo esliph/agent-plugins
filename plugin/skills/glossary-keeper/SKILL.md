@@ -14,8 +14,8 @@ description: >
 ## Overview
 
 O glossary é a única fonte de nome para um conceito. Um termo é identificado
-pelo **nome**, nunca por um ID numerado (`ADR-0004`, `RN-0011`) — divergência
-entre o nome no código e o termo é bug, não sinônimo.
+pelo **nome**, nunca por um ID numerado — divergência entre o nome no código e
+o termo é bug, não sinônimo.
 
 O caminho é `docs/glossary.md` — leia `docs/.ownership.yml` mesmo assim,
 porque outros artefatos podem ter mudado de lugar.
@@ -54,15 +54,16 @@ tabela que ninguém consegue ler inteira deixa de ser a fonte única de nome.
    código; não some uma segunda linha ao glossary para acomodar o hábito de
    quem escreveu.
 4. **Toda definição aponta a fonte** — a `RN`/`ADR` que a origina. Sem fonte,
-   a entrada nasce `status: draft` até que uma exista (spec SK-2, regra 3).
+   a entrada nasce `status: draft` até que uma exista.
 5. **Preencha "Não confundir com"** sempre que houver risco real de
    confusão — é ele que evita a próxima pergunta repetida.
 6. **Nomeie pelo termo, não por ID**, em qualquer citação — glossary não tem
-   sintaxe `<PREFIXO>-<número>` (`ADR-0004`, `RN-0011`).
-7. **Rode `living-docs validate`** antes de encerrar — sabendo que hoje ele
-   não varre `docs/glossary.md` (`DA-0002` aberta; `ADR-0004` explica por
-   quê). A verificação de duplicidade e de fonte é sua, não do CI.
+   sintaxe `<PREFIXO>-<número>`.
+7. **Rode `living-docs validate`** antes de encerrar — sabendo que ele não
+   verifica os termos: duplicidade e fonte são verificação sua, não do CI.
 8. **Cite o termo (pelo nome) na mensagem de commit.**
+9. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
+   semeou, a linha "Termo exemplo" sai e o vocabulário real entra.
 
 ## Fronteiras
 
@@ -79,5 +80,5 @@ tabela que ninguém consegue ler inteira deixa de ser a fonte única de nome.
 - [ ] Um significado só por termo; divergência virou `banned` + substituto, não uma segunda linha — verificação humana
 - [ ] "Nome no código" preenchido, e sem divergência não resolvida com o termo — verificação humana
 - [ ] "Fonte" aponta uma `RN`/`ADR` real, ou a entrada nasceu `draft` — verificação humana
-- [ ] Nenhum termo ganhou um ID numerado — verificação humana (`RN-0011`)
+- [ ] Nenhum termo ganhou um ID numerado — verificação humana
 - [ ] "Não confundir com" preenchido onde havia risco de confusão real — verificação humana

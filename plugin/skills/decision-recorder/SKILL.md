@@ -112,3 +112,4 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
 - [ ] A implementação **não** avançou enquanto havia DA aberta sobre ela — verificação humana
 - [ ] Para decisão de peso, `decision-adversary` foi considerado antes de pedir aceitação — verificação humana
 - [ ] Toda dívida `open` declara `pay-when` verificável — verificação: `CI-4`.
+- [ ] Nenhum comentário do template sobreviveu ao preenchimento do ADR ou do TDR — verificação humana

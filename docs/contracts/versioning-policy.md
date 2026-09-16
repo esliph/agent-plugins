@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Mudança na interface pública do CLI, dos checks ou do `.ownership.yml`;
   decisão de depreciar algo publicado; mudança na própria política.
-last-reviewed: 2026-08-25
+last-reviewed: 2026-09-15
 ---
 
 # Política de versionamento
@@ -25,6 +25,10 @@ gerado (`docs/contracts/checks.gen.md`) e não se escreve à mão.
 - O rótulo de exceção `Changelog: none — <razão>` e as chaves
   `consumer-visible-paths` e `watches[].consumer-visible` do
   `docs/.ownership.yml` (`ADR-0006`).
+- A chave `audience` de `documents:` e de `artifacts:` no
+  `docs/.ownership.yml`, e os dois valores que ela aceita: `internal`, que é o
+  padrão, e `external`, que marca o texto escrito para quem lê de fora
+  (`ADR-0017`).
 
 O que não está nesta lista pode mudar sem aviso — a estrutura de `src/`, o
 texto das mensagens, o formato exato da saída de `validate`.
