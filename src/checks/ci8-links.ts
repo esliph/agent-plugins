@@ -204,7 +204,8 @@ export const ci8Links: Check = {
           0,
           `Anexo em formato binário sob \`${prefix}\`: \`.${extension}\` não se lê em diff nem se revisa em PR.`,
           'Guarde a fonte em texto (Mermaid num bloco de código, SVG, ou o `.puml`/`.dot` que o gera) e ' +
-            'mantenha o binário fora da documentação versionada (spec §13, `RN-0023`).',
+            // Regra de origem: spec §13, RN-0023.
+            'mantenha o binário fora da documentação versionada.',
         ),
       )
     }
@@ -232,7 +233,8 @@ export const ci8Links: Check = {
                 link.line,
                 `Wikilink \`[[${link.target}]]\` não tem destino: nenhum documento do corpus se chama assim.`,
                 'Aponte para um documento existente pelo nome do arquivo, ou troque por um link relativo. ' +
-                  'Wikilink sem destino afirma uma ligação que não existe (`RN-0023`).',
+                  // Regra de origem: RN-0023.
+                  'Wikilink sem destino afirma uma ligação que não existe.',
               ),
             )
           }
@@ -252,7 +254,8 @@ export const ci8Links: Check = {
               link.line,
               `Link interno quebrado: \`${link.target}\` resolve para \`${resolved}\`, que não existe.`,
               'Corrija o caminho, ou remova o link. A âncora (`#seção`) não é verificada — só o arquivo —, ' +
-                'então um link com âncora só reprova quando o arquivo não existe (`RN-0023`).',
+                // Regra de origem: RN-0023.
+                'então um link com âncora só reprova quando o arquivo não existe.',
             ),
           )
         }

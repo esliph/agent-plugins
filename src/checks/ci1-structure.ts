@@ -42,7 +42,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         doc.file,
         1,
         'Frontmatter ausente — todo artefato de documentação viva abre com o bloco YAML padrão.',
-        'Adicione `id`, `title`, `status`, `owner`, `trigger` e `last-reviewed` entre `---` no topo (spec §2).',
+        // Regra de origem: spec §2.
+        'Adicione `id`, `title`, `status`, `owner`, `trigger` e `last-reviewed` entre `---` no topo.',
       ),
     ]
   }
@@ -74,7 +75,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           doc.file,
           lineOf('id'),
           `\`id\` "${String(data.id)}" fora do formato <PREFIXO>-<número>.`,
-          `Use ${writeId(doc.rule.idPrefix, 1, format)} (spec §8).`,
+          // Regra de origem: spec §8.
+          `Use ${writeId(doc.rule.idPrefix, 1, format)}.`,
         ),
       )
     } else if (parsed.prefix !== doc.rule.idPrefix) {
@@ -107,7 +109,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           doc.file,
           lineOf('status'),
           `\`status\` "${String(data.status)}" fora da máquina de estados de ${doc.rule.idPrefix}.`,
-          `Estados válidos: ${states.join(' → ')} (spec §4).`,
+          // Regra de origem: spec §4.
+          `Estados válidos: ${states.join(' → ')}.`,
         ),
       )
     }
@@ -133,7 +136,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           doc.file,
           lineOf('trigger'),
           `\`trigger\` descreve cadência ("${cadence}") em vez de um evento observável.`,
-          'Nomeie o evento: "no mesmo PR que altera src/domain/billing", "quando um código de erro novo é adicionado" (spec §2, mecanismo 2).',
+          // Regra de origem: spec §2, mecanismo 2.
+          'Nomeie o evento: "no mesmo PR que altera src/domain/billing", "quando um código de erro novo é adicionado".',
         ),
       )
     }
@@ -145,7 +149,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         doc.file,
         lineOf('last-reviewed'),
         `\`last-reviewed\` "${String(data['last-reviewed'])}" não é uma data ISO.`,
-        'Use YYYY-MM-DD, e só toque neste campo se você realmente reviu o documento (spec §2).',
+        // Regra de origem: spec §2.
+        'Use YYYY-MM-DD, e só toque neste campo se você realmente reviu o documento.',
       ),
     )
   }
@@ -154,7 +159,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
     for (const item of doc.items) {
       if (item.status === '') {
         findings.push(
-          error(doc.file, item.line, `Item ${item.id} não declara \`status\`.`, `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título (spec §4).`),
+          // Regra de origem: spec §4.
+          error(doc.file, item.line, `Item ${item.id} não declara \`status\`.`, `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título.`),
         )
         continue
       }
@@ -164,7 +170,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
             doc.file,
             item.line,
             `Item ${item.id} com status "${item.status}" fora da máquina de estados de ${doc.rule.idPrefix}.`,
-            `Estados válidos: ${states.join(' → ')} (spec §4).`,
+            // Regra de origem: spec §4.
+            `Estados válidos: ${states.join(' → ')}.`,
           ),
         )
       }

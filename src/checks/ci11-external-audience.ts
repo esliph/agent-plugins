@@ -100,7 +100,8 @@ export const ci11ExternalAudience: Check = {
             '(`audience: external`): esse leitor não tem como resolver o ID.',
           fix:
             'Escreva em texto corrido o que o item decide ou exige, sem apontá-lo. O vínculo continua existindo ' +
-            'e mora do lado de dentro — no próprio artefato ou na mensagem de commit (`RN-0030`, `ADR-0017`). ' +
+            // Regra de origem: RN-0030, ADR-0017.
+            'e mora do lado de dentro — no próprio artefato ou na mensagem de commit. ' +
             'Não há rótulo de exceção.',
         })
       }

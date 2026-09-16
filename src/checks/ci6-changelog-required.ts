@@ -115,7 +115,8 @@ export function ci6ChangelogRequired(diff: DiffFacts): Check {
               target,
               `O diff \`${diff.base}...HEAD\` toca caminho visível ao consumidor (${gatilho}) e ` + `\`${target}\` não está entre os caminhos alterados.`,
               `Acrescente a entrada em \`## [Unreleased]\` de \`${target}\`, voltada a quem consome — ou escreva a razão ` +
-                'na mensagem de commit, no formato `Changelog: none — <razão>` (RN-0013; skill dona: release-historian).',
+                // Regra de origem: RN-0013.
+                'na mensagem de commit, no formato `Changelog: none — <razão>` (skill dona: release-historian).',
             ),
           )
           continue
@@ -144,7 +145,8 @@ export function ci6ChangelogRequired(diff: DiffFacts): Check {
               `O diff toca caminho visível ao consumidor (${gatilho}) e \`## [Unreleased]\` de \`${target}\` não tem nenhum item.`,
               'Escreva a entrada sob a subseção certa (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`). ' +
                 'Se a entrada só faz sentido para quem escreveu o código, ela não pertence ao CHANGELOG — nesse caso o ' +
-                'caminho é `Changelog: none — <razão>` (RN-0013).',
+                // Regra de origem: RN-0013.
+                'caminho é `Changelog: none — <razão>`.',
             ),
           )
         }

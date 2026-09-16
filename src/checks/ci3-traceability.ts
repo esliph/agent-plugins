@@ -116,7 +116,8 @@ export const ci3Traceability: Check = {
                   entry.file,
                   entry.line,
                   `${entry.id} declara \`${side.from}: ${targetId}\`, que não existe.`,
-                  'Cite um ID existente, ou remova o campo (spec §8).',
+                  // Regra de origem: spec §8.
+                  'Cite um ID existente, ou remova o campo.',
                 ),
               )
               continue
@@ -127,7 +128,8 @@ export const ci3Traceability: Check = {
                   target.file,
                   target.line,
                   `Par aberto: ${entry.id} declara \`${side.from}: ${target.id}\`, mas ${target.id} não declara \`${side.to}: ${entry.id}\`.`,
-                  `Acrescente \`${side.to}: ${entry.id}\` em ${target.file}:${target.line} — o par fecha dos dois lados (spec §8).`,
+                  // Regra de origem: spec §8.
+                  `Acrescente \`${side.to}: ${entry.id}\` em ${target.file}:${target.line} — o par fecha dos dois lados.`,
                 ),
               )
             }
@@ -142,7 +144,8 @@ export const ci3Traceability: Check = {
             entry.file,
             entry.line,
             `${entry.id} está \`revoked\` sem declarar \`revoked-by\`.`,
-            'Regra removida é revogada, não deletada — aponte o ID que a substituiu (spec §5, SK-4).',
+            // Regra de origem: spec §5, SK-4.
+            'Regra removida é revogada, não deletada — aponte o ID que a substituiu.',
           ),
         )
       }
@@ -157,7 +160,8 @@ export const ci3Traceability: Check = {
               entry.file,
               entry.line,
               `${entry.id} está \`resolved\` sem dizer o que a resolveu.`,
-              'Toda decisão aberta fechada aponta o ADR que a fechou (spec §5, SK-3, regra 7).',
+              // Regra de origem: spec §5, SK-3, regra 7.
+              'Toda decisão aberta fechada aponta o ADR que a fechou.',
             ),
           )
         }
@@ -174,7 +178,8 @@ export const ci3Traceability: Check = {
                 resolver.file,
                 resolver.line,
                 `${resolver.id} resolve ${entry.id}, mas não a cita em \`relates-to\`.`,
-                `Acrescente ${entry.id} a \`relates-to\` — CI-3 verifica os dois lados (spec §5, SK-3, regra 7).`,
+                // Regra de origem: spec §5, SK-3, regra 7.
+                `Acrescente ${entry.id} a \`relates-to\` — CI-3 verifica os dois lados.`,
               ),
             )
           }
@@ -188,7 +193,8 @@ export const ci3Traceability: Check = {
             entry.file,
             entry.line,
             `${entry.id} está \`accepted\` sem \`relates-to\`.`,
-            'Um ADR aceito cita ao menos um requisito, decisão aberta ou princípio — decisão que não se liga a nada é sinal de contexto faltando (spec §8).',
+            // Regra de origem: spec §8.
+            'Um ADR aceito cita ao menos um requisito, decisão aberta ou princípio — decisão que não se liga a nada é sinal de contexto faltando.',
           ),
         )
       }
@@ -225,7 +231,8 @@ export const ci3Traceability: Check = {
             entry.file,
             entry.line,
             `${entry.id} está \`active\` e não é citada em nenhum de ${entry.rule.citedBy.join(', ')}.`,
-            `Cite ${entry.id} no teste que a cobre — rastreabilidade fecha nos dois lados (spec §5, SK-4, regra 6).`,
+            // Regra de origem: spec §5, SK-4, regra 6.
+            `Cite ${entry.id} no teste que a cobre — rastreabilidade fecha nos dois lados.`,
           ),
         )
       }
