@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-09-15
+last-reviewed: 2026-09-16
 ---
 
 # Regras de negócio
@@ -413,3 +413,14 @@ O vínculo que o ID carregaria não se perde: ele existe e mora do lado de dentr
 no próprio artefato ou na mensagem de commit. Conta toda citação a prefixo
 declarado — a que resolve, a retirada e a que não resolve —, porque a regra é
 sobre o que o leitor vê, e não sobre o item existir.
+
+## RN-0031 — O que o toolkit entrega a quem instala não cita o rastro interno do toolkit
+
+- **status:** draft
+- **relates-to:** ADR-0018, RN-0030
+- **fora de escopo:** comentário de código e mensagem de commit; os documentos do próprio repositório do toolkit; os IDs do projeto de quem instala que uma mensagem mostra; os identificadores da interface pública, os nomes de skill e os comandos
+
+Os arquivos que o `init` semeia, os templates, o texto do plugin e a saída do
+CLI e dos hooks não citam prefixo declarado em `artifacts:` do toolkit, seção da
+spec do toolkit nem caminho de documento interno dele. Quem instala não resolve
+a citação — ou a resolve para um item seu, com outro significado.
