@@ -16,8 +16,8 @@ description: >
 
 Dois artefatos, gatilho raríssimo e deliberado: a Constitution muda por
 emenda (nunca no meio de outra tarefa), a Vision muda por mudança real de
-estratégia. Nenhum dos dois tem família de ID numerada (`ADR-0004`) —
-mudança neles é rara o bastante para não precisar.
+estratégia. Nenhum dos dois tem família de ID numerada — mudança neles é rara
+o bastante para não precisar.
 
 ## Do que você é dono
 

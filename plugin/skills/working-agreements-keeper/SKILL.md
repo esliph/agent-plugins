@@ -68,8 +68,8 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 7. **Se a mudança de processo alterou o vínculo código→doc**, atualize `watches`
    no `.ownership.yml`: é ele que `HK-4` e `HK-5` leem.
 8. **O contrato do agente não repete texto de artefato dono, e isso agora é
-   verificado.** `CI-7` compara frase por frase (piso de doze palavras,
-   `ADR-0009`) contra os artefatos com skill dona. Quando ele acusa, a correção é
+   verificado.** `CI-7` compara frase por frase (piso de doze palavras) contra
+   os artefatos com skill dona. Quando ele acusa, a correção é
    apagar a frase e deixar o ponteiro — nunca mexer no limiar.
 9. **Documento novo é declarado nos dois lugares:** `documents:` no
    `docs/.ownership.yml` (com a skill dona, e o `role` quando for o contrato do
@@ -89,12 +89,12 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 
 ## Checklist
 
-- [ ] Cada afirmação factual do contrato do agente é um link para o artefato dono, não uma cópia — verificação: `CI-7` na Fase 7; até lá, humana.
+- [ ] Cada afirmação factual do contrato do agente é um link para o artefato dono, não uma cópia — verificação: humana; `CI-7` pega a cópia palavra por palavra.
 - [ ] Todo item novo da DoD nomeia o que o verifica: `CI-n`, `HK-n`, ou "humana" explícita — verificação: humana.
 - [ ] O caminho vigiado que a mudança criou está em `watches`, com doc dono — verificação: `HK-4` e `HK-5`.
 - [ ] Nenhum dos três artefatos ganhou conteúdo que pertence a `docs/requirements/` ou a `docs/decisions/` — verificação: humana.
 - [ ] O `trigger` do artefato alterado continua nomeando evento, não cadência — verificação: `CI-1`.
 - [ ] A alteração nasceu de um erro observado ou de uma mudança real de processo, não de vontade de documentar — verificação: humana.
-- [ ] `last-reviewed` foi atualizado só nos arquivos que mudaram de verdade — verificação: humana (bump em massa é anti-requisito da spec §13).
+- [ ] `last-reviewed` foi atualizado só nos arquivos que mudaram de verdade — verificação: humana (bump em massa desliga a revisão fingindo cumpri-la).
 - [ ] Nenhuma frase do contrato do agente repete artefato dono — verificação: `CI-7`.
 - [ ] Cada item novo da Definition of Done nomeia o que o verifica — verificação: `CI-7`.

@@ -37,7 +37,8 @@ Formato da seção: `templates/requirements.md`. Não o reproduza aqui.
 **Use** antes de implementar comportamento, e a cada regra nova ou alterada.
 
 **Não use** para descrever o que o código já faz. Isso não é requisito, é
-narração — e narração de código é o anti-requisito nº 4 da spec §13.
+narração — e documento que narra o código envelhece a cada commit que muda o
+código.
 
 **Nunca** invente a regra que falta. Comportamento sem regra escrita é lacuna:
 o caminho é `decision-recorder` (`/open-decision`), que abre uma `DA-nnnn` e

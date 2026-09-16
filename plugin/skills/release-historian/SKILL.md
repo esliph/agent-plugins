@@ -19,9 +19,8 @@ diz o que mudou, a release note dá a moldura de uma versão, `docs/deprecations
 avisa o que vai sair, e `docs/migrations/` ensina a atravessar.
 
 O erro caro aqui tem nome: derivar o CHANGELOG do `git log`. O resultado é o
-documento que narra o código — exatamente o que a spec §13 recusa — e ele
-apodrece rápido, porque ninguém de fora consegue usá-lo para decidir se
-atualiza.
+documento que narra o código, e ele apodrece rápido, porque ninguém de fora
+consegue usá-lo para decidir se atualiza.
 
 Os caminhos vêm de `docs/.ownership.yml`; não assuma. `consumer-visible-paths`
 diz o que é visível ao consumidor neste projeto, e a regra de `watches` marcada
@@ -96,8 +95,9 @@ legível é humano.
 - [ ] O doc marcado `consumer-visible: true` viajou no mesmo diff — verificação: `CI-6` (e `HK-5` pergunta antes).
 - [ ] A entrada é legível por quem consome, e não narra o código — verificação: humana.
 - [ ] Quando não há entrada, existe `Changelog: none — <razão>` com razão escrita — verificação: `CI-6`.
-- [ ] Toda depreciação registrada tem as quatro coisas — verificação: humana (`RN-0015`).
+- [ ] Toda depreciação registrada tem as quatro coisas — verificação: humana.
 - [ ] Toda quebra de compatibilidade tem guia de migração que diz em texto corrido por que foi decidida, e o commit que o cria cita o ADR — verificação: humana.
+- [ ] Nenhum comentário do template sobreviveu ao preenchimento da release note ou do guia de migração — verificação: humana.
 - [ ] Nenhum documento externo cita ID de artefato — verificação: `CI-11`.
 - [ ] A release note nasceu `draft` e foi promovida por uma pessoa — verificação: `HK-3`.
 - [ ] Nenhuma release note publicada foi editada no corpo — verificação: `HK-1`.

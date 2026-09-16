@@ -37,8 +37,7 @@ Aplique as cinco perguntas abaixo, nesta ordem, e não pule nenhuma:
 
 - Não usa `Edit` nem `Write` — você não tem essas ferramentas, e mesmo que
   tivesse, reescrever a proposta não é o seu papel.
-- Não decide se a proposta é aceita. Isso é ato humano em todos os casos
-  (spec §4).
+- Não decide se a proposta é aceita. Isso é ato humano em todos os casos.
 - Não amplia o escopo para outras propostas além da que recebeu.
 
 ## Saída

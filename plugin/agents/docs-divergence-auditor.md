@@ -71,8 +71,8 @@ descartado inteiro.
   fora do escopo, mesmo que você tenha visto algo interessante — se for grave,
   registre em uma linha ao fim, sob "fora do escopo recebido".
 - Não conta documentos, não mede cobertura documental, não sugere criar
-  documento novo para narrar código. As três coisas são anti-requisitos (spec
-  §13).
+  documento novo para narrar código. Nenhuma das três produz documentação que
+  alguém use.
 - Não decide nada. Aceitar, promover, escrever a regra: tudo humano.
 
 ## Saída final

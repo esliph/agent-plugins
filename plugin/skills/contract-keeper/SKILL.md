@@ -45,8 +45,8 @@ cada mudança da política de versionamento.
 
 **Não use** para documentar comportamento interno: o que não é observável por
 um consumidor não é contrato, é implementação — e implementação não vira
-documento (spec §13). Regra de negócio é `requirements-keeper`; o "por quê" da
-mudança é `decision-recorder`.
+documento. Regra de negócio é `requirements-keeper`; o "por quê" da mudança é
+`decision-recorder`.
 
 **O custo de usar à toa:** um campo declarado público não pode mais mudar sem
 depreciação. Cada linha do contrato é um compromisso que alguém vai cobrar —
@@ -59,7 +59,7 @@ publicar o que não precisava ser público é dívida que ninguém registrou.
    do arquivo. Se for gerado, **pare de pensar em editá-lo**.
 2. **Para mudar o que é gerado, mude a fonte anotada** e rode o comando
    declarado em `generated[].command`. O comando imprime na saída padrão e não
-   escreve arquivo (`ADR-0005`) — redirecione você mesmo para o `path`.
+   escreve arquivo — redirecione você mesmo para o `path`.
 3. **Rode `living-docs drift`** e confirme exit 0. É `CI-5`, e ele é o que
    sobrevive a alguém editando pelo navegador.
 4. **Artefato gerado novo entra em `generated[]`** com o comando que o produz.
@@ -72,9 +72,9 @@ publicar o que não precisava ser público é dívida que ninguém registrou.
    (`decision-recorder`).
 7. **Nomeie pelo glossary** (`glossary-keeper`), não pelo hábito de quem
    escreveu o endpoint.
-8. **Mudança visível ao consumidor gera entrada no CHANGELOG** — quando a
-   Fase 6 (`release-historian`, `CI-6`) existir. Até lá, isso é verificação
-   humana, e a política de versionamento diz o que fazer.
+8. **Mudança visível ao consumidor gera entrada no CHANGELOG** — a entrada é
+   de `release-historian`, e `CI-6` a cobra nos caminhos que o projeto declara
+   em `consumer-visible-paths`.
 9. **Cite o ID afetado na mensagem de commit.**
 10. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
     semeou, `CODIGO-EXEMPLO` sai, e o que não for verdade na política de
@@ -82,20 +82,20 @@ publicar o que não precisava ser público é dívida que ninguém registrou.
 
 ## Fronteiras
 
-| É seu                                                         | Não é seu                                                   |
-| ------------------------------------------------------------- | ----------------------------------------------------------- |
-| A pipeline que gera o contrato, e a fonte anotada             | Editar o arquivo gerado — `HK-2` nega, e ele está certo     |
-| A política em volta: versionamento, depreciação, estabilidade | O contrato em si, quando ele pode ser gerado                |
-| O catálogo de erros: código, significado, status              | A mensagem exibível, que não é contrato                     |
-| Declarar o que é público                                      | Decidir quebrar compatibilidade (é ADR, e ato humano)       |
-| Exigir substituto antes de depreciar                          | Escrever o guia de migração (é `release-historian`, Fase 6) |
+| É seu                                                         | Não é seu                                               |
+| ------------------------------------------------------------- | ------------------------------------------------------- |
+| A pipeline que gera o contrato, e a fonte anotada             | Editar o arquivo gerado — `HK-2` nega, e ele está certo |
+| A política em volta: versionamento, depreciação, estabilidade | O contrato em si, quando ele pode ser gerado            |
+| O catálogo de erros: código, significado, status              | A mensagem exibível, que não é contrato                 |
+| Declarar o que é público                                      | Decidir quebrar compatibilidade (é ADR, e ato humano)   |
+| Exigir substituto antes de depreciar                          | Escrever o guia de migração (é `release-historian`)     |
 
 ## Checklist
 
 - [ ] Nenhum artefato gerado foi editado à mão — verificação: `HK-2` (bloqueia) e `CI-5` (`living-docs drift`)
 - [ ] O artefato gerado no commit é a saída atual do gerador — verificação: `CI-5`
 - [ ] Todo artefato gerado está declarado em `generated[]`, com o comando que o produz — verificação: humana
-- [ ] O gerador imprime na saída padrão e não escreve arquivo — verificação: humana (`ADR-0005`)
+- [ ] O gerador imprime na saída padrão e não escreve arquivo — verificação: humana
 - [ ] Todo código de erro novo tem significado, gatilho, transporte e status — verificação: humana
 - [ ] Nenhum código publicado mudou de significado; o que mudou ganhou `deprecated` + substituto — verificação: humana
 - [ ] A mudança que quebra compatibilidade tem ADR — verificação: humana (`HK-3` intercepta a aceitação)
