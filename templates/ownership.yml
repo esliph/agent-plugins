@@ -1,12 +1,13 @@
 # O único arquivo específico deste projeto. Hooks e checks não conhecem
-# caminho nenhum — leem daqui. Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §3.
+# caminho nenhum — leem daqui.
 version: 1
 stale-after-months: 6
 
-# A forma escrita de um ID neste projeto (ADR-0011). A identidade NÃO depende
-# dela: `RN009` e `RN-0009` são o mesmo item. Mude isto para adotar um
-# repositório cujos IDs já se escrevem de outro jeito — nunca renumere o
-# repositório para caber no padrão.
+# A forma escrita de um ID neste projeto. A identidade NÃO depende dela: o mesmo
+# prefixo com o mesmo número é o mesmo item, com ou sem separador e com qualquer
+# quantidade de zeros à esquerda. Mude isto para adotar um repositório cujos IDs
+# já se escrevem de outro jeito — nunca renumere o repositório para caber no
+# padrão.
 id-format:
   separator: "{{ID_SEPARATOR}}"
   padding: {{ID_PADDING}}
@@ -26,7 +27,7 @@ artifacts:
     collection: table
     # A tabela é lida por gente, em português; o check pergunta pelo nome
     # canônico. O mapeamento mora aqui porque é a única coisa específica do
-    # projeto (spec §3).
+    # projeto.
     field-map:
       resolved-by: "Resolvida por"
       blocks: "Bloqueia"
@@ -57,8 +58,8 @@ generated: []
 
 {{DOCUMENTS_BLOCK}}
 # Mecanismo 1: código → doc dono. HK-4 lembra depois da edição, HK-5 pergunta
-# antes do commit. Na Fase 7, CI-7 lê daqui também. Preencha com os caminhos do
-# SEU código — o init não inventa vínculo, porque vínculo que ninguém reconhece
+# antes do commit, e CI-7 lê daqui também. Preencha com os caminhos do SEU
+# código — o init não inventa vínculo, porque vínculo que ninguém reconhece
 # ensina a ignorar o lembrete. Exemplo:
 #
 # watches:

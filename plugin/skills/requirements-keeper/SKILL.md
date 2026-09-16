@@ -55,7 +55,8 @@ o caminho é `decision-recorder` (`/open-decision`), que abre uma `DA-nnnn` e
 4. **Procure antes de criar.** Um requisito quase igual é sinal de que o certo é
    editar o existente ou revogá-lo, não somar um segundo.
 5. **Tome o próximo ID livre** do prefixo, conferindo `docs/ids-retired.txt`.
-   Nunca recicle, nunca pule.
+   Nunca recicle, nunca pule. A seção nova entra no fim do arquivo, depois das
+   que já existem.
 6. **Nomeie pelo glossary**, quando ele existir. Termo do hábito de quem escreve
    é como duas regras passam a falar de coisas diferentes com a mesma palavra.
 7. **Preencha "fora de escopo"** onde houver ambiguidade. É esse campo que

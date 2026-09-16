@@ -9,9 +9,8 @@ last-reviewed: {{TODAY}}
 
 # Política de versionamento
 
-> Semente criada por `living-docs init`. É a política **em volta** do contrato,
-> não o contrato: o que é gerado não se escreve aqui. Substitua o que não for
-> verdade neste projeto.
+Esta é a política **em volta** do contrato público, não o contrato: o que é
+gerado mora no artefato gerado.
 
 ## O que é público
 
@@ -34,5 +33,3 @@ substituto, e o guia de migração. Faltando qualquer uma, não é depreciação
 
 Mudança quebra-compatibilidade passa por um ADR — a decisão e o que se aceita
 perder ficam registrados, não na cabeça de quem estava na sala.
-
-<!-- Skill dona: contract-keeper. -->

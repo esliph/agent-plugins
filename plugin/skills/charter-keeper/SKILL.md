@@ -58,6 +58,8 @@ verificado por <hook | lint | teste | revisão | check>`. Sem isso, é
    princípio que virou requisito — mova para `requirements-keeper`.
 6. **Pare depois de escrever a emenda.** Aceitar é ato humano — não altere
    o corpo publicado por conta própria.
+7. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
+   semeou, substitua o exemplo pelo real e apague o que sobrar.
 
 ## Fronteiras
 

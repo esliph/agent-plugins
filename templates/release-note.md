@@ -1,5 +1,5 @@
 ---
-id: REL-0001
+id: {{ID}}
 title: v0.0.0
 status: draft
 owner: "{{OWNER}}"

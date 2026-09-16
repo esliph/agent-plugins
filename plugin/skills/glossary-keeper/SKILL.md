@@ -63,6 +63,8 @@ tabela que ninguém consegue ler inteira deixa de ser a fonte única de nome.
    não varre `docs/glossary.md` (`DA-0002` aberta; `ADR-0004` explica por
    quê). A verificação de duplicidade e de fonte é sua, não do CI.
 8. **Cite o termo (pelo nome) na mensagem de commit.**
+9. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
+   semeou, a linha "Termo exemplo" sai e o vocabulário real entra.
 
 ## Fronteiras
 

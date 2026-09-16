@@ -27,5 +27,3 @@ O enunciado, em uma ou duas frases. O que **deve** ser — nunca o que o código
 O `nnnn` acima é literal de propósito: o exemplo não pode virar um requisito de
 verdade nem uma citação pendurada. Troque-o pelo próximo número livre, conferido
 contra `docs/ids-retired.txt`.
-
-<!-- As seções entram abaixo. Skill dona: requirements-keeper. -->

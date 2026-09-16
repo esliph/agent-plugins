@@ -76,6 +76,9 @@ publicar o que não precisava ser público é dívida que ninguém registrou.
    Fase 6 (`release-historian`, `CI-6`) existir. Até lá, isso é verificação
    humana, e a política de versionamento diz o que fazer.
 9. **Cite o ID afetado na mensagem de commit.**
+10. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
+    semeou, `CODIGO-EXEMPLO` sai, e o que não for verdade na política de
+    versionamento deste projeto também.
 
 ## Fronteiras
 

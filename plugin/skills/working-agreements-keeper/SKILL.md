@@ -74,6 +74,9 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 9. **Documento novo é declarado nos dois lugares:** `documents:` no
    `docs/.ownership.yml` (com a skill dona, e o `role` quando for o contrato do
    agente ou a Definition of Done) e uma linha no CODEOWNERS.
+10. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
+    semeou, o que não for verdade neste projeto sai — apagar o que sobra é parte
+    do trabalho.
 
 ## Fronteiras
 

@@ -164,7 +164,8 @@ function documentsBlock(root: string, owner: string, stage: Stage): string {
   const entries = documentSeeds(root, stage).map(seed => documentEntry(seed, owner))
 
   return [
-    '# Documento com dono e SEM família de IDs (ADR-0008, que resolve DA-0002).',
+    // Regra de origem: ADR-0008, que resolve DA-0002.
+    '# Documento com dono e SEM família de IDs.',
     '# CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.',
     '# `role` é vocabulário fechado: agent-contract, definition-of-done.',
     '# `audience` diz quem lê: ausente é internal; external liga CI-11, que reprova ID de artefato no texto.',
@@ -397,7 +398,8 @@ function releasesBlock(owner: string, path: string, stage: Stage): string {
       '    skill: release-historian',
       '    # A release note é lida por quem consome: CI-11 cobra que ela não cite ID de artefato.',
       '    audience: external',
-      '    # Release note publicada é congelada por HK-1 (spec §5, SK-7, regra 4).',
+      // Regra de origem: spec §5, SK-7, regra 4.
+      '    # Release note publicada é congelada por HK-1.',
       '    append-only: true',
       '    mutable-fields: [status, last-reviewed]',
     ].join('\n') +
