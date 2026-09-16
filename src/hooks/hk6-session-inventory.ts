@@ -106,9 +106,10 @@ export function decideHk6(env: HookEnv, today: string): Hk6Decision {
     }
     if (vencidas.length > 0) {
       lines.push(
+        // Regra de origem: spec §12, critério 7.
         `Dívida com gatilho de pagamento cumprido (${vencidas.length}): ${shorten(
           vencidas.map(payment => `${payment.id} — ${payment.evidence}`),
-        )}. \`living-docs validate\` reprova até pagar ou reclassificar (spec §12, critério 7).`,
+        )}. \`living-docs validate\` reprova até pagar ou reclassificar.`,
       )
     }
     if (velhos.length > 0) {

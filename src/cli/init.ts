@@ -569,8 +569,9 @@ export function runInit(root: string, options: InitOptions): InitResult {
 function declarePlugin(root: string, options: InitOptions, result: InitResult): void {
   if (options.marketplace === null) {
     result.notInstalled.push(
+      // Regra de origem: DA-0003.
       `registro do plugin em ${SETTINGS_PATH} — sem \`--marketplace <owner/repo>\` a fonte não se ` +
-        'adivinha (`DA-0003`); os hooks não sobem na sessão até ele ser declarado',
+        'adivinha; os hooks não sobem na sessão até ele ser declarado',
     )
 
     return

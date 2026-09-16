@@ -114,8 +114,8 @@ function parseIdFormat(raw: unknown): IdFormat {
 
   if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
     throw new OwnershipError(
-      `${OWNERSHIP_PATH}: id-format.separator "${String(separator)}" não é aceito. ` +
-        `Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')} (ADR-0011).`,
+      // Regra de origem: ADR-0011.
+      `${OWNERSHIP_PATH}: id-format.separator "${String(separator)}" não é aceito. ` + `Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`,
     )
   }
 
@@ -123,7 +123,8 @@ function parseIdFormat(raw: unknown): IdFormat {
 
   if (typeof padding !== 'number' || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
     throw new OwnershipError(
-      `${OWNERSHIP_PATH}: id-format.padding "${String(padding)}" precisa ser inteiro entre ` + `${PADDING_RANGE.min} e ${PADDING_RANGE.max} (ADR-0011).`,
+      // Regra de origem: ADR-0011.
+      `${OWNERSHIP_PATH}: id-format.padding "${String(padding)}" precisa ser inteiro entre ` + `${PADDING_RANGE.min} e ${PADDING_RANGE.max}.`,
     )
   }
 
@@ -233,8 +234,9 @@ function parseBumpLimit(raw: unknown): number {
   }
   if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
     throw new OwnershipError(
+      // Regra de origem: ADR-0013.
       `${OWNERSHIP_PATH}: last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 ` +
-        '(limiar 1 reprovaria a revisão legítima de um documento só — ADR-0013).',
+        '(limiar 1 reprovaria a revisão legítima de um documento só).',
     )
   }
 

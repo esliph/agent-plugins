@@ -102,7 +102,7 @@ test('RF-0013: sem --marketplace, o registro não é inventado — é relatado',
     const result = runInit(root, { ...OPTIONS, marketplace: null })
 
     assert.equal(existsSync(join(root, '.claude/settings.json')), false)
-    assert.ok(result.notInstalled.some(linha => linha.includes('DA-0003')))
+    assert.ok(result.notInstalled.some(linha => linha.includes('--marketplace <owner/repo>') && linha.includes('não se adivinha')))
   })
 })
 
