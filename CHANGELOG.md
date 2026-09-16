@@ -156,6 +156,14 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   quebra foi decidida, e o commit que o cria cita a decisão. O contrato do agente
   semeado pelo `init` ganha a mesma política.
 
+- As sementes que `living-docs init` escreve e os comentários do
+  `docs/.ownership.yml` e do workflow instalados deixam de citar decisões
+  internas do toolkit e de trazer instrução de preenchimento; o que ajudava a
+  ler o documento virou prosa, e a orientação de quem escreve passou para as
+  skills. As mensagens dos checks, dos hooks e do CLI e o texto das skills
+  deixam de citar regras internas do toolkit. Repositório já instalado mantém o
+  texto antigo.
+
 ### Fixed
 
 - Os templates que `living-docs init` semeia voltam a trazer os placeholders
