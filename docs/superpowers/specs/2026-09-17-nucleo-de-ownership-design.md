@@ -5,7 +5,7 @@ como `@esliph/ownership`: plugin e biblioteca ao mesmo tempo. Sai de
 `docs/superpowers/research/2026-09-16-nucleo-de-ownership-de-artefatos.md`, que
 levantou o terreno e deixou seis pontos em aberto — todos decididos aqui.
 
-**Escopo desta spec: o núcleo.** Contrato, esquema, hierarquia e distribuição. A
+**Escopo desta spec: o núcleo.** Contrato, esquema, composição e distribuição. A
 migração do living-docs e o plugin SDD são specs próprias, depois desta e nesta
 ordem. O núcleo nasce com um consumidor real antes de ganhar o segundo; é o que
 impede o protocolo de extensão prematuro.
@@ -93,8 +93,9 @@ entradas é `per-file`, elas não carregam bloco nenhum.
 ### A forma
 
 ```yaml
-version: 2
-plugins: [living-docs] # o núcleo ignora estes blocos; qualquer outro nome é erro
+version: 2 # em todo arquivo de ownership, não só na raiz
+plugins: [living-docs] # só na raiz; o núcleo ignora estes blocos, e qualquer outro nome é erro
+# basePath: packages/api  # opcional: desloca a base dos caminhos abaixo, sempre para dentro (seção 5)
 
 owned:
   # per-file: a identidade é o arquivo — sem bloco `format`
@@ -171,7 +172,7 @@ reprova no PR mas não lembra na edição — é exatamente o que o teste proíb
 ### `ignore:` tira caminhos da governança
 
 Sem ele, a cobertura de dono cobraria dono de `node_modules/`, `vendor/` e
-qualquer diretório gerado. É lista de topo, vale para a subárvore de quem a
+qualquer diretório gerado. É lista de topo, vale para a base de quem a
 declara, e o que ela cobre some da cobertura, não da leitura.
 
 ## 3. Identidade de item
@@ -246,73 +247,146 @@ Só por tipo seria grosseiro demais para servir ao SDD. Só por instância deixa
 o nome do campo virar convenção não validada — o mesmo problema que o `field-map`
 existe para resolver — e um campo digitado errado sumiria em silêncio.
 
-## 5. Hierarquia
+## 5. Composição entre arquivos
 
-Um arquivo de ownership governa a subárvore do próprio diretório e compõe com
-outros por inclusão explícita.
+Um arquivo de ownership é uma unidade de governo autocontida: diz por qual
+esquema é lido, contra qual base seus caminhos são escritos, e governa um
+conjunto de caminhos que nenhum outro arquivo declara.
 
+### Base
+
+A base efetiva é o **diretório do arquivo mais o `basePath`**. O `basePath` é
+opcional, não aceita `..` nem glob, e só desce. Sem ele a base é o diretório do
+arquivo — com uma exceção: a base da raiz é a raiz do repositório, more ela em
+`.ownership.yml` ou em `docs/.ownership.yml`. A raiz é achada pela ordem de
+candidatos da seção 8; os demais arquivos não são candidatos, são incluídos.
+
+```yaml
+# packages/api/.ownership.yml — base: packages/api/
+version: 2
+
+# ownership.api.yml, na raiz — base: packages/api/
+version: 2
+basePath: packages/api
 ```
-.ownership.yml                    raiz: version, plugins, include; governa <repo>/**
-ownership.docs.yml                mesmo nível da raiz; governa <repo>/**
-packages/api/.ownership.yml       governa packages/api/** e nada fora
+
+Os dois governam a mesma subárvore. Onde o arquivo mora passa a ser organização,
+não semântica, e um monorepo que prefere ownership centralizado consegue isso sem
+que nenhum arquivo alcance fora da própria base.
+
+### `version` em todos, `plugins` só na raiz
+
+`version:` é obrigatório em todo arquivo, e divergência entre dois é erro que
+nomeia os dois. Custa uma linha e paga que o arquivo se identifique sozinho: para
+saber por qual esquema um subprojeto é lido não é preciso achar a raiz, e um
+subprojeto que vira repositório próprio já sai pronto.
+
+`plugins:` fica só na raiz. Uma lista por arquivo reabriria a falha que ela existe
+para fechar — `plugins: [living-dcos]` digitado errado num filho faria o bloco
+`living-docs:` daquele arquivo virar erro em um lugar e passar em outro, sem
+ninguém revisando a lista de todos. Concentrá-la na raiz mantém a decisão num
+ponto revisado uma vez.
+
+### Caminhos governados são disjuntos
+
+Resolvidos contra suas bases, todos os `owned[].path` de todos os arquivos formam
+um conjunto disjunto: nenhum é igual a outro, e nenhum é prefixo de diretório de
+outro — `docs/` e `docs/adr/x.md` colidem, `docs/adr/` e `docs/specs/` não.
+Colisão é erro que nomeia os dois arquivos e o caminho, esteja ela dentro de um
+arquivo, entre irmãos, ou entre um arquivo e outro que o inclui.
+
+Não existe "nível", não existe cascata e não existe caminho mais específico
+ganhando de menos específico. "Qual regra cobre este caminho" tem resposta única e
+independente da ordem de declaração: prefixo quando a entrada termina em `/`,
+igualdade quando não termina. E como nenhuma propriedade pode vir de outro
+arquivo, `owner` é obrigatório em toda entrada.
+
+A alternativa — sobreposição resolvida por especificidade — é o que a v1 tem hoje,
+e não por desenho: a busca escolhe a **primeira** entrada declarada que casa,
+enquanto a coleta de documentos aplica **todas** as que casam. São duas semânticas
+para a mesma sobreposição, e um arquivo julgado duas vezes por regras que poderiam
+divergir. Disjunção é o que faz as duas coincidirem.
+
+**O que isso nega de propósito.** `docs/` com um dono geral e
+`docs/decisions/adr/` com a `decision-recorder` deixa de ser expressável — as duas
+entradas se contêm. Quem quer as duas coisas declara os irmãos um a um. O custo é
+real e é aceito: as 23 entradas deste repositório já são disjuntas, tirando uma
+sobreposição acidental que a seção 10 remove, e governo por herança é exatamente o
+que torna "quem responde por este arquivo" uma pergunta que exige reconstruir uma
+árvore para responder.
+
+**Fora da conta.** `generated[].path` não é caminho governado: ele já satisfaz a
+cobertura de dono sozinho, e um arquivo gerado dentro de um diretório governado
+tem dono e tem gerador, o que faz sentido junto. A disjunção cobra dele só ele
+mesmo — dois comandos produzindo o mesmo arquivo é erro. `watches` sobrepõe à
+vontade: dois documentos vigiando `src/cli/**` por razões diferentes é o desenho
+funcionando.
+
+**Colisão é erro de carga, não check.** É levantada ao resolver, como qualquer
+defeito de configuração: o `validate` reprova nomeando os dois lados, e o hook se
+cala e libera, pela política de falha aberta. Um hook podado pode não enxergar
+colisão que o CI enxerga, e é o certo — hook não é onde se descobre que a
+configuração está quebrada.
+
+### `include:`
+
+Lista de caminhos relativos ao arquivo que a declara, apontando diretório quando
+há um só arquivo de ownership lá dentro, ou arquivo quando há vários. Inclusão
+aninhada é permitida; ciclo é erro; incluir o mesmo arquivo duas vezes é erro.
+
+```yaml
+# .ownership.yml, na raiz
+include:
+  - ownership.docs.yml # arquivo: há mais de um neste diretório
+  - packages/api/ # diretório: há um só lá dentro
 ```
 
-- **Raiz** achada pela ordem de candidatos da seção 8; ambiguidade é erro só
-  entre candidatos a raiz.
-- **`include:` explícito** — uma lista de caminhos relativos ao arquivo que a
-  declara, apontando diretório quando há um arquivo nele, ou arquivo quando há
-  vários. Inclusão aninhada é permitida; ciclo é erro.
+O que o `include` **não** faz é conferir escopo ou autoridade: ele diz "leia
+também este arquivo", e o que o arquivo governa é assunto da base dele. É por isso
+que a concessão de autoridade declarada no site de inclusão foi descartada — seria
+uma segunda declaração de escopo, capaz de divergir da primeira.
 
-  ```yaml
-  # .ownership.yml, na raiz
-  include:
-    - ownership.docs.yml # arquivo: há mais de um neste diretório
-    - packages/api/ # diretório: há um só lá dentro
-  ```
-- **Escopo estrutural**: vem do lugar do arquivo. Declarar caminho fora da
-  própria subárvore é erro — e o erro não pode envelhecer, porque não há
-  declaração de escopo que possa divergir do lugar. Foi o que fez descartar a
-  concessão de autoridade declarada no site de inclusão, que dá a mesma
-  prunabilidade ao custo de mais uma declaração a manter.
-- **Vários arquivos por diretório** são permitidos e ficam no mesmo nível, o que
-  dá organização por assunto sem abrir mão do confinamento. Eles moram no
-  diretório cuja subárvore governam, não numa pasta de configuração.
-- **Todo caminho é relativo ao arquivo que o declara** — `owned[].path`,
-  `watches[].code`, `watches[].doc`, `generated[].path`, `ignore[]` — sem
-  exceção, senão `docs/` significa duas coisas e o arquivo do subprojeto deixa de
-  ser movível.
-- **`version:` e `plugins:` são exclusivas da raiz.** Um filho declarando bloco
-  de plugin fora da lista não seria validado por ninguém; um filho declarando
-  outra versão colocaria dois esquemas numa resolução só.
+### Confinamento
 
-### Merge
+Um campo fica confinado à base quando o caminho que ele nomeia **pode ser um
+caminho editado**. É esse o critério, e ele existe para manter a poda correta.
 
-| Seção                            | Semântica                                                      |
-| -------------------------------- | -------------------------------------------------------------- |
-| `owned`                          | cascateia do menos para o mais específico, propriedade a propriedade |
-| `watches`, `generated`, `ignore` | acumulam — subprojeto acrescenta, não substitui                |
-| dentro de uma entrada            | mapa funde, lista substitui                                    |
+| Campo                                                                                  | Alcance                       |
+| -------------------------------------------------------------------------------------- | ----------------------------- |
+| `owned[].path`, `generated[].path`, `ignore[]`, `watches[].code`, `derives-from.source` | dentro da base                |
+| `watches[].doc`                                                                        | qualquer lugar do repositório |
 
-`mutable-fields: [status]` num filho troca a lista inteira do pai, não acrescenta
-a ela. Mesmo caminho declarado duas vezes no mesmo nível é erro.
+Os cinco primeiros nomeiam caminhos cuja edição dispara alguma coisa: guarda de
+gerado, guarda de promoção, lembrete de vigiado, lembrete de derivação. Um
+`derives-from.source` apontando para fora é o caso mais traiçoeiro — editar a spec
+deixaria de avisar sobre o plano, porque o arquivo que declara a derivação teria
+sido podado, e o lembrete sumiria em silêncio.
 
-Isso obriga a redação de "o núcleo recusa dois donos" a mudar: duas declarações
-para o **mesmo** caminho no **mesmo** nível é erro; declaração mais específica
-sobrepondo menos específica é resolução. "Exatamente uma skill por caminho" passa
-a valer **depois** de resolver.
+`watches[].doc` é o único campo que nunca é gatilho: nada dispara por editá-lo,
+ele é sempre o alvo apontado, e a poda é dirigida por `code`. Deixá-lo livre
+atende um caso real — `packages/api/.ownership.yml` vigiando
+`packages/api/src/**` e apontando para o `CHANGELOG.md` da raiz. Sob confinamento
+estrito, um pacote seria obrigado a ter changelog próprio, decisão de projeto que
+o núcleo não tem por que impor.
+
+### Poda
+
+Resolvendo para um conjunto de caminhos (`onlyFor`), um arquivo cuja base não é
+ancestral de nenhum deles é descartado sem ser aberto — comparação de caminho de
+diretório, sem leitura. Como o `basePath` só desce, a base é sempre descendente do
+diretório do arquivo, e a poda continua correta conhecendo apenas o lugar do
+arquivo. É o que mantém o hook dentro do teto de cinco segundos com falha aberta.
+
+Hooks podam. `validate` e `explain` não — e a cobertura de dono em particular
+nunca poda, porque afirmar que um caminho não tem dono exige ter lido todos os
+arquivos.
 
 ### `ownership explain <caminho>`
 
-Entrega obrigatória, não conveniência. Mostra a regra resolvida e de qual arquivo
-veio cada propriedade. Com cascata, nenhum arquivo isolado responde "qual regra
-vale aqui" — e governança inauditável é pior que governança ausente, porque
-parece que alguém está olhando.
-
-### Custo de leitura
-
-Podar é comparar caminho de diretório, sem abrir arquivo: resolvendo
-`packages/web/x.ts`, o ramo `packages/api/` é descartado sem leitura. É o que
-mantém o hook dentro do teto de cinco segundos com falha aberta.
+Entrega obrigatória, não conveniência. Responde qual entrada cobre o caminho, de
+qual arquivo; quando nenhuma cobre, responde qual arquivo tem base
+que o contém — que é exatamente o que falta saber quando a cobertura de dono
+reprova.
 
 O arquivo de ownership incluído é ele próprio um caminho governado e precisa de
 dono como qualquer outro.
@@ -485,8 +559,10 @@ recém-migrado convivendo com um esquecido significaria validar pelo esquecido s
 aviso — e enforcement que some em silêncio é a falha que este repositório já pagou
 uma reorganização inteira para matar.
 
-Com hierarquia, a regra vale só para a raiz: os demais arquivos não são
-candidatos, são incluídos.
+A regra vale só para a raiz: os demais arquivos não são candidatos, são incluídos
+(seção 5). E a base da raiz é a raiz do repositório qualquer que seja o candidato
+que venceu — é o que mantém um `docs/.ownership.yml` governando `src/**` e
+`CLAUDE.md` sem declarar base nenhuma.
 
 ## 9. Prova
 
@@ -508,10 +584,16 @@ Mais o que o repositório já pratica, estendido ao que é novo:
 - cada hook do núcleo se cala sem a configuração dele;
 - a migração é exercitada contra o arquivo real deste repositório, com as 23
   entradas de `artifacts` e `documents`;
-- a cascata é exercitada com raiz mais um subprojeto, provando override de
-  propriedade, acúmulo de `watches`, lista que substitui em vez de acrescentar,
-  caminho fora da subárvore recusado e ciclo de inclusão recusado;
-- `ownership explain` aponta o arquivo de origem de cada propriedade resolvida.
+- a composição é exercitada com raiz mais um subprojeto, provando acúmulo de
+  `watches`, `basePath` deslocando a base, `basePath` com `..` recusado, caminho
+  fora da base recusado, `watches[].doc` fora da base aceito, versão divergente
+  entre dois arquivos recusada, ciclo de inclusão recusado, e colisão de caminho
+  recusada nas três formas — dentro de um arquivo, entre irmãos, e entre um
+  arquivo e outro que o inclui;
+- a poda descarta um arquivo sem abri-lo, e nenhuma regra de arquivo podado
+  alcançaria os caminhos resolvidos;
+- `ownership explain` aponta o arquivo da entrada que cobre o caminho,
+  e o arquivo de base quando nenhuma cobre.
 
 ## 10. Migração
 
@@ -520,9 +602,20 @@ Um comando lê a v1 e escreve a v2: move o arquivo se preciso, funde `artifacts`
 desce as chaves de leitura para `format:`. Encontrando v1 depois disso, o núcleo
 falha com erro que nomeia o comando. Um esquema vivo no código.
 
-Hierarquia não entra na migração: um arquivo v1 é sempre único e migra para uma
-raiz única. A cascata é opt-in depois, e nenhum consumidor existente é obrigado a
-ela.
+O comando também precisa **desfazer sobreposição**, porque a v1 a tolera e a v2 a
+recusa. Este repositório tem uma: `docs/superpowers/` e dois arquivos de dentro
+dele, entrados por acidente quando os dois foram movidos para um diretório já
+declarado, com o mesmo `owner` e sem `skill`. O migrador remove as entradas
+contidas quando elas não dizem nada que a entrada que as contém já não diga, e
+para nomeando as duas quando dizem — misturar remoção com perda de regra seria
+migração que apaga governança em silêncio. Aqui a remoção corrige de quebra um
+defeito latente: hoje esses dois arquivos entram duas vezes na coleta de
+documentos e são julgados duas vezes pelos checks que a percorrem.
+
+Composição não entra na migração: um arquivo v1 é sempre único e migra para uma
+raiz única, que ganha `version: 2` e nenhum `basePath` — a base da raiz já é a
+raiz do repositório. Dividir em vários arquivos é opt-in depois, e nenhum
+consumidor existente é obrigado a isso.
 
 ## 11. Decisões a registrar
 
@@ -536,10 +629,10 @@ mostra que a terceira raiz não se materializa.
 | Decisão a abrir        | Sobre                                                                                                        | Efeito                                                                                                                                                                                                                                             |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | fronteira do núcleo    | dono, ciclo e gatilho dentro; IDs e congelamento fora                                                        | reabre a decisão da engine única — ela se divide                                                                                                                                                                                                   |
-| esquema v2             | lista `owned`, blocos por plugin, `plugins:`, `format:`, fim da lista duplicada de caminhos visíveis         | —                                                                                                                                                                                                                                                  |
+| esquema v2             | lista `owned`, blocos por plugin, `plugins:` na raiz, `version` em todo arquivo, `basePath`, `format:`, fim da lista duplicada de caminhos visíveis | —                                                                                                                                                                                                             |
 | identidade de item     | chave opaca, `key` por coleção, `state-field`                                                                | —                                                                                                                                                                                                                                                  |
 | gatilho doc → doc      | tipo no ownership, instância no frontmatter                                                                  | —                                                                                                                                                                                                                                                  |
-| hierarquia             | escopo estrutural, inclusão explícita, semântica de merge                                                    | —                                                                                                                                                                                                                                                  |
+| composição entre arquivos | base por arquivo com `basePath` só descendo, caminhos governados disjuntos, inclusão explícita sem concessão de autoridade, confinamento pelo critério de gatilho | —                                                                                                                                                                                       |
 | resolução do arquivo   | ordem de candidatos, ambiguidade é erro                                                                      | —                                                                                                                                                                                                                                                  |
 | distribuição           | monorepo-marketplace, npm, build na publicação                                                               | supersede a decisão de executar sem build step, resolve a decisão aberta sobre como o toolkit chega ao consumidor, reabre a de hooks como peça única, e obriga decisão nova sobre o nome do projeto — o repositório passa a ter mais de um pacote |
 | identificador nomeado  | `plugin/nome-descritivo` para check e hook                                                                   | —                                                                                                                                                                                                                                                  |
