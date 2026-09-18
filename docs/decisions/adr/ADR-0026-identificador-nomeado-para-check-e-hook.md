@@ -22,6 +22,10 @@ precisa registrar os próprios checks e hooks sem colidir com a numeração de
 quem já existe, e sem que o número do vizinho dependa da ordem de
 instalação.
 
+Esta decisão cobre o §6 de
+`docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md`, a spec
+do núcleo de ownership.
+
 ## Alternativas consideradas
 
 - **Continuar numerando, com uma faixa reservada por plugin** (por exemplo
