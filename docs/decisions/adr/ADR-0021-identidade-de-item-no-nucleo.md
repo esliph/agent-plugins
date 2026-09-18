@@ -23,6 +23,10 @@ heading tipo `T-003 — Escrever o parser` ou campo de estado com outro nome,
 e o núcleo precisa parear item antes/depois pela chave sem saber o que ela
 significa.
 
+Esta decisão cobre o §3 de
+`docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md`, a spec
+do núcleo de ownership.
+
 ## Alternativas consideradas
 
 - **Manter a chave amarrada ao formato de ID do living-docs** (regex de
