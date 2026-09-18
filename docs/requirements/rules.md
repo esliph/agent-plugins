@@ -438,3 +438,15 @@ Dentro de uma entrada de `owned`, as chaves que dizem como o parser encontra
 o item dentro do arquivo (`collection`, `key`, `state-field`) só são lidas
 de dentro de um bloco `format:` — nunca no mesmo nível das chaves de
 política.
+
+## RN-0033 — A identidade de um item é uma chave opaca ao núcleo
+
+- **status:** draft
+- **relates-to:** ADR-0021
+- **fora de escopo:** forma de ID, prefixo, sequência e aposentadoria — que continuam sendo política do plugin dono, não do núcleo
+
+O núcleo garante apenas que a chave de um item não é vazia e é única dentro
+do arquivo que a declara, e usa essa chave para parear o item antes e depois
+de uma mudança. Ele nunca valida a forma da chave. `state-field`, quando
+declarado, nomeia onde o estado do item mora; quando ausente, o padrão é
+`status`, sem distinção de maiúscula.
