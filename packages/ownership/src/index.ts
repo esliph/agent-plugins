@@ -1,1 +1,10 @@
-export {}
+export { resolveOwnership, findOwnedRule, findGeneratedRule } from './resolve/hierarchy.ts'
+export type { ResolvedConfig, ResolvedOwnedRule, ResolvedGeneratedRule, ResolvedWatchRule, ResolveOptions } from './resolve/hierarchy.ts'
+export { explainPath } from './resolve/explain.ts'
+export { findTransitions } from './lifecycle/transitions.ts'
+export type { Transition } from './lifecycle/transitions.ts'
+export { coreChecks, diffChecks } from './checks/registry.ts'
+export type { DiffFacts } from './checks/registry.ts'
+export type { Check, CheckContext, Finding, Severity } from './checks/types.ts'
+export { OwnershipError } from './schema/types.ts'
+export type { Collection, DerivesFrom, FormatBlock, SectionKeyMode } from './schema/types.ts'
