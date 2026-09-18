@@ -484,3 +484,13 @@ Um documento só é lembrado como derivado de outro quando o arquivo de
 ownership declara o tipo da derivação (`derives-from: source, field`) e a
 instância declara, no próprio frontmatter, o alvo exato pelo campo nomeado.
 Derivação sem as duas metades não gera lembrete.
+
+## RN-0037 — A cobertura de dono alcança o repositório inteiro, e só `ignore` retira caminho dela
+
+- **status:** draft
+- **relates-to:** ADR-0020, RN-0016, RN-0021
+- **fora de escopo:** o que `generated[].path` conta como coberto sozinho, sem entrar em `owned` — ele já satisfaz a cobertura por ser gerado
+
+Todo caminho do repositório tem uma entrada de dono que o cobre, exceto o
+que uma entrada de `ignore:` retira explicitamente da cobertura. Caminho sem
+dono e sem `ignore` reprova.
