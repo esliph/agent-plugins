@@ -473,3 +473,14 @@ O arquivo de ownership raiz é achado pela ordem de candidatos — explícito,
 `./.ownership.yml`, `./docs/.ownership.yml` —, e a ausência de qualquer
 candidato é silêncio válido. Encontrar mais de um candidato ao mesmo tempo é
 erro que nomeia os dois; o sistema nunca escolhe um deles sozinho.
+
+## RN-0036 — O gatilho doc→doc exige tipo declarado no ownership e instância declarada no documento
+
+- **status:** draft
+- **relates-to:** ADR-0022, RN-0008, RN-0009
+- **fora de escopo:** o gatilho código→doc (`watches`), que RN-0008 e RN-0009 já cobrem
+
+Um documento só é lembrado como derivado de outro quando o arquivo de
+ownership declara o tipo da derivação (`derives-from: source, field`) e a
+instância declara, no próprio frontmatter, o alvo exato pelo campo nomeado.
+Derivação sem as duas metades não gera lembrete.
