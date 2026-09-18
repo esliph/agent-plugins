@@ -19,7 +19,7 @@ export class FrontmatterSyntaxError extends Error {
 }
 
 const DELIMITER = /^---\s*$/
-const TOP_LEVEL_KEY = /^([A-Za-z_][A-Za-z0-9_-]*)\s*:/
+const TOP_LEVEL_KEY = /^([\p{L}_][\p{L}\p{N}_-]*)\s*:/u
 
 export function parseFrontmatter(source: string): Frontmatter | null {
   const text = source.replace(/^﻿/, '').replace(/\r\n/g, '\n')

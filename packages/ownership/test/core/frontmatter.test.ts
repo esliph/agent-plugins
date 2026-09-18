@@ -14,3 +14,10 @@ test('parseFrontmatter lê chaves de topo e linhas', () => {
 test('sem delimitador de abertura, devolve null', () => {
   assert.equal(parseFrontmatter('# título\n'), null)
 })
+
+test('parseFrontmatter localiza a linha de uma chave com acento', () => {
+  const result = parseFrontmatter('---\nsituação: draft\n---\ncorpo\n')
+
+  assert.equal(result?.data.situação, 'draft')
+  assert.equal(result?.lines.situação, 2)
+})
