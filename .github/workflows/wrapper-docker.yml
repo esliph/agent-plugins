@@ -16,6 +16,8 @@ on:
       - 'bin/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'packages/*/package.json'
+      - 'packages/*/package-lock.json'
       - '.github/workflows/wrapper-docker.yml'
   pull_request:
     paths: *wrapper-paths
@@ -38,4 +40,4 @@ jobs:
         run: bin/dev npm test
 
       - name: CI-1 a CI-4, CI-7, CI-8 e CI-10 — documentação viva, pelo wrapper
-        run: bin/dev node src/cli/index.ts validate
+        run: bin/dev node packages/living-docs/src/cli/index.ts validate

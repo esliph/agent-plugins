@@ -7,14 +7,15 @@
 # uma lista de comandos suportados para manter — a lista não existe.
 #
 # O caminho de registro continua sendo o node do host (RNF-0002, ADR-0015), e os
-# hooks nunca passam por aqui: plugin/hooks/run-hook.sh invoca node direto.
+# hooks nunca passam por aqui: packages/living-docs/hooks/run-hook.sh invoca node direto.
 set -euo pipefail
 
 CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-living-docs}"
 
-# Um nível acima de bin/ — mesma derivação que plugin/hooks/run-hook.sh faz com
-# dois níveis, porque aquele script está mais fundo (ADR-0003: a raiz sai do
-# caminho do próprio arquivo, nunca do diretório de trabalho de quem chamou).
+# Um nível acima de bin/ — a mesma derivação que
+# packages/living-docs/hooks/run-hook.sh faz para achar a raiz do plugin
+# (ADR-0003: a raiz sai do caminho do próprio arquivo, nunca do diretório de
+# trabalho de quem chamou).
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Garantir o container. Na primeira vez isto constrói a imagem; nas seguintes é

@@ -9,6 +9,6 @@ RUN mkdir -p /opt/living-docs/node_modules /workspace \
  && chown -R node:node /opt/living-docs /workspace
 
 USER node
-ENV LIVING_DOCS_TOOLKIT_ROOT=/opt/living-docs \
+ENV LIVING_DOCS_TOOLKIT_ROOT=/opt/living-docs/packages/living-docs \
     LIVING_DOCS_REPO_ROOT=/workspace
 CMD ["sleep", "infinity"]

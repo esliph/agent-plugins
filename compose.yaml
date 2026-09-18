@@ -13,7 +13,7 @@ services:
       - ${LIVING_DOCS_TARGET:-.}:/workspace
       - node_modules:/opt/living-docs/node_modules
     environment:
-      LIVING_DOCS_TOOLKIT_ROOT: /opt/living-docs
+      LIVING_DOCS_TOOLKIT_ROOT: /opt/living-docs/packages/living-docs
       LIVING_DOCS_REPO_ROOT: /workspace
     command: ['sleep', 'infinity']
 
