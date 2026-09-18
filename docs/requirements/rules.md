@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-09-16
+last-reviewed: 2026-09-18
 ---
 
 # Regras de negócio
@@ -424,3 +424,17 @@ Os arquivos que o `init` semeia, os templates, o texto do plugin e a saída do
 CLI e dos hooks não citam prefixo declarado em `artifacts:` do toolkit, seção da
 spec do toolkit nem caminho de documento interno dele. Quem instala não resolve
 a citação — ou a resolve para um item seu, com outro significado.
+
+## RN-0032 — O arquivo de ownership v2 é estrito: uma lista `owned`, bloco por plugin, leitura separada de política
+
+- **status:** draft
+- **relates-to:** ADR-0020
+- **fora de escopo:** o comando de migração de v1 para v2, e o conteúdo dos blocos que cada plugin declara sob o próprio nome
+
+Um arquivo de ownership válido declara `version` em toda instância e, na
+raiz, a lista `plugins:` com o nome de todo bloco de primeiro nível que não é
+do núcleo. Bloco de primeiro nível cujo nome não está em `plugins:` é erro.
+Dentro de uma entrada de `owned`, as chaves que dizem como o parser encontra
+o item dentro do arquivo (`collection`, `key`, `state-field`) só são lidas
+de dentro de um bloco `format:` — nunca no mesmo nível das chaves de
+política.
