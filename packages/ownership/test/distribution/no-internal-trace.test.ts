@@ -17,8 +17,14 @@ function shipped(dir: string): string[] {
 
 test('código, hooks e manifesto do plugin não citam o rastro interno fora de comentário', () => {
   const found: string[] = []
+  const files = [
+    ...shipped(join(PACKAGE_ROOT, 'src')),
+    ...shipped(join(PACKAGE_ROOT, 'hooks')),
+    ...shipped(join(PACKAGE_ROOT, '.claude-plugin')),
+    join(PACKAGE_ROOT, 'package.json'),
+  ]
 
-  for (const file of [...shipped(join(PACKAGE_ROOT, 'src')), ...shipped(join(PACKAGE_ROOT, 'hooks'))]) {
+  for (const file of files) {
     readFileSync(file, 'utf8')
       .split('\n')
       .forEach((line, index) => {

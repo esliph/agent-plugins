@@ -12,6 +12,10 @@ test('isGitCommit reconhece "git commit" no início e depois de separador', () =
   assert.equal(isGitCommit('git status'), false)
 })
 
+test('isGitCommit reconhece "git commit" em comando Bash multi-linha', () => {
+  assert.equal(isGitCommit('npm test\ngit commit -m "x"'), true)
+})
+
 test('não é Bash, allow', () => {
   withTempRepo({ '.ownership.yml': CONFIG }, root => {
     assert.equal(decideCommitGuard({ tool_name: 'Edit', tool_input: { command: 'git commit -m x' } }, env(root)).action, 'allow')

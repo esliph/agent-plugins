@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -27,5 +27,8 @@ test('npm pack produz um tarball instalável cujo dist roda de verdade', { timeo
   } finally {
     rmSync(installDir, { recursive: true, force: true })
     rmSync(tarball, { force: true })
+    rmSync(join(PACKAGE_ROOT, 'dist'), { recursive: true, force: true })
   }
+
+  assert.equal(existsSync(join(PACKAGE_ROOT, 'dist')), false)
 })

@@ -10,7 +10,7 @@ import type { HookEnv, HookPayload } from './lib/io.ts'
 export type CommitGuardDecision = { action: 'allow' } | { action: 'ask'; reason: string }
 
 const ALLOW: CommitGuardDecision = { action: 'allow' }
-const GIT_COMMIT = /(?:^|[;&|]\s*)git\b[^;&|]*\bcommit\b/
+const GIT_COMMIT = /(?:^|[;&|\n]\s*)git\b[^;&|\n]*\bcommit\b/
 
 export function isGitCommit(command: string): boolean {
   return GIT_COMMIT.test(command.trim())
