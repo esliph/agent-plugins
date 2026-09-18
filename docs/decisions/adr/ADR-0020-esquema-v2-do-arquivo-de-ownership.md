@@ -25,6 +25,10 @@ cópias de divergir. O núcleo, servindo dois domínios, precisa de um esquema
 estrito o bastante para recusar chave errada e extensível o bastante para um
 plugin de domínio declarar as próprias chaves sem que o núcleo as conheça.
 
+Esta decisão cobre o §2 de
+`docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md`, a spec
+do núcleo de ownership.
+
 ## Alternativas consideradas
 
 - **Manter duas listas, uma por termo do glossário (`artifacts`/`documents`).**
