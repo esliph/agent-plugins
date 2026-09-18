@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-08-27
+last-reviewed: 2026-09-18
 ---
 
 # Requisitos não funcionais
@@ -21,15 +21,17 @@ ausente, timeout — resulta em deixar passar. O enforcement que sobrevive a hoo
 quebrado é o CI; hook quebrado que trava o trabalho é removido pelo usuário no
 primeiro dia, e aí não há enforcement nenhum.
 
-## RNF-0002 — O toolkit roda no Node do host, sem passo de build
+## RNF-0002 — O toolkit roda no Node do host, sem passo de build no checkout
 
 - **status:** active
-- **relates-to:** ADR-0015
-- **fora de escopo:** o `git`; o caminho conteinerizado opcional de `RNF-0006`, que é alternativa e não exigência; e como o toolkit chega ao repositório de quem o consome (`DA-0003`)
+- **relates-to:** ADR-0015, ADR-0025
+- **fora de escopo:** o `git`; o caminho conteinerizado opcional de `RNF-0006`, que é alternativa e não exigência; como o toolkit chega ao repositório de quem o consome (`DA-0003`); e o pacote publicado, que é compilado no `prepack` (`ADR-0025`) e não é o que se executa a partir do checkout
 
 Node 24 ou maior, e o npm que vem com ele, são o único toolchain exigido de quem
 clona este repositório. `npm ci` instala as dependências; `node` executa a fonte
-TypeScript direto, sem artefato compilado no meio.
+TypeScript direto do checkout, sem artefato compilado no meio. O pacote
+publicado em npm é compilado no `prepack` — essa compilação existe só dentro
+do tarball e nunca chega a um checkout de desenvolvimento.
 
 ## RNF-0003 — A raiz do toolkit e a do repositório validado são independentes
 
