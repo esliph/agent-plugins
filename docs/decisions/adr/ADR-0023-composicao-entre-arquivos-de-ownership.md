@@ -23,6 +23,10 @@ para vários arquivos exige decidir como a base de cada um se calcula, o que
 acontece quando dois arquivos declaram o mesmo caminho, e o que um arquivo
 incluído ganha de autoridade do arquivo que o inclui.
 
+Esta decisão cobre o §5 de
+`docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md`, a spec
+do núcleo de ownership.
+
 ## Alternativas consideradas
 
 - **Sobreposição resolvida por especificidade** (o caminho mais específico
