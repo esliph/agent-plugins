@@ -67,13 +67,14 @@ export function problemsFor(root: string, rule: ResolvedOwnedRule): DerivationPr
   }
 
   const problems: DerivationProblem[] = []
+  const normalizedSource = rule.derivesFrom.source.endsWith('/') ? rule.derivesFrom.source : `${rule.derivesFrom.source}/`
 
   for (const instance of instancesOf(root, rule)) {
     if (instance.field === null) {
       problems.push({ file: instance.file, line: instance.line, reason: 'campo-ausente', field: null })
       continue
     }
-    if (!instance.field.startsWith(rule.derivesFrom.source)) {
+    if (!instance.field.startsWith(normalizedSource)) {
       problems.push({ file: instance.file, line: instance.line, reason: 'fora-da-fonte', field: instance.field })
       continue
     }

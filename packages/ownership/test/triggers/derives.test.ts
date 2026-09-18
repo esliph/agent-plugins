@@ -39,6 +39,17 @@ test('problemsFor: campo fora de source é achado', () => {
   })
 })
 
+test('problemsFor: prefix check respects directory boundary (source sem trailing slash)', () => {
+  const ruleWithoutTrailingSlash = {
+    ...RULE,
+    derivesFrom: { source: 'docs/specs', field: 'spec' },
+  }
+  withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs-legacy/x.md\n---\n' }, root => {
+    forgetTree(root)
+    assert.deepEqual(problemsFor(root, ruleWithoutTrailingSlash).map(p => p.reason), ['fora-da-fonte'])
+  })
+})
+
 test('problemsFor: alvo que não existe é achado', () => {
   withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/nao-existe.md\n---\n' }, root => {
     forgetTree(root)
