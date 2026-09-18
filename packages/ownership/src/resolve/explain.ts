@@ -34,7 +34,7 @@ export function explainPath(config: ResolvedConfig, repoPath: string): string {
     `  owner: ${rule.owner}`,
     `  skill: ${rule.skill ?? '—'}`,
     `  states: ${rule.states ? rule.states.join(', ') : '—'}`,
-    `  format: ${rule.format.collection}${rule.format.key ? ` (key: ${rule.format.key})` : ''}${rule.format.keyMode ? ` (key: ${rule.format.keyMode})` : ''}`,
+    `  format: ${rule.format.collection}${rule.format.key ? ` (key: ${rule.format.key})` : ''}${rule.format.keyMode ? ` (key mode: ${rule.format.keyMode})` : ''}`,
     `  derives-from: ${rule.derivesFrom ? `${rule.derivesFrom.source} → ${rule.derivesFrom.field}` : '—'}`,
   ]
 

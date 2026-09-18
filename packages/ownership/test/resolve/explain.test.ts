@@ -41,3 +41,18 @@ test('mostra a regra que cobre e o arquivo que a declarou', () => {
     },
   )
 })
+
+test('distingue "key mode" de "key" no formato sections', () => {
+  withTempRepo(
+    {
+      '.ownership.yml': 'version: 2\ninclude: [packages/docs/]\nowned: []\n',
+      'packages/docs/.ownership.yml': 'version: 2\nowned:\n  - path: ./\n    owner: "@owner"\n    format:\n      collection: sections\n',
+    },
+    root => {
+      const text = explainPath(resolveOwnership(root)!, 'packages/docs/x.md')
+
+      assert.match(text, /key mode: first-token/)
+      assert.doesNotMatch(text, /\(key: first-token\)/)
+    },
+  )
+})
