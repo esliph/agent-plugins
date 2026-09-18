@@ -25,6 +25,10 @@ tarefa de plan, e "aceito é congelado" é semântica de decisão, não de todo
 artefato. Extrair um núcleo exige decidir a fronteira exata entre o que o
 segundo consumidor herda e o que continua exclusivo do living-docs.
 
+Esta decisão cobre o §1 de
+`docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md`, a spec
+do núcleo de ownership.
+
 ## Alternativas consideradas
 
 - **Subir também a família de IDs e o congelamento para o núcleo.**
