@@ -220,3 +220,15 @@ O comando `ownership validate` verifica dono, ciclo de vida, gatilho e
 artefato gerado do repositório inteiro. Com `--base <ref>`, restringe a
 verificação de vigiado (`watches`) aos caminhos que mudaram desde a ref
 informada, sem restringir a cobertura de dono, que nunca poda.
+
+## RF-0017 — `ownership explain <caminho>` responde qual arquivo e qual entrada cobrem um caminho
+
+- **status:** draft
+- **relates-to:** ADR-0019, ADR-0023, RN-0034
+- **fora de escopo:** explicar cobertura de família de ID ou de congelamento — perguntas do living-docs, não do núcleo
+
+Para um caminho dado, `ownership explain <caminho>` responde qual entrada de
+`owned` o cobre e de qual arquivo de ownership ela vem. Quando nenhuma
+entrada cobre o caminho, responde qual arquivo de ownership tem base que o
+contém — a mesma pergunta que falta responder quando a cobertura de dono
+reprova.
