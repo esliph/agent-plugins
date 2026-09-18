@@ -450,3 +450,15 @@ do arquivo que a declara, e usa essa chave para parear o item antes e depois
 de uma mudança. Ele nunca valida a forma da chave. `state-field`, quando
 declarado, nomeia onde o estado do item mora; quando ausente, o padrão é
 `status`, sem distinção de maiúscula.
+
+## RN-0034 — Os caminhos governados por todos os arquivos de ownership de um repositório são disjuntos
+
+- **status:** draft
+- **relates-to:** ADR-0023
+- **fora de escopo:** o que `include:` concede de autoridade — nada, por decisão; e a poda de arquivos fora da base num hook, que é otimização e não regra de cobertura
+
+Resolvidos contra as próprias bases, os `owned[].path` de todos os arquivos
+de ownership de um repositório formam um conjunto disjunto: nenhum é igual a
+outro, e nenhum é prefixo de diretório de outro. Colisão é erro que nomeia
+os dois arquivos e o caminho, ocorra ela dentro de um arquivo, entre
+arquivos irmãos ou entre um arquivo e outro que o inclui.
