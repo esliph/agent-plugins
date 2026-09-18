@@ -22,6 +22,10 @@ doc→doc: editar uma spec avisa sobre o plan que deriva dela, sem avisar
 sobre todos os plans do diretório — o lembrete precisa ser preciso por
 instância, não por diretório inteiro.
 
+Esta decisão cobre o §4 de
+`docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md`, a spec
+do núcleo de ownership.
+
 ## Alternativas consideradas
 
 - **Declarar a derivação só por tipo** (todo arquivo de
