@@ -462,3 +462,14 @@ de ownership de um repositório formam um conjunto disjunto: nenhum é igual a
 outro, e nenhum é prefixo de diretório de outro. Colisão é erro que nomeia
 os dois arquivos e o caminho, ocorra ela dentro de um arquivo, entre
 arquivos irmãos ou entre um arquivo e outro que o inclui.
+
+## RN-0035 — A resolução do arquivo de ownership raiz nunca escolhe entre candidatos ambíguos
+
+- **status:** draft
+- **relates-to:** ADR-0024
+- **fora de escopo:** a resolução de arquivos incluídos, que não são candidatos e seguem a regra de composição (RN-0034)
+
+O arquivo de ownership raiz é achado pela ordem de candidatos — explícito,
+`./.ownership.yml`, `./docs/.ownership.yml` —, e a ausência de qualquer
+candidato é silêncio válido. Encontrar mais de um candidato ao mesmo tempo é
+erro que nomeia os dois; o sistema nunca escolhe um deles sozinho.
