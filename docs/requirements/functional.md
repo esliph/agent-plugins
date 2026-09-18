@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-09-15
+last-reviewed: 2026-09-18
 ---
 
 # Requisitos funcionais
@@ -209,3 +209,14 @@ reescreve a linha: relata, entre o que não instalou, cada entrada declarada sem
 a marca, dizendo que marcá-la é o que liga a verificação para ela. É a mesma
 política de quando ele acrescenta ao `.ownership.yml` e ao CODEOWNERS: o que já
 está escrito é de quem escreveu.
+
+## RF-0016 — `ownership validate [--base]` verifica dono, ciclo de vida, gatilho e gerado
+
+- **status:** draft
+- **relates-to:** ADR-0019, RN-0032, RN-0034, RN-0035, RN-0037
+- **fora de escopo:** os checks de família de IDs, congelamento, staleness e citação, que continuam em `living-docs validate`
+
+O comando `ownership validate` verifica dono, ciclo de vida, gatilho e
+artefato gerado do repositório inteiro. Com `--base <ref>`, restringe a
+verificação de vigiado (`watches`) aos caminhos que mudaram desde a ref
+informada, sem restringir a cobertura de dono, que nunca poda.
