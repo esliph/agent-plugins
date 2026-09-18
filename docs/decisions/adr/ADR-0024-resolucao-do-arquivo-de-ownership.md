@@ -21,6 +21,10 @@ escolhe onde eles moram — e precisa de uma ordem de candidatos para achar a
 raiz sem ambiguidade, inclusive no caso de um projeto recém-migrado que
 ainda tem os dois lugares ocupados.
 
+Esta decisão cobre o §8 de
+`docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md`, a spec
+do núcleo de ownership.
+
 ## Alternativas consideradas
 
 - **Escolher o primeiro candidato encontrado em silêncio, quando mais de um
