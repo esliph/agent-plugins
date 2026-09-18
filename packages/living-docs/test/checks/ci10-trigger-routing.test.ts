@@ -5,6 +5,7 @@ import { parseOwnership } from '../../src/config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { runValidate } from '../../src/cli/validate.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const OWNERSHIP = `
@@ -187,7 +188,7 @@ test('ADR-0013: a raiz do toolkit e legivel, e os pares dela cabem no piso', () 
 
   // Os doze pares deste repositorio, medidos pelo check e nao repetidos aqui:
   // repetir o `trigger` num teste seria a copia que RN-0010 recusa.
-  const findings = runValidate(toolkitRoot()).findings.filter(f => f.ruleId === 'CI-10')
+  const findings = runValidate(checkoutRoot()).findings.filter(f => f.ruleId === 'CI-10')
 
   assert.deepEqual(
     findings.filter(f => f.severity === 'error'),

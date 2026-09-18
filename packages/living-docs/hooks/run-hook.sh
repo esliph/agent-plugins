@@ -6,11 +6,13 @@
 # saída vazia e exit 0. Um hook quebrado não pode travar o trabalho.
 #
 # Duas raízes, e elas não se confundem: o código do **toolkit** sai
-# do caminho deste script, dois níveis acima dele; o `.ownership.yml` lido é o do
-# **repositório validado**, que vem de CLAUDE_PROJECT_DIR.
+# do caminho deste script, um nível acima dele — hooks/ e src/ moram lado a
+# lado na raiz do plugin, que é o diretório que o cache do marketplace copia
+# inteiro. O `.ownership.yml` lido é o do **repositório validado**, que vem de
+# CLAUDE_PROJECT_DIR.
 
 HOOK="${1:-}"
-TOOLKIT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+TOOLKIT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 [ -n "$HOOK" ] || exit 0

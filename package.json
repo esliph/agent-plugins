@@ -1,31 +1,21 @@
 {
-  "name": "@esliph/living-docs",
-  "version": "0.1.0",
+  "name": "esliph",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=24"
   },
   "workspaces": ["packages/*"],
-  "bin": {
-    "living-docs": "./src/cli/index.ts"
-  },
   "scripts": {
-    "test": "node --test \"test/**/*.test.ts\"",
-    "typecheck": "tsc --noEmit",
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
-  "dependencies": {
-    "picomatch": "^4.0.2",
-    "yaml": "^2.6.0"
-  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^24.0.0",
-    "@types/picomatch": "^3.0.1",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",

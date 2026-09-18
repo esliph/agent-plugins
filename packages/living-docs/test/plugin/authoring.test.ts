@@ -11,13 +11,13 @@ const ROOT = toolkitRoot()
  * Varredura, não lista fixa: uma skill nova precisa entrar nas convenções da
  * spec §11 no dia em que nasce, sem ninguém lembrar de acrescentá-la aqui.
  */
-const SKILLS = readdirSync(join(ROOT, 'plugin/skills'), { withFileTypes: true })
+const SKILLS = readdirSync(join(ROOT, 'skills'), { withFileTypes: true })
   .filter(entry => entry.isDirectory())
   .map(entry => entry.name)
   .sort()
 
 function skillSource(name: string): string {
-  return readFileSync(join(ROOT, 'plugin/skills', name, 'SKILL.md'), 'utf8')
+  return readFileSync(join(ROOT, 'skills', name, 'SKILL.md'), 'utf8')
 }
 
 test('há skills para verificar', () => {
@@ -102,12 +102,12 @@ test('requirements-keeper não duplica o formato do requisito', () => {
 
 test('os sete comandos existem, têm description e não contêm lógica própria', () => {
   const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md', 'docs-audit.md', 'term.md', 'release.md']
-  const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort()
+  const encontrados = readdirSync(join(ROOT, 'commands')).sort()
 
   assert.deepEqual(encontrados, esperados.sort())
 
   for (const nome of esperados) {
-    const source = readFileSync(join(ROOT, 'plugin/commands', nome), 'utf8')
+    const source = readFileSync(join(ROOT, 'commands', nome), 'utf8')
     const frontmatter = parseFrontmatter(source)
 
     assert.ok(frontmatter, `${nome} sem frontmatter`)

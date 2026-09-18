@@ -2,9 +2,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { toolkitRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 
-const ROOT = toolkitRoot()
+const ROOT = checkoutRoot()
 
 /**
  * Índice da linha de cabeçalho de uma tabela markdown cuja primeira coluna se

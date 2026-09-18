@@ -2,15 +2,35 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import picomatch from 'picomatch'
 import { loadOwnership } from '../../src/config/ownership.ts'
 import { unreleasedEntries } from '../../src/checks/ci6-changelog-required.ts'
-import { toolkitRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 
-const ROOT = toolkitRoot()
+const ROOT = checkoutRoot()
 const config = loadOwnership(ROOT)
 
 test('RN-0013: este repositório declara o que é visível ao consumidor', () => {
   assert.ok(config.consumerVisiblePaths.length > 0, 'consumer-visible-paths vazio: CI-6 estaria instalado e inerte')
+
+  // O pacote é o plugin, mas só a superfície do plugin é pública: a lista é
+  // explícita, e um curinga no pacote inteiro puxaria src/ e test/.
+  const visivel = picomatch(config.consumerVisiblePaths)
+
+  for (const path of [
+    'packages/living-docs/.claude-plugin/plugin.json',
+    'packages/living-docs/hooks/run-hook.sh',
+    'packages/living-docs/commands/adr.md',
+    'packages/living-docs/skills/decision-recorder/SKILL.md',
+    'packages/living-docs/agents/decision-adversary.md',
+    'packages/living-docs/templates/adr.md',
+    'packages/living-docs/src/cli/index.ts',
+  ]) {
+    assert.ok(visivel(path), `${path} deveria ser visível ao consumidor`)
+  }
+  for (const path of ['packages/living-docs/src/core/roots.ts', 'packages/living-docs/test/smoke.test.ts', 'packages/living-docs/package.json']) {
+    assert.equal(visivel(path), false, `${path} não é superfície pública`)
+  }
 })
 
 test('ADR-0006: as duas listas do mecanismo concordam, e um teste as impede de derivar', () => {

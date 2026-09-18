@@ -7,10 +7,10 @@ import { loadCodeowners, ownersOf } from '../../src/config/codeowners.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { debtsWithoutTrigger, duePayments } from '../../src/checks/ci4-staleness.ts'
 import { documentationFiles } from '../../src/docs/corpus.ts'
-import { repoRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 import { todayIso } from '../../src/core/dates.ts'
 
-const ROOT = repoRoot()
+const ROOT = checkoutRoot()
 const CONFIG = loadOwnership(ROOT)
 
 function contextFor() {

@@ -4,7 +4,7 @@ import { CHECK_BUDGET_MS, formatElapsed } from '../../src/checks/budget.ts'
 import { runValidate } from '../../src/cli/validate.ts'
 import { runDrift } from '../../src/cli/drift.ts'
 import { runChangelog } from '../../src/cli/changelog.ts'
-import { toolkitRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 
 const NUL = String.fromCharCode(0)
 
@@ -17,11 +17,11 @@ const git = (args: readonly string[]): string => {
     return ''
   }
 
-  return `src/cli/index.ts${NUL}CHANGELOG.md${NUL}`
+  return `packages/living-docs/src/cli/index.ts${NUL}CHANGELOG.md${NUL}`
 }
 
 test('RNF-0005: o conjunto completo de checks cabe no teto declarado, medido', () => {
-  const root = toolkitRoot()
+  const root = checkoutRoot()
   const inicio = process.hrtime.bigint()
 
   // O conjunto e o que roda no PR: as duas execucoes de `validate`, o `drift`
@@ -40,7 +40,7 @@ test('RNF-0005: o conjunto completo de checks cabe no teto declarado, medido', (
 })
 
 test('RNF-0005: cada comando devolve o que mediu, e a medida nao e estimada', () => {
-  const root = toolkitRoot()
+  const root = checkoutRoot()
 
   const validado = runValidate(root)
 

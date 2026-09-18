@@ -48,7 +48,7 @@ export function sharedRoots(trigger: string, description: string): string[] {
  * mapa vazio vira aviso — nunca falha.
  */
 export function loadSkillDescriptions(root: string = toolkitRoot()): Map<string, string> {
-  const dir = join(root, 'plugin', 'skills')
+  const dir = join(root, 'skills')
   const found = new Map<string, string>()
 
   let names: string[]
@@ -177,7 +177,7 @@ export function ci10TriggerRouting(descriptions: ReadonlyMap<string, string> = l
             fix:
               `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
               // Regra de origem: RN-0029.
-              'confira o nome em `plugin/skills/`.',
+              'confira o nome em `skills/`, na raiz do toolkit.',
           })
           continue
         }

@@ -1,7 +1,8 @@
 import { join, resolve } from 'node:path'
 
 /**
- * Raiz do **toolkit**: onde moram `src/`, `templates/` e `plugin/`.
+ * Raiz do **toolkit**: onde moram `src/`, `templates/` e o plugin (`skills/`,
+ * `hooks/`, `commands/`, `agents/`, `.claude-plugin/`).
  *
  * Derivada do próprio arquivo — o toolkit sempre sabe onde ele mesmo está e por
  * isso não precisa de configuração para se achar. `LIVING_DOCS_TOOLKIT_ROOT`

@@ -8,6 +8,7 @@ import { loadOwnership } from '../../src/config/ownership.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
 import { DEFAULT_ID_FORMAT, parseId } from '../../src/docs/schema.ts'
 import { findCitations } from '../../src/ids/citations.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 /**
@@ -21,7 +22,7 @@ import { withTempRepo } from '../helpers/tmp.ts'
  * porque ninguém os declara como família de artefato — o mesmo desenho de CI-11.
  */
 const ROOT = toolkitRoot()
-const CONFIG = loadOwnership(ROOT)
+const CONFIG = loadOwnership(checkoutRoot())
 const INTERNAL = new Set(CONFIG.artifacts.map(artifact => artifact.idPrefix))
 
 interface Trail {
@@ -130,8 +131,11 @@ test('RN-0031: o que o init semeia, em todo estágio, e os templates crus não c
   assert.equal(found.length, 0, `rastro interno do toolkit no que o init entrega:\n${report(found)}`)
 })
 
+/** O que o cache do marketplace entrega de texto do plugin — `src/` e `test/` têm varredura própria ou nenhuma. */
+const PLUGIN_DIRS = ['.claude-plugin', 'hooks', 'commands', 'skills', 'agents'] as const
+
 test('RN-0031: o texto do plugin não cita o rastro interno do toolkit', () => {
-  const files = filesUnder(join(ROOT, 'plugin'))
+  const files = PLUGIN_DIRS.flatMap(dir => filesUnder(join(ROOT, dir)))
   const found = files.flatMap(absolute => trailIn(toolkitPath(absolute), readFileSync(absolute, 'utf8')))
 
   assert.ok(files.length > 10, `varredura vazia demais: ${files.length} arquivo(s)`)

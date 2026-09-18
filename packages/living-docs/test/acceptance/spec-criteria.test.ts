@@ -14,13 +14,13 @@ import { runDrift } from '../../src/cli/drift.ts'
 import type { GitRunner } from '../../src/git/staged.ts'
 import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
-import { repoRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 import { runChangelog } from '../../src/cli/changelog.ts'
 import { decideHk7 } from '../../src/hooks/hk7-shortcut-debt.ts'
 import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts'
 import { decideHk8 } from '../../src/hooks/hk8-open-decision-guard.ts'
 
-const ROOT = repoRoot()
+const ROOT = checkoutRoot()
 const OPTIONS = {
   owner: '@team',
   dryRun: false,

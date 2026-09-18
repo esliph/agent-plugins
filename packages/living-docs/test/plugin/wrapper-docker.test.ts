@@ -6,9 +6,9 @@ import { test } from 'node:test'
 import picomatch from 'picomatch'
 import { loadOwnership } from '../../src/config/ownership.ts'
 import { watchesFor } from '../../src/config/watches.ts'
-import { toolkitRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 
-const ROOT = toolkitRoot()
+const ROOT = checkoutRoot()
 
 function source(relative: string): string {
   return readFileSync(join(ROOT, relative), 'utf8')

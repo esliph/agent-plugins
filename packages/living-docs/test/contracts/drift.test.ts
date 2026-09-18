@@ -3,9 +3,9 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { runDrift } from '../../src/cli/drift.ts'
-import { repoRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 
-const ROOT = repoRoot()
+const ROOT = checkoutRoot()
 const GENERATED = 'docs/contracts/checks.gen.md'
 
 test('RF-0006: o contrato gerado deste repositório não derivou — dogfooding com o gerador de verdade', () => {

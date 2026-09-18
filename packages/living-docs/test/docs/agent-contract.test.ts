@@ -3,8 +3,9 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { toolkitRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
 
-const ROOT = toolkitRoot()
+const ROOT = checkoutRoot()
 const CONTRATO = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8')
 
 test('RN-0010: o contrato do agente aponta para os artefatos donos', () => {
@@ -51,7 +52,7 @@ test('a Definition of Done nomeia a verificação de cada item', () => {
 })
 
 test('RN-0030: o contrato do agente e o template dele dizem que texto para fora não carrega ID, e quem cobra', () => {
-  const template = readFileSync(join(ROOT, 'templates/agent-contract.md'), 'utf8')
+  const template = readFileSync(join(toolkitRoot(), 'templates/agent-contract.md'), 'utf8')
 
   for (const [nome, fonte] of [
     ['CLAUDE.md', CONTRATO],

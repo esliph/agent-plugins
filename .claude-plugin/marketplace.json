@@ -10,7 +10,7 @@
       "name": "living-docs",
       "description": "Sete skills donas de artefato, dois agents, oito hooks e sete comandos — o lado de sessão do toolkit de documentação viva.",
       "version": "0.1.0",
-      "source": "./plugin"
+      "source": "./packages/living-docs"
     }
   ]
 }
