@@ -106,6 +106,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- O toolkit passa a morar em `packages/living-docs/`, e esse diretório é ao mesmo
+  tempo o pacote e o plugin do Claude Code. Quem invoca o CLI de um clone passa a
+  chamá-lo por `node packages/living-docs/src/cli/index.ts`, sempre da raiz do
+  checkout. O plugin passa a trazer, no próprio diretório, o código e as
+  dependências que os ganchos executam. Arquivos já semeados por `init` não
+  mudam, porque o comando do workflow instalado vem de `--invoke`.
 - O toolkit passa a rodar no Node do host: os ganchos do plugin invocam `node`
   direto, e o workflow de CI deste repositório instala Node e npm em vez de
   construir uma imagem. Quem clona precisa de Node 24 ou maior e de um `npm ci`

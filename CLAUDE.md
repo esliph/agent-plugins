@@ -16,8 +16,8 @@ artefato dono e é lida de lá (`RN-0010`).
 ## Política
 
 - **O toolkit roda no `node` do host.** `npm ci` antes de tudo; depois
-  `npm test`, `npm run typecheck` e `node src/cli/index.ts …`. A regra vigente é
-  `RNF-0002`.
+  `npm test`, `npm run typecheck` e
+  `node packages/living-docs/src/cli/index.ts …`. A regra vigente é `RNF-0002`.
 - **A regra vem antes do código.** O que o sistema deve fazer está em
   `docs/requirements/`; se a regra não existe, abra uma `DA` (`/open-decision`)
   e pare. Não invente a regra que falta.

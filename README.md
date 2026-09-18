@@ -17,7 +17,7 @@ o que dispara sua atualização. Em cima disso, duas camadas de verificação:
 - **Checagens de CI**: rodam no pipeline em segundos e continuam valendo mesmo
   para edições feitas direto pelo navegador, sem ninguém por perto.
 
-O toolkit roda no Node do host: `npm ci` uma vez, e `node src/cli/index.ts` a
+O toolkit roda no Node do host: `npm ci` uma vez, e `node packages/living-docs/src/cli/index.ts` a
 partir daí. Não há passo de build entre editar e executar.
 
 ## Pré-requisitos
@@ -29,8 +29,8 @@ partir daí. Não há passo de build entre editar e executar.
 
 ```bash
 npm ci                                          # instala as dependências
-node src/cli/index.ts init --stage solo         # cria a estrutura inicial de pastas e arquivos
-node src/cli/index.ts validate                  # verifica a documentação do repositório
+node packages/living-docs/src/cli/index.ts init --stage solo         # cria a estrutura inicial de pastas e arquivos
+node packages/living-docs/src/cli/index.ts validate                  # verifica a documentação do repositório
 ```
 
 Sem `LIVING_DOCS_REPO_ROOT`, o CLI valida o **diretório de trabalho** — rodando
@@ -38,13 +38,13 @@ da raiz deste checkout, ele valida a si mesmo: o toolkit usa-se como teste.
 
 Comandos disponíveis:
 
-| Comando                                        | O que faz                                                                                                                                           |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `node src/cli/index.ts init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou.                                                                 |
-| `node src/cli/index.ts validate`               | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono.                                        |
-| `node src/cli/index.ts validate --base <ref>`  | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
-| `node src/cli/index.ts drift`                  | Confere se cada documento gerado ainda bate com o comando que o gera.                                                                               |
-| `node src/cli/index.ts changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit.                                     |
+| Comando                                                             | O que faz                                                                                                                                           |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `node packages/living-docs/src/cli/index.ts init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `docs/.ownership.yml` o que criou.                                                                 |
+| `node packages/living-docs/src/cli/index.ts validate`               | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e cobertura de dono.                                        |
+| `node packages/living-docs/src/cli/index.ts validate --base <ref>`  | Além do acima, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
+| `node packages/living-docs/src/cli/index.ts drift`                  | Confere se cada documento gerado ainda bate com o comando que o gera.                                                                               |
+| `node packages/living-docs/src/cli/index.ts changelog --base <ref>` | Confere se toda mudança visível a quem consome levou entrada no `CHANGELOG.md`, ou uma razão escrita no commit.                                     |
 
 Opções de `init`: `--owner <@time>` define o dono declarado nos documentos
 criados; `--dry-run` mostra o que seria criado sem escrever; `--id-separator` e
@@ -73,13 +73,14 @@ nenhuma é deduzida da outra: a primeira sai do caminho do próprio código, a
 segunda do diretório de trabalho ou de `LIVING_DOCS_REPO_ROOT`.
 
 ```bash
-LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node src/cli/index.ts init --stage small-team --owner @time
-LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node src/cli/index.ts validate
+LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node packages/living-docs/src/cli/index.ts init --stage small-team --owner @time
+LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node packages/living-docs/src/cli/index.ts validate
 ```
 
 ## O plugin do Claude Code
 
-`plugin/` traz skills, comandos e ganchos.
+`packages/living-docs/` é, ao mesmo tempo, o pacote do CLI e o plugin: traz
+skills, comandos e ganchos, e o código que os ganchos executam.
 
 **Skills e comandos:**
 
@@ -133,7 +134,7 @@ container, subindo-o quando preciso:
 
 ```bash
 bin/dev npm test
-bin/dev node src/cli/index.ts validate
+bin/dev node packages/living-docs/src/cli/index.ts validate
 bin/living-docs validate     # o mesmo, pelo wrapper do CLI
 ```
 

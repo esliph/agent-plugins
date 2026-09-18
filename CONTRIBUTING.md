@@ -21,8 +21,8 @@ dependências entram com `npm ci`, e ele vem antes de qualquer outro comando:
 npm ci
 npm test
 npm run typecheck
-node src/cli/index.ts validate
-node src/cli/index.ts validate --base origin/master
+node packages/living-docs/src/cli/index.ts validate
+node packages/living-docs/src/cli/index.ts validate --base origin/master
 ```
 
 Comando que falha com `ERR_MODULE_NOT_FOUND` é comando rodado antes do
@@ -37,7 +37,7 @@ sobe o container sozinho quando ele não está de pé:
 ```bash
 bin/dev npm test
 bin/dev npm run typecheck
-bin/dev node src/cli/index.ts validate
+bin/dev node packages/living-docs/src/cli/index.ts validate
 bin/living-docs validate     # o mesmo, pelo wrapper do CLI
 bin/dev                      # um shell dentro do container
 ```
