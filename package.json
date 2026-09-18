@@ -6,6 +6,7 @@
   "engines": {
     "node": ">=24"
   },
+  "workspaces": ["packages/*"],
   "bin": {
     "living-docs": "./src/cli/index.ts"
   },

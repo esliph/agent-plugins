@@ -28,6 +28,12 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
+      - name: Testes — @esliph/ownership
+        run: npm test --workspace packages/ownership
+
+      - name: Type-check — @esliph/ownership
+        run: npm run typecheck --workspace packages/ownership
+
       - name: CI-1 a CI-4, CI-7 e CI-8 — documentação viva
         run: node src/cli/index.ts validate
 
