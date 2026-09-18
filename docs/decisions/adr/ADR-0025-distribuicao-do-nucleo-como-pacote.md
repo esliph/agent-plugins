@@ -23,6 +23,10 @@ e potencialmente de um terceiro plugin: `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIP
 sob `node_modules`, então um `@esliph/ownership` publicado como fonte
 TypeScript não executa quando instalado como dependência de outro pacote.
 
+Esta decisão cobre o §7 de
+`docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md`, a spec
+do núcleo de ownership.
+
 ## Alternativas consideradas
 
 - **Publicar `dist/` versionado no repositório.** Descartada pelo mesmo
