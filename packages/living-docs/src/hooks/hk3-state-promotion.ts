@@ -8,14 +8,11 @@
  */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { findArtifactRule, loadOwnership } from '../config/ownership.ts'
+import { findTransitions } from '@esliph/ownership'
+import { findArtifactRule, loadLivingDocsConfig } from '../config/ownership.ts'
 import type { ArtifactRule } from '../config/ownership.ts'
 import { parseFrontmatter } from '../frontmatter/parse.ts'
-import { DEFAULT_ID_FORMAT, HUMAN_PROMOTIONS } from '../docs/schema.ts'
-import type { IdFormat } from '../docs/schema.ts'
-import { parseItemTable } from '../docs/table.ts'
-import { parseItemSections } from '../docs/sections.ts'
-import type { DocItem } from '../docs/item.ts'
+import { HUMAN_PROMOTIONS } from '../docs/schema.ts'
 import { applyToolInput } from './lib/edit.ts'
 import { toRepoPath } from './lib/paths.ts'
 import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts'
@@ -51,30 +48,23 @@ function statusOf(source: string): { id: string; status: string } | null {
   }
 }
 
-function findPromotion(before: string, after: string, rule: ArtifactRule, format: IdFormat = DEFAULT_ID_FORMAT): Promotion | null {
-  if (rule.collection !== 'per-file') {
-    const parse = (source: string): DocItem[] => (rule.collection === 'table' ? parseItemTable(source, 1, format) : parseItemSections(source, 1, format))
-    const previous = new Map(parse(before).map(item => [item.id, item.status]))
-
-    for (const item of parse(after)) {
-      const from = previous.get(item.id)
-
-      if (from !== undefined && isHumanPromotion(from, item.status)) {
-        return { id: item.id, from, to: item.status }
-      }
+/**
+ * A primeira transição desta edição que exige gente. O pareamento antes/depois é
+ * do núcleo (`findTransitions`); a lista de transições que exigem ato humano é
+ * do living-docs, fixa, até `DA-0004` decidir como o núcleo a declara.
+ */
+function findPromotion(before: string, after: string, rule: ArtifactRule, repoPath: string): Promotion | null {
+  for (const transition of findTransitions(before, after, rule.core, repoPath)) {
+    if (!isHumanPromotion(transition.from, transition.to)) {
+      continue
     }
+    // Em per-file a chave do núcleo é o caminho; a mensagem nomeia o ID.
+    const id = rule.collection === 'per-file' ? (statusOf(after)?.id ?? transition.key) : transition.key
 
-    return null
+    return { id, from: transition.from, to: transition.to }
   }
 
-  const from = statusOf(before)
-  const to = statusOf(after)
-
-  if (!from || !to) {
-    return null
-  }
-
-  return isHumanPromotion(from.status, to.status) ? { id: to.id, from: from.status, to: to.status } : null
+  return null
 }
 
 export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
@@ -99,7 +89,7 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
   let config
 
   try {
-    config = loadOwnership(env.root)
+    config = loadLivingDocsConfig(env.root)
   } catch {
     return ALLOW // falha aberta
   }
@@ -123,7 +113,7 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
     return ALLOW
   }
 
-  const promotion = findPromotion(current, next, rule, config.idFormat)
+  const promotion = findPromotion(current, next, rule, repoPath)
 
   if (!promotion) {
     return ALLOW

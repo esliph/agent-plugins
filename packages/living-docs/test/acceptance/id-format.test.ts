@@ -3,29 +3,27 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { runValidate } from '../../src/cli/validate.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
-version: 1
-id-format:
-  separator: ""
-  padding: 3
-artifacts:
-  - id-prefix: RN
-    path: docs/rules.md
+version: 2
+plugins: [living-docs]
+living-docs:
+  id-format: { separator: "", padding: 3 }
+owned:
+  - path: docs/rules.md
     owner: "@time"
     skill: requirements-keeper
-    collection: sections
-    cited-by: ["test/**"]
-documents:
-  - path: docs/.ownership.yml
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN, cited-by: ["test/**"] }
+  - path: .ownership.yml
     owner: "@time"
     skill: living-docs-bootstrap
+    living-docs: {}
 `
-
-const CODEOWNERS = 'docs/rules.md    @time\ndocs/.ownership.yml    @time\n'
 
 function regras(ids: readonly string[]): string {
   return [
@@ -44,8 +42,7 @@ function regras(ids: readonly string[]): string {
 
 function arvore(ids: readonly string[]): Record<string, string> {
   return {
-    [OWNERSHIP_PATH]: CONFIG,
-    CODEOWNERS,
+    [OWNERSHIP_FILE]: CONFIG,
     'docs/rules.md': regras(ids),
     'test/regras.test.ts': ids.map(id => `// cobre ${id}`).join('\n') + '\n',
   }

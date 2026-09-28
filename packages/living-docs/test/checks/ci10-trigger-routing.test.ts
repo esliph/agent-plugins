@@ -1,32 +1,36 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ci10TriggerRouting, loadSkillDescriptions, rootsOf, sharedRoots, SHARED_ROOTS_FLOOR } from '../../src/checks/ci10-trigger-routing.ts'
-import { parseOwnership } from '../../src/config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { runValidate } from '../../src/cli/validate.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
+import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const OWNERSHIP = `
-version: 1
-artifacts:
-  - id-prefix: DA
-    path: docs/open-decisions.md
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/open-decisions.md
     owner: "@time"
     skill: decision-recorder
-    collection: table
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs: { id-prefix: DA }
+  - path: docs/decisions/adr/
     owner: "@time"
     skill: decision-recorder
-documents:
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR }
   - path: docs/glossary.md
     owner: "@time"
     skill: glossary-keeper
+    living-docs: {}
   - path: CHANGELOG.md
     owner: "@time"
     skill: release-historian
+    living-docs: {}
 `
 
 const container = (trigger: string): string =>
@@ -63,7 +67,7 @@ const DESCRICOES = new Map([
 ])
 
 function contextFor(root: string) {
-  const config = parseOwnership(OWNERSHIP)
+  const config = configFrom(OWNERSHIP)
 
   return {
     root,

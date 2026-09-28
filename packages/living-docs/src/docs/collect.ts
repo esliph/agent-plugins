@@ -1,12 +1,12 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
-import type { ArtifactRule, DocumentRule, OwnershipConfig } from '../config/ownership.ts'
+import { parseItemsSections, parseItemsTable } from '@esliph/ownership'
+import type { DocItem } from '@esliph/ownership'
+import type { ArtifactRule, DocumentRule, LivingDocsConfig } from '../config/ownership.ts'
 import { parseFrontmatter, FrontmatterSyntaxError } from '../frontmatter/parse.ts'
 import type { Frontmatter } from '../frontmatter/parse.ts'
-import { parseItemTable } from './table.ts'
-import { parseItemSections } from './sections.ts'
+import { parseId } from './schema.ts'
 import type { IdFormat } from './schema.ts'
-import type { DocItem } from './item.ts'
 
 export interface ArtifactDoc {
   /** Caminho relativo à raiz do repositório, sempre com `/`. */
@@ -45,22 +45,23 @@ function listMarkdown(root: string, relativeDir: string): string[] {
 }
 
 /**
- * Qual parser lê os itens deste artefato. A escolha é da configuração, não do
- * check: `per-file` não tem itens, `table` os lê em linhas e `sections` em
- * títulos com ID (spec §3).
+ * Os itens de um artefato de coleção, lidos pelo núcleo segundo o `format` da
+ * entrada. A forma do ID é política do living-docs, não do parser: a chave
+ * chega opaca e só vira item o que é ID na forma declarada pelo projeto
+ * (`ADR-0011`). Título sem ID, e linha de tabela sem ID, não são item.
  */
 function parseItems(rule: ArtifactRule, source: string, body: string | null, bodyStart: number, format: IdFormat): DocItem[] {
   const text = body ?? source
   const start = body === null ? 1 : bodyStart
+  const { format: read } = rule.core
+  const items =
+    read.collection === 'table'
+      ? parseItemsTable(text, start, { key: read.key!, stateField: read.stateField })
+      : read.collection === 'sections'
+        ? parseItemsSections(text, start, { keyMode: read.keyMode!, stateField: read.stateField })
+        : []
 
-  if (rule.collection === 'table') {
-    return parseItemTable(text, start, format)
-  }
-  if (rule.collection === 'sections') {
-    return parseItemSections(text, start, format)
-  }
-
-  return []
+  return items.filter(item => parseId(item.key, format) !== null)
 }
 
 function readDoc(root: string, file: string, rule: ArtifactRule, format: IdFormat): ArtifactDoc | null {
@@ -89,7 +90,7 @@ function readDoc(root: string, file: string, rule: ArtifactRule, format: IdForma
   return { file, rule, source, frontmatter, syntaxError, items }
 }
 
-export function collectArtifacts(root: string, config: OwnershipConfig): ArtifactDoc[] {
+export function collectArtifacts(root: string, config: LivingDocsConfig): ArtifactDoc[] {
   const docs: ArtifactDoc[] = []
 
   for (const rule of config.artifacts) {
@@ -125,7 +126,7 @@ export interface DocumentDoc {
  * com sintaxe inválida vira `null` em silêncio, porque `CI-1` não lê `documents:`
  * e derrubar o `validate` por causa disso seria pior do que não reportar.
  */
-export function collectDocuments(root: string, config: OwnershipConfig): DocumentDoc[] {
+export function collectDocuments(root: string, config: LivingDocsConfig): DocumentDoc[] {
   const documents: DocumentDoc[] = []
 
   for (const rule of config.documents) {

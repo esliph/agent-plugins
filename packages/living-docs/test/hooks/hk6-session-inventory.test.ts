@@ -1,38 +1,46 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const HOJE = '2026-08-27'
 
 const OWNERSHIP = `
-version: 1
-stale-after-months: 6
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+living-docs:
+  stale-after-months: 6
+owned:
+  - path: docs/decisions/adr/
     owner: "@time"
     skill: decision-recorder
-  - id-prefix: DA
-    path: docs/open-decisions.md
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR }
+  - path: docs/open-decisions.md
     owner: "@time"
     skill: decision-recorder
-    collection: table
-    field-map:
-      resolved-by: "Resolvida por"
-  - id-prefix: TDR
-    path: docs/decisions/debt/
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+      field-map:
+        resolved-by: "Resolvida por"
+  - path: docs/decisions/debt/
     owner: "@time"
     skill: decision-recorder
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+    states: [open, paid, accepted-permanently]
+    living-docs: { id-prefix: TDR }
+  - path: docs/requirements/rules.md
     owner: "@time"
     skill: requirements-keeper
-    collection: sections
-documents:
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
   - path: CONTRIBUTING.md
     owner: "@time"
     skill: working-agreements-keeper
+    living-docs: {}
 `
 
 const DAS = [
@@ -82,7 +90,7 @@ const DIVIDA = [
 ].join('\n')
 
 const ARVORE = {
-  'docs/.ownership.yml': OWNERSHIP,
+  [OWNERSHIP_FILE]: OWNERSHIP,
   'docs/open-decisions.md': DAS,
   'docs/requirements/rules.md': REGRAS_REVOGADA,
   'docs/decisions/debt/TDR-0001-x.md': DIVIDA,
@@ -133,7 +141,7 @@ test('RN-0022: o inventário é curto — lista longa aparece truncada com a con
 })
 
 test('RNF-0001: configuração ilegível cala o hook em vez de estourar', () => {
-  withTempRepo({ 'docs/.ownership.yml': 'version: 99\n' }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: 'version: 99\n' }, root => {
     assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
   })
   withTempRepo({ 'README.md': '' }, root => {

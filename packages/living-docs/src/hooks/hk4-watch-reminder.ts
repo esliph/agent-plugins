@@ -6,7 +6,7 @@
  * em que a informação ainda é útil. Lembrete, nunca bloqueio: a saída é
  * `additionalContext`, e este arquivo não conhece a palavra `deny`.
  */
-import { loadOwnership } from '../config/ownership.ts'
+import { loadLivingDocsConfig } from '../config/ownership.ts'
 import { coversDoc, watchesFor } from '../config/watches.ts'
 import type { WatchMatch } from '../config/watches.ts'
 import { toRepoPath } from './lib/paths.ts'
@@ -47,7 +47,7 @@ export function decideHk4(payload: HookPayload, env: HookEnv): Hk4Decision {
   let config
 
   try {
-    config = loadOwnership(env.root)
+    config = loadLivingDocsConfig(env.root)
   } catch {
     return SILENT // falha aberta
   }

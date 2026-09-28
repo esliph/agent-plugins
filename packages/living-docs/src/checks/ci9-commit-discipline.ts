@@ -1,5 +1,4 @@
-import type { Check, CheckContext, Finding } from '../core/types.ts'
-import type { DiffFacts } from './ci6-changelog-required.ts'
+import type { Check, CheckContext, DiffFacts, Finding } from '../core/types.ts'
 import type { FileEdit } from '../git/diff.ts'
 import type { ArtifactDoc } from '../docs/collect.ts'
 import { findArtifactRule } from '../config/ownership.ts'
@@ -31,7 +30,7 @@ export function isPureDateBump(edit: FileEdit): boolean {
  * individual declara um no frontmatter; coleção declara um por item.
  */
 export function declaredIds(doc: ArtifactDoc, format: IdFormat): string[] {
-  const raw: unknown[] = doc.rule.collection === 'per-file' ? [doc.frontmatter?.data?.id] : doc.items.map(item => item.id)
+  const raw: unknown[] = doc.rule.collection === 'per-file' ? [doc.frontmatter?.data?.id] : doc.items.map(item => item.key)
 
   const ids: string[] = []
 

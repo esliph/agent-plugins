@@ -63,7 +63,7 @@ export function blockedClaims(docs: readonly ArtifactDoc[]): BlockedClaim[] {
     }
 
     for (const item of doc.items) {
-      if (item.status !== 'open') {
+      if (item.state !== 'open') {
         continue
       }
       const raw = fieldOf(doc.rule, item, 'blocks')
@@ -78,7 +78,7 @@ export function blockedClaims(docs: readonly ArtifactDoc[]): BlockedClaim[] {
       }
 
       claims.push({
-        id: item.id,
+        id: item.key,
         doc: doc.file,
         line: item.line,
         paths,

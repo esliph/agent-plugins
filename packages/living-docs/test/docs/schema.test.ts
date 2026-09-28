@@ -1,12 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  STATUS_MACHINE,
   FROZEN_STATUSES,
   HUMAN_PROMOTIONS,
   REQUIRED_FIELDS,
   DEFAULT_ID_FORMAT,
-  statesFor,
   findCadence,
   isIsoDate,
   canonicalId,
@@ -15,36 +13,6 @@ import {
   parseId,
   writeId,
 } from '../../src/docs/schema.ts'
-import type { ArtifactRule } from '../../src/config/ownership.ts'
-
-function rule(overrides: Partial<ArtifactRule> = {}): ArtifactRule {
-  return {
-    idPrefix: 'ADR',
-    path: 'docs/decisions/adr/',
-    owner: '@team',
-    skill: 'decision-recorder',
-    appendOnly: true,
-    mutableFields: ['status', 'superseded-by', 'last-reviewed'],
-    citedBy: [],
-    collection: 'per-file',
-    fieldMap: {},
-    states: null,
-    audience: 'internal',
-    ...overrides,
-  }
-}
-
-test('a máquina de estados da spec §4 está codificada', () => {
-  assert.deepEqual(STATUS_MACHINE.ADR, ['draft', 'accepted', 'superseded'])
-  assert.deepEqual(STATUS_MACHINE.DA, ['open', 'resolved', 'dropped'])
-  assert.deepEqual(STATUS_MACHINE.TDR, ['open', 'paid', 'accepted-permanently'])
-})
-
-test('as três famílias de requisito compartilham o ciclo draft → active → revoked', () => {
-  for (const prefix of ['RF', 'RNF', 'RN']) {
-    assert.deepEqual(STATUS_MACHINE[prefix], ['draft', 'active', 'revoked'], `${prefix} fora do ciclo da spec §4`)
-  }
-})
 
 test('RN-0006: os estados terminais são congelados, revoked incluído', () => {
   for (const status of ['accepted', 'superseded', 'deprecated', 'published', 'paid', 'revoked']) {
@@ -66,12 +34,6 @@ test('RN-0005: toda promoção que significa aceitação exige ato humano', () =
 
 test('REQUIRED_FIELDS reflete o frontmatter da spec §2', () => {
   assert.deepEqual(REQUIRED_FIELDS, ['id', 'title', 'status', 'owner', 'trigger', 'last-reviewed'])
-})
-
-test('statesFor prefere o states declarado no .ownership.yml', () => {
-  assert.deepEqual(statesFor(rule()), ['draft', 'accepted', 'superseded'])
-  assert.deepEqual(statesFor(rule({ states: ['a', 'b'] })), ['a', 'b'])
-  assert.equal(statesFor(rule({ idPrefix: 'XX', states: null })), null)
 })
 
 test('findCadence reprova o vocabulário de cadência da spec §2', () => {

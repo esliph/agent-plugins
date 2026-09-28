@@ -180,6 +180,24 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   skills. As mensagens dos checks, dos hooks e do CLI e o texto das skills
   deixam de citar regras internas do toolkit. Repositório já instalado mantém o
   texto antigo.
+- O arquivo de ownership passa a morar na raiz (`.ownership.yml`) e a ser lido
+  no esquema v2: uma lista `owned`, com o bloco `living-docs:` em cada entrada
+  da documentação viva e no topo para a configuração global. O esquema v1 não
+  é lido, e não há comando de migração — reescreva o arquivo seguindo o
+  `templates/ownership.yml`.
+- `living-docs init` semeia a v2 na raiz, e não escreve um arquivo novo quando
+  já existe um.
+- `living-docs validate` deixa de verificar o dono de cada documento, o
+  CODEOWNERS, o vínculo de `watches`, o `owner` do frontmatter e o `status`
+  fora dos estados declarados — tudo isso é de `ownership validate`.
+
+### Removed
+
+- `living-docs drift` e `living-docs changelog`: a deriva de artefato gerado e
+  a entrada de CHANGELOG passam a ser verificadas por `ownership validate`
+  (`--base <ref>` para o diff).
+- `consumer-visible-paths`: a marca `consumer-visible: true` nas regras de
+  `watches` é a lista.
 
 ### Fixed
 

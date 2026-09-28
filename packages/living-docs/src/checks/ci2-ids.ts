@@ -21,7 +21,7 @@ function collectDeclarations(context: CheckContext, format: IdFormat): Declarati
   for (const doc of context.docs) {
     if (doc.rule.collection !== 'per-file') {
       for (const item of doc.items) {
-        declarations.push({ id: item.id, file: doc.file, line: item.line })
+        declarations.push({ id: item.key, file: doc.file, line: item.line })
       }
       continue
     }

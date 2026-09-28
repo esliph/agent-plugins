@@ -7,7 +7,7 @@
  * mais barato possível. Devolve `ask`, nunca `deny`: um commit sem o doc pode
  * ser legítimo, e quem decide isso é uma pessoa.
  */
-import { loadOwnership } from '../config/ownership.ts'
+import { loadLivingDocsConfig } from '../config/ownership.ts'
 import { pendingDocs } from '../config/watches.ts'
 import type { WatchMatch } from '../config/watches.ts'
 import { stagedPaths } from '../git/staged.ts'
@@ -63,7 +63,7 @@ export function decideHk5(payload: HookPayload, env: HookEnv, run?: GitRunner): 
   let config
 
   try {
-    config = loadOwnership(env.root)
+    config = loadLivingDocsConfig(env.root)
   } catch {
     return ALLOW // falha aberta
   }

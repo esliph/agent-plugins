@@ -3,19 +3,47 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import picomatch from 'picomatch'
-import { loadOwnership } from '../../src/config/ownership.ts'
-import { unreleasedEntries } from '../../src/checks/ci6-changelog-required.ts'
+import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
 
 const ROOT = checkoutRoot()
-const config = loadOwnership(ROOT)
+const config = loadLivingDocsConfig(ROOT)
+
+/** Os itens de `## [Unreleased]` — o mesmo critério do check do núcleo, que não o exporta. */
+function unreleasedEntries(source: string): string[] {
+  const lines = source.replace(/\r\n/g, '\n').split('\n')
+  const start = lines.findIndex(line => /^##\s+\[?unreleased\]?/i.test(line.trim()))
+
+  if (start === -1) {
+    return []
+  }
+
+  const entries: string[] = []
+
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i] ?? ''
+
+    if (/^##\s/.test(line)) {
+      break
+    }
+    if (/^\s*[-*]\s+\S/.test(line)) {
+      entries.push(line.trim())
+    }
+  }
+
+  return entries
+}
 
 test('RN-0013: este repositório declara o que é visível ao consumidor', () => {
-  assert.ok(config.consumerVisiblePaths.length > 0, 'consumer-visible-paths vazio: CI-6 estaria instalado e inerte')
+  const codigos = config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code)
+
+  assert.ok(codigos.length > 0, 'nenhuma regra de watches marcada consumer-visible: o cobrador do CHANGELOG estaria instalado e inerte')
+  assert.ok(codigos.includes('bin/**'))
+  assert.ok(codigos.includes('packages/living-docs/src/cli/**'))
 
   // O pacote é o plugin, mas só a superfície do plugin é pública: a lista é
   // explícita, e um curinga no pacote inteiro puxaria src/ e test/.
-  const visivel = picomatch(config.consumerVisiblePaths)
+  const visivel = picomatch(codigos)
 
   for (const path of [
     'packages/living-docs/.claude-plugin/plugin.json',
@@ -31,17 +59,6 @@ test('RN-0013: este repositório declara o que é visível ao consumidor', () =>
   for (const path of ['packages/living-docs/src/core/roots.ts', 'packages/living-docs/test/smoke.test.ts', 'packages/living-docs/package.json']) {
     assert.equal(visivel(path), false, `${path} não é superfície pública`)
   }
-})
-
-test('ADR-0006: as duas listas do mecanismo concordam, e um teste as impede de derivar', () => {
-  const gatilhos = new Set(config.consumerVisiblePaths)
-  const vigiados = new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code))
-
-  assert.deepEqual(
-    [...vigiados].sort(),
-    [...gatilhos].sort(),
-    'consumer-visible-paths e as regras `consumer-visible: true` derivaram — CI-6 e HK-5 passariam a cobrar coisas diferentes',
-  )
 })
 
 test('ADR-0006: alguma regra de watches diz onde a entrada deveria estar', () => {

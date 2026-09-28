@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import { join, posix } from 'node:path'
 import type { Check, CheckContext, Finding } from '../core/types.ts'
 import { readTextFile } from '../core/files.ts'
-import { docsRoot, documentationFiles } from '../docs/corpus.ts'
+import { documentationFiles } from '../docs/corpus.ts'
 import { stripCode } from '../docs/markdown.ts'
 
 const RULE = 'CI-8'
@@ -183,15 +183,11 @@ export const ci8Links: Check = {
   run(context: CheckContext): Finding[] {
     const findings: Finding[] = []
     const files = documentationFiles(context.root, context.config)
-    const prefix = `${docsRoot()}/`
     const corpus = new Set(files)
     const index = wikilinkIndex(files)
 
-    // 1 — anexo binário sob a raiz da documentação (spec §13).
+    // 1 — anexo binário no corpus da documentação (spec §13).
     for (const file of files) {
-      if (!file.startsWith(prefix)) {
-        continue
-      }
       const extension = extensionOf(file)
 
       if (extension === null || !BINARY_EXTENSIONS.has(extension)) {
@@ -202,7 +198,7 @@ export const ci8Links: Check = {
         error(
           file,
           0,
-          `Anexo em formato binário sob \`${prefix}\`: \`.${extension}\` não se lê em diff nem se revisa em PR.`,
+          `Anexo em formato binário na documentação: \`.${extension}\` não se lê em diff nem se revisa em PR.`,
           'Guarde a fonte em texto (Mermaid num bloco de código, SVG, ou o `.puml`/`.dot` que o gera) e ' +
             // Regra de origem: spec §13, RN-0023.
             'mantenha o binário fora da documentação versionada.',

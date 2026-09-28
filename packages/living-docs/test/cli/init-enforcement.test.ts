@@ -25,8 +25,9 @@ test('RF-0013: o init escreve o workflow de CI do estágio', () => {
     const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
 
     assert.match(yaml, /npx living-docs validate/)
-    assert.match(yaml, /npx living-docs drift/)
-    assert.match(yaml, /npx living-docs changelog --base/)
+    // A deriva de gerado e a entrada de CHANGELOG são do núcleo: saíram daqui.
+    assert.doesNotMatch(yaml, /npx living-docs drift/)
+    assert.doesNotMatch(yaml, /npx living-docs changelog/)
   })
 })
 
@@ -113,9 +114,12 @@ test('critério 5: multi-team instala o enforcement da Fase 7', () => {
     const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
 
     assert.match(yaml, /npx living-docs validate --base/, 'a metade de CI-7 que lê o diff é a Fase 7')
-    assert.match(yaml, /npx living-docs drift/)
-    assert.match(yaml, /npx living-docs changelog --base/)
-    assert.deepEqual(result.notInstalled, [], 'as sete fases existem: nada fica de fora')
+    assert.doesNotMatch(yaml, /npx living-docs drift/)
+    assert.doesNotMatch(yaml, /npx living-docs changelog/)
+    assert.ok(
+      result.notInstalled.every(item => /ownership validate/.test(item)),
+      'as sete fases existem: só sobra o aviso do resto do repositório',
+    )
   })
 })
 

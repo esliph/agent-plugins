@@ -76,3 +76,24 @@ test('Changelog: none — razão libera', () => {
     assert.deepEqual(findings, [])
   })
 })
+
+test('item em Unreleased escrito com * conta como entrada', () => {
+  withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n\n* algo novo\n' }, root => {
+    const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
+
+    assert.deepEqual(
+      ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts', 'CHANGELOG.md'], messages: [] }).run({ root, config, today: '2026-09-28' }),
+      [],
+    )
+  })
+})
+
+test('doc declarado, no diff e ausente do repositório é achado, não silêncio', () => {
+  withTempRepo({}, root => {
+    const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
+    const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts', 'CHANGELOG.md'], messages: [] }).run({ root, config, today: '2026-09-28' })
+
+    assert.equal(findings.length, 1)
+    assert.match(findings[0]!.message, /ausente/)
+  })
+})

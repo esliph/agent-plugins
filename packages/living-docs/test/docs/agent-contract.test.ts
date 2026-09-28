@@ -11,7 +11,7 @@ const CONTRATO = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8')
 test('RN-0010: o contrato do agente aponta para os artefatos donos', () => {
   const alvos = [
     'docs/superpowers/research/2026-08-24-living-documentation-toolkit.md',
-    'docs/.ownership.yml',
+    '.ownership.yml',
     'CONTRIBUTING.md',
     'docs/definition-of-done.md',
     'docs/requirements/',

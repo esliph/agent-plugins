@@ -79,10 +79,10 @@ function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
 
     for (const item of doc.items) {
       entries.push({
-        id: item.id,
+        id: item.key,
         file: doc.file,
         line: item.line,
-        status: item.status,
+        status: item.state,
         rule: doc.rule,
         read: canonical => fieldOf(doc.rule, item, canonical),
       })

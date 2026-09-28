@@ -3,11 +3,11 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { runInit, WORKFLOW_PATH } from '../../src/cli/init.ts'
+import { coreChecks, resolveOwnership } from '@esliph/ownership'
+import { OWNERSHIP_FILE, runInit, WORKFLOW_PATH } from '../../src/cli/init.ts'
 import { runValidate } from '../../src/cli/validate.ts'
 import { decideHk1 } from '../../src/hooks/hk1-append-only.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
 import { SETTINGS_PATH } from '../../src/config/claude-settings.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
@@ -136,12 +136,12 @@ test('DA-0001/RNF-0003: init escreve no repositório validado, nunca no toolkit'
 
     const result = runInit(root, OPTIONS)
 
-    assert.ok(result.created.includes('docs/.ownership.yml'))
-    assert.ok(existsSync(join(root, 'docs/.ownership.yml')))
+    assert.ok(result.created.includes(OWNERSHIP_FILE))
+    assert.ok(existsSync(join(root, OWNERSHIP_FILE)))
     assert.ok(existsSync(join(root, 'docs/open-decisions.md')))
 
     // os templates vieram do toolkit, e o toolkit não ganhou arquivo nenhum
-    assert.ok(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8').includes('@consumidor'))
+    assert.ok(readFileSync(join(root, OWNERSHIP_FILE), 'utf8').includes('@consumidor'))
     assert.deepEqual(readdirSync(toolkitRoot()).sort(), antes)
   })
 })
@@ -279,24 +279,28 @@ test('criterio 12: a camada 4 entra com dono e sem skill, sem que nenhum check m
   withTempRepo(CONSUMIDOR, root => {
     runInit(root, OPCOES_DO_CONSUMIDOR)
 
-    // Antes de declarar: os documentos de arquitetura caem no corpus de CI-7 e
-    // reprovam por falta de dono. E o comportamento correto — o corpus e tudo
-    // que vive sob a raiz da documentacao, e nao uma lista de tipos conhecidos.
-    const semDono = runValidate(root)
+    // Antes de declarar: os documentos de arquitetura ficam sem dono, e quem
+    // reclama e o nucleo — a cobertura de dono e do arquivo inteiro do
+    // repositorio, e nao de uma lista de tipos conhecidos.
+    const config = resolveOwnership(root)!
+    const cobertura = coreChecks().find(check => check.id === 'ownership/owner-coverage')!
+    const semDono = cobertura.run({ root, config, today: '2026-09-28' })
 
     assert.ok(
-      semDono.findings.some(f => f.ruleId === 'CI-7' && f.file.startsWith('docs/architecture/')),
-      JSON.stringify(semDono.findings, null, 2),
+      semDono.some(f => f.file.startsWith('docs/architecture/')),
+      JSON.stringify(semDono, null, 2),
     )
 
-    // A declaracao: dono, sem skill. Nada alem disso. As duas entradas caem
-    // DENTRO do bloco `documents:` — concatenar ao fim do arquivo as penduraria
-    // em `consumer-visible-paths` e viraria OwnershipError.
-    const ownership = readFileSync(join(root, OWNERSHIP_PATH), 'utf8')
-    const camada4 = '  - path: docs/architecture/\n    owner: "@consumidor"\n' + '  - path: docs/domains/\n    owner: "@consumidor"\n'
+    // A declaracao: dono, sem skill. Nada alem disso. As duas entradas entram
+    // em `owned`, com o bloco vazio do living-docs para que a camada 4 tambem
+    // seja documentacao viva.
+    const ownership = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
+    const camada4 =
+      '  - path: docs/architecture/\n    owner: "@consumidor"\n    living-docs: {}\n' + '  - path: docs/domains/\n    owner: "@consumidor"\n    living-docs: {}\n'
 
-    writeFileSync(join(root, OWNERSHIP_PATH), ownership.replace('documents:\n', `documents:\n${camada4}`), 'utf8')
-    // E o CODEOWNERS, que CI-7 tambem cobra.
+    writeFileSync(join(root, OWNERSHIP_FILE), ownership.replace('\nowned:\n', `\nowned:\n${camada4}`), 'utf8')
+
+    // E o CODEOWNERS, que o nucleo tambem cobra.
     const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
     writeFileSync(join(root, 'CODEOWNERS'), `${codeowners}docs/architecture/    @consumidor\ndocs/domains/    @consumidor\n`, 'utf8')
@@ -305,6 +309,13 @@ test('criterio 12: a camada 4 entra com dono e sem skill, sem que nenhum check m
 
     // O teste binario: declarar a camada 4 foi dono + linha no CODEOWNERS, e
     // nada mais. Nenhum check precisou mudar para ela passar.
+    const aindaSemDono = cobertura.run({ root, config: resolveOwnership(root)!, today: '2026-09-28' })
+
+    assert.deepEqual(
+      aindaSemDono.filter(f => f.file.startsWith('docs/architecture/') || f.file.startsWith('docs/domains/')),
+      [],
+      'a camada 4 exigiu mais do que dono e linha no CODEOWNERS',
+    )
     assert.deepEqual(
       result.findings.filter(f => f.file.startsWith('docs/architecture/') || f.file.startsWith('docs/domains/')),
       [],

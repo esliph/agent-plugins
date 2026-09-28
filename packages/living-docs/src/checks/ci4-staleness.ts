@@ -1,7 +1,7 @@
 import type { Check, CheckContext, Finding } from '../core/types.ts'
 import { asIsoDate, monthsBetween } from '../core/dates.ts'
 import { listFiles, readTextFile } from '../core/files.ts'
-import { FROZEN_STATUSES, statesFor } from '../docs/schema.ts'
+import { FROZEN_STATUSES } from '../docs/schema.ts'
 import type { Frontmatter } from '../frontmatter/parse.ts'
 
 const RULE = 'CI-4'
@@ -152,7 +152,7 @@ function openDebts(context: CheckContext): Debt[] {
     if (doc.rule.collection !== 'per-file') {
       continue
     }
-    if (!statesFor(doc.rule)?.includes(DEBT_STATE)) {
+    if (!doc.rule.states?.includes(DEBT_STATE)) {
       continue
     }
 

@@ -13,3 +13,9 @@ test('rótulo sem razão não conta', () => {
 test('sem o rótulo, devolve null', () => {
   assert.equal(exceptionReasonFor('Docs', ['fix: x']), null)
 })
+
+test('aceita travessão, meia-risca, hífen e dois-pontos como separador', () => {
+  for (const separator of ['—', '–', '-', ':']) {
+    assert.equal(exceptionReasonFor('Changelog', [`Changelog: none ${separator} só teste`]), 'só teste', separator)
+  }
+})

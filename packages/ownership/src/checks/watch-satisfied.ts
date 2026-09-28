@@ -14,6 +14,7 @@ function error(file: string, message: string, fix: string): Finding {
   return { ruleId: RULE, file, line: 0, severity: 'error', message, fix }
 }
 
+// Regra de origem: RN-0021 e ADR-0010 do repositório que hospeda o toolkit.
 export function ownershipWatchSatisfied(diff: DiffFacts): Check {
   return {
     id: RULE,

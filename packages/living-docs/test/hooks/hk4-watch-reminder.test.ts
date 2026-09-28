@@ -3,17 +3,19 @@ import assert from 'node:assert/strict'
 import { decideHk4 } from '../../src/hooks/hk4-watch-reminder.ts'
 import type { Hk4Decision } from '../../src/hooks/hk4-watch-reminder.ts'
 import { contextOutput } from '../../src/hooks/lib/io.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/requirements/rules.md
     owner: "@team"
     skill: requirements-keeper
-    collection: sections
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
 watches:
   - code: "src/domain/**"
     doc: docs/requirements/rules.md
@@ -29,7 +31,7 @@ function assertRemind(decision: Hk4Decision): asserts decision is { action: 'rem
 
 function decide(filePath: string, config: string | null = CONFIG): Hk4Decision {
   let decision: Hk4Decision = { action: 'silent' }
-  const files: Record<string, string> = config === null ? {} : { [OWNERSHIP_PATH]: config }
+  const files: Record<string, string> = config === null ? {} : { [OWNERSHIP_FILE]: config }
 
   withTempRepo(files, root => {
     decision = decideHk4({ tool_name: 'Edit', tool_input: { file_path: filePath } }, { root, hostRoots: [root] })
@@ -83,7 +85,7 @@ test('RNF-0001: sem configuração legível, silêncio', () => {
 })
 
 test('payload sem file_path é silêncio', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG }, root => {
     const decision = decideHk4({ tool_name: 'Edit', tool_input: {} }, { root, hostRoots: [root] })
 
     assert.equal(decision.action, 'silent')

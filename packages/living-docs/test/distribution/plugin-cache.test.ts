@@ -16,13 +16,15 @@ const PACKAGE_ROOT = toolkitRoot()
 
 /** Repositório validado mínimo: uma regra de `watches` que o HK-4 lembra. */
 const OWNERSHIP = [
-  'version: 1',
-  'artifacts:',
-  '  - id-prefix: RN',
-  '    path: docs/requirements/rules.md',
+  'version: 2',
+  'plugins: [living-docs]',
+  'owned:',
+  '  - path: docs/requirements/rules.md',
   "    owner: '@time'",
   '    skill: requirements-keeper',
-  '    collection: sections',
+  '    states: [draft, active, revoked]',
+  '    format: { collection: sections, key: first-token }',
+  '    living-docs: { id-prefix: RN }',
   'watches:',
   "  - code: 'src/domain/**'",
   '    doc: docs/requirements/rules.md',
@@ -96,8 +98,7 @@ test('RNF-0002: copiado sozinho para o cache, sem dependências o hook se cala e
   try {
     assert.ok(copyVersioned(cache) > 50, 'cópia vazia demais: o cache não recebeu o plugin')
     assert.equal(existsSync(join(cache, 'node_modules')), false)
-    mkdirSync(join(project, 'docs'), { recursive: true })
-    writeFileSync(join(project, 'docs/.ownership.yml'), OWNERSHIP, 'utf8')
+    writeFileSync(join(project, '.ownership.yml'), OWNERSHIP, 'utf8')
 
     const semDependencias = runHook(bash, cache, project)
 

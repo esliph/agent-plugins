@@ -1,7 +1,7 @@
 import type { Check, CheckContext, Finding } from '../core/types.ts'
 import type { ArtifactDoc } from '../docs/collect.ts'
 import type { IdFormat } from '../docs/schema.ts'
-import { REQUIRED_FIELDS, CONTAINER_REQUIRED_FIELDS, findCadence, isIsoDate, parseId, statesFor, writeId } from '../docs/schema.ts'
+import { REQUIRED_FIELDS, CONTAINER_REQUIRED_FIELDS, findCadence, isIsoDate, parseId, writeId } from '../docs/schema.ts'
 
 const RULE = 'CI-1'
 
@@ -91,7 +91,7 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
     }
   }
 
-  const states = statesFor(doc.rule)
+  const states = doc.rule.states
 
   if (!isContainer && isFilled(data.status)) {
     if (!states) {
@@ -100,31 +100,10 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           doc.file,
           lineOf('status'),
           `Prefixo ${doc.rule.idPrefix} não tem máquina de estados declarada.`,
-          'Declare `states:` para esse artefato em docs/.ownership.yml.',
-        ),
-      )
-    } else if (!states.includes(String(data.status))) {
-      findings.push(
-        error(
-          doc.file,
-          lineOf('status'),
-          `\`status\` "${String(data.status)}" fora da máquina de estados de ${doc.rule.idPrefix}.`,
-          // Regra de origem: spec §4.
-          `Estados válidos: ${states.join(' → ')}.`,
+          'Declare `states:` na entrada deste artefato no arquivo de ownership.',
         ),
       )
     }
-  }
-
-  if (isFilled(data.owner) && !String(data.owner).startsWith('@')) {
-    findings.push(
-      error(
-        doc.file,
-        lineOf('owner'),
-        `\`owner\` "${String(data.owner)}" precisa começar com @ e espelhar o CODEOWNERS.`,
-        'Use o handle de pessoa ou time, ex.: "@team-platform".',
-      ),
-    )
   }
 
   if (isFilled(data.trigger)) {
@@ -157,22 +136,10 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
 
   if (isContainer && states) {
     for (const item of doc.items) {
-      if (item.status === '') {
+      if (item.state === '') {
         findings.push(
           // Regra de origem: spec §4.
-          error(doc.file, item.line, `Item ${item.id} não declara \`status\`.`, `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título.`),
-        )
-        continue
-      }
-      if (!states.includes(item.status)) {
-        findings.push(
-          error(
-            doc.file,
-            item.line,
-            `Item ${item.id} com status "${item.status}" fora da máquina de estados de ${doc.rule.idPrefix}.`,
-            // Regra de origem: spec §4.
-            `Estados válidos: ${states.join(' → ')}.`,
-          ),
+          error(doc.file, item.line, `Item ${item.key} não declara \`status\`.`, `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título.`),
         )
       }
     }

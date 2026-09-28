@@ -49,3 +49,11 @@ test('igual, sem achado', () => {
     assert.deepEqual(ownershipGeneratedDrift(() => 'a\nb\n').run({ root, config, today: '2026-09-17' }), [])
   })
 })
+
+test('CR do checkout e quebra final a mais não são deriva', () => {
+  withTempRepo({ 'out.md': 'a\r\nb\r\n\n\n' }, root => {
+    const config = buildConfig({ generated: [{ path: 'out.md', command: 'gen' }] })
+
+    assert.deepEqual(ownershipGeneratedDrift(() => 'a\nb\n').run({ root, config, today: '2026-09-28' }), [])
+  })
+})

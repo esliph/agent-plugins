@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { OWNERSHIP_PATH, loadOwnership } from '../config/ownership.ts'
-import type { Audience, DocumentRole, OwnershipConfig } from '../config/ownership.ts'
-import { parseCodeowners } from '../config/codeowners.ts'
+import { parseCodeowners } from '@esliph/ownership'
+import { loadLivingDocsConfig } from '../config/ownership.ts'
+import type { Audience, DocumentRole, LivingDocsConfig } from '../config/ownership.ts'
 import { SETTINGS_PATH, SettingsError, mergeSettings } from '../config/claude-settings.ts'
 import { RETIRED_IDS_PATH } from '../ids/citations.ts'
 import { detectIdFormat } from '../ids/detect.ts'
@@ -12,6 +12,12 @@ import { templatesDir } from '../core/roots.ts'
 import { todayIso } from '../core/dates.ts'
 
 const TEMPLATES_DIR = templatesDir()
+
+/** Onde o `init` escreve o arquivo de ownership: a raiz de quem instala. */
+export const OWNERSHIP_FILE = '.ownership.yml'
+
+/** Os candidatos que o núcleo lê, na ordem dele. Um só pode existir. */
+const OWNERSHIP_CANDIDATES: readonly string[] = [OWNERSHIP_FILE, 'docs/.ownership.yml']
 
 /**
  * Estágios de maturidade (spec §10, `SK-0` passo 2). Cada estágio instala o
@@ -96,7 +102,7 @@ interface DocumentSeed {
 
 /** Declarados em todo estágio: os dois nascem já no `solo`. */
 const BASE_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
-  { path: OWNERSHIP_PATH, skill: 'living-docs-bootstrap', role: null, audience: 'internal' },
+  { path: OWNERSHIP_FILE, skill: 'living-docs-bootstrap', role: null, audience: 'internal' },
   { path: RETIRED_IDS_PATH, skill: 'living-docs-bootstrap', role: null, audience: 'internal' },
 ])
 
@@ -145,33 +151,32 @@ function documentSeeds(root: string, stage: Stage): DocumentSeed[] {
 
 function documentEntry(seed: DocumentSeed, owner: string): string {
   const lines = [`  - path: ${seed.path}`, `    owner: "${owner}"`]
+  const block: string[] = []
 
   if (seed.skill !== null) {
     lines.push(`    skill: ${seed.skill}`)
   }
   if (seed.role !== null) {
-    lines.push(`    role: ${seed.role}`)
+    block.push(`role: ${seed.role}`)
   }
   if (seed.audience === 'external') {
-    lines.push('    audience: external')
+    block.push('audience: external')
   }
+  lines.push(`    living-docs: {${block.length === 0 ? '' : ` ${block.join(', ')} `}}`)
 
   return lines.join('\n')
 }
 
-/** O bloco `documents:` do `.ownership.yml` (`ADR-0008`). */
+/** As entradas de documento de `owned` (o bloco `living-docs:` sem `id-prefix`). */
 function documentsBlock(root: string, owner: string, stage: Stage): string {
   const entries = documentSeeds(root, stage).map(seed => documentEntry(seed, owner))
 
   return [
-    // Regra de origem: ADR-0008, que resolve DA-0002.
-    '# Documento com dono e SEM família de IDs.',
-    '# CI-4 cobra a revisão e CI-7 cobra o dono; CI-1, CI-2 e HK-1 não leem daqui.',
-    '# `role` é vocabulário fechado: agent-contract, definition-of-done.',
-    '# `audience` diz quem lê: ausente é internal; external liga CI-11, que reprova ID de artefato no texto.',
-    'documents:',
+    // Regra de origem: ADR-0008 e ADR-0029.
+    '  # Documento: bloco `living-docs:` sem `id-prefix`. Tem dono e não tem família de IDs.',
+    '  # `role` é vocabulário fechado: agent-contract, definition-of-done.',
+    '  # `audience` diz quem lê: ausente é internal; external reprova ID de artefato no texto.',
     ...entries,
-    '',
   ].join('\n')
 }
 
@@ -249,20 +254,6 @@ function workflowSteps(stage: Stage, invoke: string): string {
   const phases = STAGE_PHASES[stage]
   const steps: string[] = []
 
-  if (phases.includes(5)) {
-    steps.push(['', '      - name: CI-5 — deriva de contrato gerado', `        run: ${invoke} drift`].join('\n'))
-  }
-  if (phases.includes(6)) {
-    steps.push(
-      [
-        '',
-        '      - name: CI-6 — entrada de CHANGELOG',
-        "        if: github.event_name == 'pull_request'",
-        `        run: ${invoke} changelog --base \${{ github.event.pull_request.base.sha }}`,
-      ].join('\n'),
-    )
-  }
-
   if (phases.includes(7)) {
     steps.push(
       [
@@ -304,7 +295,7 @@ function template(name: string, values: Record<string, string>): string {
  * Idempotência (spec §5): se já existe `.ownership.yml`, os caminhos vêm dele —
  * uma segunda execução não pode reinterpretar a estrutura que a primeira criou.
  */
-function resolvePath(root: string, kind: Kind, existing: OwnershipConfig | null, result: InitResult, claimed: Set<string>): string {
+function resolvePath(root: string, kind: Kind, existing: LivingDocsConfig | null, result: InitResult, claimed: Set<string>): string {
   const declared = existing?.artifacts.find(artifact => artifact.idPrefix === kind)
 
   if (declared) {
@@ -371,12 +362,12 @@ function requirementsBlock(owner: string, paths: Record<Kind, string>, stage: St
     const citedBy = REQUIREMENT_CITED_BY[kind as 'RF' | 'RNF' | 'RN'].map(glob => `"${glob}"`).join(', ')
 
     return [
-      `  - id-prefix: ${kind}`,
-      `    path: ${paths[kind]}`,
+      `  - path: ${paths[kind]}`,
       `    owner: "${owner}"`,
       '    skill: requirements-keeper',
-      '    collection: sections',
-      `    cited-by: [${citedBy}]`,
+      '    states: [draft, active, revoked]',
+      '    format: { collection: sections, key: first-token }',
+      `    living-docs: { id-prefix: ${kind}, cited-by: [${citedBy}] }`,
     ].join('\n')
   })
 
@@ -392,16 +383,14 @@ function releasesBlock(owner: string, path: string, stage: Stage): string {
   return (
     '\n' +
     [
-      '  - id-prefix: REL',
-      `    path: ${path}`,
+      `  - path: ${path}`,
       `    owner: "${owner}"`,
       '    skill: release-historian',
-      '    # A release note é lida por quem consome: CI-11 cobra que ela não cite ID de artefato.',
-      '    audience: external',
+      '    states: [draft, published]',
+      '    # A release note é lida por quem consome: o texto não cita ID de artefato.',
       // Regra de origem: spec §5, SK-7, regra 4.
-      '    # Release note publicada é congelada por HK-1.',
-      '    append-only: true',
-      '    mutable-fields: [status, last-reviewed]',
+      '    # Release note publicada é congelada.',
+      '    living-docs: { id-prefix: REL, audience: external, append-only: true, mutable-fields: [status, last-reviewed] }',
     ].join('\n') +
     '\n'
   )
@@ -417,12 +406,21 @@ export function runInit(root: string, options: InitOptions): InitResult {
     detected: null,
   }
 
-  let existing: OwnershipConfig | null = null
+  // Um arquivo de ownership já existe? Então é dele que vêm os caminhos, e o
+  // init não escreve outro ao lado: dois candidatos travam toda leitura por
+  // ambiguidade. Arquivo que não lê na v2 é relatado, nunca sobrescrito.
+  const existingFile = OWNERSHIP_CANDIDATES.find(candidate => existsSync(join(root, candidate))) ?? null
+  let existing: LivingDocsConfig | null = null
 
-  try {
-    existing = loadOwnership(root)
-  } catch {
-    existing = null // primeira execução, ou configuração ilegível
+  if (existingFile !== null) {
+    try {
+      existing = loadLivingDocsConfig(root)
+    } catch (err) {
+      result.notInstalled.push(
+        `${existingFile} — o arquivo existe e não lê como v2 (${err instanceof Error ? err.message : String(err)}); ` +
+          'reescreva-o na v2 à mão, guiado pelo CHANGELOG. O init não o sobrescreve nem cria outro ao lado',
+      )
+    }
   }
 
   const claimed = new Set<string>()
@@ -474,7 +472,17 @@ export function runInit(root: string, options: InitOptions): InitResult {
     WORKFLOW_STEPS: workflowSteps(options.stage, options.invoke),
   }
 
-  writeIfAbsent(root, OWNERSHIP_PATH, template('ownership.yml', values), options, result)
+  if (existingFile === null) {
+    writeIfAbsent(root, OWNERSHIP_FILE, template('ownership.yml', values), options, result)
+    // O init não sabe onde mora o código de quem instala, e `ownership validate`
+    // exige dono para todo arquivo do repositório: dizer é o que resta a fazer.
+    result.notInstalled.push(
+      `o resto do repositório em \`owned\` de ${OWNERSHIP_FILE} — \`ownership validate\` exige dono para todo arquivo, ` +
+        'e o init não sabe onde mora o seu código; declare-o (ou tire-o da governança em `ignore`) antes de rodá-lo',
+    )
+  } else {
+    result.skipped.push(existingFile)
+  }
   writeIfAbsent(root, RETIRED_IDS_PATH, template('ids-retired.txt', values), options, result)
   writeIfAbsent(root, paths.DA, template('open-decisions.md', values), options, result)
   const codeowners = template('CODEOWNERS', values)
@@ -494,7 +502,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
     const faltando = REQUIREMENT_KINDS.filter(kind => !existing?.artifacts.some(artifact => artifact.idPrefix === kind))
 
     if (existing && faltando.length > 0) {
-      declareArtifacts(root, options, result, values.REQUIREMENTS_BLOCK, 'artefatos RF, RNF e RN')
+      declareArtifacts(root, options, result, values.REQUIREMENTS_BLOCK, 'artefatos RF, RNF e RN', existing.rootFile)
     }
 
     for (const kind of REQUIREMENT_KINDS) {
@@ -520,7 +528,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
       // já existe, senão a release note nasce sem dono — e artefato órfão não é
       // enforceável (spec §3), nem congelável por HK-1.
       if (existing && !existing.artifacts.some(artifact => artifact.idPrefix === 'REL')) {
-        declareArtifacts(root, options, result, values.RELEASES_BLOCK, 'artefato REL')
+        declareArtifacts(root, options, result, values.RELEASES_BLOCK, 'artefato REL', existing.rootFile)
       }
 
       for (const item of HISTORY) {
@@ -607,29 +615,35 @@ function declarePlugin(root: string, options: InitOptions, result: InitResult): 
   writeFileSync(file, merged.text, 'utf8')
 }
 
-/**
- * Acrescenta um bloco de artefatos a um `.ownership.yml` que já existe.
- * Nada é reescrito: o bloco entra imediatamente antes de `generated:`, que é a
- * primeira chave depois de `artifacts:` no template. Sem essa âncora — um
- * arquivo reorganizado à mão — o init não adivinha: ele diz o que falta e
- * deixa a edição para quem é dono do arquivo.
- */
-function declareArtifacts(root: string, options: InitOptions, result: InitResult, block: string, what: string): void {
-  const file = join(root, OWNERSHIP_PATH)
-  const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
-  const anchor = '\ngenerated:'
+const OWNED_ANCHOR = '\nowned:\n'
 
-  if (!source.includes(anchor)) {
-    result.notInstalled.push(`${what} em ${OWNERSHIP_PATH} — âncora \`generated:\` não encontrada; ` + 'declare-os à mão para que os artefatos tenham dono')
+function insertAfterOwned(source: string, entries: string): string | null {
+  return source.includes(OWNED_ANCHOR) ? source.replace(OWNED_ANCHOR, `${OWNED_ANCHOR}${entries.replace(/^\n+/, '').replace(/\n*$/, '\n')}`) : null
+}
+
+/**
+ * Acrescenta um bloco de artefatos ao arquivo de ownership que já existe.
+ * Nada é reescrito: as entradas entram logo depois de `owned:`, porque a ordem
+ * de uma lista YAML não significa nada. Sem essa âncora — um arquivo
+ * reorganizado à mão — o init não adivinha: ele diz o que falta e deixa a edição
+ * para quem é dono do arquivo.
+ */
+function declareArtifacts(root: string, options: InitOptions, result: InitResult, block: string, what: string, file: string): void {
+  const path = join(root, file)
+  const source = readFileSync(path, 'utf8').replace(/\r\n/g, '\n')
+  const next = insertAfterOwned(source, block)
+
+  if (next === null) {
+    result.notInstalled.push(`${what} em ${file} — âncora \`owned:\` não encontrada; ` + 'declare-os à mão para que os artefatos tenham dono')
 
     return
   }
 
-  result.created.push(`${OWNERSHIP_PATH} (${what})`)
+  result.created.push(`${file} (${what})`)
   if (options.dryRun) {
     return
   }
-  writeFileSync(file, source.replace(anchor, `${block}\ngenerated:`), 'utf8')
+  writeFileSync(path, next, 'utf8')
 }
 
 /**
@@ -668,16 +682,12 @@ function declareCodeowners(root: string, options: InitOptions, result: InitResul
 }
 
 /**
- * Declara em `documents:` o que ainda não está lá, num `.ownership.yml` que já
- * existe.
- *
- * Duas âncoras, na ordem: a linha `documents:` (as entradas entram logo depois
- * dela, porque ordem de lista YAML não significa nada) e `\nwatches:` (o bloco
- * inteiro entra antes dela). Sem nenhuma das duas — arquivo reorganizado à mão —
- * o init **não adivinha**: ele diz o que falta e deixa a edição para quem é dono
- * do arquivo. Mesma política de `declareArtifacts`.
+ * Declara em `owned` o documento que ainda não está lá, num arquivo de ownership
+ * que já existe. A âncora é uma só, `owned:`: sem ela — arquivo reorganizado à
+ * mão — o init **não adivinha**: ele diz o que falta e deixa a edição para quem é
+ * dono do arquivo. Mesma política de `declareArtifacts`.
  */
-function declareDocuments(root: string, options: InitOptions, result: InitResult, existing: OwnershipConfig): void {
+function declareDocuments(root: string, options: InitOptions, result: InitResult, existing: LivingDocsConfig): void {
   const declared = new Set(existing.documents.map(document => document.path))
   const faltando = documentSeeds(root, options.stage).filter(seed => !declared.has(seed.path))
 
@@ -685,34 +695,23 @@ function declareDocuments(root: string, options: InitOptions, result: InitResult
     return
   }
 
-  const file = join(root, OWNERSHIP_PATH)
-  const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
+  const file = existing.rootFile
+  const path = join(root, file)
+  const source = readFileSync(path, 'utf8').replace(/\r\n/g, '\n')
   const entries = faltando.map(seed => documentEntry(seed, options.owner)).join('\n')
+  const next = insertAfterOwned(source, entries)
 
-  result.created.push(`${OWNERSHIP_PATH} (${faltando.length} documento(s) em documents:)`)
-
-  if (source.includes('\ndocuments:')) {
-    if (options.dryRun) {
-      return
-    }
-    writeFileSync(file, source.replace('\ndocuments:', `\ndocuments:\n${entries}`), 'utf8')
+  if (next === null) {
+    result.notInstalled.push(`documentos em ${file} — âncora \`owned:\` não encontrada; ` + 'declare os documentos à mão para que eles tenham dono')
 
     return
   }
 
-  if (source.includes('\nwatches:')) {
-    if (options.dryRun) {
-      return
-    }
-    writeFileSync(file, source.replace('\nwatches:', `\ndocuments:\n${entries}\n\nwatches:`), 'utf8')
-
+  result.created.push(`${file} (${faltando.length} documento(s))`)
+  if (options.dryRun) {
     return
   }
-
-  result.created.pop()
-  result.notInstalled.push(
-    `documents: em ${OWNERSHIP_PATH} — âncora \`documents:\` ou \`watches:\` não encontrada; ` + 'declare os documentos à mão para que eles tenham dono (CI-7)',
-  )
+  writeFileSync(path, next, 'utf8')
 }
 
 /**
@@ -724,7 +723,7 @@ function declareDocuments(root: string, options: InitOptions, result: InitResult
  * marcá-la liga `CI-11` sobre um texto que talvez ainda cite ID — a decisão é de
  * quem responde por ele.
  */
-function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, existing: OwnershipConfig): void {
+function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, existing: LivingDocsConfig): void {
   for (const seed of documentSeeds(root, stage)) {
     if (seed.audience !== 'external') {
       continue
@@ -732,20 +731,20 @@ function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, 
     const declared = existing.documents.find(document => document.path === seed.path)
 
     if (declared !== undefined && declared.audience !== 'external') {
-      result.notInstalled.push(unmarkedExternal(`\`${seed.path}\` em documents:`))
+      result.notInstalled.push(unmarkedExternal(`\`${seed.path}\``, existing.rootFile))
     }
   }
 
   const rel = existing.artifacts.find(artifact => artifact.idPrefix === 'REL')
 
   if (reaches(stage, 6) && rel !== undefined && rel.audience !== 'external') {
-    result.notInstalled.push(unmarkedExternal('o artefato REL em artifacts:'))
+    result.notInstalled.push(unmarkedExternal('o artefato REL', existing.rootFile))
   }
 }
 
-function unmarkedExternal(what: string): string {
+function unmarkedExternal(what: string, file: string): string {
   return (
-    `audience: external para ${what}, em ${OWNERSHIP_PATH} — a entrada já estava declarada sem a marca, ` +
-    'e o init não reescreve linha já escrita; marcá-la é o que liga CI-11 para ela'
+    `audience: external para ${what}, em ${file} — a entrada já estava declarada sem a marca, ` +
+    'e o init não reescreve linha já escrita; marcá-la é o que liga a checagem de texto externo para ela'
   )
 }

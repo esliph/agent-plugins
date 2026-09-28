@@ -9,7 +9,7 @@
  * edição é a implementação da regra que falta ou outra coisa qualquer no mesmo
  * caminho, e hook que julga está no lugar errado (spec §1, corolário 1).
  */
-import { loadOwnership } from '../config/ownership.ts'
+import { loadLivingDocsConfig } from '../config/ownership.ts'
 import { collectArtifacts } from '../docs/collect.ts'
 import { blockedClaims, claimsFor } from '../docs/blocked.ts'
 import { toRepoPath } from './lib/paths.ts'
@@ -36,7 +36,7 @@ export function decideHk8(payload: HookPayload, env: HookEnv): Hk8Decision {
   let hits
 
   try {
-    const config = loadOwnership(env.root)
+    const config = loadLivingDocsConfig(env.root)
 
     hits = claimsFor(blockedClaims(collectArtifacts(env.root, config)), [repoPath])
   } catch {

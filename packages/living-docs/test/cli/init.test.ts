@@ -3,15 +3,24 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { runInit } from '../../src/cli/init.ts'
+import { OWNERSHIP_FILE, runInit } from '../../src/cli/init.ts'
 import { runValidate } from '../../src/cli/validate.ts'
-import { loadOwnership, parseOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { RETIRED_IDS_PATH } from '../../src/ids/citations.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 function ownershipOf(root: string) {
-  return parseOwnership(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'))
+  return loadLivingDocsConfig(root)
+}
+
+/**
+ * O que o init deixa de fora além do aviso fixo de que o resto do repositório
+ * precisa ser declarado: aquele aviso é do arquivo recém-semeado, e não é o que
+ * estes testes medem.
+ */
+function leftOut(items: readonly string[]): string[] {
+  return items.filter(item => !/ownership validate/.test(item))
 }
 
 const OPTIONS = {
@@ -27,14 +36,14 @@ test('cria a moldura das fases 0–1 num repositório vazio — critério de ace
   withTempRepo({ 'README.md': '# projeto\n' }, root => {
     const result = runInit(root, OPTIONS)
 
-    for (const path of [OWNERSHIP_PATH, RETIRED_IDS_PATH, 'docs/open-decisions.md', 'CODEOWNERS']) {
+    for (const path of [OWNERSHIP_FILE, RETIRED_IDS_PATH, 'docs/open-decisions.md', 'CODEOWNERS']) {
       assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
       assert.ok(result.created.includes(path))
     }
     assert.ok(existsSync(join(root, 'docs/decisions/adr')))
     assert.ok(existsSync(join(root, 'docs/decisions/debt')))
 
-    const config = readFileSync(join(root, OWNERSHIP_PATH), 'utf8')
+    const config = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
     assert.match(config, /@team-platform/)
     assert.doesNotMatch(config, /\{\{/)
@@ -71,7 +80,7 @@ test('RF-0002: adota diretório de ADR preexistente em vez de criar um paralelo'
 
     assert.ok(result.adopted.some(entry => entry.idPrefix === 'ADR' && entry.path === 'docs/adr/'))
     assert.equal(existsSync(join(root, 'docs/decisions/adr')), false)
-    assert.match(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), /path: docs\/adr\//)
+    assert.match(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), /path: docs\/adr\//)
   })
 })
 
@@ -81,7 +90,7 @@ test('adoção + segunda execução: nada é readotado, duplicado nem reescrito'
 
     assert.ok(first.adopted.some(entry => entry.idPrefix === 'ADR' && entry.path === 'docs/adr/'))
 
-    const config = readFileSync(join(root, OWNERSHIP_PATH), 'utf8')
+    const config = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
     const second = runInit(root, OPTIONS)
 
@@ -91,7 +100,7 @@ test('adoção + segunda execução: nada é readotado, duplicado nem reescrito'
 
     // Nenhum paralelo criado, e nem o mapa nem o artefato preexistente reescritos.
     assert.equal(existsSync(join(root, 'docs/decisions/adr')), false)
-    assert.equal(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), config)
+    assert.equal(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), config)
     assert.equal(readFileSync(join(root, 'docs/adr/0001-antigo.md'), 'utf8'), '# antigo\n')
   })
 })
@@ -115,8 +124,8 @@ test('dry-run não escreve nada mas relata o que faria', () => {
       marketplace: 'time/living-docs',
     })
 
-    assert.ok(result.created.includes(OWNERSHIP_PATH))
-    assert.equal(existsSync(join(root, OWNERSHIP_PATH)), false)
+    assert.ok(result.created.includes(OWNERSHIP_FILE))
+    assert.equal(existsSync(join(root, OWNERSHIP_FILE)), false)
   })
 })
 
@@ -138,8 +147,8 @@ test('RF-0003: --stage solo não cria requisitos', () => {
     for (const file of REQUIREMENT_FILES) {
       assert.equal(existsSync(join(root, file)), false, `${file} não pertence ao estágio solo`)
     }
-    assert.equal(readFileSync(join(root, OWNERSHIP_PATH), 'utf8').includes('id-prefix: RN'), false)
-    assert.deepEqual(result.notInstalled, [])
+    assert.equal(readFileSync(join(root, OWNERSHIP_FILE), 'utf8').includes('id-prefix: RN'), false)
+    assert.deepEqual(leftOut(result.notInstalled), [])
   })
 })
 
@@ -150,11 +159,11 @@ test('RF-0003: --stage small-team cria os três arquivos e as três entradas no 
       assert.ok(existsSync(join(root, file)), `${file} deveria existir no estágio small-team`)
     }
 
-    const ownership = readFileSync(join(root, OWNERSHIP_PATH), 'utf8')
+    const ownership = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
     for (const prefix of ['RF', 'RNF', 'RN']) {
-      // O terminador de linha é o que impede `RN` de casar dentro de `RNF`.
-      assert.ok(ownership.includes(`id-prefix: ${prefix}\n`), `${prefix} sem artefato declarado`)
+      // A vírgula é o que impede `RN` de casar dentro de `RNF`.
+      assert.ok(ownership.includes(`id-prefix: ${prefix},`), `${prefix} sem artefato declarado`)
     }
     assert.match(ownership, /collection: sections/)
     assert.match(ownership, /cited-by: \["test\/\*\*", "src\/\*\*"\]/)
@@ -172,7 +181,7 @@ test('RF-0002: --stage small-team é idempotente: a segunda execução não rees
   withTempRepo({ 'README.md': '# projeto\n' }, root => {
     runInit(root, SMALL_TEAM)
     const antes = REQUIREMENT_FILES.map(file => readFileSync(join(root, file), 'utf8'))
-    const ownershipAntes = readFileSync(join(root, OWNERSHIP_PATH), 'utf8')
+    const ownershipAntes = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
     const segunda = runInit(root, SMALL_TEAM)
 
@@ -181,17 +190,17 @@ test('RF-0002: --stage small-team é idempotente: a segunda execução não rees
       REQUIREMENT_FILES.map(file => readFileSync(join(root, file), 'utf8')),
       antes,
     )
-    assert.equal(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), ownershipAntes)
+    assert.equal(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), ownershipAntes)
   })
 })
 
 test('RF-0003: subir de solo para small-team declara os requisitos, sem tocar no que já existia', () => {
   withTempRepo({ 'README.md': '# projeto\n' }, root => {
     runInit(root, OPTIONS)
-    const antes = readFileSync(join(root, OWNERSHIP_PATH), 'utf8')
+    const antes = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
     runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner })
-    const depois = readFileSync(join(root, OWNERSHIP_PATH), 'utf8')
+    const depois = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
     assert.match(depois, /id-prefix: RN\b/)
     assert.ok(depois.includes('id-prefix: ADR'), 'o artefato que já existia não pode sumir')
@@ -212,7 +221,7 @@ test('RF-0002: solo depois de small-team não remove os requisitos já criados',
     for (const file of REQUIREMENT_FILES) {
       assert.ok(existsSync(join(root, file)), `${file} não pode desaparecer ao rodar solo`)
     }
-    assert.match(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), /id-prefix: RN\b/)
+    assert.match(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), /id-prefix: RN\b/)
   })
 })
 
@@ -226,7 +235,7 @@ test('adota docs/requisitos.md preexistente em vez de criar um paralelo', () => 
     )
     assert.equal(readFileSync(join(root, 'docs/requisitos.md'), 'utf8'), '# requisitos antigos\n')
     assert.equal(existsSync(join(root, 'docs/requirements/functional.md')), false)
-    assert.match(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), /path: docs\/requisitos\.md/)
+    assert.match(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), /path: docs\/requisitos\.md/)
   })
 })
 
@@ -234,18 +243,18 @@ test('RF-0003: small-team não deixa nada de fora nesta versão — Fases 2, 3 e
   withTempRepo({ 'README.md': '# projeto\n' }, root => {
     const result = runInit(root, SMALL_TEAM)
 
-    assert.deepEqual(result.notInstalled, [])
+    assert.deepEqual(leftOut(result.notInstalled), [])
   })
 })
 
 test('RF-0003: quando algo realmente fica de fora, o resultado diz o que é', () => {
   withTempRepo({ 'README.md': '# projeto\n' }, root => {
     runInit(root, OPTIONS) // solo: o .ownership.yml nasce sem RF/RNF/RN
-    const file = join(root, OWNERSHIP_PATH)
-    // A linha some inteira, não vira outra chave: `generated` é opcional no
-    // parser, e uma chave estranha testaria o parser em vez da honestidade.
-    // Sem a âncora, subir de estágio não adivinha onde declarar os requisitos.
-    const sem = readFileSync(file, 'utf8').replace(/\ngenerated: \[\]\n/, '\n')
+    const file = join(root, OWNERSHIP_FILE)
+    // `owned:` continua sendo a chave, mas deixa de ser a linha inteira que o
+    // init reconhece. Sem a âncora, subir de estágio não adivinha onde declarar
+    // os requisitos.
+    const sem = readFileSync(file, 'utf8').replace('\nowned:\n', '\nowned: # âncora removida\n')
 
     assert.notEqual(sem, readFileSync(file, 'utf8'), 'a âncora precisa ter sido removida de fato')
     writeFileSync(file, sem, 'utf8')
@@ -253,7 +262,7 @@ test('RF-0003: quando algo realmente fica de fora, o resultado diz o que é', ()
     const result = runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner })
 
     assert.ok(
-      result.notInstalled.some(item => item.includes(OWNERSHIP_PATH)),
+      result.notInstalled.some(item => item.includes(OWNERSHIP_FILE)),
       `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`,
     )
   })
@@ -345,7 +354,7 @@ test('o init não inventa `watches` — o vínculo código→doc é ato humano',
       invoke: 'npx living-docs',
       marketplace: 'time/living-docs',
     })
-    const config = loadOwnership(root)
+    const config = loadLivingDocsConfig(root)
 
     assert.deepEqual(config.watches, [])
   })
@@ -511,9 +520,9 @@ test('RF-0007: small-team não instala contrato nenhum', () => {
 test('RF-0007: o init não inventa gerador — `generated[]` nasce vazio', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
-    assert.deepEqual(loadOwnership(root).generated, [])
+    assert.deepEqual(loadLivingDocsConfig(root).generated, [])
     // ...e o exemplo comentado precisa estar lá, senão ninguém descobre o formato.
-    assert.match(readFileSync(join(root, OWNERSHIP_PATH), 'utf8'), /#\s+- path: docs\/contracts\/openapi\.gen\.yaml/)
+    assert.match(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), /#\s+- path: docs\/contracts\/openapi\.gen\.yaml/)
   })
 })
 
@@ -554,20 +563,20 @@ test('RF-0009: production declara o artefato REL, para que HK-1 congele release 
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
 
-    const config = loadOwnership(root)
+    const config = loadLivingDocsConfig(root)
     const rel = config.artifacts.find(artifact => artifact.idPrefix === 'REL')
 
-    assert.ok(rel, 'sem REL em artifacts:, HK-1 não tem como congelar release note')
+    assert.ok(rel, 'sem REL declarado, HK-1 não tem como congelar release note')
     assert.equal(rel?.path, 'docs/releases/')
     assert.equal(rel?.appendOnly, true)
     assert.equal(rel?.skill, 'release-historian')
   })
 })
 
-test('RF-0009: production não inventa consumer-visible-paths', () => {
+test('RF-0009: production não inventa regra de watches visível ao consumidor', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
-    assert.deepEqual(loadOwnership(root).consumerVisiblePaths, [])
+    assert.deepEqual(loadLivingDocsConfig(root).watches, [])
   })
 })
 
@@ -575,7 +584,7 @@ test('RF-0009: production não deixa nada da spec §10 de fora', () => {
   withTempRepo({}, root => {
     const result = runInit(root, PRODUCTION)
 
-    assert.deepEqual(result.notInstalled, [], `production deveria estar completo — ${JSON.stringify(result.notInstalled)}`)
+    assert.deepEqual(leftOut(result.notInstalled), [], `production deveria estar completo — ${JSON.stringify(result.notInstalled)}`)
   })
 })
 
@@ -590,29 +599,29 @@ test('RF-0009: subir de small-team para production declara REL no .ownership.yml
       marketplace: 'time/living-docs',
     })
     assert.equal(
-      loadOwnership(root).artifacts.some(artifact => artifact.idPrefix === 'REL'),
+      loadLivingDocsConfig(root).artifacts.some(artifact => artifact.idPrefix === 'REL'),
       false,
       'small-team não instala rastro histórico',
     )
 
     runInit(root, PRODUCTION)
-    assert.ok(loadOwnership(root).artifacts.some(artifact => artifact.idPrefix === 'REL'))
+    assert.ok(loadLivingDocsConfig(root).artifacts.some(artifact => artifact.idPrefix === 'REL'))
     assert.equal(runValidate(root).exitCode, 0, 'o repositório recém-subido de estágio precisa passar limpo')
   })
 })
 
-test('RF-0012: solo declara o mapa e os IDs retirados em documents:', () => {
+test('RF-0012: solo declara o mapa e os IDs retirados como documentos', () => {
   withTempRepo({}, root => {
     runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', marketplace: 'time/living-docs' })
     const documents = ownershipOf(root).documents
 
-    assert.deepEqual(documents.map(document => document.path).sort(), ['docs/.ownership.yml', 'docs/ids-retired.txt'])
+    assert.deepEqual(documents.map(document => document.path).sort(), ['.ownership.yml', 'docs/ids-retired.txt'])
     assert.ok(documents.every(document => document.owner === '@time'))
 
     const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
     assert.match(codeowners, /docs\/ids-retired\.txt\s+@time/)
-    assert.match(codeowners, /docs\/\.ownership\.yml\s+@time/)
+    assert.match(codeowners, /^\.ownership\.yml\s+@time/m)
   })
 })
 
@@ -704,7 +713,7 @@ test('RF-0002 e RF-0012: subir de estágio acrescenta as entradas que faltam, se
     assert.equal(new Set(paths).size, paths.length, 'nenhuma entrada duplicada')
 
     // e uma terceira execução não muda mais nada
-    const antes = readFileSync(join(root, 'docs/.ownership.yml'), 'utf8')
+    const antes = readFileSync(join(root, '.ownership.yml'), 'utf8')
 
     runInit(root, {
       owner: '@time',
@@ -714,17 +723,17 @@ test('RF-0002 e RF-0012: subir de estágio acrescenta as entradas que faltam, se
       invoke: 'npx living-docs',
       marketplace: 'time/living-docs',
     })
-    assert.equal(readFileSync(join(root, 'docs/.ownership.yml'), 'utf8'), antes)
+    assert.equal(readFileSync(join(root, '.ownership.yml'), 'utf8'), antes)
   })
 })
 
 test('RF-0012: sem âncora no .ownership.yml, o init diz o que falta em vez de adivinhar', () => {
   withTempRepo({}, root => {
     runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', marketplace: 'time/living-docs' })
-    // arquivo reorganizado à mão: nem `documents:` nem `watches:` no começo de linha
+    // arquivo reorganizado à mão: `owned` em fluxo, sem a linha `owned:` sozinha
     writeFileSync(
-      join(root, 'docs/.ownership.yml'),
-      'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/decisions/adr/\n    owner: "@time"\n    skill: decision-recorder\n',
+      join(root, '.ownership.yml'),
+      'version: 2\nplugins: [living-docs]\nowned: [{ path: docs/decisions/adr/, owner: "@time", skill: decision-recorder, states: [draft, accepted, superseded], living-docs: { id-prefix: ADR } }]\n',
       'utf8',
     )
 
@@ -737,7 +746,7 @@ test('RF-0012: sem âncora no .ownership.yml, o init diz o que falta em vez de a
       marketplace: 'time/living-docs',
     })
 
-    assert.ok(result.notInstalled.some(item => /documents/.test(item)))
+    assert.ok(result.notInstalled.some(item => /documentos.*owned/.test(item)))
   })
 })
 
@@ -751,7 +760,7 @@ test('RN-0019: o template de TDR traz o `pay-when` como exemplo comentado, não 
 test('RF-0015: production declara o rastro histórico como externo, e só ele', () => {
   withTempRepo({}, root => {
     const result = runInit(root, PRODUCTION)
-    const config = loadOwnership(root)
+    const config = loadLivingDocsConfig(root)
     const byPath = new Map(config.documents.map(document => [document.path, document]))
 
     for (const path of ['CHANGELOG.md', 'docs/deprecations.md', 'docs/migrations/']) {
@@ -759,7 +768,7 @@ test('RF-0015: production declara o rastro histórico como externo, e só ele', 
     }
     assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
 
-    for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md', 'CONTRIBUTING.md', 'docs/.ownership.yml']) {
+    for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md', 'CONTRIBUTING.md', '.ownership.yml']) {
       assert.equal(byPath.get(path)?.audience, 'internal', `${path} não é marcado pelo init`)
     }
     assert.ok(
@@ -767,7 +776,7 @@ test('RF-0015: production declara o rastro histórico como externo, e só ele', 
       'só REL nasce externo',
     )
 
-    assert.deepEqual(result.notInstalled, [])
+    assert.deepEqual(leftOut(result.notInstalled), [])
     assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
   })
 })
@@ -775,7 +784,7 @@ test('RF-0015: production declara o rastro histórico como externo, e só ele', 
 test('RF-0015: small-team não declara nada como externo', () => {
   withTempRepo({}, root => {
     runInit(root, SMALL_TEAM)
-    const config = loadOwnership(root)
+    const config = loadLivingDocsConfig(root)
 
     assert.ok(config.documents.every(document => document.audience === 'internal'))
     assert.ok(config.artifacts.every(artifact => artifact.audience === 'internal'))
@@ -787,12 +796,12 @@ test('RF-0015: entrada já declarada sem a marca vira aviso, e o .ownership.yml 
     runInit(root, PRODUCTION)
 
     // O repositório instalado por uma versão anterior: as mesmas entradas, sem a chave.
-    const file = join(root, OWNERSHIP_PATH)
-    const semMarca = readFileSync(file, 'utf8').replace(/^ {4}audience: external\r?\n/gm, '')
+    const file = join(root, OWNERSHIP_FILE)
+    const semMarca = readFileSync(file, 'utf8').replaceAll('{ audience: external }', '{}').replaceAll(', audience: external', '')
 
     writeFileSync(file, semMarca, 'utf8')
     assert.ok(
-      loadOwnership(root).documents.every(document => document.audience === 'internal'),
+      loadLivingDocsConfig(root).documents.every(document => document.audience === 'internal'),
       'o cenário precisa estar sem marca',
     )
 
@@ -804,9 +813,35 @@ test('RF-0015: entrada já declarada sem a marca vira aviso, e o .ownership.yml 
 
     for (const alvo of [/CHANGELOG\.md/, /docs\/deprecations\.md/, /docs\/migrations\//, /REL/]) {
       assert.ok(
-        result.notInstalled.some(item => alvo.test(item) && /audience: external/.test(item) && /CI-11/.test(item)),
+        result.notInstalled.some(item => alvo.test(item) && /audience: external/.test(item)),
         `esperava aviso para ${alvo} — ${JSON.stringify(result.notInstalled)}`,
       )
     }
+  })
+})
+
+test('arquivo de ownership v1 existente: o init não cria outro na raiz, e diz que ele precisa ser reescrito', () => {
+  withTempRepo({ 'docs/.ownership.yml': 'version: 1\nartifacts: []\n' }, root => {
+    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', marketplace: null })
+
+    assert.equal(existsSync(join(root, '.ownership.yml')), false)
+    assert.ok(result.skipped.includes('docs/.ownership.yml'))
+    assert.ok(result.notInstalled.some(item => /docs\/\.ownership\.yml.*não lê como v2.*reescreva/.test(item)))
+  })
+})
+
+test('o init semeia a v2 na raiz e avisa que o resto do repositório precisa de dono', () => {
+  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+    const result = runInit(root, OPTIONS)
+    const source = readFileSync(join(root, '.ownership.yml'), 'utf8')
+
+    assert.match(source, /^version: 2$/m)
+    assert.match(source, /^plugins: \[living-docs\]$/m)
+    assert.match(source, /^ignore: \["node_modules\/\*\*", "\*\*\/node_modules\/\*\*"\]$/m)
+    assert.equal(existsSync(join(root, 'docs/.ownership.yml')), false)
+    assert.ok(
+      result.notInstalled.some(item => /owned/.test(item) && /ownership validate/.test(item)),
+      `esperava o aviso do resto do repositório — ${JSON.stringify(result.notInstalled)}`,
+    )
   })
 })

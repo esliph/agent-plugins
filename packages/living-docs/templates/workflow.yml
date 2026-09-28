@@ -20,6 +20,6 @@ jobs:
           # O diff do PR compara <base>...HEAD, e um clone raso não tem a base.
           fetch-depth: 0
 
-      - name: CI-1 a CI-4, CI-7 e CI-8 — estado da árvore
+      - name: Documentação viva — estado da árvore
         run: {{INVOKE}} validate
 {{WORKFLOW_STEPS}}

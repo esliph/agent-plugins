@@ -2,23 +2,26 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ci1Structure } from '../../src/checks/ci1-structure.ts'
 import { collectArtifacts } from '../../src/docs/collect.ts'
-import { parseOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import type { Finding } from '../../src/core/types.ts'
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@team"
     skill: decision-recorder
-    append-only: true
-  - id-prefix: DA
-    path: docs/open-decisions.md
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR, append-only: true }
+  - path: docs/open-decisions.md
     owner: "@product"
     skill: decision-recorder
-    collection: table
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs: { id-prefix: DA }
 `
 
 function adr(fields: Record<string, string>, body = '\n## Contexto\n'): string {
@@ -52,8 +55,8 @@ const GOOD_DA = [
 function run(files: Record<string, string>): Finding[] {
   let findings: Finding[] = []
 
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
-    const config = parseOwnership(CONFIG)
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
+    const config = loadLivingDocsConfig(root)
 
     findings = ci1Structure.run({ root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-27' })
   })
@@ -96,24 +99,6 @@ test('cada campo obrigatório ausente vira uma finding', () => {
   }
 })
 
-test('status fora da máquina de estados falha na linha do campo', () => {
-  const findings = run({
-    'docs/decisions/adr/ADR-0001-x.md': adr({
-      id: 'ADR-0001',
-      title: 'x',
-      status: 'aprovado',
-      owner: '"@team"',
-      trigger: 'Nunca.',
-      'last-reviewed': '2026-08-21',
-    }),
-  })
-
-  assert.equal(findings.length, 1)
-  assert.equal(findings[0]?.line, 4)
-  assert.match(findings[0]?.message ?? '', /status/)
-  assert.match(findings[0]?.fix ?? '', /draft.*accepted.*superseded/)
-})
-
 test('RN-0002: trigger com cadência falha nomeando o campo e o termo — critério de aceite 3', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
@@ -132,21 +117,20 @@ test('RN-0002: trigger com cadência falha nomeando o campo e o termo — crité
   assert.equal(findings[0]?.line, 6)
 })
 
-test('owner sem @ e last-reviewed fora do ISO falham', () => {
+test('last-reviewed fora do ISO falha', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
       id: 'ADR-0001',
       title: 'x',
       status: 'draft',
-      owner: 'team',
+      owner: '"@team"',
       trigger: 'Nunca.',
       'last-reviewed': '21/08/2026',
     }),
   })
 
-  assert.equal(findings.length, 2)
-  assert.ok(findings.some(f => /owner/.test(f.message)))
-  assert.ok(findings.some(f => /last-reviewed/.test(f.message)))
+  assert.equal(findings.length, 1)
+  assert.match(findings[0]?.message ?? '', /last-reviewed/)
 })
 
 test('id que não bate com o prefixo do artefato falha', () => {
@@ -165,30 +149,30 @@ test('id que não bate com o prefixo do artefato falha', () => {
   assert.match(findings[0]?.message ?? '', /ADR/)
 })
 
-test('coleção em tabela: container não exige id, mas cada item exige status válido', () => {
-  const bad = GOOD_DA.replace('| DA-0001 | Reembolso parcial | open |', '| DA-0001 | Reembolso parcial | pendente |')
+test('coleção em tabela: container não exige id, mas cada item exige status', () => {
+  const bad = GOOD_DA.replace('| DA-0001 | Reembolso parcial | open |', '| DA-0001 | Reembolso parcial |  |')
   const findings = run({ 'docs/open-decisions.md': bad })
 
   assert.equal(findings.length, 1)
   assert.equal(findings[0]?.line, 10)
-  assert.match(findings[0]?.message ?? '', /DA-0001/)
-  assert.match(findings[0]?.fix ?? '', /open.*resolved.*dropped/)
+  assert.match(findings[0]?.message ?? '', /DA-0001.*status/)
 })
 
 test('prefixo sem máquina de estados declarada falha pedindo `states`', () => {
   const config = `
-version: 1
-artifacts:
-  - id-prefix: XX
-    path: docs/x/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/x/
     owner: "@team"
     skill: s
+    living-docs: { id-prefix: XX }
 `
   let findings: Finding[] = []
 
   withTempRepo(
     {
-      [OWNERSHIP_PATH]: config,
+      [OWNERSHIP_FILE]: config,
       'docs/x/XX-0001-a.md': adr({
         id: 'XX-0001',
         title: 'x',
@@ -199,7 +183,7 @@ artifacts:
       }),
     },
     root => {
-      const parsed = parseOwnership(config)
+      const parsed = loadLivingDocsConfig(root)
 
       findings = ci1Structure.run({ root, config: parsed, docs: collectArtifacts(root, parsed), documents: [], today: '2026-08-27' })
     },

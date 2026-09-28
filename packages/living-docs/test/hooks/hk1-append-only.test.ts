@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { decideHk1 } from '../../src/hooks/hk1-append-only.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import type { HookEnv } from '../../src/hooks/lib/io.ts'
 import type { HookDecision } from '../../src/hooks/hk1-append-only.ts'
@@ -12,19 +12,23 @@ function assertDeny(decision: HookDecision): asserts decision is { action: 'deny
 }
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@team"
     skill: decision-recorder
-    append-only: true
-    mutable-fields: [status, superseded-by, last-reviewed]
-  - id-prefix: DA
-    path: docs/open-decisions.md
+    states: [draft, accepted, superseded]
+    living-docs:
+      id-prefix: ADR
+      append-only: true
+      mutable-fields: [status, superseded-by, last-reviewed]
+  - path: docs/open-decisions.md
     owner: "@product"
     skill: decision-recorder
-    collection: table
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs: { id-prefix: DA }
 `
 
 function adr(status: string): string {
@@ -49,7 +53,7 @@ const FILE = 'docs/decisions/adr/ADR-0001-fila.md'
 function decide(files: Record<string, string>, toolInput: Record<string, unknown>): HookDecision {
   let decision: HookDecision = { action: 'allow' }
 
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
     const env: HookEnv = { root, hostRoots: [root] }
 
     decision = decideHk1({ tool_name: 'Edit', tool_input: toolInput }, env)
@@ -148,7 +152,7 @@ test('payload sem file_path permite', () => {
 test('aceita file_path absoluto do host', () => {
   let decision: HookDecision = { action: 'allow' }
 
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [FILE]: adr('accepted') }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [FILE]: adr('accepted') }, root => {
     decision = decideHk1(
       {
         tool_name: 'Edit',

@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { runValidate } from './validate.ts'
 import { runExplain } from './explain.ts'
 import { formatFindings } from './report.ts'
+import { GitError } from '../core/exec.ts'
 import { OwnershipError } from '../schema/types.ts'
 
 const USAGE = `ownership <comando>
@@ -66,6 +67,11 @@ function main(argv: readonly string[]): number {
   } catch (err) {
     if (err instanceof OwnershipError) {
       process.stderr.write(`ownership: ${err.message}\n`)
+
+      return 2
+    }
+    if (err instanceof GitError) {
+      process.stderr.write(`ownership: ${err.message}\n` + '           o clone precisa conter a base (em CI: `actions/checkout` com `fetch-depth: 0`).\n')
 
       return 2
     }

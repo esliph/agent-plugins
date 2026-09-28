@@ -8,7 +8,7 @@
  */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { loadOwnership } from '../config/ownership.ts'
+import { loadLivingDocsConfig } from '../config/ownership.ts'
 import type { GeneratedRule } from '../config/ownership.ts'
 import { toRepoPath } from './lib/paths.ts'
 import { denyOutput, emit, hookEnv, readPayload } from './lib/io.ts'
@@ -67,7 +67,7 @@ export function decideHk2(payload: HookPayload, env: HookEnv): Hk2Decision {
   let config
 
   try {
-    config = loadOwnership(env.root)
+    config = loadLivingDocsConfig(env.root)
   } catch {
     return ALLOW // falha aberta (RNF-0001)
   }

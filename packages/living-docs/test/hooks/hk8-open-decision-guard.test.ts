@@ -3,21 +3,24 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { decideHk8 } from '../../src/hooks/hk8-open-decision-guard.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: DA
-    path: docs/open-decisions.md
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/open-decisions.md
     owner: "@time"
     skill: decision-recorder
-    collection: table
-    field-map:
-      blocks: "Bloqueia"
-      gap: "Lacuna"
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+      field-map:
+        blocks: "Bloqueia"
+        gap: "Lacuna"
 `
 
 const TABELA = [
@@ -34,7 +37,7 @@ const TABELA = [
   '',
 ].join('\n')
 
-const ARVORE = { [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA }
+const ARVORE = { [OWNERSHIP_FILE]: CONFIG, 'docs/open-decisions.md': TABELA }
 
 test('RN-0026: editar caminho reivindicado pergunta, nomeando a decisão e a skill dona', () => {
   withTempRepo(ARVORE, root => {

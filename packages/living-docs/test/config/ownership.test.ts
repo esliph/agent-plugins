@@ -1,393 +1,213 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-  parseOwnership,
-  loadOwnership,
-  findArtifactRule,
-  findDocumentRule,
-  documentWithRole,
-  fieldOf,
-  OwnershipError,
-  OWNERSHIP_PATH,
-} from '../../src/config/ownership.ts'
+import { OwnershipError, documentWithRole, fieldOf, findArtifactRule, findDocumentRule, loadLivingDocsConfig } from '../../src/config/ownership.ts'
+import { DEFAULT_ID_FORMAT } from '../../src/docs/schema.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
+import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-const VALID = `
-version: 1
-stale-after-months: 6
+const HEAD = 'version: 2\nplugins: [living-docs]\n'
 
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
-    owner: "@team-platform"
+const ADR = `
+  - path: docs/decisions/adr/
+    owner: '@time'
     skill: decision-recorder
-    append-only: true
-    mutable-fields: [status, superseded-by, last-reviewed]
-  - id-prefix: DA
-    path: docs/open-decisions.md
-    owner: "@product"
-    skill: decision-recorder
-    collection: table
-
-generated:
-  - path: docs/contracts/openapi.gen.yaml
-    command: npm run gen:openapi
-
-watches:
-  - code: "src/domain/**"
-    doc: "docs/requirements/"
-    reason: "comportamento novo exige regra com ID antes do código"
-  - code: "src/**"
-    doc: "CHANGELOG.md"
-    consumer-visible: true
-
-consumer-visible-paths: ["src/api/**"]
+    states: [draft, accepted, superseded]
+    living-docs:
+      id-prefix: ADR
+      append-only: true
+      mutable-fields: [status, superseded-by, last-reviewed]
 `
 
-test('normaliza kebab-case do YAML para camelCase tipado', () => {
-  const config = parseOwnership(VALID)
-
-  assert.equal(config.version, 1)
-  assert.equal(config.staleAfterMonths, 6)
-  assert.equal(config.artifacts.length, 2)
-
-  const adr = config.artifacts[0]
-
-  assert.ok(adr)
-  assert.equal(adr.idPrefix, 'ADR')
-  assert.equal(adr.path, 'docs/decisions/adr/')
-  assert.equal(adr.owner, '@team-platform')
-  assert.equal(adr.appendOnly, true)
-  assert.deepEqual(adr.mutableFields, ['status', 'superseded-by', 'last-reviewed'])
-  assert.equal(adr.collection, 'per-file')
-  assert.equal(adr.states, null)
-})
-
-test('RN-0027: last-reviewed-bump-limit tem padrao 3 e piso 2', () => {
-  const base = 'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/adr/\n    owner: "@t"\n    skill: s\n'
-
-  assert.equal(parseOwnership(base).lastReviewedBumpLimit, 3)
-  assert.equal(parseOwnership(`${base}last-reviewed-bump-limit: 5\n`).lastReviewedBumpLimit, 5)
-  assert.throws(() => parseOwnership(`${base}last-reviewed-bump-limit: 1\n`), /maior ou igual a 2/)
-})
-
-test('aplica os defaults de collection, append-only e cited-by', () => {
-  const config = parseOwnership(VALID)
-  const da = config.artifacts[1]
-
-  assert.ok(da)
-  assert.equal(da.collection, 'table')
-  assert.equal(da.appendOnly, false)
-  assert.deepEqual(da.mutableFields, [])
-  assert.deepEqual(da.citedBy, [])
-})
-
-test('lê watches e consumer-visible-paths', () => {
-  const config = parseOwnership(VALID)
-
-  assert.equal(config.watches.length, 2)
-  assert.equal(config.watches[0]?.reason, 'comportamento novo exige regra com ID antes do código')
-  assert.equal(config.watches[0]?.consumerVisible, false)
-  assert.equal(config.watches[1]?.consumerVisible, true)
-  assert.deepEqual(config.consumerVisiblePaths, ['src/api/**'])
-  assert.equal(config.generated[0]?.command, 'npm run gen:openapi')
-})
-
-test('rejeita version diferente de 1 nomeando o campo', () => {
-  assert.throws(
-    () => parseOwnership('version: 2\nartifacts: []\n'),
-    (err: unknown) => err instanceof OwnershipError && /version/.test(err.message),
-  )
-})
-
-test('rejeita artifacts vazio', () => {
-  assert.throws(
-    () => parseOwnership('version: 1\nartifacts: []\n'),
-    (err: unknown) => err instanceof OwnershipError && /artifacts/.test(err.message),
-  )
-})
-
-test('rejeita id-prefix fora do formato', () => {
-  const bad = 'version: 1\nartifacts:\n  - id-prefix: adr\n    path: docs/a/\n    owner: "@x"\n    skill: s\n'
-
-  assert.throws(
-    () => parseOwnership(bad),
-    (err: unknown) => err instanceof OwnershipError && /id-prefix/.test(err.message),
-  )
-})
-
-test('RN-0001: rejeita id-prefix duplicado — um artefato, um dono', () => {
-  const dup = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/a/
-    owner: "@x"
-    skill: s
-  - id-prefix: ADR
-    path: docs/b/
-    owner: "@y"
-    skill: s
+const DA = `
+  - path: docs/open-decisions.md
+    owner: '@produto'
+    skill: decision-recorder
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+      field-map: { resolved-by: 'Resolvida por' }
 `
 
-  assert.throws(
-    () => parseOwnership(dup),
-    (err: unknown) => err instanceof OwnershipError && /ADR/.test(err.message),
-  )
+function yaml(owned: string, top = ''): string {
+  return `${HEAD}${top}owned:${owned}`
+}
+
+test('ADR-0029: entrada com living-docs.id-prefix é artefato, com os campos do bloco e os do núcleo', () => {
+  const config = configFrom(yaml(ADR + DA))
+  const adr = config.artifacts.find(rule => rule.idPrefix === 'ADR')
+  const da = config.artifacts.find(rule => rule.idPrefix === 'DA')
+
+  assert.equal(adr?.path, 'docs/decisions/adr/')
+  assert.equal(adr?.owner, '@time')
+  assert.equal(adr?.skill, 'decision-recorder')
+  assert.equal(adr?.appendOnly, true)
+  assert.deepEqual(adr?.mutableFields, ['status', 'superseded-by', 'last-reviewed'])
+  assert.deepEqual(adr?.states, ['draft', 'accepted', 'superseded'])
+  assert.equal(adr?.collection, 'per-file')
+  assert.equal(adr?.audience, 'internal')
+  assert.equal(da?.collection, 'table')
+  assert.deepEqual(da?.fieldMap, { 'resolved-by': 'resolvida por' })
+  assert.equal(da?.core.format.key, 'ID')
 })
 
-test('rejeita owner que não começa com @', () => {
-  const bad = 'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/a/\n    owner: platform\n    skill: s\n'
-
-  assert.throws(
-    () => parseOwnership(bad),
-    (err: unknown) => err instanceof OwnershipError && /owner/.test(err.message),
-  )
-})
-
-test('aceita states declarado pelo projeto', () => {
-  const src =
-    'version: 1\nartifacts:\n  - id-prefix: RN\n    path: docs/requirements/\n    owner: "@product"\n    skill: requirements-keeper\n    states: [draft, active, revoked]\n'
-
-  assert.deepEqual(parseOwnership(src).artifacts[0]?.states, ['draft', 'active', 'revoked'])
-})
-
-test('loadOwnership lê do disco e erra com caminho quando ausente', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: VALID }, root => {
-    assert.equal(loadOwnership(root).artifacts.length, 2)
-  })
-  withTempRepo({ 'README.md': '' }, root => {
-    assert.throws(
-      () => loadOwnership(root),
-      (err: unknown) => err instanceof OwnershipError && err.message.includes(OWNERSHIP_PATH),
-    )
-  })
-})
-
-test('findArtifactRule casa arquivo dentro de diretório e arquivo exato', () => {
-  const config = parseOwnership(VALID)
-
-  assert.equal(findArtifactRule(config, 'docs/decisions/adr/ADR-0001-x.md')?.idPrefix, 'ADR')
-  assert.equal(findArtifactRule(config, 'docs/open-decisions.md')?.idPrefix, 'DA')
-  assert.equal(findArtifactRule(config, 'src/index.ts'), null)
-})
-
-const COM_FIELD_MAP = `
-version: 1
-artifacts:
-  - id-prefix: DA
-    path: docs/open-decisions.md
-    owner: "@product"
-    skill: decision-recorder
-    collection: table
-    field-map:
-      resolved-by: "Resolvida por"
-`
-
-test('RN-0001: field-map traduz o nome canônico e normaliza as duas pontas', () => {
-  const rule = parseOwnership(COM_FIELD_MAP).artifacts[0]!
-
-  assert.equal(rule.fieldMap['resolved-by'], 'resolvida por')
-})
-
-test('fieldOf traduz pelo field-map e trata vazio como ausente', () => {
-  const rule = parseOwnership(COM_FIELD_MAP).artifacts[0]!
-
-  assert.equal(fieldOf(rule, { id: 'DA-0001', status: 'resolved', line: 1, fields: { 'resolvida por': 'ADR-0007' } }, 'resolved-by'), 'ADR-0007')
-  assert.equal(fieldOf(rule, { id: 'DA-0002', status: 'open', line: 2, fields: { 'resolvida por': '—' } }, 'resolved-by'), null)
-  assert.equal(fieldOf(rule, { id: 'DA-0003', status: 'open', line: 3, fields: {} }, 'resolved-by'), null)
-})
-
-test('sem field-map, o nome canônico é o próprio nome do campo', () => {
-  const rule = parseOwnership(VALID).artifacts[1]!
-
-  assert.equal(fieldOf(rule, { id: 'DA-0001', status: 'open', line: 1, fields: { 'relates-to': 'ADR-0001' } }, 'relates-to'), 'ADR-0001')
-})
-
-test('field-map com valor vazio é erro de configuração, não silêncio', () => {
-  assert.throws(
-    () =>
-      parseOwnership(`
-version: 1
-artifacts:
-  - id-prefix: DA
-    path: docs/open-decisions.md
-    owner: "@product"
-    skill: decision-recorder
-    collection: table
-    field-map:
-      resolved-by: ""
-`),
-    (err: unknown) => err instanceof OwnershipError && err.message.includes('field-map'),
-  )
-})
-
-const COM_DOCUMENTOS = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
-    owner: "@time"
-    skill: decision-recorder
-documents:
-  - path: CONTRIBUTING.md
-    owner: "@time"
-    skill: working-agreements-keeper
+test('ADR-0029: entrada com bloco living-docs sem id-prefix é documento; sem bloco, não é do living-docs', () => {
+  const config = configFrom(
+    yaml(`${ADR}
   - path: CLAUDE.md
-    owner: "@time"
+    owner: '@time'
     skill: working-agreements-keeper
-    role: agent-contract
-  - path: docs/definition-of-done.md
-    owner: "@time"
-    skill: working-agreements-keeper
-    role: definition-of-done
-  - path: docs/superpowers/
-    owner: "@time"
-`
+    living-docs: { role: agent-contract }
+  - path: README.md
+    owner: '@time'
+    living-docs: { audience: external }
+  - path: src/
+    owner: '@time'
+`),
+  )
 
-test('ADR-0008: documents declara caminho, dono, e skill/role opcionais', () => {
-  const config = parseOwnership(COM_DOCUMENTOS)
-
-  assert.equal(config.documents.length, 4)
-
-  const contributing = config.documents[0]
-
-  assert.equal(contributing?.path, 'CONTRIBUTING.md')
-  assert.equal(contributing?.owner, '@time')
-  assert.equal(contributing?.skill, 'working-agreements-keeper')
-  assert.equal(contributing?.role, null)
-
-  assert.equal(config.documents[3]?.skill, null, 'documento pode ter dono e não ter skill')
+  assert.deepEqual(
+    config.documents.map(document => [document.path, document.skill, document.role, document.audience]),
+    [
+      ['CLAUDE.md', 'working-agreements-keeper', 'agent-contract', 'internal'],
+      ['README.md', null, null, 'external'],
+    ],
+  )
+  assert.equal(findDocumentRule(config, 'src/a.ts'), null)
+  assert.equal(findArtifactRule(config, 'src/a.ts'), null)
+  assert.equal(documentWithRole(config, 'agent-contract')?.path, 'CLAUDE.md')
 })
 
-test('ADR-0008: documents ausente é lista vazia — configuração das fases anteriores continua válida', () => {
-  const config = parseOwnership(`
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
-    owner: "@time"
-    skill: decision-recorder
-`)
+test('ADR-0028: o bloco de topo carrega stale-after-months, id-format e last-reviewed-bump-limit; ausente, valem os padrões', () => {
+  const declared = configFrom(
+    yaml(ADR, "living-docs:\n  stale-after-months: 3\n  id-format: { separator: '_', padding: 3 }\n  last-reviewed-bump-limit: 5\n"),
+  )
+  const defaults = configFrom(yaml(ADR))
 
-  assert.deepEqual(config.documents, [])
+  assert.equal(declared.staleAfterMonths, 3)
+  assert.deepEqual(declared.idFormat, { separator: '_', padding: 3 })
+  assert.equal(declared.lastReviewedBumpLimit, 5)
+  assert.equal(defaults.staleAfterMonths, 6)
+  assert.deepEqual(defaults.idFormat, DEFAULT_ID_FORMAT)
+  assert.equal(defaults.lastReviewedBumpLimit, 3)
 })
 
-test('ADR-0008: documento sem caminho, com dono sem @, ou com skill vazia é recusado', () => {
-  const semCaminho = COM_DOCUMENTOS.replace('  - path: CONTRIBUTING.md\n    owner: "@time"', '  - owner: "@time"')
-
-  assert.throws(() => parseOwnership(semCaminho), /documents\[0\]/)
-
-  const donoSemArroba = COM_DOCUMENTOS.replace('  - path: CONTRIBUTING.md\n    owner: "@time"', '  - path: CONTRIBUTING.md\n    owner: "time"')
-
-  assert.throws(() => parseOwnership(donoSemArroba), /precisa começar com @/)
-
-  const skillVazia = COM_DOCUMENTOS.replace('skill: working-agreements-keeper', 'skill: ""')
-
-  assert.throws(() => parseOwnership(skillVazia), /skill/)
+test('chave desconhecida no bloco de topo é erro', () => {
+  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  stale-after: 3\n')), /\.ownership\.yml\.living-docs.*"stale-after" desconhecida/)
 })
 
-test('ADR-0008: role fora do vocabulário nomeia os válidos; papel repetido é recusado', () => {
-  const roleEstranho = COM_DOCUMENTOS.replace('role: agent-contract', 'role: manifesto')
+test('chave desconhecida no bloco da entrada é erro que nomeia a entrada', () => {
+  const extra = ADR.replace('append-only: true', 'append-only: true\n      apend-only: true')
 
-  assert.throws(() => parseOwnership(roleEstranho), /agent-contract, definition-of-done/)
-
-  const repetido = COM_DOCUMENTOS.replace('role: definition-of-done', 'role: agent-contract')
-
-  assert.throws(() => parseOwnership(repetido), /Um papel, um documento/)
+  assert.throws(() => configFrom(yaml(extra)), /entrada "docs\/decisions\/adr\/".*"apend-only" desconhecida/)
 })
 
-test('ADR-0008: caminho declarado duas vezes em documents é recusado', () => {
-  const duplicado = COM_DOCUMENTOS.replace('  - path: docs/superpowers/\n    owner: "@time"', '  - path: CONTRIBUTING.md\n    owner: "@time"')
-
-  assert.throws(() => parseOwnership(duplicado), /Um documento, um dono/)
+test('chave de artefato em documento é erro, e a mensagem diz por quê', () => {
+  assert.throws(
+    () => configFrom(yaml(`${ADR}\n  - path: CLAUDE.md\n    owner: '@time'\n    living-docs: { append-only: true }\n`)),
+    /"append-only" desconhecida.*só valem com `id-prefix`/,
+  )
 })
 
-test('findDocumentRule resolve arquivo por igualdade e diretório por prefixo', () => {
-  const config = parseOwnership(COM_DOCUMENTOS)
-
-  assert.equal(findDocumentRule(config, 'CONTRIBUTING.md')?.owner, '@time')
-  assert.equal(findDocumentRule(config, './CONTRIBUTING.md')?.owner, '@time')
-  assert.equal(findDocumentRule(config, 'docs/superpowers/plans/x.md')?.path, 'docs/superpowers/')
-  assert.equal(findDocumentRule(config, 'README.md'), null)
+test('id-prefix fora da forma, duplicado, ou artefato sem skill são erro', () => {
+  assert.throws(() => configFrom(yaml(ADR.replace('id-prefix: ADR', 'id-prefix: adr'))), /id-prefix "adr".*2 a 4 letras maiúsculas/)
+  assert.throws(() => configFrom(yaml(ADR + ADR.replace('docs/decisions/adr/', 'docs/adr2/'))), /id-prefix "ADR" declarado duas vezes/)
+  assert.throws(() => configFrom(yaml(ADR.replace('    skill: decision-recorder\n', ''))), /artefato precisa de `skill`/)
 })
 
-test('documentWithRole acha o documento pelo papel, sem conhecer caminho nenhum', () => {
-  const config = parseOwnership(COM_DOCUMENTOS)
+test('papel declarado em dois documentos é erro, e papel desconhecido também', () => {
+  const doc = (path: string, role: string) => `\n  - path: ${path}\n    owner: '@time'\n    living-docs: { role: ${role} }\n`
 
+  assert.throws(() => configFrom(yaml(ADR + doc('A.md', 'agent-contract') + doc('B.md', 'agent-contract'))), /papel "agent-contract" declarado em dois documentos/)
+  assert.throws(() => configFrom(yaml(ADR + doc('A.md', 'manual'))), /role "manual" desconhecido/)
+})
+
+test('id-format e last-reviewed-bump-limit fora da faixa são erro', () => {
+  assert.throws(() => configFrom(yaml(ADR, "living-docs:\n  id-format: { separator: '/' }\n")), /separator "\/" não é aceito/)
+  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  id-format: { padding: 9 }\n')), /padding "9" precisa ser inteiro entre 2 e 6/)
+  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  last-reviewed-bump-limit: 1\n')), /last-reviewed-bump-limit "1".*maior ou igual a 2/)
+})
+
+test('sem nenhum artefato, o erro ensina a declarar o plugin e o bloco', () => {
+  assert.throws(() => configFrom("version: 2\nowned:\n  - path: a.md\n    owner: '@time'\n"), /nenhuma entrada de `owned` traz `living-docs\.id-prefix`.*plugins: \[living-docs\]/)
+})
+
+test('sem arquivo de ownership, OwnershipError que aponta o init', () => {
+  withTempRepo({}, root => {
+    assert.throws(() => loadLivingDocsConfig(root), (err: unknown) => err instanceof OwnershipError && /living-docs init/.test(err.message))
+  })
+})
+
+test('ADR-0029: arquivo v1 não é lido — o erro do núcleo sobe como está', () => {
+  withTempRepo({ '.ownership.yml': 'version: 1\nartifacts: []\n' }, root => {
+    assert.throws(() => loadLivingDocsConfig(root), (err: unknown) => err instanceof OwnershipError && /esquema v1/.test(err.message))
+  })
+})
+
+test('fieldOf traduz o campo canônico pelo field-map e trata vazio como ausente', () => {
+  const config = configFrom(yaml(DA))
+  const rule = config.artifacts[0]!
+  const item = { key: 'DA-0001', state: 'resolved', line: 3, fields: { 'resolvida por': 'ADR-0001', lacuna: '—' } }
+
+  assert.equal(fieldOf(rule, item, 'resolved-by'), 'ADR-0001')
+  assert.equal(fieldOf(rule, item, 'lacuna'), null)
+})
+
+test('este repositório: o .ownership.yml da raiz declara states de toda família, e o documento de cada papel', () => {
+  const config = loadLivingDocsConfig(checkoutRoot())
+
+  assert.equal(config.rootFile, '.ownership.yml')
+  assert.deepEqual(config.artifacts.map(rule => rule.idPrefix).sort(), ['ADR', 'DA', 'REL', 'RF', 'RN', 'RNF', 'TDR'])
+  for (const rule of config.artifacts) {
+    assert.ok(rule.states !== null && rule.states.length > 0, `${rule.idPrefix} precisa declarar states`)
+  }
   assert.equal(documentWithRole(config, 'agent-contract')?.path, 'CLAUDE.md')
   assert.equal(documentWithRole(config, 'definition-of-done')?.path, 'docs/definition-of-done.md')
-
-  const semContrato = parseOwnership(COM_DOCUMENTOS.replace('    role: agent-contract\n', ''))
-
-  assert.equal(documentWithRole(semContrato, 'agent-contract'), null)
 })
 
-/** A configuração mínima válida que este arquivo já usa (`ADR-0011`). */
-const MINIMO = VALID
-
-test('RN-0024: id-format ausente é a forma do toolkit', () => {
-  const config = parseOwnership(MINIMO)
-
-  assert.deepEqual(config.idFormat, { separator: '-', padding: 4 })
-})
-
-test('RN-0024: id-format declarado é lido, e o inválido é erro e não padrão silencioso', () => {
-  const config = parseOwnership(`${MINIMO}\nid-format:\n  separator: ""\n  padding: 3\n`)
-
-  assert.deepEqual(config.idFormat, { separator: '', padding: 3 })
-
-  assert.throws(() => parseOwnership(`${MINIMO}\nid-format:\n  separator: "~"\n`), /separator "~" não é aceito/)
-  assert.throws(() => parseOwnership(`${MINIMO}\nid-format:\n  padding: 9\n`), /padding "9"/)
-})
-
-const COM_AUDIENCE = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
-    owner: "@time"
-    skill: decision-recorder
-  - id-prefix: REL
-    path: docs/releases/
-    owner: "@time"
-    skill: release-historian
-    audience: external
-documents:
+test('findArtifactRule e findDocumentRule casam arquivo por igualdade e diretório por prefixo', () => {
+  const config = configFrom(
+    yaml(`${ADR}${DA}
+  - path: docs/charter/
+    owner: '@time'
+    living-docs: {}
   - path: CONTRIBUTING.md
-    owner: "@time"
-  - path: CHANGELOG.md
-    owner: "@time"
-    skill: release-historian
-    audience: external
-`
+    owner: '@time'
+    living-docs: {}
+`),
+  )
 
-test('ADR-0017: audience ausente é internal — nenhum .ownership.yml escrito antes muda de significado', () => {
-  const config = parseOwnership(COM_AUDIENCE)
-
-  assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'ADR')?.audience, 'internal')
-  assert.equal(config.documents.find(document => document.path === 'CONTRIBUTING.md')?.audience, 'internal')
-  assert.ok(parseOwnership(VALID).artifacts.every(artifact => artifact.audience === 'internal'))
+  assert.equal(findArtifactRule(config, 'docs/decisions/adr/ADR-0001-x.md')?.idPrefix, 'ADR')
+  assert.equal(findArtifactRule(config, './docs/open-decisions.md')?.idPrefix, 'DA')
+  assert.equal(findArtifactRule(config, 'docs/open-decisions.md.bak'), null)
+  assert.equal(findDocumentRule(config, 'docs/charter/vision.md')?.path, 'docs/charter/')
+  assert.equal(findDocumentRule(config, 'CONTRIBUTING.md')?.path, 'CONTRIBUTING.md')
+  assert.equal(findDocumentRule(config, 'CONTRIBUTING.md.bak'), null)
 })
 
-test('ADR-0017: audience external é lido em artifacts: e em documents:', () => {
-  const config = parseOwnership(COM_AUDIENCE)
+test('ADR-0017: audience external é lido no artefato e no documento; fora do vocabulário é erro que nomeia os válidos', () => {
+  const config = configFrom(
+    yaml(`${ADR.replace('append-only: true', 'append-only: true\n      audience: external')}
+  - path: README.md
+    owner: '@time'
+    living-docs: { audience: external }
+`),
+  )
 
-  assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
-  assert.equal(config.documents.find(document => document.path === 'CHANGELOG.md')?.audience, 'external')
+  assert.equal(config.artifacts[0]?.audience, 'external')
+  assert.equal(config.documents[0]?.audience, 'external')
+  assert.throws(() => configFrom(yaml(ADR.replace('append-only: true', 'audience: publico'))), /audience "publico" desconhecido.*internal, external/)
 })
 
-test('ADR-0017: audience fora do vocabulário é erro e nomeia os válidos', () => {
-  // O artefato REL é o único seguido de `documents:`; o CHANGELOG é a última linha do YAML.
-  const noArtefato = COM_AUDIENCE.replace('audience: external\ndocuments:', 'audience: publico\ndocuments:')
-  const noDocumento = COM_AUDIENCE.replace(/audience: external\n$/, 'audience: publico\n')
+test('field-map normaliza as duas pontas, vale o nome canônico sem mapa, e valor vazio é erro', () => {
+  const mapped = configFrom(yaml(ADR.replace('append-only: true', "field-map: { 'Resolved-By': ' Resolvida Por: ' }")))
 
-  assert.notEqual(noDocumento, COM_AUDIENCE, 'o replace do documento precisa casar')
-  assert.notEqual(noArtefato, COM_AUDIENCE, 'o replace do artefato precisa casar')
-  for (const source of [noDocumento, noArtefato]) {
-    assert.throws(
-      () => parseOwnership(source),
-      (err: unknown) => err instanceof OwnershipError && /audience "publico"/.test(err.message) && /internal, external/.test(err.message),
-    )
-  }
+  assert.deepEqual(mapped.artifacts[0]?.fieldMap, { 'resolved-by': 'resolvida por' })
+
+  const plain = configFrom(yaml(ADR))
+  const item = { key: 'ADR-0001', state: 'draft', line: 1, fields: { 'resolved-by': 'DA-0001' } }
+
+  assert.equal(fieldOf(plain.artifacts[0]!, item, 'resolved-by'), 'DA-0001')
+  assert.throws(() => configFrom(yaml(ADR.replace('append-only: true', "field-map: { resolved-by: '' }"))), /field-map\.resolved-by precisa ser uma string não vazia/)
 })

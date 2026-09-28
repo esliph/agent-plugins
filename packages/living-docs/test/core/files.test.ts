@@ -44,7 +44,7 @@ test('listFiles filtra por glob; lista vazia não é ausência de filtro', () =>
 })
 
 test('listFiles casa arquivo que começa com ponto — o corpus começa pelo `.ownership.yml`', () => {
-  withTempRepo({ 'docs/.ownership.yml': 'version: 1\n', 'docs/sub/.gitkeep': '' }, root => {
+  withTempRepo({ 'docs/.ownership.yml': 'version: 2\n', 'docs/sub/.gitkeep': '' }, root => {
     assert.deepEqual(listFiles(root, ['docs/**']).sort(), ['docs/.ownership.yml', 'docs/sub/.gitkeep'])
   })
 })

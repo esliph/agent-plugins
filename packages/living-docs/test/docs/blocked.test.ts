@@ -2,21 +2,25 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { blockedClaims, claimsFor } from '../../src/docs/blocked.ts'
 import { collectArtifacts } from '../../src/docs/collect.ts'
-import { loadOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: DA
-    path: docs/open-decisions.md
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/open-decisions.md
     owner: "@time"
     skill: decision-recorder
-    collection: table
-    field-map:
-      resolved-by: "Resolvida por"
-      blocks: "Bloqueia"
-      gap: "Lacuna"
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+      field-map:
+        resolved-by: "Resolvida por"
+        blocks: "Bloqueia"
+        gap: "Lacuna"
 `
 
 const TABELA = [
@@ -36,13 +40,13 @@ const TABELA = [
 ].join('\n')
 
 function claims(root: string) {
-  const config = loadOwnership(root)
+  const config = loadLivingDocsConfig(root)
 
   return blockedClaims(collectArtifacts(root, config))
 }
 
 test('RN-0026: só decisão aberta com caminho declarado reivindica', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, 'docs/open-decisions.md': TABELA }, root => {
     const found = claims(root)
 
     assert.equal(found.length, 1, JSON.stringify(found, null, 2))
@@ -54,7 +58,7 @@ test('RN-0026: só decisão aberta com caminho declarado reivindica', () => {
 })
 
 test('RN-0026: claimsFor devolve o que cada reivindicação pegou', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, 'docs/open-decisions.md': TABELA }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, 'docs/open-decisions.md': TABELA }, root => {
     const hits = claimsFor(claims(root), ['src/cobranca/taxa.ts', 'README.md'])
 
     assert.equal(hits.length, 1)

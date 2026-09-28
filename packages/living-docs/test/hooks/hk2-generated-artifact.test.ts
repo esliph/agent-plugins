@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { decideHk2 } from '../../src/hooks/hk2-generated-artifact.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import type { HookEnv } from '../../src/hooks/lib/io.ts'
 import type { Hk2Decision } from '../../src/hooks/hk2-generated-artifact.ts'
@@ -12,12 +12,14 @@ function assertDeny(decision: Hk2Decision): asserts decision is { action: 'deny'
 }
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@team"
     skill: decision-recorder
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR }
 generated:
   - path: docs/contracts/openapi.gen.yaml
     command: "node tools/gen-openapi.js"
@@ -28,7 +30,7 @@ const GENERATED = 'docs/contracts/openapi.gen.yaml'
 function decide(files: Record<string, string>, toolInput: Record<string, unknown>): Hk2Decision {
   let decision: Hk2Decision = { action: 'allow' }
 
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
     const env: HookEnv = { root, hostRoots: [root] }
 
     decision = decideHk2({ tool_name: 'Edit', tool_input: toolInput }, env)
@@ -100,7 +102,7 @@ test('payload sem file_path permite', () => {
 test('aceita file_path absoluto do host', () => {
   let decision: Hk2Decision = { action: 'allow' }
 
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [GENERATED]: 'openapi: 3.1.0\n' }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [GENERATED]: 'openapi: 3.1.0\n' }, root => {
     decision = decideHk2({ tool_name: 'Write', tool_input: { file_path: `${root}/${GENERATED}`, content: 'x' } }, { root, hostRoots: [root] })
   })
   assert.equal(decision.action, 'deny')
@@ -108,13 +110,13 @@ test('aceita file_path absoluto do host', () => {
 
 test('generated[] exige caminho de arquivo exato — diretório declarado não cobre o que está dentro dele', () => {
   // Um artefato, um comando (findGeneratedRule não trata mais `path` com `/`
-  // final como prefixo de diretório): CI-5 lê `rule.path` com readFileSync, que
+  // final como prefixo de diretório): a checagem de deriva lê `rule.path` com readFileSync, que
   // não sabe comparar diretório com saída de gerador — as duas metades agora
   // concordam em exigir arquivo exato.
   const config = CONFIG.replace('path: docs/contracts/openapi.gen.yaml', 'path: docs/contracts/gen/')
   let decision: Hk2Decision = { action: 'deny', reason: 'não deveria' }
 
-  withTempRepo({ [OWNERSHIP_PATH]: config }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: config }, root => {
     decision = decideHk2({ tool_name: 'Write', tool_input: { file_path: 'docs/contracts/gen/schema.json', content: '{}' } }, { root, hostRoots: [root] })
   })
   assert.equal(decision.action, 'allow')

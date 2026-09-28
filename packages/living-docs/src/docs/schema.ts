@@ -1,5 +1,3 @@
-import type { ArtifactRule } from '../config/ownership.ts'
-
 /** Campos obrigatórios de um artefato individual (spec §2). */
 export const REQUIRED_FIELDS: readonly string[] = ['id', 'title', 'status', 'owner', 'trigger', 'last-reviewed']
 
@@ -8,17 +6,6 @@ export const CONTAINER_REQUIRED_FIELDS: readonly string[] = ['title', 'owner', '
 
 /** Allowlist padrão de mutação de item congelado (spec §2 e §7). */
 export const MUTABLE_FIELDS_DEFAULT: readonly string[] = ['status', 'superseded-by', 'last-reviewed']
-
-/** Máquina de estados por prefixo (spec §4). Prefixos das fases 2+ vêm de `states` no .ownership.yml. */
-export const STATUS_MACHINE: Readonly<Record<string, readonly string[]>> = Object.freeze({
-  ADR: ['draft', 'accepted', 'superseded'],
-  DA: ['open', 'resolved', 'dropped'],
-  TDR: ['open', 'paid', 'accepted-permanently'],
-  RF: ['draft', 'active', 'revoked'],
-  RNF: ['draft', 'active', 'revoked'],
-  RN: ['draft', 'active', 'revoked'],
-  REL: ['draft', 'published'],
-})
 
 /** "Nenhum estado terminal permite edição do corpo" (spec §4). */
 export const FROZEN_STATUSES: ReadonlySet<string> = new Set(['accepted', 'superseded', 'deprecated', 'published', 'paid', 'revoked'])
@@ -31,14 +18,6 @@ export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.
   { from: 'active', to: 'revoked' },
   { from: 'draft', to: 'published' },
 ])
-
-export function statesFor(rule: ArtifactRule): readonly string[] | null {
-  if (rule.states !== null) {
-    return rule.states
-  }
-
-  return STATUS_MACHINE[rule.idPrefix] ?? null
-}
 
 /**
  * Vocabulário de cadência proibido em `trigger` (spec §2 e anti-requisito §13).

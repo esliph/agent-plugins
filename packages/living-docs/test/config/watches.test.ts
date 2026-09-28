@@ -1,17 +1,21 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseOwnership } from '../../src/config/ownership.ts'
 import { coversDoc, pendingDocs, watchesFor } from '../../src/config/watches.ts'
+import { configFrom } from '../helpers/ownership.ts'
 
-const CONFIG = parseOwnership(`
-version: 1
-artifacts:
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+const RN_ENTRY = `
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/requirements/rules.md
     owner: "@team"
     skill: requirements-keeper
-    collection: sections
-watches:
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
+`
+
+const CONFIG = configFrom(`${RN_ENTRY}watches:
   - code: "src/domain/**"
     doc: docs/requirements/rules.md
     reason: "comportamento novo exige regra com ID antes do código"
@@ -22,15 +26,7 @@ watches:
     reason: "outro motivo, mesmo doc"
 `)
 
-const SEM_WATCHES = parseOwnership(`
-version: 1
-artifacts:
-  - id-prefix: RN
-    path: docs/requirements/rules.md
-    owner: "@team"
-    skill: requirements-keeper
-    collection: sections
-`)
+const SEM_WATCHES = configFrom(RN_ENTRY)
 
 test('RN-0008: caminho vigiado nomeia o doc dono, com quem o mantém e por quê', () => {
   const matches = watchesFor(CONFIG, ['src/domain/reembolso.ts'])

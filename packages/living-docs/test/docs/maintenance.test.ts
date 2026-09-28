@@ -2,8 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { documentWithRole, loadOwnership } from '../../src/config/ownership.ts'
-import { loadCodeowners, ownersOf } from '../../src/config/codeowners.ts'
+import { loadCodeowners, ownersOf } from '@esliph/ownership'
+import { documentWithRole, loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { debtsWithoutTrigger, duePayments } from '../../src/checks/ci4-staleness.ts'
 import { documentationFiles } from '../../src/docs/corpus.ts'
@@ -11,7 +11,7 @@ import { checkoutRoot } from '../helpers/checkout.ts'
 import { todayIso } from '../../src/core/dates.ts'
 
 const ROOT = checkoutRoot()
-const CONFIG = loadOwnership(ROOT)
+const CONFIG = loadLivingDocsConfig(ROOT)
 
 function contextFor() {
   return {

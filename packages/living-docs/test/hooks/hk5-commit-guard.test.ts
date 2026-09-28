@@ -4,19 +4,21 @@ import { decideHk5, isGitCommit } from '../../src/hooks/hk5-commit-guard.ts'
 import type { Hk5Decision } from '../../src/hooks/hk5-commit-guard.ts'
 import type { GitRunner } from '../../src/git/staged.ts'
 import { askOutput } from '../../src/hooks/lib/io.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const NUL = String.fromCharCode(0)
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/requirements/rules.md
     owner: "@team"
     skill: requirements-keeper
-    collection: sections
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
 watches:
   - code: "src/domain/**"
     doc: docs/requirements/rules.md
@@ -34,7 +36,7 @@ function assertAsk(decision: Hk5Decision): asserts decision is { action: 'ask'; 
 
 function decide(command: string, run: GitRunner, config: string | null = CONFIG): Hk5Decision {
   let decision: Hk5Decision = { action: 'allow' }
-  const files: Record<string, string> = config === null ? {} : { [OWNERSHIP_PATH]: config }
+  const files: Record<string, string> = config === null ? {} : { [OWNERSHIP_FILE]: config }
 
   withTempRepo(files, root => {
     decision = decideHk5({ tool_name: 'Bash', tool_input: { command } }, { root, hostRoots: [root] }, run)
@@ -117,7 +119,7 @@ test('índice vazio — passa', () => {
 })
 
 test('tool_name diferente de Bash não é assunto deste hook', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG }, root => {
     const decision = decideHk5(
       { tool_name: 'Edit', tool_input: { command: 'git commit -m "x"' } },
       { root, hostRoots: [root] },

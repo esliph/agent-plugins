@@ -7,7 +7,7 @@
  */
 import { readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import { findArtifactRule, loadOwnership } from '../config/ownership.ts'
+import { findArtifactRule, loadLivingDocsConfig } from '../config/ownership.ts'
 import { parseFrontmatter } from '../frontmatter/parse.ts'
 import { FROZEN_STATUSES, MUTABLE_FIELDS_DEFAULT } from '../docs/schema.ts'
 import { applyToolInput, diffDocument } from './lib/edit.ts'
@@ -41,7 +41,7 @@ export function decideHk1(payload: HookPayload, env: HookEnv): HookDecision {
   let rule
 
   try {
-    rule = findArtifactRule(loadOwnership(env.root), repoPath)
+    rule = findArtifactRule(loadLivingDocsConfig(env.root), repoPath)
   } catch {
     return ALLOW // falha aberta: sem configuração legível, não trave o trabalho
   }

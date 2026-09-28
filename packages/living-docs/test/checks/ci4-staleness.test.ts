@@ -1,43 +1,49 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ci4Staleness, duePayments, debtsWithoutTrigger, payWhenOf, staleDocs } from '../../src/checks/ci4-staleness.ts'
-import { parseOwnership } from '../../src/config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
+import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const HOJE = '2026-08-27'
 
 const OWNERSHIP = `
-version: 1
-stale-after-months: 6
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+living-docs:
+  stale-after-months: 6
+owned:
+  - path: docs/decisions/adr/
     owner: "@time"
     skill: decision-recorder
-    append-only: true
-    mutable-fields: [status, superseded-by, last-reviewed]
-  - id-prefix: TDR
-    path: docs/decisions/debt/
+    states: [draft, accepted, superseded]
+    living-docs:
+      id-prefix: ADR
+      append-only: true
+      mutable-fields: [status, superseded-by, last-reviewed]
+  - path: docs/decisions/debt/
     owner: "@time"
     skill: decision-recorder
-    append-only: true
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+    states: [open, paid, accepted-permanently]
+    living-docs: { id-prefix: TDR, append-only: true }
+  - path: docs/requirements/rules.md
     owner: "@time"
     skill: requirements-keeper
-    collection: sections
-documents:
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
   - path: CONTRIBUTING.md
     owner: "@time"
     skill: working-agreements-keeper
+    living-docs: {}
   - path: CHANGELOG.md
     owner: "@time"
     skill: release-historian
+    living-docs: {}
 `
 
 function contextFor(root: string, ownership = OWNERSHIP) {
-  const config = parseOwnership(ownership)
+  const config = configFrom(ownership)
 
   return {
     root,

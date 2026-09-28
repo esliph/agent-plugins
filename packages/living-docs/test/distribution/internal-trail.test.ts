@@ -4,7 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import ts from 'typescript'
 import { runInit, STAGES } from '../../src/cli/init.ts'
-import { loadOwnership } from '../../src/config/ownership.ts'
+import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
 import { DEFAULT_ID_FORMAT, parseId } from '../../src/docs/schema.ts'
 import { findCitations } from '../../src/ids/citations.ts'
@@ -16,13 +16,13 @@ import { withTempRepo } from '../helpers/tmp.ts'
  * semeia, os templates, o texto do plugin e as strings do código — não cita o
  * rastro interno do toolkit (ADR-0018).
  *
- * Rastro interno é o prefixo declarado em `artifacts:` do `.ownership.yml` do
+ * Rastro interno é o `id-prefix` declarado no `.ownership.yml` do
  * toolkit, mais `spec §<n>` e o caminho `docs/superpowers/`. Nenhuma lista de
  * prefixos mora aqui: `CI-n`, `HK-n`, `SK-n`, `CM-n` e `EXIT-n` ficam de fora
  * porque ninguém os declara como família de artefato — o mesmo desenho de CI-11.
  */
 const ROOT = toolkitRoot()
-const CONFIG = loadOwnership(checkoutRoot())
+const CONFIG = loadLivingDocsConfig(checkoutRoot())
 const INTERNAL = new Set(CONFIG.artifacts.map(artifact => artifact.idPrefix))
 
 interface Trail {

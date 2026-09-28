@@ -10,7 +10,9 @@ export interface CatalogEntry {
 /**
  * O contrato público dos checks: é isto que um projeto consumidor cita na
  * Definition of Done dele, e é a fonte anotada de `docs/contracts/checks.gen.md`
- * (`CI-5`). Para mudar o contrato, mude aqui e regere — nunca o contrário.
+ * (`ownership/generated-drift` a compara com a saída do gerador). Para mudar o
+ * contrato, mude aqui e regere — nunca o contrário. O catálogo do núcleo mora em
+ * `@esliph/ownership` (`CORE_CHECK_CATALOG`).
  *
  * Este arquivo não importa nada (nem `yaml`, `picomatch`, `node:child_process`,
  * nem os checks CI-1/2/3): é só tipos e dados, de propósito — `src/tools/gen-checks.ts`
@@ -22,7 +24,8 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     id: 'CI-1',
     name: 'structure lint',
     command: 'living-docs validate',
-    failsWhen: 'Frontmatter ausente ou inválido; `status` fora da máquina de estados; `owner` vazio ou sem `@`; `trigger` ausente ou descrevendo cadência.',
+    failsWhen:
+      'Frontmatter ausente ou inválido; campo obrigatório vazio; `id` fora do formato ou do território do artefato; `status` num artefato sem `states` declarado; item de coleção sem `status`; `trigger` ausente ou descrevendo cadência; `last-reviewed` fora do formato ISO.',
   },
   {
     id: 'CI-2',
@@ -45,31 +48,18 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
       'Uma dívida `open` não declara `pay-when` verificável, ou o gatilho declarado já aconteceu no repositório. `last-reviewed` além de `stale-after-months` produz aviso, não falha — e item em estado congelado não vence.',
   },
   {
-    id: 'CI-5',
-    name: 'contract drift',
-    command: 'living-docs drift',
-    failsWhen: 'A saída do gerador difere do artefato versionado; o gerador falha; ou o artefato declarado em `generated[]` não existe.',
-  },
-  {
-    id: 'CI-6',
-    name: 'changelog required',
-    command: 'living-docs changelog --base <ref>',
-    failsWhen:
-      'O diff entre a base e `HEAD` toca `consumer-visible-paths` e o doc marcado `consumer-visible: true` não vem no mesmo diff com item em `## [Unreleased]`, nem alguma mensagem de commit traz `Changelog: none — <razão>`.',
-  },
-  {
     id: 'CI-7',
     name: 'ownership coverage',
     command: 'living-docs validate',
     failsWhen:
-      'Documento do corpus sem entrada no `.ownership.yml` ou sem linha no CODEOWNERS; regra de `watches` cujo `doc` não existe ou não tem dono; contrato do agente repetindo frase de artefato dono; item da Definition of Done sem verificação nomeada; e, com `--base <ref>`, caminho vigiado alterado sem o doc dono, ou caminho reivindicado por decisão aberta — os dois liberados por `Docs: none — <razão>`.',
+      'Contrato do agente repetindo frase de artefato dono; item da Definition of Done sem verificação nomeada; e, com `--base <ref>`, caminho reivindicado por decisão aberta — liberado por `Docs: none — <razão>`.',
   },
   {
     id: 'CI-8',
     name: 'links',
     command: 'living-docs validate',
     failsWhen:
-      'Link interno relativo que não resolve para arquivo ou diretório existente; `[[wikilink]]` sem destino no corpus; arquivo em formato binário sob a raiz da documentação. Link dentro de bloco de código ou de marcação inline não conta.',
+      'Link interno relativo que não resolve para arquivo ou diretório existente; `[[wikilink]]` sem destino no corpus; arquivo em formato binário na documentação. Link dentro de bloco de código ou de marcação inline não conta.',
   },
   {
     id: 'CI-9',
@@ -90,6 +80,6 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     name: 'external audience',
     command: 'living-docs validate',
     failsWhen:
-      'Documento ou artefato declarado `audience: external` cita, fora do frontmatter e de bloco de código cercado, um ID cujo prefixo está declarado em `artifacts:` — em prosa, entre crases ou no caminho de um link.',
+      'Documento ou artefato declarado `audience: external` cita, fora do frontmatter e de bloco de código cercado, um ID cujo prefixo tem família declarada (`id-prefix`) — em prosa, entre crases ou no caminho de um link.',
   },
 ])

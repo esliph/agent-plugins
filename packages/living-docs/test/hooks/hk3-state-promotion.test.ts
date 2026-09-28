@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import type { Hk3Decision } from '../../src/hooks/hk3-state-promotion.ts'
 
@@ -10,23 +10,26 @@ function assertAsk(decision: Hk3Decision): asserts decision is { action: 'ask'; 
 }
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@team"
     skill: decision-recorder
-    append-only: true
-  - id-prefix: DA
-    path: docs/open-decisions.md
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR, append-only: true }
+  - path: docs/open-decisions.md
     owner: "@product"
     skill: decision-recorder
-    collection: table
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs: { id-prefix: DA }
+  - path: docs/requirements/rules.md
     owner: "@team"
     skill: requirements-keeper
-    collection: sections
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
 `
 
 const ADR_FILE = 'docs/decisions/adr/ADR-0001-fila.md'
@@ -64,7 +67,7 @@ function openDecisions(status: string, resolvedBy: string): string {
 function decide(files: Record<string, string>, toolInput: Record<string, unknown>): Hk3Decision {
   let decision: Hk3Decision = { action: 'allow' }
 
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
     decision = decideHk3({ tool_name: 'Edit', tool_input: toolInput }, { root, hostRoots: [root] })
   })
 
@@ -159,7 +162,7 @@ function rules(status: string): string {
 }
 
 test('RN-0005: promover um requisito de draft para active pergunta', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('draft') }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [RULES_FILE]: rules('draft') }, root => {
     const decision = decideHk3(
       {
         tool_name: 'Edit',
@@ -179,7 +182,7 @@ test('RN-0005: promover um requisito de draft para active pergunta', () => {
 })
 
 test('RN-0005: revogar um requisito também pergunta', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('active') }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [RULES_FILE]: rules('active') }, root => {
     const decision = decideHk3(
       {
         tool_name: 'Edit',
@@ -198,7 +201,7 @@ test('RN-0005: revogar um requisito também pergunta', () => {
 })
 
 test('editar o enunciado de um requisito em draft não pergunta', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [RULES_FILE]: rules('draft') }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [RULES_FILE]: rules('draft') }, root => {
     const decision = decideHk3(
       {
         tool_name: 'Edit',

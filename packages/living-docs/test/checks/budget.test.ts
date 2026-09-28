@@ -2,8 +2,6 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { CHECK_BUDGET_MS, formatElapsed } from '../../src/checks/budget.ts'
 import { runValidate } from '../../src/cli/validate.ts'
-import { runDrift } from '../../src/cli/drift.ts'
-import { runChangelog } from '../../src/cli/changelog.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
 
 const NUL = String.fromCharCode(0)
@@ -24,12 +22,10 @@ test('RNF-0005: o conjunto completo de checks cabe no teto declarado, medido', (
   const root = checkoutRoot()
   const inicio = process.hrtime.bigint()
 
-  // O conjunto e o que roda no PR: as duas execucoes de `validate`, o `drift`
-  // com o gerador de verdade, e o `changelog`. Nao e o tempo de um check.
+  // O conjunto do living-docs e o que roda no PR: as duas execucoes de
+  // `validate`. Nao e o tempo de um check.
   runValidate(root)
   runValidate(root, 'origin/master', git)
-  runDrift(root)
-  runChangelog(root, 'origin/master', git)
 
   const decorrido = Number(process.hrtime.bigint() - inicio) / 1e6
 
@@ -49,8 +45,6 @@ test('RNF-0005: cada comando devolve o que mediu, e a medida nao e estimada', ()
   // Uma varredura da arvore inteira nao custa zero: medida zerada e medida
   // que ninguem tomou.
   assert.ok(validado.elapsedMs > 0, 'elapsedMs veio zerado — o relogio nao foi lido')
-
-  assert.equal(typeof runDrift(root).elapsedMs, 'number')
 })
 
 test('RNF-0005: formatElapsed e legivel por quem le o log do PR', () => {

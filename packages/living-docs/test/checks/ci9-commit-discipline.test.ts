@@ -1,22 +1,25 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ci9CommitDiscipline, isPureDateBump } from '../../src/checks/ci9-commit-discipline.ts'
-import { parseOwnership } from '../../src/config/ownership.ts'
 import { collectArtifacts } from '../../src/docs/collect.ts'
+import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const OWNERSHIP = `
-version: 1
-artifacts:
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/requirements/rules.md
     owner: "@time"
     skill: requirements-keeper
-    collection: sections
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
+  - path: docs/decisions/adr/
     owner: "@time"
     skill: decision-recorder
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR }
 `
 
 const REGRAS = [
@@ -38,7 +41,7 @@ const REGRAS = [
 const ARVORE = { 'docs/requirements/rules.md': REGRAS }
 
 function contextFor(root: string, ownership = OWNERSHIP) {
-  const config = parseOwnership(ownership)
+  const config = configFrom(ownership)
 
   return { root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-31' }
 }
@@ -112,7 +115,7 @@ test('RN-0027: o limiar e configuravel, e o padrao e tres', () => {
       messages: ['docs: revisao'],
       edits: [bump('docs/a.md'), bump('docs/b.md')],
     }
-    const comLimiar2 = ci9CommitDiscipline(facts).run(contextFor(root, `${OWNERSHIP}last-reviewed-bump-limit: 2\n`))
+    const comLimiar2 = ci9CommitDiscipline(facts).run(contextFor(root, OWNERSHIP.replace('owned:', 'living-docs:\n  last-reviewed-bump-limit: 2\nowned:')))
 
     assert.ok(comLimiar2.some(f => /last-reviewed/.test(f.message)))
   })
@@ -169,7 +172,7 @@ test('RN-0024: a citacao e comparada por identidade, nao pela forma escrita', ()
       changed: ['docs/requirements/rules.md'],
       messages: ['docs(RN001): a regra ganha o caso do negativo'],
       edits: [],
-    }).run(contextFor(root, `${OWNERSHIP}id-format:\n  separator: ""\n  padding: 3\n`))
+    }).run(contextFor(root, OWNERSHIP.replace('owned:', 'living-docs:\n  id-format: { separator: "", padding: 3 }\nowned:')))
 
     assert.deepEqual(findings, [])
   })

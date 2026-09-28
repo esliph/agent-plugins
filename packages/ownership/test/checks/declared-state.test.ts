@@ -110,3 +110,12 @@ test('per-file: owner com @, ou ausente, não é achado — ausência é de quem
     assert.deepEqual(ownershipDeclaredState().run({ root, config, today: '2026-09-28' }), [])
   })
 })
+
+test('per-file: entrada sem states não tem o owner do frontmatter cobrado — modelo de documento com placeholder não é violação', () => {
+  withTempRepo({ 'templates/adr.md': '---\nstatus: draft\nowner: "{{OWNER}}"\n---\n' }, root => {
+    forgetTree(root)
+    const config = buildConfig({ owned: [{ path: 'templates/', owner: '@x' }] })
+
+    assert.deepEqual(ownershipDeclaredState().run({ root, config, today: '2026-09-28' }), [])
+  })
+})

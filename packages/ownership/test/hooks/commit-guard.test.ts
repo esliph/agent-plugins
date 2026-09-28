@@ -59,3 +59,35 @@ test('sem arquivo de ownership, o hook se cala (falha aberta)', () => {
     assert.equal(decision.action, 'allow')
   })
 })
+
+test('a mensagem ensina as duas saídas legítimas: atualizar o doc, ou decisão humana', () => {
+  withTempRepo({ '.ownership.yml': CONFIG }, root => {
+    const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => 'src/checks/a.ts\0')
+
+    assert.ok(decision.action === 'ask')
+    assert.match(decision.reason, /atualize o doc/i)
+    assert.match(decision.reason, /decisão humana/i)
+  })
+})
+
+test('comando que não é git commit passa sem consultar o git', () => {
+  withTempRepo({ '.ownership.yml': CONFIG }, root => {
+    let consultado = false
+    const spy = () => {
+      consultado = true
+
+      return ''
+    }
+
+    for (const command of ['git status', 'npm test', 'git add -A', 'echo "git commit"']) {
+      assert.equal(decideCommitGuard({ tool_name: 'Bash', tool_input: { command } }, env(root), spy).action, 'allow', command)
+    }
+    assert.equal(consultado, false)
+  })
+})
+
+test('índice vazio passa', () => {
+  withTempRepo({ '.ownership.yml': CONFIG }, root => {
+    assert.equal(decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => '').action, 'allow')
+  })
+})

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import picomatch from 'picomatch'
-import { loadOwnership } from '../../src/config/ownership.ts'
+import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { watchesFor } from '../../src/config/watches.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
 
@@ -65,8 +65,8 @@ test('RNF-0006: bin/living-docs delega a bin/dev, sem lógica de container próp
   assert.doesNotMatch(wrapper, /exit\s+2\b/, 'o container ausente deixou de ser modo de falha (E-2)')
 })
 
-test('RNF-0006: docs/.ownership.yml cobre bin/dev em watches e em consumer-visible-paths', () => {
-  const config = loadOwnership(ROOT)
+test('RNF-0006: .ownership.yml cobre bin/dev em watches, marcado visível ao consumidor', () => {
+  const config = loadLivingDocsConfig(ROOT)
 
   // Mecanismo 1: quem toca bin/dev leva o doc dono no mesmo commit.
   const matches = watchesFor(config, ['bin/dev'])
@@ -76,11 +76,14 @@ test('RNF-0006: docs/.ownership.yml cobre bin/dev em watches e em consumer-visib
     ['CHANGELOG.md'],
     'bin/dev é ponto de entrada público e precisa de doc dono declarado',
   )
-  assert.equal(matches[0]?.consumerVisible, true, 'a mudança é visível a quem consome (CI-6)')
+  assert.equal(matches[0]?.consumerVisible, true, 'a mudança é visível a quem consome')
 
-  // A mesma cobertura pelo lado de CI-6, que lê a lista de globs.
-  assert.ok(picomatch(config.consumerVisiblePaths)('bin/dev'), 'bin/dev fora de consumer-visible-paths: CI-6 não cobraria a entrada de CHANGELOG')
+  // A mesma cobertura pelo lado do cobrador de CHANGELOG, que lê as regras
+  // marcadas `consumer-visible: true`.
+  const visivel = picomatch(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code))
+
+  assert.ok(visivel('bin/dev'), 'bin/dev fora das regras consumer-visible: ninguém cobraria a entrada de CHANGELOG')
 
   // E o wrapper que já existia não pode ter sido descoberto no caminho.
-  assert.ok(picomatch(config.consumerVisiblePaths)('bin/living-docs'))
+  assert.ok(visivel('bin/living-docs'))
 })

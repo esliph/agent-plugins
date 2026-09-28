@@ -111,7 +111,7 @@ const SKILL_REFERENCES: readonly { root: string; file: string; pattern: RegExp }
   { root: ROOT, file: 'src/cli/index.ts', pattern: /skill dona:\s*([a-z][a-z0-9-]*)/g },
   { root: ROOT, file: 'src/config/ownership.ts', pattern: /skill dona:\s*([a-z][a-z0-9-]*)/g },
   { root: ROOT, file: 'templates/ownership.yml', pattern: /^\s*skill:\s*([a-z][a-z0-9-]*)\s*$/gm },
-  { root: CHECKOUT, file: 'docs/.ownership.yml', pattern: /^\s*skill:\s*([a-z][a-z0-9-]*)\s*$/gm },
+  { root: CHECKOUT, file: '.ownership.yml', pattern: /^\s*skill:\s*([a-z][a-z0-9-]*)\s*$/gm },
 ]
 
 function referencedSkills(): Map<string, string[]> {

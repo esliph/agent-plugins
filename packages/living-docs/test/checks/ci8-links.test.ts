@@ -3,31 +3,40 @@ import assert from 'node:assert/strict'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { ci8Links, findLinks } from '../../src/checks/ci8-links.ts'
-import { parseOwnership } from '../../src/config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
+import { OWNERSHIP_FILE, configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const OWNERSHIP = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@time"
     skill: decision-recorder
-documents:
-  - path: docs/.ownership.yml
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR }
+  - path: .ownership.yml
     owner: "@time"
     skill: living-docs-bootstrap
+    living-docs: {}
   - path: docs/guia.md
     owner: "@time"
     skill: working-agreements-keeper
+    living-docs: {}
+  - path: docs/anexos/
+    owner: "@time"
+    living-docs: {}
   - path: CONTRIBUTING.md
     owner: "@time"
     skill: working-agreements-keeper
+    living-docs: {}
+  - path: assets/
+    owner: "@time"
 `
 
 function contextFor(root: string) {
-  const config = parseOwnership(OWNERSHIP)
+  const config = configFrom(OWNERSHIP)
 
   return {
     root,
@@ -39,7 +48,7 @@ function contextFor(root: string) {
 }
 
 const BASE = {
-  'docs/.ownership.yml': OWNERSHIP,
+  [OWNERSHIP_FILE]: OWNERSHIP,
   'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
   'CONTRIBUTING.md': '# como se contribui\n',
 }
@@ -140,7 +149,7 @@ test('RN-0023: definição de referência também é link', () => {
   )
 })
 
-test('RN-0023: anexo binário sob a raiz da documentação reprova; texto e .gitkeep não', () => {
+test('RN-0023: anexo binário no corpus da documentação reprova; texto e .gitkeep não', () => {
   withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
     mkdirSync(join(root, 'docs/anexos'), { recursive: true })
     writeFileSync(join(root, 'docs/anexos/diagrama.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
@@ -157,7 +166,7 @@ test('RN-0023: anexo binário sob a raiz da documentação reprova; texto e .git
   })
 })
 
-test('RN-0023: binário fora da raiz da documentação não é assunto de CI-8', () => {
+test('RN-0023: binário fora do corpus não é assunto de CI-8', () => {
   withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
     mkdirSync(join(root, 'assets'), { recursive: true })
     writeFileSync(join(root, 'assets/logo.png'), Buffer.from([0x89, 0x50]))

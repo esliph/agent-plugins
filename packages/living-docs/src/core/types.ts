@@ -1,4 +1,4 @@
-import type { OwnershipConfig } from '../config/ownership.ts'
+import type { LivingDocsConfig } from '../config/ownership.ts'
 import type { ArtifactDoc, DocumentDoc } from '../docs/collect.ts'
 
 export type Severity = 'error' | 'warning'
@@ -19,7 +19,7 @@ export interface Finding {
 
 export interface CheckContext {
   root: string
-  config: OwnershipConfig
+  config: LivingDocsConfig
   docs: ArtifactDoc[]
   /** Documentos sem família de IDs, declarados em `documents:` (`ADR-0008`). */
   documents: DocumentDoc[]
@@ -28,6 +28,13 @@ export interface CheckContext {
    * a data entra por valor, e é isso que torna `CI-4` testável.
    */
   today: string
+}
+
+/** Fatos do diff da branch, entregues por injeção a quem os lê (`ADR-0006`). */
+export interface DiffFacts {
+  base: string
+  changed: string[]
+  messages: string[]
 }
 
 export interface Check {

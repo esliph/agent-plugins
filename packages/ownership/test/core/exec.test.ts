@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { changedPaths, commitMessages, stagedPaths, runCommand } from '../../src/core/exec.ts'
+import { GitError, changedPaths, commitMessages, stagedPaths, runCommand } from '../../src/core/exec.ts'
 
 test('stagedPaths falha aberta: runner que lança devolve lista vazia', () => {
   assert.deepEqual(
@@ -27,4 +27,14 @@ test('commitMessages separa por NUL e apara espaço', () => {
 
 test('runCommand executa e devolve stdout', () => {
   assert.equal(runCommand('node -e "process.stdout.write(String(1+1))"', process.cwd()), '2')
+})
+
+test('changedPaths com base que não resolve lança GitError — o check não inventa diff vazio', () => {
+  assert.throws(
+    () =>
+      changedPaths('/repo', 'nao-existe', () => {
+        throw new Error('fatal: bad revision')
+      }),
+    GitError,
+  )
 })

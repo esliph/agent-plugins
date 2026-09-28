@@ -1,22 +1,25 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
-import { parseOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
+import { OWNERSHIP_FILE, configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@team"
     skill: decision-recorder
-    append-only: true
-  - id-prefix: DA
-    path: docs/open-decisions.md
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR, append-only: true }
+  - path: docs/open-decisions.md
     owner: "@product"
     skill: decision-recorder
-    collection: table
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs: { id-prefix: DA }
 `
 
 const ADR = [
@@ -48,13 +51,13 @@ const OPEN_DECISIONS = [
 test('coleta artefatos por diretório e por arquivo único', () => {
   withTempRepo(
     {
-      [OWNERSHIP_PATH]: CONFIG,
+      [OWNERSHIP_FILE]: CONFIG,
       'docs/decisions/adr/ADR-0001-primeira.md': ADR,
       'docs/open-decisions.md': OPEN_DECISIONS,
       'README.md': '# fora do escopo',
     },
     root => {
-      const docs = collectArtifacts(root, parseOwnership(CONFIG))
+      const docs = collectArtifacts(root, loadLivingDocsConfig(root))
       const files = docs.map(doc => doc.file).sort()
 
       assert.deepEqual(files, ['docs/decisions/adr/ADR-0001-primeira.md', 'docs/open-decisions.md'])
@@ -67,7 +70,7 @@ test('coleta artefatos por diretório e por arquivo único', () => {
       const da = docs.find(doc => doc.rule.idPrefix === 'DA')
 
       assert.equal(da?.items.length, 1)
-      assert.equal(da?.items[0]?.id, 'DA-0001')
+      assert.equal(da?.items[0]?.key, 'DA-0001')
       assert.equal(da?.items[0]?.line, 10)
     },
   )
@@ -76,14 +79,14 @@ test('coleta artefatos por diretório e por arquivo único', () => {
 test('ignora artefatos gerados e arquivos não-markdown', () => {
   withTempRepo(
     {
-      [OWNERSHIP_PATH]: CONFIG,
+      [OWNERSHIP_FILE]: CONFIG,
       'docs/decisions/adr/ADR-0001-x.md': ADR,
       'docs/decisions/adr/index.gen.md': '# gerado',
       'docs/decisions/adr/nota.txt': 'nada',
       'docs/open-decisions.md': OPEN_DECISIONS,
     },
     root => {
-      const files = collectArtifacts(root, parseOwnership(CONFIG)).map(doc => doc.file)
+      const files = collectArtifacts(root, loadLivingDocsConfig(root)).map(doc => doc.file)
 
       assert.equal(files.includes('docs/decisions/adr/index.gen.md'), false)
       assert.equal(files.includes('docs/decisions/adr/nota.txt'), false)
@@ -92,19 +95,19 @@ test('ignora artefatos gerados e arquivos não-markdown', () => {
 })
 
 test('caminho declarado mas ausente no disco não quebra a coleta', () => {
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
-    assert.deepEqual(collectArtifacts(root, parseOwnership(CONFIG)), [])
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG }, root => {
+    assert.deepEqual(collectArtifacts(root, loadLivingDocsConfig(root)), [])
   })
 })
 
 test('frontmatter inválido vira syntaxError, não exceção', () => {
   withTempRepo(
     {
-      [OWNERSHIP_PATH]: CONFIG,
+      [OWNERSHIP_FILE]: CONFIG,
       'docs/decisions/adr/ADR-0002-quebrado.md': '---\nid: ADR-0002\ntitle: "unterminated\n---\ncorpo\n',
     },
     root => {
-      const docs = collectArtifacts(root, parseOwnership(CONFIG))
+      const docs = collectArtifacts(root, loadLivingDocsConfig(root))
 
       assert.equal(docs.length, 1)
       assert.equal(docs[0]?.frontmatter, null)
@@ -114,23 +117,28 @@ test('frontmatter inválido vira syntaxError, não exceção', () => {
 })
 
 const OWNERSHIP_COM_DOCUMENTOS = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@time"
     skill: decision-recorder
-documents:
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR }
   - path: CONTRIBUTING.md
     owner: "@time"
     skill: working-agreements-keeper
+    living-docs: {}
   - path: CHANGELOG.md
     owner: "@time"
     skill: release-historian
+    living-docs: {}
   - path: docs/ids-retired.txt
     owner: "@time"
+    living-docs: {}
   - path: docs/superpowers/
     owner: "@time"
+    living-docs: {}
 `
 
 test('ADR-0008: collectDocuments lê só markdown, e frontmatter ausente não é erro', () => {
@@ -143,7 +151,7 @@ test('ADR-0008: collectDocuments lê só markdown, e frontmatter ausente não é
       'docs/superpowers/plans/um.md': '# plano\n',
     },
     root => {
-      const documents = collectDocuments(root, parseOwnership(OWNERSHIP_COM_DOCUMENTOS))
+      const documents = collectDocuments(root, configFrom(OWNERSHIP_COM_DOCUMENTOS))
 
       assert.deepEqual(documents.map(document => document.file).sort(), ['CHANGELOG.md', 'CONTRIBUTING.md', 'docs/superpowers/plans/um.md'])
 
@@ -164,6 +172,60 @@ test('ADR-0008: collectDocuments lê só markdown, e frontmatter ausente não é
 
 test('ADR-0008: documento declarado e ausente do repositório não vira entrada', () => {
   withTempRepo({}, root => {
-    assert.deepEqual(collectDocuments(root, parseOwnership(OWNERSHIP_COM_DOCUMENTOS)), [])
+    assert.deepEqual(collectDocuments(root, configFrom(OWNERSHIP_COM_DOCUMENTOS)), [])
   })
+})
+
+test('tabela de coleção sem coluna Status: os itens chegam sem estado, e quem reclama é o check de estrutura', () => {
+  withTempRepo(
+    {
+      [OWNERSHIP_FILE]: `version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/open-decisions.md
+    owner: '@time'
+    skill: decision-recorder
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs: { id-prefix: DA }
+`,
+      // A linha `nota` não é ID: o núcleo a devolve como chave opaca, e é o
+      // filtro de forma de ID do living-docs que a tira.
+      'docs/open-decisions.md': '| ID | Lacuna |\n| --- | --- |\n| DA-0001 | x |\n| nota | y |\n',
+    },
+    root => {
+      const docs = collectArtifacts(root, loadLivingDocsConfig(root))
+
+      assert.deepEqual(
+        docs[0]?.items.map(item => [item.key, item.state]),
+        [['DA-0001', '']],
+      )
+    },
+  )
+})
+
+test('requisito em título ### não é item — só ## declara requisito', () => {
+  withTempRepo(
+    {
+      [OWNERSHIP_FILE]: `version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/requirements/rules.md
+    owner: '@time'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
+`,
+      'docs/requirements/rules.md': '## RN-0001 — Regra\n\n- **status:** active\n\n### RN-0002 — Sub\n\n- **status:** active\n\n## Contexto\n',
+    },
+    root => {
+      const docs = collectArtifacts(root, loadLivingDocsConfig(root))
+
+      assert.deepEqual(
+        docs[0]?.items.map(item => item.key),
+        ['RN-0001'],
+      )
+    },
+  )
 })

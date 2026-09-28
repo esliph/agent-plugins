@@ -18,7 +18,7 @@ function filesUnder(root: string, rulePath: string): string[] {
 interface Observed {
   states: { state: string; line: number }[]
   duplicates: DocItem[]
-  /** `owner` do frontmatter que não começa com `@`, só em per-file. */
+  /** `owner` do frontmatter que não começa com `@`, só em per-file com `states` declarado. */
   badOwner: { value: string; line: number } | null
 }
 
@@ -41,7 +41,9 @@ function observe(root: string, rule: ResolvedOwnedRule, file: string): Observed 
     }
     const value = frontmatter?.data[rule.format.stateField]
     const owner = frontmatter?.data.owner
-    const badOwner = typeof owner === 'string' && owner !== '' && !owner.startsWith('@') ? { value: owner, line: frontmatter?.lines.owner ?? 0 } : null
+    // Só onde o caminho tem ciclo de vida declarado: entrada só de dono não
+    // governa o frontmatter, e um modelo com `{{OWNER}}` não é violação.
+    const badOwner = rule.states !== null && typeof owner === 'string' && owner !== '' && !owner.startsWith('@') ? { value: owner, line: frontmatter?.lines.owner ?? 0 } : null
 
     return {
       states: typeof value === 'string' && value !== '' ? [{ state: value, line: frontmatter?.lines[rule.format.stateField] ?? 0 }] : [],

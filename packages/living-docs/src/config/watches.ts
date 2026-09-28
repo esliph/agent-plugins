@@ -1,6 +1,6 @@
 import picomatch from 'picomatch'
 import { findArtifactRule } from './ownership.ts'
-import type { OwnershipConfig } from './ownership.ts'
+import type { LivingDocsConfig } from './ownership.ts'
 
 export interface WatchMatch {
   /** Doc dono exigido, normalizado. */
@@ -41,7 +41,7 @@ export function coversDoc(doc: string, paths: readonly string[]): boolean {
  * caminho), por `HK-5` (com o índice inteiro) e, na Fase 7, por `CI-7` (com o
  * diff). Nenhum deles conhece caminho de projeto: tudo vem do `.ownership.yml`.
  */
-export function watchesFor(config: OwnershipConfig, paths: readonly string[]): WatchMatch[] {
+export function watchesFor(config: LivingDocsConfig, paths: readonly string[]): WatchMatch[] {
   const normalized = paths.map(normalize)
   const byDoc = new Map<string, WatchMatch>()
 
@@ -85,6 +85,6 @@ export function watchesFor(config: OwnershipConfig, paths: readonly string[]): W
 }
 
 /** Docs que estes caminhos exigem e que eles não tocam — o mecanismo 1 (spec §7). */
-export function pendingDocs(config: OwnershipConfig, paths: readonly string[]): WatchMatch[] {
+export function pendingDocs(config: LivingDocsConfig, paths: readonly string[]): WatchMatch[] {
   return watchesFor(config, paths).filter(match => !coversDoc(match.doc, paths))
 }

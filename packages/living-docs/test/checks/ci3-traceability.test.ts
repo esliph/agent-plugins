@@ -1,35 +1,41 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { runValidate } from '../../src/cli/validate.ts'
-import { OWNERSHIP_PATH } from '../../src/config/ownership.ts'
 import { RETIRED_IDS_PATH } from '../../src/ids/citations.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import type { Finding } from '../../src/core/types.ts'
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@team"
     skill: decision-recorder
-  - id-prefix: DA
-    path: docs/open-decisions.md
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR }
+  - path: docs/open-decisions.md
     owner: "@team"
     skill: decision-recorder
-    collection: table
-    field-map:
-      resolved-by: "Resolvida por"
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+      field-map:
+        resolved-by: "Resolvida por"
+  - path: docs/requirements/rules.md
     owner: "@team"
     skill: requirements-keeper
-    collection: sections
-    cited-by: ["test/**"]
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RN
+      cited-by: ["test/**"]
 `
 
 /** A mesma configuração, mas com RN sem `cited-by` — instalação por fases. */
-const CONFIG_SEM_CITED_BY = CONFIG.replace('    cited-by: ["test/**"]\n', '')
+const CONFIG_SEM_CITED_BY = CONFIG.replace('      cited-by: ["test/**"]\n', '')
 
 function adr(id: string, status: string, extra: readonly string[] = []): string {
   return [
@@ -87,7 +93,7 @@ function ci3(root: string): Finding[] {
   return runValidate(root).findings.filter(finding => finding.ruleId === 'CI-3')
 }
 
-const BASE = { [OWNERSHIP_PATH]: CONFIG, [RETIRED_IDS_PATH]: '' }
+const BASE = { [OWNERSHIP_FILE]: CONFIG, [RETIRED_IDS_PATH]: '' }
 
 test('CI-3: par supersedes/superseded-by aberto falha nomeando os dois lados', () => {
   withTempRepo(
@@ -205,7 +211,7 @@ test('CI-3: RN draft não é cobrada por citação — a cobrança começa em ac
 test('CI-3: RN active em artefato sem cited-by não é cobrada', () => {
   withTempRepo(
     {
-      [OWNERSHIP_PATH]: CONFIG_SEM_CITED_BY,
+      [OWNERSHIP_FILE]: CONFIG_SEM_CITED_BY,
       [RETIRED_IDS_PATH]: '',
       'docs/requirements/rules.md': rules(rn('RN-0001', 'active')),
     },
@@ -220,7 +226,7 @@ test('CI-3: citação dentro do próprio arquivo do artefato não conta como cob
     {
       ...BASE,
       // O artefato mora sob test/**, então ele mesmo casa com o glob de cited-by.
-      [OWNERSHIP_PATH]: CONFIG.replace('docs/requirements/rules.md', 'test/rules.md'),
+      [OWNERSHIP_FILE]: CONFIG.replace('docs/requirements/rules.md', 'test/rules.md'),
       'test/rules.md': rules(rn('RN-0001', 'active'), '', 'A própria RN-0001 se cita aqui.'),
     },
     root => {

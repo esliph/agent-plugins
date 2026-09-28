@@ -33,3 +33,33 @@ test('sem arquivo de ownership, o hook se cala (falha aberta)', () => {
     assert.equal(decideWatchReminder({ tool_input: { file_path: 'src/checks/a.ts' } }, env(root)).action, 'silent')
   })
 })
+
+test('o lembrete nomeia o doc, o motivo e a skill dona, e não carrega decisão de permissão', () => {
+  const config = "version: 2\nowned:\n  - path: docs/requirements/rules.md\n    owner: '@time'\n    skill: requirements-keeper\nwatches:\n  - code: 'src/**'\n    doc: docs/requirements/rules.md\n    reason: regra antes do código\n"
+
+  withTempRepo({ '.ownership.yml': config }, root => {
+    const decision = decideWatchReminder({ tool_input: { file_path: 'src/a.ts' } }, env(root))
+
+    assert.equal(decision.action, 'remind')
+    assert.ok(decision.action === 'remind')
+    assert.match(decision.context, /docs\/requirements\/rules\.md/)
+    assert.match(decision.context, /regra antes do código/)
+    assert.match(decision.context, /requirements-keeper/)
+    assert.doesNotMatch(decision.context, /permissionDecision/)
+  })
+})
+
+test('doc dono sem skill declarada ainda é lembrado, e a mensagem aponta o CODEOWNERS', () => {
+  withTempRepo({ '.ownership.yml': CONFIG }, root => {
+    const decision = decideWatchReminder({ tool_input: { file_path: 'src/checks/a.ts' } }, env(root))
+
+    assert.ok(decision.action === 'remind')
+    assert.match(decision.context, /Sem skill declarada/)
+  })
+})
+
+test('payload sem file_path é silêncio', () => {
+  withTempRepo({ '.ownership.yml': CONFIG }, root => {
+    assert.equal(decideWatchReminder({ tool_input: {} }, env(root)).action, 'silent')
+  })
+})

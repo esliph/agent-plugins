@@ -1,45 +1,48 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ci11ExternalAudience } from '../../src/checks/ci11-external-audience.ts'
-import { parseOwnership } from '../../src/config/ownership.ts'
 import type { Finding } from '../../src/core/types.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
+import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 // ADR, RN e REL são internos porque estão declarados. TDR, de propósito, não
 // está: é o caso do projeto que ainda não instalou a família.
 const OWNERSHIP = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@time"
     skill: decision-recorder
-  - id-prefix: RN
-    path: docs/requirements/rules.md
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR }
+  - path: docs/requirements/rules.md
     owner: "@time"
     skill: requirements-keeper
-    collection: sections
-  - id-prefix: REL
-    path: docs/releases/
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs: { id-prefix: RN }
+  - path: docs/releases/
     owner: "@time"
     skill: release-historian
-    audience: external
-documents:
+    states: [draft, published]
+    living-docs: { id-prefix: REL, audience: external }
   - path: CHANGELOG.md
     owner: "@time"
     skill: release-historian
-    audience: external
+    living-docs: { audience: external }
   - path: CONTRIBUTING.md
     owner: "@time"
     skill: working-agreements-keeper
+    living-docs: {}
 `
 
 function findingsFor(files: Record<string, string>): Finding[] {
   let findings: Finding[] = []
 
   withTempRepo(files, root => {
-    const config = parseOwnership(OWNERSHIP)
+    const config = configFrom(OWNERSHIP)
 
     findings = ci11ExternalAudience.run({
       root,

@@ -2,24 +2,27 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ci2Ids } from '../../src/checks/ci2-ids.ts'
 import { collectArtifacts } from '../../src/docs/collect.ts'
-import { parseOwnership, OWNERSHIP_PATH } from '../../src/config/ownership.ts'
+import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { RETIRED_IDS_PATH } from '../../src/ids/citations.ts'
+import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import type { Finding } from '../../src/core/types.ts'
 
 const CONFIG = `
-version: 1
-artifacts:
-  - id-prefix: ADR
-    path: docs/decisions/adr/
+version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/decisions/adr/
     owner: "@team"
     skill: decision-recorder
-    append-only: true
-  - id-prefix: DA
-    path: docs/open-decisions.md
+    states: [draft, accepted, superseded]
+    living-docs: { id-prefix: ADR, append-only: true }
+  - path: docs/open-decisions.md
     owner: "@product"
     skill: decision-recorder
-    collection: table
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs: { id-prefix: DA }
 `
 
 function adr(id: string, body = ''): string {
@@ -44,8 +47,8 @@ function openDecisions(rows: string[]): string {
 function run(files: Record<string, string>): Finding[] {
   let findings: Finding[] = []
 
-  withTempRepo({ [OWNERSHIP_PATH]: CONFIG, ...files }, root => {
-    const config = parseOwnership(CONFIG)
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
+    const config = loadLivingDocsConfig(root)
 
     findings = ci2Ids.run({ root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-27' })
   })
@@ -186,18 +189,18 @@ test('citação de prefixo não declarado é ignorada — instalação por fases
 })
 
 test('RN-0024: a mensagem de buraco de sequência sai na forma escrita do projeto', () => {
-  const config = `${CONFIG}id-format:\n  separator: ""\n  padding: 3\n`
+  const config = CONFIG.replace('owned:', 'living-docs:\n  id-format: { separator: "", padding: 3 }\nowned:')
   let findings: Finding[] = []
 
   withTempRepo(
     {
-      [OWNERSHIP_PATH]: config,
+      [OWNERSHIP_FILE]: config,
       'docs/decisions/adr/ADR001-a.md': adr('ADR001'),
       'docs/decisions/adr/ADR003-c.md': adr('ADR003'),
       'docs/open-decisions.md': openDecisions([]),
     },
     root => {
-      const parsed = parseOwnership(config)
+      const parsed = loadLivingDocsConfig(root)
 
       findings = ci2Ids.run({
         root,

@@ -12,11 +12,10 @@
  */
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { loadOwnership } from '../config/ownership.ts'
+import { loadLivingDocsConfig } from '../config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../docs/collect.ts'
 import type { ArtifactDoc } from '../docs/collect.ts'
 import { duePayments, staleDocs } from '../checks/ci4-staleness.ts'
-import { statesFor } from '../docs/schema.ts'
 import { todayIso } from '../core/dates.ts'
 import { forgetTree } from '../core/files.ts'
 import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts'
@@ -46,7 +45,7 @@ function openDecisions(docs: readonly ArtifactDoc[]): string[] {
   const found: string[] = []
 
   for (const doc of docs) {
-    if (!statesFor(doc.rule)?.includes(DECISION_STATE)) {
+    if (!doc.rule.states?.includes(DECISION_STATE)) {
       continue
     }
 
@@ -60,8 +59,8 @@ function openDecisions(docs: readonly ArtifactDoc[]): string[] {
     }
 
     for (const item of doc.items) {
-      if (item.status === 'open') {
-        found.push(`${item.id} (${doc.file}:${item.line})`)
+      if (item.state === 'open') {
+        found.push(`${item.key} (${doc.file}:${item.line})`)
       }
     }
   }
@@ -77,7 +76,7 @@ export function decideHk6(env: HookEnv, today: string): Hk6Decision {
     // processo, e uma decisão nova começa com a árvore de agora.
     forgetTree(env.root)
 
-    const config = loadOwnership(env.root)
+    const config = loadLivingDocsConfig(env.root)
     const docs = collectArtifacts(env.root, config)
     const documents = collectDocuments(env.root, config)
     const context = { root: env.root, config, docs, documents, today }
@@ -92,7 +91,7 @@ export function decideHk6(env: HookEnv, today: string): Hk6Decision {
     const velhos = staleDocs(context)
 
     const lines = [
-      'HK-6: inventário da documentação viva (fonte: `docs/.ownership.yml`).',
+      `HK-6: inventário da documentação viva (fonte: \`${config.rootFile}\`).`,
       `Declarados: ${config.artifacts.length} artefato(s) e ${config.documents.length} documento(s).`,
     ]
 

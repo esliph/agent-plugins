@@ -93,3 +93,25 @@ test('state-field customizado é lido no lugar de status', () => {
 
   assert.equal(items[0]?.state, 'aberta')
 })
+
+test('parseItemsTable para de ler na primeira linha que não é da tabela', () => {
+  const items = parseItemsTable('| ID | Status |\n| --- | --- |\n| A-1 | open |\n\n| A-2 | open |\n', 1, { key: 'ID', stateField: 'status' })
+
+  assert.deepEqual(
+    items.map(item => item.key),
+    ['A-1'],
+  )
+})
+
+test('parseItemsTable traz todas as colunas no item, pela chave normalizada', () => {
+  const items = parseItemsTable('| ID | Status | Resolvida por: |\n| --- | --- | --- |\n| A-1 | open | B-2 |\n', 1, { key: 'ID', stateField: 'status' })
+
+  assert.deepEqual(items[0]?.fields, { id: 'A-1', status: 'open', 'resolvida por': 'B-2' })
+})
+
+test('parseItemsSections: a linha é deslocada por startLine, e seção sem estado devolve estado vazio', () => {
+  const items = parseItemsSections('## RN-0001 — Regra\n\nTexto.\n', 10, { keyMode: 'first-token', stateField: 'status' })
+
+  assert.equal(items[0]?.line, 10)
+  assert.equal(items[0]?.state, '')
+})

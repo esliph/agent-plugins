@@ -1,25 +1,32 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import YAML from 'yaml'
-import { isEmptyValue, normalizeKey } from '../docs/item.ts'
-import type { DocItem } from '../docs/item.ts'
+import { OwnershipError, isEmptyValue, normalizeFieldKey, resolveOwnership } from '@esliph/ownership'
+import type { DocItem, ResolvedConfig, ResolvedOwnedRule } from '@esliph/ownership'
 import { DEFAULT_ID_FORMAT, PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts'
 import type { IdFormat } from '../docs/schema.ts'
 
-export const OWNERSHIP_PATH = 'docs/.ownership.yml'
+export { OwnershipError }
+
+/**
+ * O nome do bloco deste plugin no arquivo de ownership. Um caminho é do
+ * living-docs se, e somente se, a entrada de `owned` que o cobre traz este
+ * bloco (ADR-0020); com `id-prefix` é artefato, sem ele é documento (ADR-0029).
+ */
+export const PLUGIN = 'living-docs'
 
 export type Collection = 'per-file' | 'table' | 'sections'
 
 /**
- * Quem lê um documento ou artefato (`ADR-0017`).
- *
- * Vocabulário fechado, no mesmo desenho de `DOCUMENT_ROLES`: é o que permite a
- * `CI-11` achar o texto escrito para quem vem de fora sem conhecer caminho
- * nenhum. Ausente, vale `internal` — nenhum `.ownership.yml` escrito antes muda
- * de significado.
+ * Quem lê um documento ou artefato (`ADR-0017`). Ausente, vale `internal`.
  */
 export const AUDIENCES = ['internal', 'external'] as const
 export type Audience = (typeof AUDIENCES)[number]
+
+/**
+ * Papéis que o toolkit reconhece num documento (`ADR-0008`). Vocabulário
+ * fechado: é o que permite achar o contrato do agente e a Definition of Done
+ * sem conhecer caminho nenhum.
+ */
+export const DOCUMENT_ROLES = ['agent-contract', 'definition-of-done'] as const
+export type DocumentRole = (typeof DOCUMENT_ROLES)[number]
 
 export interface ArtifactRule {
   idPrefix: string
@@ -32,10 +39,22 @@ export interface ArtifactRule {
   collection: Collection
   /** Canônico -> nome real do campo neste projeto. Ex.: { 'resolved-by': 'resolvida por' }. */
   fieldMap: Record<string, string>
-  /** Máquina de estados declarada pelo projeto; null usa a embutida em src/docs/schema.ts. */
+  /** `states` da entrada, que é do núcleo; `null` quando a entrada não declara. */
   states: string[] | null
-  /** Quem lê este artefato (`ADR-0017`). `external` liga `CI-11` sobre ele. */
   audience: Audience
+  /** A entrada resolvida pelo núcleo — é o que `findTransitions` recebe. */
+  core: ResolvedOwnedRule
+}
+
+/** Documento com dono e sem família de IDs (`ADR-0008`). */
+export interface DocumentRule {
+  path: string
+  owner: string
+  /** Skill dona, quando existe uma. `null` é informação, não erro. */
+  skill: string | null
+  role: DocumentRole | null
+  audience: Audience
+  core: ResolvedOwnedRule
 }
 
 export interface GeneratedRule {
@@ -50,34 +69,9 @@ export interface WatchRule {
   consumerVisible: boolean
 }
 
-/**
- * Papéis que o toolkit reconhece num documento (`ADR-0008`).
- *
- * Vocabulário fechado de propósito: é o que permite a `CI-7` achar o contrato do
- * agente e a Definition of Done sem conhecer caminho nenhum (spec §3). Papel
- * aberto seria configuração que o toolkit não sabe usar.
- */
-export const DOCUMENT_ROLES = ['agent-contract', 'definition-of-done'] as const
-export type DocumentRole = (typeof DOCUMENT_ROLES)[number]
-
-/**
- * Documento com dono e **sem** família de IDs (`ADR-0008`, que resolve `DA-0002`).
- *
- * Não é artefato: não tem ciclo de vida, não é congelado por `HK-1`, e `CI-1`/
- * `CI-2` não o leem. O que ele tem é dono — e, quando existe uma, skill dona.
- */
-export interface DocumentRule {
-  path: string
-  owner: string
-  /** Skill dona, quando existe uma. `null` é informação, não erro. */
-  skill: string | null
-  role: DocumentRole | null
-  /** Quem lê este documento (`ADR-0017`). `external` liga `CI-11` sobre ele. */
-  audience: Audience
-}
-
-export interface OwnershipConfig {
-  version: number
+export interface LivingDocsConfig {
+  /** O arquivo de ownership raiz, relativo ao repositório (ex.: `.ownership.yml`). */
+  rootFile: string
   staleAfterMonths: number
   /** Quantos documentos com bump de data seco reprovam (`ADR-0013`, `RN-0027`). */
   lastReviewedBumpLimit: number
@@ -87,53 +81,29 @@ export interface OwnershipConfig {
   documents: DocumentRule[]
   generated: GeneratedRule[]
   watches: WatchRule[]
-  consumerVisiblePaths: string[]
-}
-
-export class OwnershipError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'OwnershipError'
-  }
+  /** A configuração inteira, como o núcleo a resolveu. */
+  core: ResolvedConfig
 }
 
 const ID_PREFIX = /^[A-Z]{2,4}$/
+const TOP_KEYS: ReadonlySet<string> = new Set(['stale-after-months', 'id-format', 'last-reviewed-bump-limit'])
+const ARTIFACT_KEYS: ReadonlySet<string> = new Set(['id-prefix', 'append-only', 'mutable-fields', 'cited-by', 'field-map', 'audience'])
+const DOCUMENT_KEYS: ReadonlySet<string> = new Set(['role', 'audience'])
+const DEFAULT_STALE_AFTER_MONTHS = 6
 
 /**
- * A forma escrita dos IDs deste projeto (`ADR-0011`, `RN-0024`). Ausente, é a
- * do toolkit — e o padrão existe para que nenhum repositório já instalado
- * precise declarar nada.
+ * O limiar de bump em massa (`ADR-0013`). Piso 2, e não 1: um documento revisado
+ * de verdade atualiza a data, e limiar 1 reprovaria o mecanismo funcionando.
  */
-function parseIdFormat(raw: unknown): IdFormat {
-  if (raw === undefined || raw === null) {
-    return DEFAULT_ID_FORMAT
-  }
-  const item = asRecord(raw, 'id-format')
+export const DEFAULT_BUMP_LIMIT = 3
 
-  const separator = item.separator ?? DEFAULT_ID_FORMAT.separator
-
-  if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
-    throw new OwnershipError(
-      // Regra de origem: ADR-0011.
-      `${OWNERSHIP_PATH}: id-format.separator "${String(separator)}" não é aceito. ` + `Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`,
-    )
-  }
-
-  const padding = item.padding ?? DEFAULT_ID_FORMAT.padding
-
-  if (typeof padding !== 'number' || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
-    throw new OwnershipError(
-      // Regra de origem: ADR-0011.
-      `${OWNERSHIP_PATH}: id-format.padding "${String(padding)}" precisa ser inteiro entre ` + `${PADDING_RANGE.min} e ${PADDING_RANGE.max}.`,
-    )
-  }
-
-  return { separator, padding }
+function fail(where: string, message: string): never {
+  throw new OwnershipError(`${where}: ${message}`)
 }
 
 function asRecord(value: unknown, where: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} precisa ser um mapa.`)
+    fail(where, 'precisa ser um mapa.')
   }
 
   return value as Record<string, unknown>
@@ -144,20 +114,52 @@ function asStringList(value: unknown, where: string): string[] {
     return []
   }
   if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} precisa ser uma lista de strings.`)
+    fail(where, 'precisa ser uma lista de strings.')
   }
 
   return value as string[]
 }
 
-function requireString(source: Record<string, unknown>, key: string, where: string): string {
-  const value = source[key]
+function assertKnown(block: Record<string, unknown>, allowed: ReadonlySet<string>, where: string, hint = ''): void {
+  for (const key of Object.keys(block)) {
+    if (!allowed.has(key)) {
+      fail(where, `chave "${key}" desconhecida.${hint}`)
+    }
+  }
+}
 
-  if (typeof value !== 'string' || value.trim() === '') {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} precisa do campo \`${key}\` não vazio.`)
+function parseIdFormat(raw: unknown, where: string): IdFormat {
+  if (raw === undefined || raw === null) {
+    return DEFAULT_ID_FORMAT
+  }
+  const item = asRecord(raw, `${where}.id-format`)
+  const separator = item.separator ?? DEFAULT_ID_FORMAT.separator
+
+  if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
+    // Regra de origem: ADR-0011.
+    fail(where, `id-format.separator "${String(separator)}" não é aceito. Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`)
   }
 
-  return value
+  const padding = item.padding ?? DEFAULT_ID_FORMAT.padding
+
+  if (typeof padding !== 'number' || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
+    // Regra de origem: ADR-0011.
+    fail(where, `id-format.padding "${String(padding)}" precisa ser inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max}.`)
+  }
+
+  return { separator, padding }
+}
+
+function parseBumpLimit(raw: unknown, where: string): number {
+  if (raw === undefined || raw === null) {
+    return DEFAULT_BUMP_LIMIT
+  }
+  if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
+    // Regra de origem: ADR-0013.
+    fail(where, `last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 (limiar 1 reprovaria a revisão legítima de um documento só).`)
+  }
+
+  return raw
 }
 
 function parseAudience(raw: unknown, where: string): Audience {
@@ -165,197 +167,167 @@ function parseAudience(raw: unknown, where: string): Audience {
     return 'internal'
   }
   if (!AUDIENCES.includes(raw as Audience)) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.audience "${String(raw)}" desconhecido. Válidos: ${AUDIENCES.join(', ')}.`)
+    fail(where, `audience "${String(raw)}" desconhecido. Válidos: ${AUDIENCES.join(', ')}.`)
   }
 
   return raw as Audience
 }
 
-function parseArtifact(raw: unknown, index: number): ArtifactRule {
-  const where = `artifacts[${index}]`
-  const item = asRecord(raw, where)
+function whereOf(rule: ResolvedOwnedRule): string {
+  return `${rule.origin}: entrada "${rule.path}", bloco ${PLUGIN}`
+}
 
-  const idPrefix = requireString(item, 'id-prefix', where)
+function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): ArtifactRule {
+  const where = whereOf(rule)
 
-  if (!ID_PREFIX.test(idPrefix)) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.id-prefix "${idPrefix}" precisa ser 2 a 4 letras maiúsculas (ex.: ADR, DA, TDR).`)
+  assertKnown(block, ARTIFACT_KEYS, where)
+
+  const idPrefix = block['id-prefix']
+
+  if (typeof idPrefix !== 'string' || !ID_PREFIX.test(idPrefix)) {
+    fail(where, `id-prefix "${String(idPrefix)}" precisa ser 2 a 4 letras maiúsculas (ex.: ADR, DA, TDR).`)
+  }
+  if (rule.skill === null) {
+    fail(where, 'artefato precisa de `skill` na entrada — é a skill dona que escreve os itens dele.')
   }
 
-  const owner = requireString(item, 'owner', where)
-
-  if (!owner.startsWith('@')) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.owner "${owner}" precisa começar com @ e espelhar o CODEOWNERS.`)
-  }
-
-  const collectionRaw = item.collection ?? 'per-file'
-
-  if (collectionRaw !== 'per-file' && collectionRaw !== 'table' && collectionRaw !== 'sections') {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.collection precisa ser "per-file", "table" ou "sections".`)
-  }
-
-  const fieldMapRaw = item['field-map']
   const fieldMap: Record<string, string> = {}
+  const fieldMapRaw = block['field-map']
 
   if (fieldMapRaw !== undefined && fieldMapRaw !== null) {
     for (const [canonical, real] of Object.entries(asRecord(fieldMapRaw, `${where}.field-map`))) {
       if (typeof real !== 'string' || real.trim() === '') {
-        throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.field-map.${canonical} precisa ser uma string não vazia.`)
+        fail(where, `field-map.${canonical} precisa ser uma string não vazia.`)
       }
-      fieldMap[normalizeKey(canonical)] = normalizeKey(real)
+      fieldMap[normalizeFieldKey(canonical)] = normalizeFieldKey(real)
     }
   }
 
-  const states = item.states === undefined ? null : asStringList(item.states, `${where}.states`)
-
   return {
     idPrefix,
-    path: requireString(item, 'path', where),
-    owner,
-    skill: requireString(item, 'skill', where),
-    appendOnly: item['append-only'] === true,
-    mutableFields: asStringList(item['mutable-fields'], `${where}.mutable-fields`),
-    citedBy: asStringList(item['cited-by'], `${where}.cited-by`),
-    collection: collectionRaw,
+    path: rule.path,
+    owner: rule.owner,
+    skill: rule.skill,
+    appendOnly: block['append-only'] === true,
+    mutableFields: asStringList(block['mutable-fields'], `${where}.mutable-fields`),
+    citedBy: asStringList(block['cited-by'], `${where}.cited-by`),
+    collection: rule.format.collection,
     fieldMap,
-    states,
-    audience: parseAudience(item.audience, where),
+    states: rule.states,
+    audience: parseAudience(block.audience, where),
+    core: rule,
+  }
+}
+
+function toDocument(rule: ResolvedOwnedRule, block: Record<string, unknown>): DocumentRule {
+  const where = whereOf(rule)
+
+  assertKnown(block, DOCUMENT_KEYS, where, ' Chaves de artefato só valem com `id-prefix`.')
+
+  const role = block.role
+
+  if (role !== undefined && !DOCUMENT_ROLES.includes(role as DocumentRole)) {
+    fail(where, `role "${String(role)}" desconhecido. Válidos: ${DOCUMENT_ROLES.join(', ')}.`)
+  }
+
+  return {
+    path: rule.path,
+    owner: rule.owner,
+    skill: rule.skill,
+    role: role === undefined ? null : (role as DocumentRole),
+    audience: parseAudience(block.audience, where),
+    core: rule,
+  }
+}
+
+/** A configuração do living-docs sobre a que o núcleo resolveu. Função pura. */
+export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
+  const top = core.pluginBlocks[PLUGIN] ?? {}
+  const topWhere = `${core.rootFile}.${PLUGIN}`
+
+  assertKnown(top, TOP_KEYS, topWhere)
+
+  const artifacts: ArtifactRule[] = []
+  const documents: DocumentRule[] = []
+
+  for (const rule of core.owned) {
+    const block = rule.pluginBlocks[PLUGIN]
+
+    if (block === undefined) {
+      continue
+    }
+    if (block['id-prefix'] !== undefined) {
+      artifacts.push(toArtifact(rule, block))
+    } else {
+      documents.push(toDocument(rule, block))
+    }
+  }
+
+  if (artifacts.length === 0) {
+    fail(
+      core.rootFile,
+      `nenhuma entrada de \`owned\` traz \`${PLUGIN}.id-prefix\` — sem artefato declarado nada é enforceável. ` +
+        `Declare \`plugins: [${PLUGIN}]\` na raiz e o bloco \`${PLUGIN}:\` nas entradas.`,
+    )
+  }
+
+  const prefixes = new Set<string>()
+
+  for (const artifact of artifacts) {
+    if (prefixes.has(artifact.idPrefix)) {
+      fail(core.rootFile, `id-prefix "${artifact.idPrefix}" declarado duas vezes. Um artefato, um dono.`)
+    }
+    prefixes.add(artifact.idPrefix)
+  }
+
+  const roles = new Set<string>()
+
+  for (const document of documents) {
+    if (document.role === null) {
+      continue
+    }
+    if (roles.has(document.role)) {
+      fail(core.rootFile, `papel "${document.role}" declarado em dois documentos. Um papel, um documento.`)
+    }
+    roles.add(document.role)
+  }
+
+  const stale = top['stale-after-months']
+
+  return {
+    rootFile: core.rootFile,
+    staleAfterMonths: typeof stale === 'number' ? stale : DEFAULT_STALE_AFTER_MONTHS,
+    lastReviewedBumpLimit: parseBumpLimit(top['last-reviewed-bump-limit'], topWhere),
+    idFormat: parseIdFormat(top['id-format'], topWhere),
+    artifacts,
+    documents,
+    generated: core.generated.map(rule => ({ path: rule.path, command: rule.command })),
+    watches: core.watches.map(rule => ({ code: rule.code, doc: rule.doc, reason: rule.reason, consumerVisible: rule.consumerVisible })),
+    core,
   }
 }
 
 /**
- * O limiar de bump em massa (`ADR-0013`). Piso 2, e não 1: um documento revisado
- * de verdade atualiza a data, e limiar 1 reprovaria o mecanismo funcionando.
+ * Acha o arquivo de ownership pela ordem de candidatos do núcleo, valida o
+ * esquema, a disjunção e as bases (o núcleo), e depois o bloco `living-docs:`
+ * com o rigor de sempre: chave desconhecida é erro. `OwnershipError` sobe como está.
  */
-export const DEFAULT_BUMP_LIMIT = 3
+export function loadLivingDocsConfig(root: string): LivingDocsConfig {
+  const core = resolveOwnership(root)
 
-function parseBumpLimit(raw: unknown): number {
-  if (raw === undefined || raw === null) {
-    return DEFAULT_BUMP_LIMIT
-  }
-  if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
-    throw new OwnershipError(
-      // Regra de origem: ADR-0013.
-      `${OWNERSHIP_PATH}: last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 ` +
-        '(limiar 1 reprovaria a revisão legítima de um documento só).',
-    )
+  if (core === null) {
+    throw new OwnershipError(`nenhum arquivo de ownership encontrado em ${root}. Rode \`living-docs init\` (skill dona: living-docs-bootstrap).`)
   }
 
-  return raw
-}
-
-export function parseOwnership(source: string): OwnershipConfig {
-  let raw: unknown
-
-  try {
-    raw = YAML.parse(source)
-  } catch (err) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: YAML inválido — ${err instanceof Error ? err.message : String(err)}`)
-  }
-
-  const root = asRecord(raw, 'raiz')
-
-  if (root.version !== 1) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: campo \`version\` precisa ser 1 (recebido: ${String(root.version)}).`)
-  }
-
-  const artifactsRaw = root.artifacts
-
-  if (!Array.isArray(artifactsRaw) || artifactsRaw.length === 0) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: \`artifacts\` precisa listar ao menos um artefato — sem dono declarado nada é enforceável.`)
-  }
-
-  const artifacts = artifactsRaw.map(parseArtifact)
-
-  const seen = new Set<string>()
-
-  for (const artifact of artifacts) {
-    if (seen.has(artifact.idPrefix)) {
-      throw new OwnershipError(`${OWNERSHIP_PATH}: id-prefix "${artifact.idPrefix}" declarado duas vezes. Um artefato, um dono.`)
-    }
-    seen.add(artifact.idPrefix)
-  }
-
-  const generatedRaw = Array.isArray(root.generated) ? root.generated : []
-  const generated: GeneratedRule[] = generatedRaw.map((item, index) => {
-    const entry = asRecord(item, `generated[${index}]`)
-
-    return {
-      path: requireString(entry, 'path', `generated[${index}]`),
-      command: requireString(entry, 'command', `generated[${index}]`),
-    }
-  })
-
-  const documentsRaw = Array.isArray(root.documents) ? root.documents : []
-  const documents = documentsRaw.map(parseDocument)
-
-  const seenDocuments = new Set<string>()
-  const seenRoles = new Set<string>()
-
-  for (const document of documents) {
-    if (seenDocuments.has(document.path)) {
-      throw new OwnershipError(`${OWNERSHIP_PATH}: documento "${document.path}" declarado duas vezes. Um documento, um dono.`)
-    }
-    seenDocuments.add(document.path)
-
-    if (document.role === null) {
-      continue
-    }
-    if (seenRoles.has(document.role)) {
-      throw new OwnershipError(`${OWNERSHIP_PATH}: papel "${document.role}" declarado em dois documentos. Um papel, um documento.`)
-    }
-    seenRoles.add(document.role)
-  }
-
-  const watchesRaw = Array.isArray(root.watches) ? root.watches : []
-  const watches: WatchRule[] = watchesRaw.map((item, index) => {
-    const entry = asRecord(item, `watches[${index}]`)
-    const reason = entry.reason
-
-    return {
-      code: requireString(entry, 'code', `watches[${index}]`),
-      doc: requireString(entry, 'doc', `watches[${index}]`),
-      reason: typeof reason === 'string' ? reason : null,
-      consumerVisible: entry['consumer-visible'] === true,
-    }
-  })
-
-  const staleAfterMonths = root['stale-after-months']
-
-  return {
-    version: 1,
-    staleAfterMonths: typeof staleAfterMonths === 'number' ? staleAfterMonths : 6,
-    lastReviewedBumpLimit: parseBumpLimit(root['last-reviewed-bump-limit']),
-    idFormat: parseIdFormat(root['id-format']),
-    artifacts,
-    documents,
-    generated,
-    watches,
-    consumerVisiblePaths: asStringList(root['consumer-visible-paths'], 'consumer-visible-paths'),
-  }
-}
-
-export function loadOwnership(root: string): OwnershipConfig {
-  const file = join(root, OWNERSHIP_PATH)
-  let source: string
-
-  try {
-    source = readFileSync(file, 'utf8')
-  } catch {
-    throw new OwnershipError(`${OWNERSHIP_PATH} não encontrado em ${root}. Rode \`living-docs init\` (skill dona: living-docs-bootstrap).`)
-  }
-
-  return parseOwnership(source)
+  return adaptConfig(core)
 }
 
 /**
  * Valor de um campo canônico do item, respeitando o `field-map` do artefato.
- * Devolve null para célula vazia — `CI-3` trata "vazio" e "ausente" igual.
- *
- * Mora aqui, e não em `src/checks/`, porque traduzir "resolved-by" para o nome
- * real da coluna é configuração do projeto: nenhum check aprende português.
+ * Devolve null para célula vazia — ausente e vazio são a mesma coisa aqui.
  */
 export function fieldOf(rule: ArtifactRule, item: DocItem, canonical: string): string | null {
-  const key = rule.fieldMap[normalizeKey(canonical)] ?? normalizeKey(canonical)
+  const key = rule.fieldMap[normalizeFieldKey(canonical)] ?? normalizeFieldKey(canonical)
   const value = item.fields[key]
 
   if (value === undefined || isEmptyValue(value)) {
@@ -366,62 +338,31 @@ export function fieldOf(rule: ArtifactRule, item: DocItem, canonical: string): s
 }
 
 function normalizePath(repoPath: string): string {
-  return repoPath.replace(/\\/g, '/').replace(/^\.\//, '')
+  return repoPath.split('\\').join('/').replace(/^\.\//, '')
 }
 
 /** O caminho declarado cobre este caminho? Diretório por prefixo, arquivo por igualdade. */
 function covers(declared: string, repoPath: string): boolean {
-  const target = declared.replace(/\\/g, '/')
+  const target = declared.split('\\').join('/')
 
   return target.endsWith('/') ? repoPath.startsWith(target) : repoPath === target
 }
 
-/** Regra dona de um caminho relativo à raiz do repositório, ou null. */
-export function findArtifactRule(config: OwnershipConfig, repoPath: string): ArtifactRule | null {
+/** Regra de artefato dona de um caminho relativo à raiz do repositório, ou null. */
+export function findArtifactRule(config: LivingDocsConfig, repoPath: string): ArtifactRule | null {
   const normalized = normalizePath(repoPath)
 
   return config.artifacts.find(artifact => covers(artifact.path, normalized)) ?? null
 }
 
-function parseDocument(raw: unknown, index: number): DocumentRule {
-  const where = `documents[${index}]`
-  const item = asRecord(raw, where)
-
-  const owner = requireString(item, 'owner', where)
-
-  if (!owner.startsWith('@')) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.owner "${owner}" precisa começar com @ e espelhar o CODEOWNERS.`)
-  }
-
-  const skill = item.skill
-
-  if (skill !== undefined && (typeof skill !== 'string' || skill.trim() === '')) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.skill precisa ser uma string não vazia, ou ficar ausente — documento pode não ter skill dona.`)
-  }
-
-  const role = item.role
-
-  if (role !== undefined && !DOCUMENT_ROLES.includes(role as DocumentRole)) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.role "${String(role)}" desconhecido. Válidos: ${DOCUMENT_ROLES.join(', ')}.`)
-  }
-
-  return {
-    path: requireString(item, 'path', where),
-    owner,
-    skill: skill === undefined ? null : skill,
-    role: role === undefined ? null : (role as DocumentRole),
-    audience: parseAudience(item.audience, where),
-  }
-}
-
 /** Documento dono de um caminho relativo, ou null. Mesma semântica de `findArtifactRule`. */
-export function findDocumentRule(config: OwnershipConfig, repoPath: string): DocumentRule | null {
+export function findDocumentRule(config: LivingDocsConfig, repoPath: string): DocumentRule | null {
   const normalized = normalizePath(repoPath)
 
   return config.documents.find(document => covers(document.path, normalized)) ?? null
 }
 
 /** O documento que o projeto declarou com este papel, ou null. */
-export function documentWithRole(config: OwnershipConfig, role: DocumentRole): DocumentRule | null {
+export function documentWithRole(config: LivingDocsConfig, role: DocumentRole): DocumentRule | null {
   return config.documents.find(document => document.role === role) ?? null
 }
