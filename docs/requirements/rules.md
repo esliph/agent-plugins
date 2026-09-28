@@ -19,7 +19,7 @@ torna o raio de impacto calculável por `grep`. Formato: `templates/requirements
 - **fora de escopo:** quem revisa o artefato; isto trata de propriedade, não de revisão
 
 Um artefato de documentação viva pertence a um e apenas um dono, declarado em
-`docs/.ownership.yml` e espelhado no CODEOWNERS. Dois donos para o mesmo caminho
+`.ownership.yml`, na raiz do repositório, e espelhado no CODEOWNERS. Dois donos para o mesmo caminho
 é divergência garantida; zero donos torna o artefato órfão e não enforceável.
 
 ## RN-0002 — `trigger` nomeia um evento observável, nunca uma cadência
@@ -157,7 +157,8 @@ depreciação, catálogo de erros —, nunca o contrato.
 - **fora de escopo:** o formato da entrada, que é Keep a Changelog e mora no
   template, não nesta regra
 
-Uma mudança que toca caminho declarado em `consumer-visible-paths` leva, no
+Uma mudança que toca caminho de uma regra de `watches` marcada
+`consumer-visible: true` leva, no
 mesmo diff, a entrada em `## [Unreleased]` do doc marcado
 `consumer-visible: true` — ou uma razão escrita, no formato
 `Changelog: none — <razão>`, em alguma mensagem de commit do intervalo. Rótulo
@@ -204,16 +205,18 @@ consegue seguir.
 - **relates-to:** ADR-0008, RN-0001
 - **fora de escopo:** quem é o dono, que é do projeto e mora no `.ownership.yml` e no CODEOWNERS
 
-Todo arquivo sob a raiz da documentação, e todo caminho declarado que mora fora
-dela, tem entrada no `.ownership.yml` — em `artifacts:`, em `documents:` ou em
-`generated:` — **e** linha no CODEOWNERS. Os dois lugares, não um: o
+Todo arquivo do repositório tem entrada no `.ownership.yml` — em `owned` ou em
+`generated:` — **e** linha no CODEOWNERS; a cobertura do repositório inteiro é do
+núcleo, e o living-docs cobra o mesmo do corpus de documentação, a união dos
+caminhos com bloco `living-docs:` e dos de `generated[]`. Os dois lugares, não um: o
 `.ownership.yml` diz qual skill responde, o CODEOWNERS diz quem revisa, e
 documento com dono em um lugar só é documento cujo dono desaparece na primeira
 dúvida.
 
 Artefato e documento não são a mesma coisa. Artefato tem família de IDs, ciclo
 de vida e congelamento; documento tem dono, e talvez uma skill. Os dois têm
-dono, e é isso que esta regra cobra.
+dono, e é isso que esta regra cobra. O que os distingue é o bloco `living-docs:`
+da entrada: com `id-prefix` é artefato, sem ele é documento.
 
 ## RN-0017 — Item de Definition of Done sem verificação nomeada não é item
 
@@ -302,14 +305,14 @@ ninguém precisar procurar. É injeção de contexto, nunca decisão de permiss�
 E é curto por obrigação: inventário que ninguém lê é a wiki morta chegando pelo
 outro lado, com o agravante de custar contexto em toda sessão.
 
-## RN-0023 — Link quebrado e anexo binário sob a raiz da documentação reprovam
+## RN-0023 — Link quebrado e anexo binário num caminho do corpus reprovam
 
 - **status:** active
 - **relates-to:** RN-0016
 - **fora de escopo:** âncora dentro do arquivo (`#seção`), que o enforcement não resolve — e diz que não resolve
 
 Link relativo que não resolve para arquivo ou diretório existente, `[[wikilink]]`
-sem destino, e arquivo em formato binário sob a raiz da documentação reprovam.
+sem destino, e arquivo em formato binário num caminho do corpus reprovam.
 Link quebrado é pior que ausência de link: afirma uma ligação que não existe.
 Anexo binário não se lê em diff nem se revisa em PR.
 
@@ -404,7 +407,7 @@ exigir que todo dono fosse do plugin.
 - **fora de escopo:** os identificadores da interface pública, que a política de versionamento declara; o frontmatter, que é contrato de máquina e é de `CI-1`; e o bloco de código cercado, que é exemplo
 
 O corpo de um documento ou artefato declarado `audience: external` não contém
-citação a um prefixo declarado em `artifacts:` — nem em prosa, nem entre
+citação a um prefixo declarado em `living-docs.id-prefix` — nem em prosa, nem entre
 crases, nem no caminho de um link. Quem lê de fora não tem como resolver o ID, e
 um link até o artefato o leva a um documento escrito para quem mantém o
 repositório.
@@ -421,7 +424,7 @@ sobre o que o leitor vê, e não sobre o item existir.
 - **fora de escopo:** comentário de código e mensagem de commit; os documentos do próprio repositório do toolkit; os IDs do projeto de quem instala que uma mensagem mostra; os identificadores da interface pública, os nomes de skill e os comandos
 
 Os arquivos que o `init` semeia, os templates, o texto do plugin e a saída do
-CLI e dos hooks não citam prefixo declarado em `artifacts:` do toolkit, seção da
+CLI e dos hooks não citam prefixo declarado em `living-docs.id-prefix` do toolkit, seção da
 spec do toolkit nem caminho de documento interno dele. Quem instala não resolve
 a citação — ou a resolve para um item seu, com outro significado.
 
