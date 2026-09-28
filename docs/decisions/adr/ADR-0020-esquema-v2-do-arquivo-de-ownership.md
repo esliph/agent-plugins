@@ -1,11 +1,11 @@
 ---
 id: ADR-0020
 title: 'Esquema v2 do arquivo de ownership: owned único, blocos por plugin, format separado de governança'
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.
-last-reviewed: 2026-09-18
+last-reviewed: 2026-09-28
 relates-to: [ADR-0019, RN-0032]
 supersedes: null
 superseded-by: null
@@ -49,6 +49,20 @@ do núcleo de ownership.
   política.** Descartada: são configuração de como o parser encontra o item
   dentro do markdown, não decisão de governança, e no mesmo nível dominam a
   leitura de quem só quer saber quem é o dono.
+- **O plugin reivindica caminhos por regra própria** (um glob ou um filtro
+  sobre `format` no manifesto do plugin), ou por uma lista de caminhos sob o
+  nome dele na raiz. Descartada: a regra no manifesto torna invisível, a quem
+  lê o arquivo, quem lê o quê, e deixa dois plugins disputarem o mesmo
+  caminho sem erro; a lista na raiz é uma segunda cópia dos caminhos de
+  `owned`, a mesma duplicação de `consumer-visible-paths`.
+- **`x: true` como opt-in sem configuração.** Descartada: o bloco passaria a
+  ter dois tipos — booleano ou mapeamento — e todo plugin, em qualquer
+  linguagem, teria de tratar os dois. `x: {}` diz o mesmo com um tipo só.
+- **Validar o conteúdo do bloco contra um schema declarado pelo plugin.**
+  Descartada por ora: o plugin pode ser escrito em qualquer linguagem, então
+  o núcleo não tem como importá-lo para perguntar o schema; a saída seria
+  `plugins:` passar de lista de nomes a mapa apontando para um schema, uma
+  mudança de forma que o volume atual de configuração nos blocos não paga.
 
 ## Decisão
 
@@ -60,6 +74,15 @@ Dentro de cada entrada, as chaves de leitura do parser descem para um bloco
 no nível da entrada. `consumer-visible-paths` deixa de existir: as regras de
 `watches` marcadas `consumer-visible: true` são a lista.
 
+A presença do bloco é a declaração: um caminho pertence ao plugin `x` se, e
+somente se, a entrada de `owned` que o cobre traz a chave `x` — não há outra
+forma de um plugin passar a cuidar de um caminho. O valor do bloco é sempre
+um mapeamento: `x: {}` declara o vínculo sem configuração, e qualquer valor
+que não seja mapeamento (`true`, `false`, nulo, lista, texto) é erro de
+carga. O núcleo confere só esse tipo; o conteúdo do mapeamento é opaco a ele
+e cabe ao plugin interpretá-lo. Um plugin listado em `plugins:` sem nenhuma
+entrada que traga o seu bloco é aviso de `validate`, não erro.
+
 ## Consequências
 
 ### O que se ganha
@@ -67,7 +90,9 @@ no nível da entrada. `consumer-visible-paths` deixa de existir: as regras de
 Um plugin novo declara o próprio bloco sob o nome que listou em `plugins:`
 sem que o núcleo precise conhecê-lo, e um nome de bloco digitado errado vira
 erro visível em vez de silêncio. A lista de caminhos visíveis ao consumidor
-para de ter uma segunda cópia para divergir.
+para de ter uma segunda cópia para divergir. "Quais caminhos são do plugin
+`x`" tem resposta única, lida do próprio arquivo, e vários plugins cuidam da
+mesma entrada sem se conhecerem.
 
 ### O que se aceita perder
 
@@ -76,4 +101,7 @@ incluídas — precisa de migração antes de validar sob v2; nenhum
 `.ownership.yml` v1 lê como v2 sem o comando de migração (fora desta
 decisão). E declarar `plugins:` corretamente na raiz passa a ser
 pré-requisito para o bloco do plugin não virar erro — um passo a mais que a
-v1 não cobrava.
+v1 não cobrava. Uma chave digitada errado *dentro* de um bloco passa pela
+carga em silêncio e só aparece quando o plugin roda — `validate` não a vê.
+E todo caminho de um plugin precisa ser declarado entrada a entrada: não há
+reivindicação por padrão.
