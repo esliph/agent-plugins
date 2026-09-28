@@ -82,6 +82,30 @@ digitado errado seria ignorado em silêncio pelo núcleo e nunca visto pelo plug
 que não sabe que existe um bloco para ele. É a mesma falha que fez descartar
 chaves soltas.
 
+**A presença do bloco é a declaração.** Um caminho pertence ao plugin `x` se, e
+somente se, a entrada de `owned` que o cobre traz a chave `x`. Não há outra forma
+de um plugin passar a cuidar de um caminho: nem regra no manifesto do plugin —
+um glob ou um filtro sobre `format` tornaria invisível, a quem lê o arquivo,
+quem lê o quê, e deixaria dois plugins disputarem o mesmo caminho sem erro —,
+nem lista de caminhos sob o nome do plugin na raiz, que seria uma segunda cópia
+de `owned`. Como os caminhos de `owned` são disjuntos (seção 5), "quais caminhos
+são do plugin `x`" tem resposta única, e vários plugins cuidam da mesma entrada
+sem se conhecerem.
+
+O valor do bloco é sempre um mapeamento. `x: {}` declara o vínculo sem
+configuração; `true`, `false`, nulo, lista ou texto são erro de carga. `x: true`
+diria o mesmo que `x: {}`, mas daria ao bloco dois tipos, e todo plugin — escrito
+em qualquer linguagem — teria de tratar os dois. O núcleo confere só esse tipo:
+o conteúdo do mapeamento é opaco a ele e cabe ao plugin interpretá-lo. Validar o
+conteúdo contra um schema do plugin exigiria `plugins:` virar mapa apontando
+para esse schema, porque o núcleo não tem como importar um plugin de linguagem
+arbitrária para perguntar; o volume de configuração nos blocos não paga essa
+mudança de forma. O custo aceito é que uma chave digitada errado *dentro* do
+bloco só aparece quando o plugin roda.
+
+Um plugin listado em `plugins:` sem nenhuma entrada que traga o seu bloco é
+aviso, não erro — uma instalação em andamento passa por esse estado.
+
 ### Governança e leitura não se misturam na mesma indentação
 
 As chaves que dizem **como achar as coisas dentro do arquivo** — `collection`,
@@ -430,7 +454,7 @@ quem já instalou. E ele diz qual comando reproduz a falha.
 
 | Peça do núcleo                             | Nome                              |
 | ------------------------------------------ | --------------------------------- |
-| `owner` válido, `status` dentro de `states` | `ownership/declared-state`        |
+| `owner` válido, `status` dentro de `states`, plugin declarado sem entrada (aviso) | `ownership/declared-state`        |
 | drift de gerado                            | `ownership/generated-drift`       |
 | mudança visível sem entrada                | `ownership/consumer-change-logged` |
 | cobertura de dono e CODEOWNERS             | `ownership/owner-coverage`        |
@@ -590,6 +614,10 @@ Mais o que o repositório já pratica, estendido ao que é novo:
   entre dois arquivos recusada, ciclo de inclusão recusado, e colisão de caminho
   recusada nas três formas — dentro de um arquivo, entre irmãos, e entre um
   arquivo e outro que o inclui;
+- o bloco de plugin aceita `x: {}` e mapeamento com chaves, recusa na carga
+  `true`, `false`, nulo, lista e texto, e chega ao plugin com o conteúdo
+  intacto; um plugin listado em `plugins:` sem entrada gera aviso e não
+  reprova;
 - a poda descarta um arquivo sem abri-lo, e nenhuma regra de arquivo podado
   alcançaria os caminhos resolvidos;
 - `ownership explain` aponta o arquivo da entrada que cobre o caminho,
@@ -629,7 +657,7 @@ mostra que a terceira raiz não se materializa.
 | Decisão a abrir        | Sobre                                                                                                        | Efeito                                                                                                                                                                                                                                             |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | fronteira do núcleo    | dono, ciclo e gatilho dentro; IDs e congelamento fora                                                        | reabre a decisão da engine única — ela se divide                                                                                                                                                                                                   |
-| esquema v2             | lista `owned`, blocos por plugin, `plugins:` na raiz, `version` em todo arquivo, `basePath`, `format:`, fim da lista duplicada de caminhos visíveis | —                                                                                                                                                                                                             |
+| esquema v2             | lista `owned`, blocos por plugin (a presença do bloco declara o vínculo, valor sempre mapeamento, conteúdo opaco ao núcleo), `plugins:` na raiz, `version` em todo arquivo, `basePath`, `format:`, fim da lista duplicada de caminhos visíveis | —                                                                                                                                                                                                             |
 | identidade de item     | chave opaca, `key` por coleção, `state-field`                                                                | —                                                                                                                                                                                                                                                  |
 | gatilho doc → doc      | tipo no ownership, instância no frontmatter                                                                  | —                                                                                                                                                                                                                                                  |
 | composição entre arquivos | base por arquivo com `basePath` só descendo, caminhos governados disjuntos, inclusão explícita sem concessão de autoridade, confinamento pelo critério de gatilho | —                                                                                                                                                                                       |
