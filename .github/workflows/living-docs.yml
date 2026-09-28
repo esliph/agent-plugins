@@ -29,18 +29,18 @@ jobs:
         run: npm run typecheck
 
       - name: CI-1 a CI-4, CI-7 e CI-8 — documentação viva
-        run: node packages/living-docs/src/cli/index.ts validate
+        run: node --conditions=development packages/living-docs/src/cli/index.ts validate
 
       # A metade de CI-7 que lê o diff só existe com uma base (ADR-0010). Em
       # `push` não há base, e inventar uma produziria achado sobre mudança que
       # não é desta branch.
       - name: CI-7 — vínculo código→doc no diff do PR
         if: github.event_name == 'pull_request'
-        run: node packages/living-docs/src/cli/index.ts validate --base ${{ github.event.pull_request.base.sha }}
+        run: node --conditions=development packages/living-docs/src/cli/index.ts validate --base ${{ github.event.pull_request.base.sha }}
 
       - name: CI-5 — deriva de contrato gerado
-        run: node packages/living-docs/src/cli/index.ts drift
+        run: node --conditions=development packages/living-docs/src/cli/index.ts drift
 
       - name: CI-6 — entrada de CHANGELOG
         if: github.event_name == 'pull_request'
-        run: node packages/living-docs/src/cli/index.ts changelog --base ${{ github.event.pull_request.base.sha }}
+        run: node --conditions=development packages/living-docs/src/cli/index.ts changelog --base ${{ github.event.pull_request.base.sha }}

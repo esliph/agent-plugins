@@ -53,7 +53,7 @@ test('RNF-0006: bin/living-docs delega a bin/dev, sem lógica de container próp
   const wrapper = source('bin/living-docs')
 
   assert.match(wrapper, /\/dev\b/, 'o wrapper do CLI invoca bin/dev')
-  assert.match(wrapper, /node\s+packages\/living-docs\/src\/cli\/index\.ts/, 'e é ele, não bin/dev, que conhece o CLI')
+  assert.match(wrapper, /node\s+--conditions=development\s+packages\/living-docs\/src\/cli\/index\.ts/, 'e é ele, não bin/dev, que conhece o CLI')
 
   // O teste que impede a duplicação de lógica voltar: toda conversa com o
   // daemon mora em bin/dev, e um segundo lugar que a tenha é um segundo lugar

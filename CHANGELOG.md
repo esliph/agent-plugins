@@ -109,6 +109,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- A invocação da CLI no checkout passa a ser
+  `node --conditions=development packages/living-docs/src/cli/index.ts`, porque o
+  toolkit agora depende do núcleo de ownership pelo código-fonte.
+- Instalado pelo marketplace, o plugin `living-docs` não instala as dependências
+  até o núcleo ser publicado no npm; os hooks falham abertos e não respondem.
 - O erro de esquema v1 do `ownership` diz que o arquivo precisa ser reescrito na
   v2.
 - Bloco de plugin que não é mapa passa a ser erro de carga.

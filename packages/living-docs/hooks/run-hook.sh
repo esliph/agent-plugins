@@ -19,7 +19,12 @@ REPO_ROOT="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 INPUT="$(cat)"
 
+# A condição `development` resolve @esliph/ownership pelo src/ do pacote irmão:
+# no checkout não existe dist/, e é isso que impede código velho de rodar em
+# silêncio. Fora do checkout (cache do marketplace) o ../ownership não existe,
+# e o hook falha aberto até o núcleo ser publicado no npm.
 OUTPUT="$(printf '%s' "$INPUT" | LIVING_DOCS_REPO_ROOT="$REPO_ROOT" \
+  NODE_OPTIONS="--conditions=development" \
   timeout 5 node "${TOOLKIT_ROOT}/src/hooks/${HOOK}.ts" 2>/dev/null)"
 
 if [ $? -eq 0 ] && [ -n "$OUTPUT" ]; then

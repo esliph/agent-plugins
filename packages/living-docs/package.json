@@ -7,10 +7,11 @@
     "node": ">=24"
   },
   "scripts": {
-    "test": "node --test \"test/**/*.test.ts\"",
+    "test": "node --conditions=development --test \"test/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@esliph/ownership": "file:../ownership",
     "picomatch": "^4.0.2",
     "yaml": "^2.6.0"
   },
