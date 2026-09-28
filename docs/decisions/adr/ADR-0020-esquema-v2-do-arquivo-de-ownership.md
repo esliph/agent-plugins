@@ -6,7 +6,7 @@ owner: '@esliph/engineering'
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.
 last-reviewed: 2026-09-28
-relates-to: [ADR-0019, RN-0032]
+relates-to: [ADR-0019, DA-0006, RN-0032]
 supersedes: null
 superseded-by: null
 ---
