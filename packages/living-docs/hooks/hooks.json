@@ -12,12 +12,6 @@
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk2-generated-artifact",
-            "shell": "bash",
-            "async": false
-          },
-          {
-            "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk3-state-promotion",
             "shell": "bash",
             "async": false
@@ -29,29 +23,12 @@
             "async": false
           }
         ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk5-commit-guard",
-            "shell": "bash",
-            "async": false
-          }
-        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk4-watch-reminder",
-            "shell": "bash",
-            "async": false
-          },
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk7-shortcut-debt",

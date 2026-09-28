@@ -93,6 +93,7 @@ test('RN-0031: o que o init semeia, em todo estágio, e os templates crus não c
         stage,
         idFormat: DEFAULT_ID_FORMAT,
         invoke: 'npx living-docs',
+        invokeOwnership: 'npx living-docs',
         marketplace: 'time/living-docs',
       })
 

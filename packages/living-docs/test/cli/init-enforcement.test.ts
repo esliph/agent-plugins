@@ -12,6 +12,7 @@ const OPTIONS = {
   stage: 'production' as const,
   idFormat: DEFAULT_ID_FORMAT,
   invoke: 'npx living-docs',
+  invokeOwnership: 'npx ownership',
   marketplace: 'time/living-docs' as string | null,
 }
 
@@ -132,9 +133,24 @@ test('RN-0025: multi-team instala tudo que production instala', () => {
   })
 })
 
-test('RN-0025: production não instala o passo da Fase 7', () => {
+test('RN-0025/ADR-0012: production instala o diff do núcleo (Fase 6), mas não o do living-docs (Fase 7)', () => {
   withTempRepo({}, root => {
     runInit(root, { ...OPTIONS, stage: 'production' })
-    assert.doesNotMatch(readFileSync(join(root, WORKFLOW), 'utf8'), /validate --base/)
+    const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
+
+    assert.match(yaml, /npx ownership validate --base/, 'a decisão de ADR-0012/ADR-0030 liga as regras de diff do núcleo já em production')
+    assert.doesNotMatch(yaml, /npx living-docs validate --base/, 'a metade de CI-7 que ficou no living-docs só entra na Fase 7 (multi-team)')
+  })
+})
+
+test('RF-0013: o workflow semeado roda as duas CLIs, cada uma pelo seu comando de invocação', () => {
+  withTempRepo({}, root => {
+    runInit(root, { ...OPTIONS, invoke: 'npx living-docs', invokeOwnership: 'pnpm ownership' })
+    const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
+
+    assert.match(yaml, /run: pnpm ownership validate\n/)
+    assert.match(yaml, /run: pnpm ownership validate --base /)
+    assert.match(yaml, /run: npx living-docs validate\n/)
+    assert.doesNotMatch(yaml, /drift|changelog/)
   })
 })

@@ -10,6 +10,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Added
 
+- Plugin `ownership` no marketplace: dono, ciclo de vida, artefato gerado e
+  vínculo código→doc, com os próprios hooks.
+- `living-docs init --invoke-ownership <comando>`: como o CLI do núcleo é
+  chamado no workflow instalado (padrão `npx ownership`, que só funciona
+  depois da publicação do núcleo no npm).
 - O arquivo de ownership raiz aceita, no topo, um bloco de configuração por
   plugin listado em `plugins:`; num arquivo incluído, é erro.
 - O `owner` do frontmatter sem `@` passa a ser achado de `ownership validate`.
@@ -109,6 +114,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- O plugin `living-docs` passa a depender do plugin `ownership`, e deixa de
+  registrar os hooks de artefato gerado, de lembrete de caminho vigiado e de
+  guarda de commit — eles moram no `ownership`.
+- O workflow instalado roda `ownership validate` e `living-docs validate`, e,
+  em PR, os dois com `--base`.
+- `living-docs init --marketplace` habilita os dois plugins.
 - A invocação da CLI no checkout passa a ser
   `node --conditions=development packages/living-docs/src/cli/index.ts`, porque o
   toolkit agora depende do núcleo de ownership pelo código-fonte.

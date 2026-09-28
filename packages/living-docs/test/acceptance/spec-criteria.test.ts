@@ -8,10 +8,6 @@ import { runInit } from '../../src/cli/init.ts'
 import { runValidate } from '../../src/cli/validate.ts'
 import { decideHk1 } from '../../src/hooks/hk1-append-only.ts'
 import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts'
-import { decideHk4 } from '../../src/hooks/hk4-watch-reminder.ts'
-import { decideHk5 } from '../../src/hooks/hk5-commit-guard.ts'
-import { decideHk2 } from '../../src/hooks/hk2-generated-artifact.ts'
-import type { GitRunner } from '../../src/git/staged.ts'
 import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
@@ -26,6 +22,7 @@ const OPTIONS = {
   stage: 'solo' as const,
   idFormat: DEFAULT_ID_FORMAT,
   invoke: 'npx living-docs',
+  invokeOwnership: 'npx living-docs',
   marketplace: 'time/living-docs',
 }
 
@@ -150,30 +147,6 @@ watches:
     reason: "comportamento novo exige regra com ID antes do código"
 `
 
-test('critério 5: alterar caminho vigiado sem tocar o doc dono é lembrado e perguntado', () => {
-  withTempRepo({ [OWNERSHIP_FILE]: WATCHED_CONFIG }, root => {
-    const env = { root, hostRoots: [root] }
-
-    // Metade 1 — logo depois da edição, HK-4 lembra.
-    const lembrete = decideHk4({ tool_name: 'Edit', tool_input: { file_path: 'src/domain/reembolso.ts' } }, env)
-
-    assert.equal(lembrete.action, 'remind')
-
-    // Metade 2 — na hora do commit, HK-5 lista os pendentes e pergunta.
-    const staged: GitRunner = () => `src/domain/reembolso.ts${NUL}`
-    const pergunta = decideHk5({ tool_name: 'Bash', tool_input: { command: 'git commit -m "feat: reembolso"' } }, env, staged)
-
-    assert.equal(pergunta.action, 'ask')
-    assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /docs\/requirements\/rules\.md/)
-
-    // E com o doc no mesmo commit, o caminho fica livre.
-    const comDoc: GitRunner = () => `src/domain/reembolso.ts${NUL}docs/requirements/rules.md${NUL}`
-    const livre = decideHk5({ tool_name: 'Bash', tool_input: { command: 'git commit -m "feat: reembolso"' } }, env, comDoc)
-
-    assert.equal(livre.action, 'allow')
-  })
-})
-
 const GENERATED_CONFIG = `
 version: 2
 plugins: [living-docs]
@@ -188,20 +161,14 @@ generated:
     command: "node tools/gen.js"
 `
 
-test('critério 6: o guarda de gerado nega editar o contrato gerado, e a checagem de deriva do núcleo falha se passar por fora', () => {
+test('critério 6: o contrato gerado editado por fora reprova no núcleo', () => {
   const GERADO = 'docs/contracts/api.gen.md'
   const VERDADE = '<!-- generated: do not edit -->\n\n# API\n\n- GET /pedidos\n'
 
   withTempRepo({ [OWNERSHIP_FILE]: GENERATED_CONFIG, [GERADO]: VERDADE }, root => {
-    const env = { root, hostRoots: [root] }
-
-    // Metade 1 — pelo agente, HK-2 nega e ensina o caminho certo.
-    const negado = decideHk2({ tool_name: 'Edit', tool_input: { file_path: GERADO, old_string: 'GET', new_string: 'POST' } }, env)
-
-    assert.equal(negado.action, 'deny')
-    assert.match(negado.action === 'deny' ? negado.reason : '', /node tools\/gen\.js/)
-
-    // Metade 2 — editado por fora do agente, a deriva é achado do núcleo.
+    // O guarda que nega a edição pelo agente é hoje `ownership/generated-guard`
+    // (ADR-0030); aqui fica a metade que independe de hook: editado por fora, a
+    // deriva é achado do núcleo.
     const config = resolveOwnership(root)!
     const deriva = coreChecks(() => VERDADE).find(check => check.id === 'ownership/generated-drift')!
 

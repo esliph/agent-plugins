@@ -10,7 +10,8 @@ test('RF-0013: sem settings, o registro nasce com o marketplace e o plugin', () 
     source: { source: 'github', repo: 'time/living-docs' },
   })
   assert.equal(parsed.enabledPlugins?.['living-docs@living-docs'], true)
-  assert.equal(added.length, 2)
+  assert.equal(parsed.enabledPlugins?.['ownership@living-docs'], true)
+  assert.equal(added.length, 3)
   assert.ok(text.endsWith('\n'))
 })
 
@@ -50,7 +51,7 @@ test('RF-0013: entrada que o consumidor escreveu à mão não é reescrita', () 
     source: 'git',
     url: 'file:///opt/toolkit',
   })
-  assert.deepEqual(added, ['enabledPlugins["living-docs@living-docs"]'])
+  assert.deepEqual(added, ['enabledPlugins["living-docs@living-docs"]', 'enabledPlugins["ownership@living-docs"]'])
 })
 
 test('RF-0013: settings ilegível é erro, nunca sobrescrita', () => {

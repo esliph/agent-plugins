@@ -14,25 +14,20 @@ import { toolkitRoot } from '../../src/core/roots.ts'
  */
 const PACKAGE_ROOT = toolkitRoot()
 
-/** Repositório validado mínimo: uma regra de `watches` que o HK-4 lembra. */
+/** Repositório validado mínimo: uma família append-only que o HK-1 guarda. */
 const OWNERSHIP = [
   'version: 2',
   'plugins: [living-docs]',
   'owned:',
-  '  - path: docs/requirements/rules.md',
+  '  - path: docs/decisions/adr/',
   "    owner: '@time'",
-  '    skill: requirements-keeper',
-  '    states: [draft, active, revoked]',
-  '    format: { collection: sections, key: first-token }',
-  '    living-docs: { id-prefix: RN }',
-  'watches:',
-  "  - code: 'src/domain/**'",
-  '    doc: docs/requirements/rules.md',
-  "    reason: 'comportamento novo exige regra antes do código'",
+  '    skill: decision-recorder',
+  '    states: [draft, accepted, superseded]',
+  '    living-docs: { id-prefix: ADR, append-only: true, mutable-fields: [status, superseded-by, last-reviewed] }',
   '',
 ].join('\n')
 
-const PAYLOAD = JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: 'src/domain/reembolso.ts' } })
+const PAYLOAD = JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: 'docs/decisions/adr/ADR-0001.md' } })
 
 /**
  * No Windows, o `bash` do PATH pode ser o do WSL, que não enxerga `C:\…`. O
@@ -72,7 +67,7 @@ function runHook(bash: string, cache: string, project: string): { status: number
   // projeto, como no Claude Code, e não o cache: um wrapper que se achasse pelo
   // cwd reprovaria aqui.
   const script = join(cache, 'hooks', 'run-hook.sh').split(sep).join('/')
-  const run = spawnSync(bash, [script, 'hk4-watch-reminder'], { cwd: project, env, input: PAYLOAD, encoding: 'utf8' })
+  const run = spawnSync(bash, [script, 'hk1-append-only'], { cwd: project, env, input: PAYLOAD, encoding: 'utf8' })
 
   return { status: run.status, stdout: run.stdout, stderr: run.stderr }
 }

@@ -17,6 +17,7 @@ const OPTIONS = {
   stage: 'solo' as const,
   idFormat: DEFAULT_ID_FORMAT,
   invoke: 'npx living-docs',
+  invokeOwnership: 'npx living-docs',
   marketplace: 'time/living-docs',
 }
 
@@ -125,6 +126,7 @@ const OPCOES_DO_CONSUMIDOR = {
   idFormat: { separator: '', padding: 3 },
   // O consumidor nao roda Docker: e assim que ele chama o CLI.
   invoke: 'npx living-docs',
+  invokeOwnership: 'npx living-docs',
   marketplace: 'time/living-docs',
 }
 

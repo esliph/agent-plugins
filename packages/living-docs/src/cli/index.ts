@@ -20,6 +20,7 @@ Opções de init:
   --id-separator <s>  Separador do ID: "-" (padrão), "_", ".", ":" ou "" (vazio)
   --id-padding <n>    Dígitos do ID: 4 (padrão), entre 2 e 6
   --invoke <comando>  Como o CLI é chamado no CI de quem instala (padrão: npx living-docs)
+  --invoke-ownership <comando>  Como o CLI do núcleo é chamado no CI (padrão: npx ownership)
   --marketplace <o/r>  Repositório do marketplace do plugin; sem ele os hooks não são registrados
   --dry-run           Mostra o que faria, sem escrever
 
@@ -122,6 +123,15 @@ function main(argv: readonly string[]): number {
         return 2
       }
 
+      const invokeOwnershipIndex = argv.indexOf('--invoke-ownership')
+      const invokeOwnership = invokeOwnershipIndex === -1 ? 'npx ownership' : (argv[invokeOwnershipIndex + 1] ?? '')
+
+      if (invokeOwnership.trim() === '') {
+        process.stderr.write('living-docs: `--invoke-ownership` precisa do comando que roda o CLI do núcleo no seu CI — ele não se adivinha.\n')
+
+        return 2
+      }
+
       const marketplaceIndex = argv.indexOf('--marketplace')
       const marketplace = marketplaceIndex === -1 ? null : (argv[marketplaceIndex + 1] ?? '')
 
@@ -137,6 +147,7 @@ function main(argv: readonly string[]): number {
         stage: stage as Stage,
         idFormat: { separator, padding },
         invoke,
+        invokeOwnership,
         marketplace,
       })
 

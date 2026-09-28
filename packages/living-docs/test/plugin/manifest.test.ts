@@ -21,7 +21,7 @@ test('o manifesto do plugin declara nome, versão e descrição', () => {
   assert.equal(typeof manifest.description, 'string')
 })
 
-test('hooks.json registra os oito hooks nos eventos e matchers da spec §7', () => {
+test('hooks.json registra os cinco hooks do living-docs nos eventos e matchers da spec §7', () => {
   const config = readJson('hooks/hooks.json')
   const hooks = config.hooks as Record<string, { matcher?: string; hooks: { command: string }[] }[]>
 
@@ -32,9 +32,8 @@ test('hooks.json registra os oito hooks nos eventos e matchers da spec §7', () 
   )
 
   const esperado: Record<string, string[]> = {
-    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk2-generated-artifact', 'hk3-state-promotion', 'hk8-open-decision-guard'],
-    'PreToolUse:Bash': ['hk5-commit-guard'],
-    'PostToolUse:Edit|Write': ['hk4-watch-reminder', 'hk7-shortcut-debt'],
+    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk3-state-promotion', 'hk8-open-decision-guard'],
+    'PostToolUse:Edit|Write': ['hk7-shortcut-debt'],
     // SessionStart não tem matcher: o evento não é de ferramenta (spec §7).
     SessionStart: ['hk6-session-inventory'],
   }
@@ -94,7 +93,43 @@ test('todo hook referenciado existe no repositório', () => {
     }
   }
 
-  assert.equal(vistos, 8, 'a varredura deveria ver os oito hooks')
+  assert.equal(vistos, 5, 'a varredura deveria ver os cinco hooks')
+})
+
+function hookNames(pluginRoot: string): string[] {
+  const config = JSON.parse(readFileSync(join(pluginRoot, 'hooks/hooks.json'), 'utf8')) as { hooks: Record<string, { hooks: { command: string }[] }[]> }
+
+  return Object.values(config.hooks).flatMap(grupos => grupos.flatMap(grupo => grupo.hooks.map(hook => hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? '')))
+}
+
+test('os dois plugins não registram hook em comum — cada guarda roda num plugin só', () => {
+  const living = hookNames(ROOT)
+  const core = hookNames(join(ROOT, '..', 'ownership'))
+
+  assert.ok(core.length >= 3, 'a varredura deveria ver os hooks do núcleo')
+  assert.deepEqual(
+    living.filter(name => core.includes(name)),
+    [],
+  )
+  for (const assumido of ['generated', 'watch-reminder', 'commit-guard']) {
+    assert.ok(!living.some(name => name.includes(assumido)), `o living-docs não pode mais registrar o hook de ${assumido}: é do núcleo`)
+  }
+})
+
+test('o living-docs declara o plugin ownership como dependência, e o marketplace publica os dois', () => {
+  const manifest = readJson('.claude-plugin/plugin.json')
+  const marketplace = JSON.parse(readFileSync(join(CHECKOUT, '.claude-plugin/marketplace.json'), 'utf8')) as { plugins: { name: string; source: string; version: string }[] }
+  const core = JSON.parse(readFileSync(join(ROOT, '..', 'ownership', '.claude-plugin/plugin.json'), 'utf8')) as { version: string }
+
+  assert.deepEqual(manifest.dependencies, ['ownership'])
+  assert.deepEqual(
+    marketplace.plugins.map(plugin => plugin.name).sort(),
+    ['living-docs', 'ownership'],
+  )
+  const entry = marketplace.plugins.find(plugin => plugin.name === 'ownership')!
+
+  assert.equal(entry.source, './packages/ownership')
+  assert.equal(entry.version, core.version)
 })
 
 /**
@@ -225,15 +260,16 @@ test('o manifesto de marketplace aponta para o plugin deste repositório', () =>
   // O marketplace identifica quem distribui; o plugin, o que se instala. Os dois
   // com o mesmo nome davam `living-docs@living-docs` no comando de instalação.
   assert.equal(marketplace.name, 'esliph')
-  assert.equal(plugins.length, 1)
-  assert.equal(plugins[0]?.name, 'living-docs')
-  assert.equal(plugins[0]?.source, './packages/living-docs')
+  const entry = plugins.find(plugin => plugin.name === 'living-docs')
+
+  assert.ok(entry, `marketplace.plugins deveria ter uma entrada "living-docs": ${JSON.stringify(plugins)}`)
+  assert.equal(entry?.source, './packages/living-docs')
   // O diretório do plugin é o do pacote: é o que põe src/, templates/ e o
   // lockfile dentro do que o cache copia.
-  assert.equal(resolve(CHECKOUT, plugins[0]?.source ?? ''), ROOT)
+  assert.equal(resolve(CHECKOUT, entry?.source ?? ''), ROOT)
   assert.ok(existsSync(join(ROOT, '.claude-plugin/plugin.json')), 'a fonte precisa ter manifesto')
 
   const plugin = readJson('.claude-plugin/plugin.json')
 
-  assert.equal(plugins[0]?.version, plugin.version, 'duas versões é a garantia de que uma está errada')
+  assert.equal(entry?.version, plugin.version, 'duas versões é a garantia de que uma está errada')
 })

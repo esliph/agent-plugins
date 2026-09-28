@@ -5,7 +5,6 @@ import { join } from 'node:path'
 import { test } from 'node:test'
 import picomatch from 'picomatch'
 import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
-import { watchesFor } from '../../src/config/watches.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
 
 const ROOT = checkoutRoot()
@@ -68,8 +67,10 @@ test('RNF-0006: bin/living-docs delega a bin/dev, sem lógica de container próp
 test('RNF-0006: .ownership.yml cobre bin/dev em watches, marcado visível ao consumidor', () => {
   const config = loadLivingDocsConfig(ROOT)
 
-  // Mecanismo 1: quem toca bin/dev leva o doc dono no mesmo commit.
-  const matches = watchesFor(config, ['bin/dev'])
+  // Mecanismo 1: quem toca bin/dev leva o doc dono no mesmo commit. O
+  // agrupamento por doc (`watchesFor`) é do núcleo agora (ADR-0030); aqui basta
+  // achar as regras cujo padrão bate, o mesmo que o núcleo faz por baixo.
+  const matches = config.watches.filter(watch => picomatch(watch.code)('bin/dev'))
 
   assert.deepEqual(
     matches.map(match => match.doc),

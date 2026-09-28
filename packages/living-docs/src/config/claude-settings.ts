@@ -9,6 +9,8 @@
 export const SETTINGS_PATH = '.claude/settings.json'
 export const MARKETPLACE_NAME = 'living-docs'
 export const PLUGIN_REF = 'living-docs@living-docs'
+/** O plugin do núcleo: o living-docs depende dele, e os guardas de dono moram lá. */
+export const CORE_PLUGIN_REF = `ownership@${MARKETPLACE_NAME}`
 
 export class SettingsError extends Error {
   constructor(message: string) {
@@ -69,6 +71,11 @@ export function mergeSettings(current: string | null, marketplace: string): { te
   if (plugins[PLUGIN_REF] === undefined) {
     plugins[PLUGIN_REF] = true
     added.push(`enabledPlugins["${PLUGIN_REF}"]`)
+  }
+
+  if (plugins[CORE_PLUGIN_REF] === undefined) {
+    plugins[CORE_PLUGIN_REF] = true
+    added.push(`enabledPlugins["${CORE_PLUGIN_REF}"]`)
   }
 
   return { text: `${JSON.stringify(root, null, 2)}\n`, added }

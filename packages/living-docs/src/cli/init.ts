@@ -212,6 +212,8 @@ export interface InitOptions {
   idFormat: IdFormat
   /** Como o CLI é chamado no CI de quem instala (`DA-0003`). */
   invoke: string
+  /** Como o CLI do núcleo é chamado no CI de quem instala. Padrão `npx ownership` (TDR-0003). */
+  invokeOwnership: string
   /** Repositório do marketplace do plugin, ou `null` para não registrar (`DA-0003`). */
   marketplace: string | null
 }
@@ -250,15 +252,26 @@ function reaches(stage: Stage, phase: number): boolean {
  * Os passos que este estágio acrescenta ao `validate`, que todo estágio roda.
  * Cada passo existe porque uma fase do estágio instalou o check que ele chama.
  */
-function workflowSteps(stage: Stage, invoke: string): string {
+function workflowSteps(stage: Stage, invoke: string, invokeOwnership: string): string {
   const phases = STAGE_PHASES[stage]
   const steps: string[] = []
+
+  if (phases.includes(6)) {
+    steps.push(
+      [
+        '',
+        '      - name: Vínculo código→doc e entrada de CHANGELOG no diff do PR',
+        "        if: github.event_name == 'pull_request'",
+        `        run: ${invokeOwnership} validate --base \${{ github.event.pull_request.base.sha }}`,
+      ].join('\n'),
+    )
+  }
 
   if (phases.includes(7)) {
     steps.push(
       [
         '',
-        '      - name: CI-7 — vínculo código→doc no diff do PR',
+        '      - name: Documentação viva no diff do PR',
         "        if: github.event_name == 'pull_request'",
         `        run: ${invoke} validate --base \${{ github.event.pull_request.base.sha }}`,
       ].join('\n'),
@@ -469,7 +482,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
     ID_SEPARATOR: options.idFormat.separator,
     ID_PADDING: String(options.idFormat.padding),
     INVOKE: options.invoke,
-    WORKFLOW_STEPS: workflowSteps(options.stage, options.invoke),
+    INVOKE_OWNERSHIP: options.invokeOwnership,
+    WORKFLOW_STEPS: workflowSteps(options.stage, options.invoke, options.invokeOwnership),
   }
 
   if (existingFile === null) {
