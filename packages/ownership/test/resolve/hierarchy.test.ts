@@ -270,3 +270,9 @@ test('findOwnedRule acha a única regra que cobre, e null quando nenhuma cobre',
     assert.equal(findOwnedRule(config, 'src/index.ts'), null)
   })
 })
+
+test('os blocos de topo da raiz chegam em ResolvedConfig.pluginBlocks', () => {
+  withTempRepo({ '.ownership.yml': 'version: 2\nplugins: [living-docs]\nliving-docs:\n  stale-after-months: 3\nowned: []\n' }, root => {
+    assert.deepEqual(resolveOwnership(root)?.pluginBlocks, { 'living-docs': { 'stale-after-months': 3 } })
+  })
+})

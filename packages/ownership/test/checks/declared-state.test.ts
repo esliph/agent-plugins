@@ -89,3 +89,24 @@ test('state-field customizado é lido no lugar de status', () => {
     assert.equal(ownershipDeclaredState().run({ root, config, today: '2026-09-17' }).length, 1)
   })
 })
+
+test('per-file: owner do frontmatter sem @ é achado, na linha do campo', () => {
+  withTempRepo({ 'docs/adr/ADR-0001.md': '---\nstatus: draft\nowner: time\n---\n' }, root => {
+    forgetTree(root)
+    const config = buildConfig({ owned: [{ path: 'docs/adr/', owner: '@x', states: ['draft'] }] })
+    const findings = ownershipDeclaredState().run({ root, config, today: '2026-09-28' })
+
+    assert.equal(findings.length, 1)
+    assert.equal(findings[0]?.line, 3)
+    assert.match(findings[0]?.message ?? '', /owner.*"time".*@/)
+  })
+})
+
+test('per-file: owner com @, ou ausente, não é achado — ausência é de quem cobra o frontmatter', () => {
+  withTempRepo({ 'docs/adr/ADR-0001.md': "---\nstatus: draft\nowner: '@time'\n---\n", 'docs/adr/ADR-0002.md': '---\nstatus: draft\n---\n' }, root => {
+    forgetTree(root)
+    const config = buildConfig({ owned: [{ path: 'docs/adr/', owner: '@x', states: ['draft'] }] })
+
+    assert.deepEqual(ownershipDeclaredState().run({ root, config, today: '2026-09-28' }), [])
+  })
+})

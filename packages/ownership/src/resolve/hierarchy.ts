@@ -12,7 +12,7 @@ export interface ResolvedOwnedRule {
   states: string[] | null
   format: FormatBlock
   derivesFrom: DerivesFrom | null
-  pluginBlocks: Record<string, unknown>
+  pluginBlocks: Record<string, Record<string, unknown>>
   /** Arquivo de ownership que declarou esta entrada. */
   origin: string
 }
@@ -34,6 +34,8 @@ export interface ResolvedFile {
 export interface ResolvedConfig {
   version: 2
   plugins: string[]
+  /** Blocos de topo do arquivo raiz, por nome de plugin — opacos ao núcleo. */
+  pluginBlocks: Record<string, Record<string, unknown>>
   owned: ResolvedOwnedRule[]
   generated: ResolvedGeneratedRule[]
   watches: ResolvedWatchRule[]
@@ -279,6 +281,7 @@ export function resolveOwnership(repoRoot: string, opts: ResolveOptions = {}): R
   return {
     version: 2,
     plugins: root.plugins,
+    pluginBlocks: root.pluginBlocks,
     owned: collectOwned(files),
     generated,
     watches,

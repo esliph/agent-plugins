@@ -27,8 +27,8 @@ export interface OwnedRuleRaw {
   /** Se o arquivo escreveu `format:` — o default do parser não é declaração. */
   formatDeclared: boolean
   derivesFrom: DerivesFrom | null
-  /** Por nome de plugin declarado em `plugins:`. Conteúdo opaco ao núcleo. */
-  pluginBlocks: Record<string, unknown>
+  /** Por nome de plugin declarado em `plugins:`. Sempre um mapa; o conteúdo é opaco ao núcleo. */
+  pluginBlocks: Record<string, Record<string, unknown>>
 }
 
 export interface GeneratedRuleRaw {
@@ -60,6 +60,8 @@ export interface ParsedFile {
 
 export interface RootFile extends ParsedFile {
   plugins: string[]
+  /** Blocos de topo, por nome de plugin — só a raiz os tem (ADR-0028). */
+  pluginBlocks: Record<string, Record<string, unknown>>
 }
 
 export class OwnershipError extends Error {

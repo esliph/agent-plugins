@@ -16,6 +16,10 @@ test('o package-lock.json do pacote está em dia com o package.json', { timeout:
 
   try {
     copyFileSync(join(PACKAGE_ROOT, 'package.json'), join(isolated, 'package.json'))
+    // O lockfile entra junto: sem ele o npm resolve a versão mais nova de cada
+    // faixa, e o teste reprovaria a cada publicação no registro, com o
+    // package.json intocado. Com ele, o npm só muda o que o package.json pede.
+    copyFileSync(join(PACKAGE_ROOT, 'package-lock.json'), join(isolated, 'package-lock.json'))
     const result = spawnSync('npm', ['install', '--package-lock-only', '--ignore-scripts'], { cwd: isolated, encoding: 'utf8', shell: true })
 
     assert.equal(result.status, 0, result.stderr)

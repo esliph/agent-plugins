@@ -126,6 +126,18 @@ function parseDerivesFrom(raw: unknown, where: string): DerivesFrom | null {
   }
 }
 
+/**
+ * O valor de um bloco de plugin é sempre um mapa: `x: {}` declara o vínculo sem
+ * configuração, e qualquer outro valor é erro de carga (ADR-0020).
+ */
+function asPluginBlock(value: unknown, where: string): Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new OwnershipError(`${where}: o bloco de plugin precisa ser um mapa — use \`{}\` para declarar o vínculo sem configuração.`)
+  }
+
+  return value as Record<string, unknown>
+}
+
 const OWNED_CORE_KEYS = new Set(['path', 'owner', 'skill', 'states', 'format', 'derives-from'])
 
 function parseOwned(raw: unknown, index: number, file: string, pluginNames: readonly string[]): OwnedRuleRaw {
@@ -153,11 +165,11 @@ function parseOwned(raw: unknown, index: number, file: string, pluginNames: read
     throw new OwnershipError(`${where}.skill: precisa ser uma string não vazia, ou ficar ausente.`)
   }
 
-  const pluginBlocks: Record<string, unknown> = {}
+  const pluginBlocks: Record<string, Record<string, unknown>> = {}
 
   for (const name of pluginNames) {
     if (item[name] !== undefined) {
-      pluginBlocks[name] = item[name]
+      pluginBlocks[name] = asPluginBlock(item[name], `${where}.${name}`)
     }
   }
 
@@ -237,19 +249,32 @@ export function parseOwnershipFile(source: string, file: string, opts: ParseOpti
   // esconderia o motivo real.
   if (root.version === 1) {
     throw new OwnershipError(
-      `${file}: esquema v1 — o núcleo só lê a v2 (lista \`owned\`, blocos por plugin). ` +
-        'Migre o arquivo antes de usar `ownership`; a migração ainda não tem comando próprio.',
+      `${file}: esquema v1 — este arquivo não é lido. O núcleo só lê a v2 (lista \`owned\`, blocos por plugin); ` +
+        'reescreva o arquivo na v2.',
     )
   }
   if (root.version !== 2) {
     throw new OwnershipError(`${file}: campo \`version\` precisa ser 2 (recebido: ${String(root.version)}).`)
   }
 
-  assertKnownKeys(root, opts.isRoot ? ROOT_KEYS : CHILD_KEYS, file, opts.isRoot ? '' : ' `plugins` é exclusivo do arquivo raiz.')
-
   if (opts.isRoot) {
     plugins = asStringList(root.plugins, `${file}.plugins`)
+
+    for (const name of plugins) {
+      if (ROOT_KEYS.has(name)) {
+        throw new OwnershipError(`${file}.plugins: "${name}" é chave do núcleo e não pode nomear plugin.`)
+      }
+    }
     pluginNames = plugins
+    // Bloco de topo: só a raiz, e só com nome listado em `plugins:` (ADR-0028).
+    assertKnownKeys(root, new Set([...ROOT_KEYS, ...plugins]), file)
+  } else {
+    for (const key of Object.keys(root)) {
+      if (opts.pluginNames.includes(key)) {
+        throw new OwnershipError(`${file}: bloco de plugin "${key}" no topo é exclusivo do arquivo raiz.`)
+      }
+    }
+    assertKnownKeys(root, CHILD_KEYS, file, ' `plugins` é exclusivo do arquivo raiz.')
   }
 
   const ownedRaw = asList(root.owned, `${file}.owned`)
@@ -268,5 +293,17 @@ export function parseOwnershipFile(source: string, file: string, opts: ParseOpti
     include: asStringList(root.include, `${file}.include`),
   }
 
-  return opts.isRoot ? { ...parsed, plugins: plugins ?? [] } : parsed
+  if (!opts.isRoot) {
+    return parsed
+  }
+
+  const pluginBlocks: Record<string, Record<string, unknown>> = {}
+
+  for (const name of plugins ?? []) {
+    if (root[name] !== undefined) {
+      pluginBlocks[name] = asPluginBlock(root[name], `${file}.${name}`)
+    }
+  }
+
+  return { ...parsed, plugins: plugins ?? [], pluginBlocks }
 }

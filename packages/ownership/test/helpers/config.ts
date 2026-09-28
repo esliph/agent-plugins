@@ -29,6 +29,7 @@ export function buildConfig(partial: {
   return {
     version: 2,
     plugins: [],
+    pluginBlocks: {},
     owned: (partial.owned ?? []).map(owned),
     watches: (partial.watches ?? []).map(watch),
     generated: (partial.generated ?? []).map(generated),

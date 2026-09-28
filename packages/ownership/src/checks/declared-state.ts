@@ -18,9 +18,11 @@ function filesUnder(root: string, rulePath: string): string[] {
 interface Observed {
   states: { state: string; line: number }[]
   duplicates: DocItem[]
+  /** `owner` do frontmatter que não começa com `@`, só em per-file. */
+  badOwner: { value: string; line: number } | null
 }
 
-const NOTHING: Observed = { states: [], duplicates: [] }
+const NOTHING: Observed = { states: [], duplicates: [], badOwner: null }
 
 function observe(root: string, rule: ResolvedOwnedRule, file: string): Observed {
   const content = readTextFile(root, file)
@@ -38,8 +40,14 @@ function observe(root: string, rule: ResolvedOwnedRule, file: string): Observed 
       return NOTHING
     }
     const value = frontmatter?.data[rule.format.stateField]
+    const owner = frontmatter?.data.owner
+    const badOwner = typeof owner === 'string' && owner !== '' && !owner.startsWith('@') ? { value: owner, line: frontmatter?.lines.owner ?? 0 } : null
 
-    return typeof value === 'string' && value !== '' ? { states: [{ state: value, line: frontmatter?.lines[rule.format.stateField] ?? 0 }], duplicates: [] } : NOTHING
+    return {
+      states: typeof value === 'string' && value !== '' ? [{ state: value, line: frontmatter?.lines[rule.format.stateField] ?? 0 }] : [],
+      duplicates: [],
+      badOwner,
+    }
   }
 
   const items =
@@ -50,6 +58,7 @@ function observe(root: string, rule: ResolvedOwnedRule, file: string): Observed 
   return {
     states: items.filter(item => item.state !== '').map(item => ({ state: item.state, line: item.line })),
     duplicates: findDuplicateKeys(items),
+    badOwner: null,
   }
 }
 
@@ -71,6 +80,16 @@ export function ownershipDeclaredState(): Check {
                 duplicate.line,
                 `A chave "${duplicate.key}" aparece mais de uma vez neste arquivo — a chave identifica o item dentro do arquivo.`,
                 'Dê a este item uma chave própria, ou funda as duas entradas.',
+              ),
+            )
+          }
+          if (observed.badOwner !== null) {
+            findings.push(
+              error(
+                file,
+                observed.badOwner.line,
+                `\`owner\` "${observed.badOwner.value}" precisa começar com @ e espelhar o CODEOWNERS.`,
+                'Use o handle de pessoa ou time, ex.: "@time-plataforma".',
               ),
             )
           }

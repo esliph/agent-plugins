@@ -10,6 +10,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Added
 
+- O arquivo de ownership raiz aceita, no topo, um bloco de configuração por
+  plugin listado em `plugins:`; num arquivo incluído, é erro.
+- O `owner` do frontmatter sem `@` passa a ser achado de `ownership validate`.
 - `validate`, `drift` e `changelog` passam a relatar quanto o conjunto de checks
   levou e qual é o teto declarado. A medida não altera o código de saída.
 - `CI-9` (`living-docs validate --base <ref>`): reprova o diff que só altera a
@@ -106,6 +109,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- O erro de esquema v1 do `ownership` diz que o arquivo precisa ser reescrito na
+  v2.
+- Bloco de plugin que não é mapa passa a ser erro de carga.
 - O toolkit passa a morar em `packages/living-docs/`, e esse diretório é ao mesmo
   tempo o pacote e o plugin do Claude Code. Quem invoca o CLI de um clone passa a
   chamá-lo por `node packages/living-docs/src/cli/index.ts`, sempre da raiz do

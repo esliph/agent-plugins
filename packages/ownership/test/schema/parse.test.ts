@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { OwnershipError, parseOwnershipFile } from '../../src/schema/parse.ts'
+import type { RootFile } from '../../src/schema/types.ts'
 
 const ROOT = { isRoot: true, pluginNames: [] }
 const CHILD = (pluginNames: string[] = []) => ({ isRoot: false, pluginNames })
@@ -25,7 +26,7 @@ test('chave de topo desconhecida é erro', () => {
 })
 
 test('versão 1 é recusada em voz alta, dizendo que o esquema mudou', () => {
-  assert.throws(() => parseOwnershipFile('version: 1\nartifacts: []\n', 'docs/.ownership.yml', ROOT), /esquema v1/)
+  assert.throws(() => parseOwnershipFile('version: 1\nartifacts: []\n', 'docs/.ownership.yml', ROOT), /esquema v1.*não é lido.*reescreva/)
 })
 
 test('owned, generated e watches que não são lista são erro, não lista vazia', () => {
@@ -151,4 +152,47 @@ test('basePath é normalizado, e só desce', () => {
 
 test('YAML inválido é OwnershipError', () => {
   assert.throws(() => parseOwnershipFile('version: [2\n', '.ownership.yml', ROOT), OwnershipError)
+})
+
+test('a raiz aceita bloco de topo com nome listado em plugins, e o repassa opaco', () => {
+  const parsed = parseOwnershipFile(
+    'version: 2\nplugins: [living-docs]\nliving-docs:\n  stale-after-months: 6\nowned: []\n',
+    '.ownership.yml',
+    ROOT,
+  ) as RootFile
+
+  assert.deepEqual(parsed.pluginBlocks, { 'living-docs': { 'stale-after-months': 6 } })
+})
+
+test('sem bloco de topo, pluginBlocks da raiz é vazio', () => {
+  const parsed = parseOwnershipFile('version: 2\nplugins: [living-docs]\nowned: []\n', '.ownership.yml', ROOT) as RootFile
+
+  assert.deepEqual(parsed.pluginBlocks, {})
+})
+
+test('bloco de topo num arquivo filho é erro, mesmo com o nome listado na raiz', () => {
+  assert.throws(
+    () => parseOwnershipFile('version: 2\nliving-docs:\n  stale-after-months: 6\nowned: []\n', 'pkg/.ownership.yml', CHILD(['living-docs'])),
+    /pkg\/\.ownership\.yml.*living-docs.*exclusivo do arquivo raiz/,
+  )
+})
+
+test('bloco de plugin que não é mapa é erro, no topo e na entrada', () => {
+  assert.throws(
+    () => parseOwnershipFile('version: 2\nplugins: [living-docs]\nliving-docs: true\nowned: []\n', '.ownership.yml', ROOT),
+    /\.ownership\.yml\.living-docs.*precisa ser um mapa/,
+  )
+  assert.throws(
+    () =>
+      parseOwnershipFile(
+        "version: 2\nplugins: [living-docs]\nowned:\n  - path: a.md\n    owner: '@x'\n    living-docs:\n",
+        '.ownership.yml',
+        ROOT,
+      ),
+    /owned\[0\]\.living-docs.*precisa ser um mapa/,
+  )
+})
+
+test('plugin com o nome de uma chave do núcleo é erro', () => {
+  assert.throws(() => parseOwnershipFile('version: 2\nplugins: [owned]\nowned: []\n', '.ownership.yml', ROOT), /plugins.*"owned".*chave do núcleo/)
 })
