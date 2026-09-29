@@ -2,15 +2,15 @@ node_modules/
 .worktrees/
 package-lock.json
 
-# Semente do `init`: `{{ID}}`, `{{TODAY}}` e afins são placeholders, e o
-# Prettier lê `{{X}}` no frontmatter como mapa YAML e o reescreve `{ { X } }` —
-# o arquivo semeado deixa de parsear. Template não é código formatável.
+# `init` seed: `{{ID}}`, `{{TODAY}}` and the like are placeholders, and
+# Prettier reads `{{X}}` in frontmatter as a YAML map and rewrites it `{ { X } }` —
+# the seeded file stops parsing. A template is not formattable code.
 packages/living-docs/templates/
 
-# Artefato gerado: muda pela fonte e pelo gerador, nunca por formatador
-# (`HK-2` bloqueia a edição à mão; `CI-5` compara com a saída do gerador).
+# Generated artifact: changes through the source and the generator, never through a formatter
+# (`HK-2` blocks hand editing; `CI-5` compares with the generator's output).
 docs/contracts/checks.gen.md
 
-# Registro datado: reformatar falseia o que estava escrito quando foi produzido
-# (ADR-0014, "Consequências").
+# Dated record: reformatting falsifies what was written when it was produced
+# (ADR-0014, "Consequences").
 docs/superpowers/plans/

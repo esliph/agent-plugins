@@ -6,10 +6,10 @@ services:
     user: node
     init: true
     volumes:
-      # A fonte do toolkit, sem build step (ADR-0001).
+      # The toolkit source, with no build step (ADR-0001).
       - .:/opt/living-docs
-      # O repositório validado. Sem LIVING_DOCS_TARGET, é este mesmo checkout:
-      # dogfooding pelos dois caminhos, com a separação exercitada de verdade.
+      # The validated repository. Without LIVING_DOCS_TARGET, it is this same checkout:
+      # dogfooding through both paths, with the separation truly exercised.
       - ${LIVING_DOCS_TARGET:-.}:/workspace
       - node_modules:/opt/living-docs/node_modules
     environment:
