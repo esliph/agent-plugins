@@ -1,4 +1,4 @@
-# Espelha o campo `owner` do .ownership.yml. Um caminho, um dono.
+# Mirrors the `owner` field of .ownership.yml. One path, one owner.
 
 docs/decisions/adr/ @esliph/engineering
 docs/open-decisions.md @esliph/engineering

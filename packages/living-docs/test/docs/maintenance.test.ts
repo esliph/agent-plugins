@@ -95,7 +95,7 @@ test('spec §12 criterios 9 e 10: o que so gente verifica entra como linha human
   assert.ok(documento)
   const dod = readFileSync(join(ROOT, documento.path), 'utf8')
 
-  const humanos = [/falta de contexto/i, /volume documental/i]
+  const humanos = [/lack of context/i, /document-volume metric/i]
 
   for (const padrao of humanos) {
     const linha = dod.split('\n').find(l => padrao.test(l))
@@ -104,7 +104,7 @@ test('spec §12 criterios 9 e 10: o que so gente verifica entra como linha human
     assert.match(linha ?? '', /^- \[ \] /, 'precisa ser item de checklist')
     assert.match(
       linha ?? '',
-      /verificação: human\b/,
+      /verification: human\b/,
       'estes dois sao verificacao humana por natureza — um check que fingisse medi-los seria pior que a ausencia dele',
     )
     assert.doesNotMatch(linha ?? '', /\bCI-\d+\b/, 'nenhum check mede estes dois')

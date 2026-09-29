@@ -2,27 +2,27 @@
 title: Constitution
 owner: '@esliph/engineering'
 trigger: >
-  Emenda deliberada — nunca como efeito colateral de outra tarefa.
+  Deliberate amendment — never as a side effect of another task.
 last-reviewed: 2026-09-01
 version: 3
 ---
 
 # Constitution
 
-O que é inviolável neste toolkit, e como cada princípio se verifica. Princípio
-sem enforcement nomeado é slogan — nenhum entra aqui sem ele.
+What is inviolable in this toolkit, and how each principle is verified. A
+principle without a named enforcement is a slogan — none enters here without it.
 
-## Princípios
+## Principles
 
-1. Um artefato tem exatamente um dono, declarado e espelhado no CODEOWNERS — verificado por `RN-0001` e `CI-1`.
-2. `trigger` nomeia um evento observável, nunca uma cadência de calendário — verificado por `CI-1`.
-3. Nenhum item aceito se corrige no corpo — supersede — verificado por `HK-1`.
-4. Nenhum agente promove sozinho um estado que significa aceitação — verificado por `HK-3`.
-5. Caminho vigiado e o doc dono viajam no mesmo commit — verificado por `HK-4` (lembra) e `HK-5` (pergunta).
-6. O toolkit roda no Node do host, sem passo de build — verificado por `test/plugin/manifest.test.ts` (`RNF-0002`) e pelo workflow `living-docs`, que instala Node e npm e nada além. O caminho conteinerizado de `RNF-0006` é opcional, e não é a execução de registro.
+1. An artifact has exactly one owner, declared and mirrored in CODEOWNERS — verified by `RN-0001` and `CI-1`.
+2. `trigger` names an observable event, never a calendar cadence — verified by `CI-1`.
+3. No accepted item is corrected in the body — it is superseded — verified by `HK-1`.
+4. No agent on its own promotes a state that means acceptance — verified by `HK-3`.
+5. A watched path and the owning doc travel in the same commit — verified by `HK-4` (reminds) and `HK-5` (asks).
+6. The toolkit runs on the host's Node, with no build step — verified by `test/plugin/manifest.test.ts` (`RNF-0002`) and by the `living-docs` workflow, which installs Node and npm and nothing beyond. The containerized path of `RNF-0006` is optional, and is not the execution of record.
 
-## Log de emendas
+## Amendment log
 
-- 2026-08-25 — v1 — Criação inicial, seis princípios refletindo `RN-0001`–`RN-0010` e `RNF-0002` — humana, dogfooding da Fase 4.
-- 2026-09-01 — v2 — Princípio 6 passa a afirmar a execução no Node do host, acompanhando `ADR-0015`, que supersede `ADR-0001` — humana, migração da execução para o host.
-- 2026-09-01 — v3 — O princípio 6 nomeia o workflow `living-docs` como a verificação de registro e declara opcional o caminho conteinerizado de `RNF-0006` — humana, acompanhando `ADR-0016`, que carrega `ADR-0015` sem supersedê-lo.
+- 2026-08-25 — v1 — Initial creation, six principles reflecting `RN-0001`–`RN-0010` and `RNF-0002` — human, Phase 4 dogfooding.
+- 2026-09-01 — v2 — Principle 6 now affirms execution on the host's Node, following `ADR-0015`, which supersedes `ADR-0001` — human, migration of execution to the host.
+- 2026-09-01 — v3 — Principle 6 names the `living-docs` workflow as the verification of record and declares the containerized path of `RNF-0006` optional — human, following `ADR-0016`, which carries `ADR-0015` without superseding it.

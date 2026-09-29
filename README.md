@@ -1,121 +1,121 @@
 # @esliph/living-docs
 
-Toolkit de **documentação viva** e plugin do Claude Code. Mantém a documentação
-de um repositório — decisões (ADR), decisões em aberto, dívida técnica,
-requisitos, glossário, princípios, contratos e histórico de versões — com **dono
-declarado**, **gatilho** (quando cada documento precisa mudar) e **verificação
-automática**, para que ela não apodreça por falta de responsável ou de momento
-certo para atualizar.
+A **living-documentation** toolkit and Claude Code plugin. It keeps the
+documentation of a repository — decisions (ADRs), open decisions, technical debt,
+requirements, glossary, principles, contracts and version history — with a
+**declared owner**, a **trigger** (when each document needs to change) and
+**automatic verification**, so that it does not rot for lack of someone
+responsible or of the right moment to update.
 
-## Como funciona
+## How it works
 
-Um arquivo por repositório, `.ownership.yml`, diz de quem é cada documento e
-o que dispara sua atualização. Em cima disso, duas camadas de verificação:
+One file per repository, `.ownership.yml`, says whose each document is and what
+triggers its update. On top of that, two layers of verification:
 
-- **Ganchos de git locais** (pelo plugin do Claude Code): lembram, perguntam ou
-  bloqueiam no momento da edição e do commit.
-- **Checagens de CI**: rodam no pipeline em segundos e continuam valendo mesmo
-  para edições feitas direto pelo navegador, sem ninguém por perto.
+- **Local git hooks** (through the Claude Code plugin): they remind, ask or block
+  at the moment of the edit and of the commit.
+- **CI checks**: they run in the pipeline in seconds and keep holding even for
+  edits made straight from the browser, with nobody around.
 
-O toolkit roda no Node do host: `npm ci` uma vez, e `node --conditions=development packages/living-docs/src/cli/index.ts` a
-partir daí. Não há passo de build entre editar e executar.
+The toolkit runs on the host's Node: `npm ci` once, and `node --conditions=development packages/living-docs/src/cli/index.ts` from
+then on. There is no build step between editing and running.
 
-## Pré-requisitos
+## Prerequisites
 
-- Node 24 ou maior, com npm.
-- Claude Code, para usar a parte de plugin (skills, comandos e ganchos).
+- Node 24 or greater, with npm.
+- Claude Code, to use the plugin part (skills, commands and hooks).
 
-## Instalação e primeiro uso
+## Installation and first use
 
 ```bash
-npm ci                                          # instala as dependências
-node --conditions=development packages/living-docs/src/cli/index.ts init --stage solo         # cria a estrutura inicial de pastas e arquivos
-node --conditions=development packages/living-docs/src/cli/index.ts validate                  # verifica a documentação do repositório
+npm ci                                          # installs the dependencies
+node --conditions=development packages/living-docs/src/cli/index.ts init --stage solo         # creates the initial structure of folders and files
+node --conditions=development packages/living-docs/src/cli/index.ts validate                  # verifies the repository's documentation
 ```
 
-Sem `LIVING_DOCS_REPO_ROOT`, o CLI valida o **diretório de trabalho** — rodando
-da raiz deste checkout, ele valida a si mesmo: o toolkit usa-se como teste.
+Without `LIVING_DOCS_REPO_ROOT`, the CLI validates the **working directory** —
+running from the root of this checkout, it validates itself: the toolkit uses
+itself as a test.
 
-Comandos disponíveis:
+Available commands:
 
-| Comando                                                             | O que faz                                                                                                                                           |
+| Command                                                             | What it does                                                                                                                                        |
 | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `node --conditions=development packages/living-docs/src/cli/index.ts init --stage <estágio>` | Cria a estrutura inicial do estágio e declara em `.ownership.yml` o que criou.                                                                 |
-| `node --conditions=development packages/living-docs/src/cli/index.ts validate`               | Verifica frontmatter, IDs únicos, rastreabilidade entre documentos, documentos vencidos e links.                                        |
-| `node --conditions=development packages/living-docs/src/cli/index.ts validate --base <ref>`  | Além do acima, compara com o diff da branch: caminho reivindicado por decisão aberta, e commits que não citam o ID afetado. |
-| `node --conditions=development packages/ownership/src/cli/index.ts validate [--base <ref>]` | Verifica dono de todo arquivo, estado declarado, documento gerado em dia e vínculo código→doc; com `--base`, compara com o diff da branch: código que mudou sem o documento dono, e mudança visível a quem consome sem entrada no `CHANGELOG.md`. |
+| `node --conditions=development packages/living-docs/src/cli/index.ts init --stage <stage>` | Creates the stage's initial structure and declares in `.ownership.yml` what it created.                                                  |
+| `node --conditions=development packages/living-docs/src/cli/index.ts validate`               | Verifies frontmatter, unique IDs, traceability between documents, expired documents and links.                                        |
+| `node --conditions=development packages/living-docs/src/cli/index.ts validate --base <ref>`  | In addition to the above, compares with the branch diff: a path claimed by an open decision, and commits that do not cite the affected ID. |
+| `node --conditions=development packages/ownership/src/cli/index.ts validate [--base <ref>]` | Verifies the owner of every file, the declared state, whether the generated document is up to date and the code→doc link; with `--base`, compares with the branch diff: code that changed without the owning document, and a change visible to whoever consumes without an entry in `CHANGELOG.md`. |
 
-Opções de `init`: `--owner <@time>` define o dono declarado nos documentos
-criados; `--dry-run` mostra o que seria criado sem escrever; `--id-separator` e
-`--id-padding` ajustam a forma escrita dos IDs ao que o repositório já usa;
-`--invoke` define o comando que roda o CLI no seu pipeline.
+Options of `init`: `--owner <@team>` sets the owner declared in the documents
+created; `--dry-run` shows what would be created without writing; `--id-separator`
+and `--id-padding` adjust the written form of IDs to what the repository already
+uses; `--invoke` sets the command that runs the CLI in your pipeline.
 
-## Estágios de maturidade
+## Maturity stages
 
-O `init` instala só o conjunto que cada estágio pede, e cada estágio inclui os
-anteriores:
+`init` installs only the set each stage asks for, and each stage includes the
+previous ones:
 
-| Estágio      | Acrescenta                                                                                                                                                       |
+| Stage        | Adds                                                                                                                                                             |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `solo`       | Decisões (ADR), decisões em aberto e dívida técnica.                                                                                                             |
-| `small-team` | Requisitos (funcionais, não funcionais e regras de negócio), acordos de trabalho (`CONTRIBUTING.md`, definição de pronto), glossário e princípios.               |
-| `production` | Contratos (catálogo de erros e política de versionamento) e histórico de versões (`CHANGELOG.md`, notas de release, depreciações e guias de migração).           |
-| `multi-team` | A verificação de CI que compara com o diff da branch — documento e código que precisam mudar juntos, e mudança visível a quem consome sem registro no histórico. |
+| `solo`       | Decisions (ADRs), open decisions and technical debt.                                                                                                             |
+| `small-team` | Requirements (functional, non-functional and business rules), working agreements (`CONTRIBUTING.md`, definition of done), glossary and principles.               |
+| `production` | Contracts (error catalog and versioning policy) and version history (`CHANGELOG.md`, release notes, deprecations and migration guides).                          |
+| `multi-team` | The CI verification that compares with the branch diff — document and code that need to change together, and a change visible to whoever consumes with no record in the history. |
 
-Todo documento criado é declarado em `.ownership.yml`: documento sem dono é
-reprovado na verificação.
+Every document created is declared in `.ownership.yml`: a document with no owner
+fails the verification.
 
-## Validar outro projeto
+## Validating another project
 
-A fonte do toolkit e o repositório validado são raízes independentes, e
-nenhuma é deduzida da outra: a primeira sai do caminho do próprio código, a
-segunda do diretório de trabalho ou de `LIVING_DOCS_REPO_ROOT`.
+The toolkit's source and the validated repository are independent roots, and
+neither is deduced from the other: the first comes from the path of the code
+itself, the second from the working directory or from `LIVING_DOCS_REPO_ROOT`.
 
 ```bash
-LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node --conditions=development packages/living-docs/src/cli/index.ts init --stage small-team --owner @time
-LIVING_DOCS_REPO_ROOT=/caminho/do/projeto node --conditions=development packages/living-docs/src/cli/index.ts validate
+LIVING_DOCS_REPO_ROOT=/path/to/project node --conditions=development packages/living-docs/src/cli/index.ts init --stage small-team --owner @team
+LIVING_DOCS_REPO_ROOT=/path/to/project node --conditions=development packages/living-docs/src/cli/index.ts validate
 ```
 
-## O plugin do Claude Code
+## The Claude Code plugin
 
-`packages/living-docs/` é, ao mesmo tempo, o pacote do CLI e o plugin: traz
-skills, comandos e ganchos, e o código que os ganchos executam.
+`packages/living-docs/` is, at the same time, the CLI package and the plugin: it
+brings skills, commands and hooks, and the code the hooks run.
 
-**Skills e comandos:**
+**Skills and commands:**
 
-| Comando                           | Skill                                                                                   | Papel                                                              |
+| Command                           | Skill                                                                                   | Role                                                               |
 | --------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `/adr`, `/open-decision`, `/debt` | `decision-recorder`                                                                     | Registra decisões, decisões em aberto e dívida técnica.            |
-| `/docs-setup`                     | `living-docs-bootstrap`                                                                 | Prepara o `.ownership.yml` e a estrutura.                     |
-| `/term`                           | `glossary-keeper`                                                                       | Mantém o vocabulário do domínio.                                   |
-| `/release`                        | `release-historian`                                                                     | Mantém `CHANGELOG.md`, notas de release, depreciações e migrações. |
-| `/docs-audit`                     | `docs-divergence-auditor`                                                               | Aponta o que um diff deveria ter atualizado e não atualizou.       |
-| —                                 | `requirements-keeper`, `working-agreements-keeper`, `charter-keeper`, `contract-keeper` | Selecionadas pela descrição, sem comando próprio.                  |
+| `/adr`, `/open-decision`, `/debt` | `decision-recorder`                                                                     | Records decisions, open decisions and technical debt.              |
+| `/docs-setup`                     | `living-docs-bootstrap`                                                                 | Prepares `.ownership.yml` and the structure.                       |
+| `/term`                           | `glossary-keeper`                                                                       | Maintains the domain vocabulary.                                   |
+| `/release`                        | `release-historian`                                                                     | Maintains `CHANGELOG.md`, release notes, deprecations and migrations. |
+| `/docs-audit`                     | `docs-divergence-auditor`                                                               | Points out what a diff should have updated and did not.            |
+| —                                 | `requirements-keeper`, `working-agreements-keeper`, `charter-keeper`, `contract-keeper` | Selected by description, with no command of their own.             |
 
-**Ganchos:** bloqueiam a edição de um documento já aceito; exigem aprovação de
-uma pessoa para promover o estado de uma decisão; depois de você editar um trecho
-de código vigiado, lembram do documento dono; antes de um commit que leva código
-sem o documento dono, perguntam; lembram quando um atalho novo (`TODO`, `FIXME`,
-supressão de tipo ou de lint, teste ignorado) fica sem registro de dívida por
-perto; e, no início da sessão, injetam um inventário do que está declarado e
-ausente, das decisões em aberto, das dívidas com gatilho cumprido e dos
-documentos vencidos. Os ganchos que lembram e perguntam nunca bloqueiam; quando o toolkit não
-consegue executar, nenhum gancho bloqueia nada — a camada que sobrevive a isso é
-o CI.
+**Hooks:** they block the editing of a document that was already accepted; they
+require a person's approval to promote the state of a decision; after you edit a
+piece of watched code, they remind you of the owning document; before a commit
+that carries code without the owning document, they ask; they remind you when a
+new shortcut (`TODO`, `FIXME`, a type or lint suppression, an ignored test) is
+left with no debt record nearby; and, at the start of the session, they inject an
+inventory of what is declared and absent, of the open decisions, of the debts with
+their trigger met and of the expired documents. The hooks that remind and ask
+never block; when the toolkit cannot run, no hook blocks anything — the layer
+that survives that is CI.
 
-**Agentes** (contexto isolado, sem permissão de editar): um tenta refutar um
-ADR, uma emenda de princípios ou um registro de dívida antes da aprovação
-humana; o outro recebe um escopo e responde o que aquele diff deixou de
-atualizar, apontando o documento dono de cada achado.
+**Agents** (isolated context, no permission to edit): one tries to refute an ADR,
+an amendment of principles or a debt record before human approval; the other
+receives a scope and answers what that diff failed to update, pointing to the
+owning document of each finding.
 
-## O que está fora
+## What is left out
 
-Camadas deliberadamente não cobertas: C4/ERD/threat model, runbooks/SLO/
-postmortems, catálogo de eventos, RFC longo e feature specs por feature. O
-caminho para adicioná-las é o mesmo ponto de extensão: uma entrada em
-`.ownership.yml` e uma skill dona.
+Layers deliberately not covered: C4/ERD/threat model, runbooks/SLO/postmortems,
+event catalog, long RFCs and per-feature feature specs. The path to add them is
+the same extension point: an entry in `.ownership.yml` and an owning skill.
 
-## Desenvolvimento
+## Development
 
 ```bash
 npm ci
@@ -123,20 +123,20 @@ npm test
 npm run typecheck
 ```
 
-Para contribuir, veja `CONTRIBUTING.md`.
+To contribute, see `CONTRIBUTING.md`.
 
-### Opcional: sem Node no host
+### Optional: without Node on the host
 
-Há um segundo caminho de execução, opcional, para quem prefere um ambiente
-previsível a instalar Node. `bin/dev` recebe um comando e o roda dentro do
-container, subindo-o quando preciso:
+There is a second execution path, optional, for whoever prefers a predictable
+environment to installing Node. `bin/dev` receives a command and runs it inside
+the container, bringing it up when needed:
 
 ```bash
 bin/dev npm test
 bin/dev node --conditions=development packages/living-docs/src/cli/index.ts validate
-bin/living-docs validate     # o mesmo, pelo wrapper do CLI
+bin/living-docs validate     # the same, through the CLI wrapper
 ```
 
-O padrão continua sendo o host: o bind mount é sensivelmente mais lento, e os
-ganchos do plugin rodam sempre no `node` da máquina — numa máquina sem Node, o
-plugin não bloqueia nada.
+The default remains the host: the bind mount is noticeably slower, and the
+plugin's hooks always run on the machine's `node` — on a machine with no Node, the
+plugin blocks nothing.

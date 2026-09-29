@@ -1,21 +1,22 @@
 ---
-title: Como se contribui aqui
+title: How to contribute here
 owner: '@esliph/engineering'
 trigger: >
-  Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
-  errou por falta de contexto que caberia nesta página.
+  When how we work here changes — and every time a person or an agent went
+  wrong for lack of context that would have fit on this page.
 last-reviewed: 2026-08-27
 ---
 
-# Como se contribui
+# How to contribute
 
-Este repositório é o toolkit de documentação viva e é também o primeiro
-consumidor dele. Tudo que ele exige de um projeto, ele cumpre.
+This repository is the living-documentation toolkit and is also its first
+consumer. Everything it requires of a project, it fulfils.
 
-## O ambiente
+## The environment
 
-Node 24 ou maior e o npm que vem com ele — nada além disso (`RNF-0002`). As
-dependências entram com `npm ci`, e ele vem antes de qualquer outro comando:
+Node 24 or greater and the npm that comes with it — nothing beyond that
+(`RNF-0002`). Dependencies come in with `npm ci`, and it comes before any other
+command:
 
 ```bash
 npm ci
@@ -27,75 +28,78 @@ node --conditions=development packages/ownership/src/cli/index.ts validate --bas
 node --conditions=development packages/living-docs/src/cli/index.ts validate --base origin/master
 ```
 
-Comando que falha com `ERR_MODULE_NOT_FOUND` é comando rodado antes do
-`npm ci` — não é o ambiente que está errado.
+A command that fails with `ERR_MODULE_NOT_FOUND` is a command run before
+`npm ci` — it is not the environment that is wrong.
 
-### Opcional: rodar pelo container
+### Optional: running through the container
 
-Quem não quiser instalar Node na máquina tem um segundo caminho (`RNF-0006`,
-`ADR-0016`). `bin/dev` roda qualquer comando de manutenção dentro do container, e
-sobe o container sozinho quando ele não está de pé:
+Whoever does not want to install Node on the machine has a second path (`RNF-0006`,
+`ADR-0016`). `bin/dev` runs any maintenance command inside the container, and
+brings the container up by itself when it is not up:
 
 ```bash
 bin/dev npm test
 bin/dev npm run typecheck
 bin/dev node --conditions=development packages/living-docs/src/cli/index.ts validate
-bin/living-docs validate     # o mesmo, pelo wrapper do CLI
-bin/dev                      # um shell dentro do container
+bin/living-docs validate     # the same, through the CLI wrapper
+bin/dev                      # a shell inside the container
 ```
 
-Exige o daemon do Docker, e a primeira invocação constrói a imagem. No Windows,
-invoque pelo Git Bash, pelo WSL, ou com `bash bin/dev …` a partir do PowerShell.
+It requires the Docker daemon, and the first invocation builds the image. On
+Windows, invoke it through Git Bash, through WSL, or with `bash bin/dev …` from
+PowerShell.
 
-Duas coisas que este caminho **não** é. Ele não é a execução de registro: o que
-o CI reproduz em todo PR e o que a Definition of Done mede continua sendo o host.
-E ele não cobre os hooks, que rodam sempre no host (`RNF-0001`) — numa máquina
-sem Node, o enforcement local não existe, e essa é a mesma perda que `ADR-0015`
-já declarou.
+Two things this path is **not**. It is not the execution of record: what CI
+reproduces on every PR and what the Definition of Done measures remains the host.
+And it does not cover the hooks, which always run on the host (`RNF-0001`) — on a
+machine with no Node, local enforcement does not exist, and that is the same loss
+`ADR-0015` already declared.
 
-## O ciclo
+## The cycle
 
-1. **A regra antes do código.** Comportamento novo começa por um requisito com
-   ID em `docs/requirements/`. Se a regra não existe e ninguém sabe qual é, o
-   resultado é uma `DA-nnnn` em `docs/open-decisions.md` e a implementação
-   **para** — inventar a regra é o erro que este repositório existe para evitar.
-2. **Teste antes da implementação**, citando o ID do requisito que ele cobre. É
-   a citação que `living-docs/citation-coverage` procura; teste sem ID deixa a regra descoberta.
-3. **Implementação mínima.** O que não tem requisito não é escopo.
-4. **Commit citando o ID afetado** — é o que torna `git log` navegável por regra.
-5. **A Definition of Done** (`docs/definition-of-done.md`) diz quando acabou.
-6. **Quando a mudança realmente não afeta o doc dono**, escreva a razão na
-   mensagem de commit — `Docs: none — <razão>` —, e o CI aceita. Rótulo sem
-   razão não vale: é a caixinha marcada. O mesmo formato vale para o CHANGELOG,
-   com `Changelog: none — <razão>`.
+1. **The rule before the code.** New behavior starts with a requirement with an
+   ID in `docs/requirements/`. If the rule does not exist and nobody knows what
+   it is, the result is a `DA-nnnn` in `docs/open-decisions.md` and the
+   implementation **stops** — inventing the rule is the error this repository
+   exists to avoid.
+2. **A test before the implementation**, citing the ID of the requirement it
+   covers. It is the citation that `living-docs/citation-coverage` looks for; a test without an ID leaves the rule uncovered.
+3. **Minimal implementation.** What has no requirement is not scope.
+4. **A commit citing the affected ID** — it is what makes `git log` navigable by rule.
+5. **The Definition of Done** (`docs/definition-of-done.md`) says when it is finished.
+6. **When the change really does not affect the owning doc**, write the reason in
+   the commit message — `Docs: none — <reason>` —, and CI accepts it. A label with
+   no reason does not count: it is the ticked box. The same format holds for the
+   CHANGELOG, with `Changelog: none — <reason>`.
 
-## Onde a verdade mora
+## Where the truth lives
 
-| Pergunta                                     | Artefato                                                               |
+| Question                                     | Artifact                                                               |
 | -------------------------------------------- | ---------------------------------------------------------------------- |
-| O que o toolkit deve ser                     | `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md` |
-| Qual é a regra de X                          | `docs/requirements/`                                                   |
-| Por que foi feito assim                      | `docs/decisions/adr/`                                                  |
-| O que ainda não foi decidido                 | `docs/open-decisions.md`                                               |
-| O que se aceitou dever                       | `docs/decisions/debt/`                                                 |
-| Quem é dono de cada caminho                  | `.ownership.yml` e `CODEOWNERS`                                        |
-| Qual é o vocabulário do domínio              | `docs/glossary.md`                                                     |
-| O que é inviolável, e a visão do produto     | `docs/charter/`                                                        |
-| O que é público, e o que cada erro significa | `docs/contracts/`                                                      |
-| O que mudou para quem usa                    | `CHANGELOG.md` e `docs/releases/`                                      |
-| Quando está pronto                           | `docs/definition-of-done.md`                                           |
-| Quem responde por cada documento sem ID      | `.ownership.yml` (entrada com bloco `living-docs:`)                    |
+| What the toolkit must be                     | `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md` |
+| What is the rule for X                       | `docs/requirements/`                                                   |
+| Why was it done this way                     | `docs/decisions/adr/`                                                  |
+| What has not been decided yet                | `docs/open-decisions.md`                                               |
+| What we accepted to owe                      | `docs/decisions/debt/`                                                 |
+| Who owns each path                           | `.ownership.yml` and `CODEOWNERS`                                      |
+| What is the domain vocabulary                | `docs/glossary.md`                                                     |
+| What is inviolable, and the product vision   | `docs/charter/`                                                        |
+| What is public, and what each error means    | `docs/contracts/`                                                      |
+| What changed for whoever uses it             | `CHANGELOG.md` and `docs/releases/`                                    |
+| When it is done                              | `docs/definition-of-done.md`                                           |
+| Who answers for each document with no ID     | `.ownership.yml` (entry with a `living-docs:` block)                   |
 
-Nenhuma dessas respostas é copiada para outro lugar. Duplicata apodrece, e a
-versão velha ganha da nova por repetição.
+None of these answers is copied anywhere else. A duplicate rots, and the old
+version beats the new one by repetition.
 
-## Idioma
+## Language
 
-Identificadores, nomes de arquivo e IDs em inglês/neutro; prosa em português.
-Mensagem de commit em português, no formato `tipo(ID): assunto`.
+Everything versioned here is English: prose, comments, test names and
+commit messages. Commit messages use the form `type(ID): subject`.
 
-## Quando um agente erra por falta de contexto
+## When an agent goes wrong for lack of context
 
-Isso não é acidente, é sintoma: falta uma linha em algum documento. A correção é
-acrescentar essa linha — em `CLAUDE.md` se for política ou índice, no artefato
-dono se for regra. A skill `working-agreements-keeper` é dona desse loop.
+That is not an accident, it is a symptom: a line is missing in some document. The
+fix is to add that line — in `CLAUDE.md` if it is policy or an index, in the
+owning artifact if it is a rule. The `working-agreements-keeper` skill owns that
+loop.

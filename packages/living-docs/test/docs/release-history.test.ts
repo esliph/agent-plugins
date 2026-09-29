@@ -77,10 +77,10 @@ test('RN-0013: o CHANGELOG é voltado ao consumidor — Keep a Changelog, sem fr
 
 test('RN-0015: a tabela de depreciações cobra as quatro coisas', () => {
   const source = readFileSync(join(ROOT, 'docs/deprecations.md'), 'utf8')
-  const header = source.split('\n').find(line => line.trim().startsWith('| O que |'))
+  const header = source.split('\n').find(line => line.trim().startsWith('| What |'))
 
   assert.ok(header, 'docs/deprecations.md sem a tabela')
-  for (const coluna of ['Anunciado em', 'Removido em', 'Substituto', 'Guia de migração']) {
+  for (const coluna of ['Announced on', 'Removed in', 'Replacement', 'Migration guide']) {
     assert.ok(header.includes(coluna), `a tabela precisa da coluna "${coluna}"`)
   }
 })

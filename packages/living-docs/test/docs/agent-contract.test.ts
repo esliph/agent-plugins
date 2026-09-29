@@ -54,12 +54,11 @@ test('a Definition of Done nomeia a verificação de cada item', () => {
 test('RN-0030: o contrato do agente e o template dele dizem que texto para fora não carrega ID, e quem cobra', () => {
   const template = readFileSync(join(toolkitRoot(), 'templates/agent-contract.md'), 'utf8')
 
-  // The repository contract keeps its Portuguese phrase until the corpus is translated.
-  for (const [nome, fonte, frase] of [
-    ['CLAUDE.md', CONTRATO, /quem lê de fora/],
-    ['templates/agent-contract.md', template, /readers on the outside/],
+  for (const [nome, fonte] of [
+    ['CLAUDE.md', CONTRATO],
+    ['templates/agent-contract.md', template],
   ] as const) {
-    assert.match(fonte, frase, `${nome} sem a política de fronteira de leitor`)
+    assert.match(fonte, /readers on the outside/, `${nome} sem a política de fronteira de leitor`)
     assert.match(fonte, /living-docs\/external-audience/, `${nome} sem nomear quem cobra`)
   }
 })

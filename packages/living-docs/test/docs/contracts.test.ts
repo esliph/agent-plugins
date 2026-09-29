@@ -35,7 +35,7 @@ function rows(source: string, column: string): string[][] {
 const errors = (): string => readFileSync(join(ROOT, 'docs/contracts/errors.md'), 'utf8')
 
 test('o catálogo de erros lista códigos reais, cada um com significado, gatilho e status', () => {
-  const entries = rows(errors(), 'Código')
+  const entries = rows(errors(), 'Code')
 
   assert.ok(entries.length >= 4, `esperava ao menos 4 códigos, achei ${entries.length}`)
 
@@ -60,7 +60,7 @@ test('o catálogo de erros não duplica a tabela de checks — ela é gerada e m
 test('a política de versionamento responde o que é público, o que não muda e como se deprecia', () => {
   const source = readFileSync(join(ROOT, 'docs/contracts/versioning-policy.md'), 'utf8')
 
-  for (const secao of ['## O que é público', '## O que nunca muda de significado', '## Como se deprecia']) {
+  for (const secao of ['## What is public', '## What never changes meaning', '## How to deprecate']) {
     assert.ok(source.includes(secao), `política sem a seção "${secao}"`)
   }
 })
