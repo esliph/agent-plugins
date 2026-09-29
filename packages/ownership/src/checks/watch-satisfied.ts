@@ -29,8 +29,8 @@ export function ownershipWatchSatisfied(diff: DiffFacts): Check {
 
         return error(
           pending.doc,
-          `O diff \`${diff.base}...HEAD\` toca caminho vigiado (${trigger}) e \`${pending.doc}\` não está entre os caminhos alterados.`,
-          `Atualize \`${pending.doc}\`${pending.skill === null ? '' : ` (skill dona: ${pending.skill})`} no mesmo PR — ou escreva \`Docs: none — <razão>\` numa mensagem de commit.`,
+          `The diff \`${diff.base}...HEAD\` touches a watched path (${trigger}) and \`${pending.doc}\` is not among the changed paths.`,
+          `Update \`${pending.doc}\`${pending.skill === null ? '' : ` (owning skill: ${pending.skill})`} in the same PR — or write \`Docs: none — <reason>\` in a commit message.`,
         )
       })
     },

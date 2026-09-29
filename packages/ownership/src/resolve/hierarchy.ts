@@ -92,8 +92,8 @@ function assertConfinement(file: ParsedFile, base: string): void {
 
     if (!withinBase(base, resolved)) {
       throw new OwnershipError(
-        `${file.file}: "${entry}" resolve para "${resolved}", fora da base do arquivo ("${base || '.'}"). ` +
-          'Caminho que pode ser editado nunca escapa da base de quem o declara.',
+        `${file.file}: "${entry}" resolves to "${resolved}", outside the file base ("${base || '.'}"). ` +
+          'A path that can be edited never escapes the base of the file that declares it.',
       )
     }
   }
@@ -131,7 +131,7 @@ function readOwnershipFile(repoRoot: string, file: string, referencedBy: string)
   try {
     return readFileSync(join(repoRoot, file), 'utf8')
   } catch {
-    throw new OwnershipError(`${referencedBy}: include aponta para "${file}", que não existe ou não pode ser lido.`)
+    throw new OwnershipError(`${referencedBy}: include points to "${file}", which does not exist or cannot be read.`)
   }
 }
 
@@ -156,10 +156,10 @@ function collectTree(repoRoot: string, root: RootFile, onlyFor: readonly string[
         const candidates = listOwnershipFilesIn(repoRoot, target)
 
         if (candidates.length === 0) {
-          throw new OwnershipError(`${file.file}: include "${entry}" não tem nenhum arquivo de ownership dentro.`)
+          throw new OwnershipError(`${file.file}: include "${entry}" has no ownership file inside.`)
         }
         if (candidates.length > 1) {
-          throw new OwnershipError(`${file.file}: include "${entry}" é ambíguo — ${candidates.join(', ')}. Nomeie o arquivo explicitamente.`)
+          throw new OwnershipError(`${file.file}: include "${entry}" is ambiguous — ${candidates.join(', ')}. Name the file explicitly.`)
         }
         includedFile = candidates[0]!
       } else {
@@ -167,17 +167,17 @@ function collectTree(repoRoot: string, root: RootFile, onlyFor: readonly string[
       }
 
       if (ancestors.includes(includedFile)) {
-        throw new OwnershipError(`Ciclo de include: ${[...ancestors, includedFile].join(' → ')}.`)
+        throw new OwnershipError(`Include cycle: ${[...ancestors, includedFile].join(' → ')}.`)
       }
       if (seen.has(includedFile)) {
-        throw new OwnershipError(`${file.file}: "${includedFile}" já foi incluído por outro arquivo. Um arquivo de ownership é incluído uma vez só.`)
+        throw new OwnershipError(`${file.file}: "${includedFile}" was already included by another file. An ownership file is included only once.`)
       }
       seen.add(includedFile)
 
       const parsed = parseOwnershipFile(readOwnershipFile(repoRoot, includedFile, file.file), includedFile, { isRoot: false, pluginNames: root.plugins }) as ParsedFile
 
       if (parsed.version !== root.version) {
-        throw new OwnershipError(`${includedFile}: versão ${parsed.version} diverge de ${root.file} (versão ${root.version}). Um repositório, um esquema.`)
+        throw new OwnershipError(`${includedFile}: version ${parsed.version} differs from ${root.file} (version ${root.version}). One repository, one schema.`)
       }
 
       const childBase = baseOf(parsed)
@@ -215,7 +215,7 @@ function assertDisjoint(declared: readonly Declared[], what: string): void {
 
       if (collides(a.path, b.path)) {
         throw new OwnershipError(
-          `${what}: "${a.path}" (${a.file}) colide com "${b.path}" (${b.file}). ` + 'Um caminho é governado por uma declaração só — nenhuma contém outra.',
+          `${what}: "${a.path}" (${a.file}) collides with "${b.path}" (${b.file}). ` + 'A path is governed by a single declaration — none contains another.',
         )
       }
     }

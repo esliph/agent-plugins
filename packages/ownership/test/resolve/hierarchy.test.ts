@@ -60,7 +60,7 @@ test('include de diretório com mais de um arquivo de ownership é ambíguo', ()
       'packages/api/ownership.extra.yml': 'version: 2\nowned: []\n',
     },
     root => {
-      assert.throws(() => resolveOwnership(root), /ambíguo/)
+      assert.throws(() => resolveOwnership(root), /ambiguous/)
     },
   )
 })
@@ -88,7 +88,7 @@ test('ciclo de include é erro', () => {
   withTempRepo(
     { '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'version: 2\nowned: []\ninclude: [.ownership.yml]\n' },
     root => {
-      assert.throws(() => resolveOwnership(root), /Ciclo de include/)
+      assert.throws(() => resolveOwnership(root), /Include cycle/)
     },
   )
 })
@@ -102,7 +102,7 @@ test('o mesmo arquivo incluído por dois é erro, e não se confunde com ciclo',
       'ownership.shared.yml': 'version: 2\nowned: []\n',
     },
     root => {
-      assert.throws(() => resolveOwnership(root), /incluído uma vez só/)
+      assert.throws(() => resolveOwnership(root), /included only once/)
     },
   )
 })
@@ -114,7 +114,7 @@ test('caminho declarado fora da base do arquivo que o declara é erro', () => {
       'packages/api/.ownership.yml': 'version: 2\nowned:\n  - path: ../web/docs/\n    owner: "@b"\n',
     },
     root => {
-      assert.throws(() => resolveOwnership(root), /fora da base/)
+      assert.throws(() => resolveOwnership(root), /outside the file base/)
     },
   )
 })
@@ -123,7 +123,7 @@ test('include que sai da base também é erro', () => {
   withTempRepo(
     { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'version: 2\nowned: []\ninclude: [../web/]\n' },
     root => {
-      assert.throws(() => resolveOwnership(root), /fora da base/)
+      assert.throws(() => resolveOwnership(root), /outside the file base/)
     },
   )
 })
@@ -136,7 +136,7 @@ test('derives-from.source fora da base é erro — senão a poda mata o lembrete
         'version: 2\nowned:\n  - path: plans/\n    owner: "@b"\n    derives-from:\n      source: ../../docs/specs/\n      field: spec\n',
     },
     root => {
-      assert.throws(() => resolveOwnership(root), /fora da base/)
+      assert.throws(() => resolveOwnership(root), /outside the file base/)
     },
   )
 })
@@ -160,7 +160,7 @@ test('watches[].doc pode sair da base; watches[].code não', () => {
       'packages/api/.ownership.yml': 'version: 2\nowned: []\nwatches:\n  - code: ../../src/**\n    doc: CHANGELOG.md\n',
     },
     root => {
-      assert.throws(() => resolveOwnership(root), /fora da base/)
+      assert.throws(() => resolveOwnership(root), /outside the file base/)
     },
   )
 })
@@ -188,13 +188,13 @@ test('basePath que sobe é erro', () => {
 
 test('caminho igual declarado duas vezes no mesmo arquivo é colisão', () => {
   withTempRepo({ '.ownership.yml': `${BASE}  - path: docs/decisions/adr/\n    owner: "@b"\n` }, root => {
-    assert.throws(() => resolveOwnership(root), /colide/)
+    assert.throws(() => resolveOwnership(root), /collides/)
   })
 })
 
 test('caminho contido em outro é colisão, mesmo entre arquivos diferentes', () => {
   withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': CHILD }, root => {
-    assert.throws(() => resolveOwnership(root), /colide/)
+    assert.throws(() => resolveOwnership(root), /collides/)
   })
 })
 
@@ -212,7 +212,7 @@ test('caminho gerado dentro de caminho governado não é colisão; dois geradore
     assert.equal(resolveOwnership(root)?.generated.length, 1)
   })
   withTempRepo({ '.ownership.yml': `${BASE}generated:\n  - path: x.gen.md\n    command: a\n  - path: x.gen.md\n    command: b\n` }, root => {
-    assert.throws(() => resolveOwnership(root), /colide/)
+    assert.throws(() => resolveOwnership(root), /collides/)
   })
 })
 

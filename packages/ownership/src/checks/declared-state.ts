@@ -86,8 +86,8 @@ export function ownershipDeclaredState(): Check {
               error(
                 file,
                 duplicate.line,
-                `A chave "${duplicate.key}" aparece mais de uma vez neste arquivo — a chave identifica o item dentro do arquivo.`,
-                'Dê a este item uma chave própria, ou funda as duas entradas.',
+                `The key "${duplicate.key}" appears more than once in this file — the key identifies the item within the file.`,
+                'Give this item a key of its own, or merge the two entries.',
               ),
             )
           }
@@ -96,8 +96,8 @@ export function ownershipDeclaredState(): Check {
               error(
                 file,
                 observed.badOwner.line,
-                `\`owner\` "${observed.badOwner.value}" precisa começar com @ e espelhar o CODEOWNERS.`,
-                'Use o handle de pessoa ou time, ex.: "@time-plataforma".',
+                `\`owner\` "${observed.badOwner.value}" must start with @ and mirror CODEOWNERS.`,
+                'Use a person or team handle, e.g. "@platform-team".',
               ),
             )
           }
@@ -110,8 +110,8 @@ export function ownershipDeclaredState(): Check {
                 error(
                   file,
                   line,
-                  `"${state}" não está entre os estados declarados para \`${rule.path}\`: ${rule.states.join(', ')}.`,
-                  `Use um dos estados declarados, ou acrescente "${state}" a \`states\` em \`owned[]\` (${rule.origin}), se ele for legítimo.`,
+                  `"${state}" is not among the states declared for \`${rule.path}\`: ${rule.states.join(', ')}.`,
+                  `Use one of the declared states, or add "${state}" to \`states\` in \`owned[]\` (${rule.origin}) if it is legitimate.`,
                 ),
               )
             }

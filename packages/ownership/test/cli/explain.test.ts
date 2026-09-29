@@ -5,7 +5,7 @@ import { withTempRepo } from '../helpers/tmp.ts'
 
 test('sem arquivo de ownership, diz isso', () => {
   withTempRepo({}, root => {
-    assert.match(runExplain(root, 'x.md'), /nenhum arquivo de ownership/)
+    assert.match(runExplain(root, 'x.md'), /no ownership file/)
   })
 })
 

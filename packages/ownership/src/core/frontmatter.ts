@@ -49,7 +49,7 @@ export function parseFrontmatter(source: string): Frontmatter | null {
   } catch (err) {
     const at = err instanceof YAML.YAMLParseError ? (err.linePos?.[0]?.line ?? 1) : 1
 
-    throw new FrontmatterSyntaxError(err instanceof Error ? err.message : 'YAML inválido', at + 1)
+    throw new FrontmatterSyntaxError(err instanceof Error ? err.message : 'Invalid YAML', at + 1)
   }
 
   const keyLines: Record<string, number> = {}

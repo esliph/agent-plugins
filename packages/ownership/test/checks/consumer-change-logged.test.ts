@@ -94,6 +94,6 @@ test('doc declarado, no diff e ausente do repositório é achado, não silêncio
     const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts', 'CHANGELOG.md'], messages: [] }).run({ root, config, today: '2026-09-28' })
 
     assert.equal(findings.length, 1)
-    assert.match(findings[0]!.message, /ausente/)
+    assert.match(findings[0]!.message, /missing/)
   })
 })

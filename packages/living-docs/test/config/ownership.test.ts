@@ -141,7 +141,7 @@ test('sem arquivo de ownership, OwnershipError que aponta o init', () => {
 
 test('ADR-0029: arquivo v1 não é lido — o erro do núcleo sobe como está', () => {
   withTempRepo({ '.ownership.yml': 'version: 1\nartifacts: []\n' }, root => {
-    assert.throws(() => loadLivingDocsConfig(root), (err: unknown) => err instanceof OwnershipError && /esquema v1/.test(err.message))
+    assert.throws(() => loadLivingDocsConfig(root), (err: unknown) => err instanceof OwnershipError && /schema v1/.test(err.message))
   })
 })
 

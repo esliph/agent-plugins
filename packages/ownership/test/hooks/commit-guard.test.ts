@@ -65,8 +65,8 @@ test('a mensagem ensina as duas saídas legítimas: atualizar o doc, ou decisão
     const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => 'src/checks/a.ts\0')
 
     assert.ok(decision.action === 'ask')
-    assert.match(decision.reason, /atualize o doc/i)
-    assert.match(decision.reason, /decisão humana/i)
+    assert.match(decision.reason, /update the doc/i)
+    assert.match(decision.reason, /human decision/i)
   })
 })
 

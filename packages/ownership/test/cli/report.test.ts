@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { formatFindings } from '../../src/cli/report.ts'
 
 test('sem achados, mensagem única', () => {
-  assert.equal(formatFindings([]), 'ownership: nenhuma violação encontrada.')
+  assert.equal(formatFindings([]), 'ownership: no violations found.')
 })
 
 test('com achados, lista local, regra, severidade, mensagem e correção, com o total no fim', () => {
@@ -11,5 +11,5 @@ test('com achados, lista local, regra, severidade, mensagem e correção, com o 
 
   assert.match(text, /a\.md:3/)
   assert.match(text, /ownership\/x/)
-  assert.match(text, /1 erro/)
+  assert.match(text, /1 error/)
 })

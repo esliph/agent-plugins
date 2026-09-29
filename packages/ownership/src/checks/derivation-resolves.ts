@@ -10,13 +10,13 @@ function messageFor(rule: ResolvedOwnedRule, problem: DerivationProblem): string
   const field = rule.derivesFrom!.field
 
   if (problem.reason === 'campo-ausente') {
-    return `${problem.file} deriva de \`${source}\` (declarado em \`owned[]\`, ${rule.origin}) e não declara o campo \`${field}\` no frontmatter.`
+    return `${problem.file} derives from \`${source}\` (declared in \`owned[]\`, ${rule.origin}) and does not declare the \`${field}\` field in its frontmatter.`
   }
   if (problem.reason === 'fora-da-fonte') {
-    return `${problem.file}: o campo \`${field}\` aponta para "${problem.field}", fora de \`${source}\`.`
+    return `${problem.file}: the \`${field}\` field points to "${problem.field}", outside \`${source}\`.`
   }
 
-  return `${problem.file}: o campo \`${field}\` aponta para "${problem.field}", que não existe no repositório.`
+  return `${problem.file}: the \`${field}\` field points to "${problem.field}", which does not exist in the repository.`
 }
 
 export function ownershipDerivationResolves(): Check {
@@ -37,7 +37,7 @@ export function ownershipDerivationResolves(): Check {
             line: problem.line,
             severity: 'error',
             message: messageFor(rule, problem),
-            fix: `Declare \`${rule.derivesFrom.field}: <caminho sob ${rule.derivesFrom.source}>\` no frontmatter de ${problem.file}, apontando para um arquivo que existe.`,
+            fix: `Declare \`${rule.derivesFrom.field}: <path under ${rule.derivesFrom.source}>\` in the frontmatter of ${problem.file}, pointing to a file that exists.`,
           })
         }
       }

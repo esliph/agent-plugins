@@ -6,13 +6,13 @@ import { formatFindings } from './report.ts'
 import { GitError } from '../core/exec.ts'
 import { OwnershipError } from '../schema/types.ts'
 
-const USAGE = `ownership <comando>
+const USAGE = `ownership <command>
 
-  validate [--base <ref>]   Roda os checks de dono, ciclo de vida, gatilho e gerado
-  explain <caminho>         Mostra a regra resolvida e de onde veio cada propriedade
+  validate [--base <ref>]   Runs the owner, lifecycle, trigger and generated checks
+  explain <path>            Shows the resolved rule and where each property came from
 
-Opções de validate:
-  --base <ref>   Base do diff — liga os checks que dependem do diff da branch
+validate options:
+  --base <ref>   Diff base — turns on the checks that depend on the branch diff
 `
 
 function repoRoot(): string {
@@ -35,7 +35,7 @@ function main(argv: readonly string[]): number {
       const base = baseIndex === -1 ? null : (argv[baseIndex + 1] ?? '')
 
       if (baseIndex !== -1 && base === '') {
-        process.stderr.write('ownership: `--base` precisa de uma ref.\n')
+        process.stderr.write('ownership: `--base` needs a ref.\n')
 
         return 2
       }
@@ -43,7 +43,7 @@ function main(argv: readonly string[]): number {
       const result = runValidate(root, base)
 
       if (!result.installed) {
-        process.stdout.write('ownership: nenhum arquivo de ownership encontrado — nada a validar.\n')
+        process.stdout.write('ownership: no ownership file found — nothing to validate.\n')
 
         return 0
       }
@@ -56,7 +56,7 @@ function main(argv: readonly string[]): number {
       const target = argv[1]
 
       if (target === undefined) {
-        process.stderr.write('ownership: `explain` precisa de um caminho.\n')
+        process.stderr.write('ownership: `explain` needs a path.\n')
 
         return 2
       }
@@ -71,14 +71,14 @@ function main(argv: readonly string[]): number {
       return 2
     }
     if (err instanceof GitError) {
-      process.stderr.write(`ownership: ${err.message}\n` + '           o clone precisa conter a base (em CI: `actions/checkout` com `fetch-depth: 0`).\n')
+      process.stderr.write(`ownership: ${err.message}\n` + '           the clone must contain the base (in CI: `actions/checkout` with `fetch-depth: 0`).\n')
 
       return 2
     }
     throw err
   }
 
-  process.stderr.write(`ownership: comando desconhecido "${command}".\n\n${USAGE}`)
+  process.stderr.write(`ownership: unknown command "${command}".\n\n${USAGE}`)
 
   return 2
 }

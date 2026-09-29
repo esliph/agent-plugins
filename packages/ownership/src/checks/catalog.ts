@@ -16,39 +16,39 @@ export const CORE_CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     name: 'declared state',
     command: 'ownership validate',
     failsWhen:
-      'O estado de um arquivo ou item (o campo de `state-field`, `status` por padrão) está fora de `states` declarado para o caminho; a mesma chave aparece duas vezes no mesmo arquivo; ou o `owner` do frontmatter não começa com `@`.',
+      'The state of a file or item (the `state-field` field, `status` by default) is outside the `states` declared for the path; the same key appears twice in one file; or the frontmatter `owner` does not start with `@`.',
   },
   {
     id: 'ownership/generated-drift',
     name: 'generated drift',
     command: 'ownership validate',
-    failsWhen: 'A saída do comando declarado em `generated[]` difere do arquivo versionado; o comando falha; ou o arquivo declarado não existe.',
+    failsWhen: 'The output of the command declared in `generated[]` differs from the versioned file; the command fails; or the declared file does not exist.',
   },
   {
     id: 'ownership/owner-coverage',
     name: 'owner coverage',
     command: 'ownership validate',
     failsWhen:
-      'Um arquivo do repositório não é coberto por `owned[]` nem por `ignore`; um caminho de `owned[]` não existe ou não tem linha no CODEOWNERS; o CODEOWNERS não existe; ou o `doc` de uma regra de `watches` não existe ou não tem entrada em `owned[]`.',
+      'A repository file is covered by neither `owned[]` nor `ignore`; an `owned[]` path does not exist or has no line in CODEOWNERS; CODEOWNERS does not exist; or the `doc` of a `watches` rule does not exist or has no entry in `owned[]`.',
   },
   {
     id: 'ownership/derivation-resolves',
     name: 'derivation resolves',
     command: 'ownership validate',
-    failsWhen: 'Um documento que deriva de uma fonte não declara o campo de derivação, ou o campo aponta para fora da fonte ou para arquivo inexistente.',
+    failsWhen: 'A document that derives from a source does not declare the derivation field, or the field points outside the source or to a file that does not exist.',
   },
   {
     id: 'ownership/watch-satisfied',
     name: 'watch satisfied',
     command: 'ownership validate --base <ref>',
     failsWhen:
-      'O diff entre a base e `HEAD` toca um caminho de `watches` e o `doc` da regra não está no mesmo diff, sem `Docs: none — <razão>` em alguma mensagem de commit.',
+      'The diff between the base and `HEAD` touches a `watches` path and the `doc` of the rule is not in the same diff, with no `Docs: none — <reason>` in any commit message.',
   },
   {
     id: 'ownership/consumer-change-logged',
     name: 'consumer change logged',
     command: 'ownership validate --base <ref>',
     failsWhen:
-      'O diff toca um caminho de `watches` marcado `consumer-visible: true` e o `doc` da regra não vem no mesmo diff com item em `## [Unreleased]`, sem `Changelog: none — <razão>` em alguma mensagem de commit.',
+      'The diff touches a `watches` path marked `consumer-visible: true` and the `doc` of the rule is not in the same diff with an item under `## [Unreleased]`, with no `Changelog: none — <reason>` in any commit message.',
   },
 ])

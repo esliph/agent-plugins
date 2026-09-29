@@ -12,7 +12,7 @@ test('CODEOWNERS ausente é achado', () => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/x.md', owner: '@a' }] })
 
-    assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /CODEOWNERS ausente/.test(f.message)))
+    assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /CODEOWNERS is missing/.test(f.message)))
   })
 })
 
@@ -21,7 +21,7 @@ test('caminho declarado que não existe no repositório é achado', () => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/x.md', owner: '@a' }], ignore: ['CODEOWNERS'] })
 
-    assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /não existe/.test(f.message)))
+    assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /does not exist/.test(f.message)))
   })
 })
 
@@ -30,7 +30,7 @@ test('caminho existente sem linha no CODEOWNERS é achado', () => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/x.md', owner: '@a' }], ignore: ['CODEOWNERS'] })
 
-    assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /não tem linha/.test(f.message)))
+    assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /has no line/.test(f.message)))
   })
 })
 
@@ -71,8 +71,8 @@ test('watches com doc inexistente ou sem regra em owned[] é achado', () => {
       .run({ root, config, today })
       .map(f => f.message)
 
-    assert.ok(messages.some(m => /docs\/nao-existe\.md.*não existe/.test(m)))
-    assert.ok(messages.some(m => /README\.md.*sem regra/.test(m)))
+    assert.ok(messages.some(m => /docs\/nao-existe\.md.*does not exist/.test(m)))
+    assert.ok(messages.some(m => /README\.md.*no rule/.test(m)))
   })
 })
 

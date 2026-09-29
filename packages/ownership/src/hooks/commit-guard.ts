@@ -20,9 +20,9 @@ function describe(match: WatchMatch): string {
   const parts = [`- \`${match.doc}\``]
 
   if (match.owner !== null) {
-    parts.push(`(dono: ${match.owner})`)
+    parts.push(`(owner: ${match.owner})`)
   }
-  parts.push(`— exigido por: ${match.matched.join(', ')}`)
+  parts.push(`— required by: ${match.matched.join(', ')}`)
   if (match.reason !== null) {
     parts.push(`Motivo: ${match.reason}`)
   }
@@ -72,10 +72,10 @@ export function decideCommitGuard(payload: HookPayload, env: HookEnv, run?: GitR
   return {
     action: 'ask',
     reason:
-      'ownership/commit-guard: este commit leva código de caminho vigiado sem o doc dono. ' +
-      'Se a atualização não cabe neste PR, ela não acontece.\n' +
-      `Pendente:\n${pending.map(describe).join('\n')}\n` +
-      'Atualize o doc agora e refaça o `git add` — ou, se a mudança realmente não afeta o doc, diga que é uma decisão humana e siga.',
+      'ownership/commit-guard: this commit carries code from a watched path without its owning doc. ' +
+      'If the update does not fit in this PR, it does not happen.\n' +
+      `Pending:\n${pending.map(describe).join('\n')}\n` +
+      'Update the doc now and run `git add` again — or, if the change really does not affect the doc, say it is a human decision and go on.',
   }
 }
 

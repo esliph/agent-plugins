@@ -23,7 +23,7 @@ test('npm pack produz um tarball instalável cujo dist roda de verdade', { timeo
     const run = spawnSync('node', ['node_modules/@esliph/ownership/dist/cli/index.js', '--help'], { cwd: installDir, encoding: 'utf8' })
 
     assert.equal(run.status, 0, run.stderr)
-    assert.match(run.stdout, /ownership <comando>/)
+    assert.match(run.stdout, /ownership <command>/)
   } finally {
     rmSync(installDir, { recursive: true, force: true })
     rmSync(tarball, { force: true })

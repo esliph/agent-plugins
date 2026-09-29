@@ -22,7 +22,7 @@ export function locateRootFile(root: string, opts: LocateOptions = {}): string |
 
   if (explicit !== null) {
     if (!existsSync(join(root, explicit))) {
-      throw new OwnershipError(`${explicit}: não encontrado — indicado explicitamente e não existe no repositório.`)
+      throw new OwnershipError(`${explicit}: not found — given explicitly and does not exist in the repository.`)
     }
 
     return explicit
@@ -32,8 +32,8 @@ export function locateRootFile(root: string, opts: LocateOptions = {}): string |
 
   if (found.length > 1) {
     throw new OwnershipError(
-      `Mais de um arquivo de ownership encontrado: ${found.join(', ')}. ` +
-        'A ambiguidade não se resolve sozinha — apague um dos dois, ou aponte o certo com `--ownership <caminho>`.',
+      `More than one ownership file found: ${found.join(', ')}. ` +
+        'The ambiguity does not resolve itself — delete one of them, or point to the right one with `--ownership <path>`.',
     )
   }
 

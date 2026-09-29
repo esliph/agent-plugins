@@ -18,7 +18,7 @@ test('raiz aceita version: 2 e plugins: vazio por padrão', () => {
 
 test('arquivo filho exige version e recusa plugins', () => {
   assert.throws(() => parseOwnershipFile('owned: []\n', 'packages/api/.ownership.yml', CHILD()), /version/)
-  assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nplugins: [x]\n', 'packages/api/.ownership.yml', CHILD()), /exclusivo do arquivo raiz/)
+  assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nplugins: [x]\n', 'packages/api/.ownership.yml', CHILD()), /exclusive to the root file/)
 })
 
 test('chave de topo desconhecida é erro', () => {
@@ -26,12 +26,12 @@ test('chave de topo desconhecida é erro', () => {
 })
 
 test('versão 1 é recusada em voz alta, dizendo que o esquema mudou', () => {
-  assert.throws(() => parseOwnershipFile('version: 1\nartifacts: []\n', 'docs/.ownership.yml', ROOT), /esquema v1.*não é lido.*reescreva/)
+  assert.throws(() => parseOwnershipFile('version: 1\nartifacts: []\n', 'docs/.ownership.yml', ROOT), /schema v1.*not read.*rewrite/)
 })
 
 test('owned, generated e watches que não são lista são erro, não lista vazia', () => {
-  assert.throws(() => parseOwnershipFile('version: 2\nowned: {}\n', '.ownership.yml', ROOT), /owned.*lista/)
-  assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nwatches: x\n', '.ownership.yml', ROOT), /watches.*lista/)
+  assert.throws(() => parseOwnershipFile('version: 2\nowned: {}\n', '.ownership.yml', ROOT), /owned.*list/)
+  assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nwatches: x\n', '.ownership.yml', ROOT), /watches.*list/)
 })
 
 test('owned exige owner começando com @', () => {
@@ -66,7 +66,7 @@ test('owned per-file não declara format', () => {
 test('owned com format: table exige key nomeando a coluna', () => {
   const source = 'version: 2\nowned:\n  - path: docs/open-decisions.md\n    owner: "@a"\n    format:\n      collection: table\n'
 
-  assert.throws(() => parseOwnershipFile(source, '.ownership.yml', ROOT), /format: precisa do campo `key`/)
+  assert.throws(() => parseOwnershipFile(source, '.ownership.yml', ROOT), /format: needs a non-empty `key` field/)
 })
 
 test('owned com format: sections aceita key: first-token (padrão) ou heading', () => {
@@ -173,14 +173,14 @@ test('sem bloco de topo, pluginBlocks da raiz é vazio', () => {
 test('bloco de topo num arquivo filho é erro, mesmo com o nome listado na raiz', () => {
   assert.throws(
     () => parseOwnershipFile('version: 2\nliving-docs:\n  stale-after-months: 6\nowned: []\n', 'pkg/.ownership.yml', CHILD(['living-docs'])),
-    /pkg\/\.ownership\.yml.*living-docs.*exclusivo do arquivo raiz/,
+    /pkg\/\.ownership\.yml.*living-docs.*exclusive to the root file/,
   )
 })
 
 test('bloco de plugin que não é mapa é erro, no topo e na entrada', () => {
   assert.throws(
     () => parseOwnershipFile('version: 2\nplugins: [living-docs]\nliving-docs: true\nowned: []\n', '.ownership.yml', ROOT),
-    /\.ownership\.yml\.living-docs.*precisa ser um mapa/,
+    /\.ownership\.yml\.living-docs.*must be a map/,
   )
   assert.throws(
     () =>
@@ -189,10 +189,10 @@ test('bloco de plugin que não é mapa é erro, no topo e na entrada', () => {
         '.ownership.yml',
         ROOT,
       ),
-    /owned\[0\]\.living-docs.*precisa ser um mapa/,
+    /owned\[0\]\.living-docs.*must be a map/,
   )
 })
 
-test('plugin com o nome de uma chave do núcleo é erro', () => {
-  assert.throws(() => parseOwnershipFile('version: 2\nplugins: [owned]\nowned: []\n', '.ownership.yml', ROOT), /plugins.*"owned".*chave do núcleo/)
+test('plugin com o nome de uma core key é erro', () => {
+  assert.throws(() => parseOwnershipFile('version: 2\nplugins: [owned]\nowned: []\n', '.ownership.yml', ROOT), /plugins.*"owned".*core key/)
 })

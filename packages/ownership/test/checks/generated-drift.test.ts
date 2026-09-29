@@ -18,7 +18,7 @@ test('artefato ausente é achado', () => {
     const findings = ownershipGeneratedDrift(() => 'x').run({ root, config, today: '2026-09-17' })
 
     assert.equal(findings.length, 1)
-    assert.match(findings[0]!.message, /ausente/)
+    assert.match(findings[0]!.message, /missing/)
   })
 })
 
@@ -38,7 +38,7 @@ test('gerador que falha é achado, sem travar o check', () => {
       throw new Error('boom')
     }).run({ root, config, today: '2026-09-17' })
 
-    assert.match(findings[0]!.message, /falhou/)
+    assert.match(findings[0]!.message, /failed/)
   })
 })
 

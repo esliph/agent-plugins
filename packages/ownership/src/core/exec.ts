@@ -53,7 +53,7 @@ function git(args: readonly string[], root: string, run: GitRunner, what: string
   try {
     return run(['-c', 'safe.directory=*', ...args], root)
   } catch (err) {
-    throw new GitError(`${what} falhou: ${reasonOf(err)}`)
+    throw new GitError(`${what} failed: ${reasonOf(err)}`)
   }
 }
 

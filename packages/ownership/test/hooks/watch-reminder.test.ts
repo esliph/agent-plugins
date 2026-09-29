@@ -54,7 +54,7 @@ test('doc dono sem skill declarada ainda é lembrado, e a mensagem aponta o CODE
     const decision = decideWatchReminder({ tool_input: { file_path: 'src/checks/a.ts' } }, env(root))
 
     assert.ok(decision.action === 'remind')
-    assert.match(decision.context, /Sem skill declarada/)
+    assert.match(decision.context, /No skill declared/)
   })
 })
 
