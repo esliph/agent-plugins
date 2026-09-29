@@ -104,7 +104,7 @@ test('spec §12 criterios 9 e 10: o que so gente verifica entra como linha human
     assert.match(linha ?? '', /^- \[ \] /, 'precisa ser item de checklist')
     assert.match(
       linha ?? '',
-      /verificacao: humana|verificação: humana/,
+      /verificação: human\b/,
       'estes dois sao verificacao humana por natureza — um check que fingisse medi-los seria pior que a ausencia dele',
     )
     assert.doesNotMatch(linha ?? '', /\bCI-\d+\b/, 'nenhum check mede estes dois')

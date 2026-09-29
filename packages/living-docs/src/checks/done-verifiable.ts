@@ -5,12 +5,13 @@ import { stripFences } from '../docs/markdown.ts'
 const RULE = 'living-docs/done-verifiable'
 
 /**
- * Vocabulário de verificação de um item de Definition of Done (`RN-0017`): o
- * identificador de um check ou hook (`plugin/nome`), o de agente ou skill, ou a
- * palavra que marca verificação humana — em português ou em inglês. Os
- * numerados `CI-n`/`HK-n` não valem mais, sem alias de nome antigo.
+ * Verification vocabulary of a Definition of Done item (RN-0017): the
+ * identifier of a check or hook (`plugin/name`), of an agent or skill, or the
+ * fixed marker `human`. The marker is a fixed word and not a language: a
+ * Definition of Done in any language names human verification with it
+ * (RN-0038). Numbered `CI-n`/`HK-n` no longer count.
  */
-const VERIFICATION = /\b(?:AG|SK)-\d+\b|\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|\bhumana?\b|\bhuman\b/i
+const VERIFICATION = /\b(?:AG|SK)-\d+\b|\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|\bhuman\b/i
 
 const DOD_ITEM = /^\s*[-*+]\s+\[[ xX]\]\s+\S/
 
@@ -80,7 +81,7 @@ export const livingDocsDoneVerifiable: Check = {
           dodPath,
           item.line,
           `Item da Definition of Done sem verificação nomeada: "${item.text.slice(0, 120)}".`,
-          'Nomeie o que verifica o item — o identificador de um check ou de um hook (`plugin/nome`), ou a palavra que marca verificação humana. ' +
+          'Nomeie o que verifica o item — o identificador de um check ou de um hook (`plugin/nome`), ou o marcador fixo `human`. ' +
             // Regra de origem: RN-0017.
             'Item que ninguém verifica é intenção, e intenção não é definição de pronto.',
         ),

@@ -65,7 +65,7 @@ watches:
       CODEOWNERS: 'docs/ @time\nCHANGELOG.md @time\n.ownership.yml @time\nCODEOWNERS @time\nout.md @time\n',
       // declared-state: status fora de states; owner sem @.
       'docs/decisions/adr/ADR-0001-a.md': ADR_OK.replace('status: draft', 'status: aceito').replace("owner: '@time'", 'owner: time'),
-      'docs/definition-of-done.md': "---\ntitle: DoD\nowner: '@time'\ntrigger: Quando muda o que é pronto.\nlast-reviewed: 2026-09-01\n---\n\n- [ ] Algo — verificação: humana.\n",
+      'docs/definition-of-done.md': "---\ntitle: DoD\nowner: '@time'\ntrigger: Quando muda o que é pronto.\nlast-reviewed: 2026-09-01\n---\n\n- [ ] Algo — verificação: human.\n",
       'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
       // generated-drift: diverge da saída do gerador.
       'out.md': 'editado à mão\n',

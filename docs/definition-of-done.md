@@ -13,11 +13,11 @@ Uma mudança está pronta quando todas as caixas abaixo estão marcadas. Cada it
 diz **o que o verifica**: um check, um hook, ou uma pessoa. Item que ninguém
 verifica não pertence a esta lista — vira intenção, e intenção não é definição.
 
-- [ ] O comportamento novo tem requisito com ID, escrito **antes** do código — verificação: `living-docs/frontmatter` (estrutura) e humana (a ordem).
+- [ ] O comportamento novo tem requisito com ID, escrito **antes** do código — verificação: `living-docs/frontmatter` (estrutura) e human (a ordem).
 - [ ] Toda regra `active` é citada por ao menos um teste — verificação: `living-docs/citation-coverage`.
 - [ ] Todo ID citado resolve para um item existente e não retirado — verificação: `living-docs/id-integrity`.
-- [ ] A decisão que não era óbvia virou ADR, e a lacuna que apareceu virou `DA-nnnn` — verificação: humana (`living-docs/state-promotion` intercepta a aceitação).
-- [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: `living-docs/shortcut-debt` lembra; registrar é humana.
+- [ ] A decisão que não era óbvia virou ADR, e a lacuna que apareceu virou `DA-nnnn` — verificação: human (`living-docs/state-promotion` intercepta a aceitação).
+- [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: `living-docs/shortcut-debt` lembra; registrar é human.
 - [ ] O doc dono de todo caminho vigiado tocado pela mudança está no mesmo commit — verificação: `ownership/watch-reminder` lembra, `ownership/commit-guard` pergunta.
 - [ ] Nenhum item congelado foi editado no corpo — verificação: `living-docs/append-only`.
 - [ ] Nenhum artefato gerado foi editado à mão, e o contrato regenerado está no mesmo commit — verificação: `ownership/generated-guard` (bloqueia) e `ownership/generated-drift` (`ownership validate`).
@@ -28,8 +28,8 @@ verifica não pertence a esta lista — vira intenção, e intenção não é de
 - [ ] A dívida registrada declara `pay-when`, e nenhuma dívida com gatilho cumprido continua `open` — verificação: `living-docs/staleness`.
 - [ ] O caminho vigiado que mudou levou o doc dono, ou a razão escrita no commit — verificação: `ownership/commit-guard` pergunta, `ownership/watch-satisfied` reprova (`ownership validate --base <ref>`).
 - [ ] `npm test`, `npm run typecheck`, `ownership validate [--base <ref>]` e `living-docs validate [--base <ref>]` passam no host — verificação: os checks do núcleo e do living-docs (`ownership/owner-coverage`, `living-docs/frontmatter`, …), rodados pelo workflow do repositório.
-- [ ] Nenhum agente e nenhuma pessoa errou por falta de contexto que caberia num artefato existente — e, quando errou, o artefato dono ganhou a linha que faltava — verificação: humana (spec §12, critério 9).
-- [ ] Nenhuma métrica de volume documental foi usada como sinal de qualidade: nem contagem de páginas, nem cobertura, nem "documentar o que foi feito" — verificação: humana (spec §12, critério 10).
+- [ ] Nenhum agente e nenhuma pessoa errou por falta de contexto que caberia num artefato existente — e, quando errou, o artefato dono ganhou a linha que faltava — verificação: human (spec §12, critério 9).
+- [ ] Nenhuma métrica de volume documental foi usada como sinal de qualidade: nem contagem de páginas, nem cobertura, nem "documentar o que foi feito" — verificação: human (spec §12, critério 10).
 
 ## O que esta lista não é
 

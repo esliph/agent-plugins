@@ -62,7 +62,7 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
    regra de X mora em `docs/requirements/rules.md`") ou _o que nunca fazer_
    ("nunca promova uma decisão sem revisão humana").
 5. **Item novo na DoD nomeia sua verificação**: um `CI-n`, um `HK-n`, ou
-   explicitamente "humana". Item sem verificação não entra.
+   explicitamente o marcador `human`. Item sem verificação não entra.
 6. **No contrato do agente, linke — não copie.** Se a frase que você ia escrever
    é uma afirmação factual, ela pertence ao artefato dono; aqui fica o link.
 7. **Se a mudança de processo alterou o vínculo código→doc**, atualize `watches`
@@ -90,7 +90,7 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 ## Checklist
 
 - [ ] Cada afirmação factual do contrato do agente é um link para o artefato dono, não uma cópia — verificação: humana; `living-docs/agent-contract-duplication` pega a cópia palavra por palavra.
-- [ ] Todo item novo da DoD nomeia o que o verifica: `CI-n`, `HK-n`, ou "humana" explícita — verificação: humana.
+- [ ] Todo item novo da DoD nomeia o que o verifica: o identificador de um check ou de um hook, ou o marcador `human` — verificação: humana.
 - [ ] O caminho vigiado que a mudança criou está em `watches`, com doc dono — verificação: `ownership/watch-reminder` e `ownership/commit-guard`.
 - [ ] Nenhum dos três artefatos ganhou conteúdo que pertence a `docs/requirements/` ou a `docs/decisions/` — verificação: humana.
 - [ ] O `trigger` do artefato alterado continua nomeando evento, não cadência — verificação: `living-docs/frontmatter`.

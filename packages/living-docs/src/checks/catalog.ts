@@ -57,7 +57,7 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     id: 'living-docs/done-verifiable',
     name: 'done verifiable',
     command: 'living-docs validate',
-    failsWhen: 'Item da Definition of Done não nomeia o que o verifica — um identificador de check ou de hook, ou a marca de verificação humana.',
+    failsWhen: 'A Definition of Done item does not name what verifies it — the identifier of a check or hook, or the fixed marker `human`.',
   },
   {
     id: 'living-docs/open-decision-claim',

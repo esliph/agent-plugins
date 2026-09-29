@@ -69,7 +69,7 @@ test('dodItemsWithoutVerification aceita ID de check, de hook e a marca humana',
     '- [ ] com check — verificação: `living-docs/citation-coverage`.',
     '- [x] com hook — verificação: `living-docs/append-only`.',
     '- [ ] com check do núcleo — verificação: `ownership/owner-coverage`.',
-    '- [ ] com pessoa — verificação: humana.',
+    '- [ ] com pessoa — verificação: human.',
     '- [ ] sem nada.',
     'não é item de caixa.',
   ].join('\n')
@@ -118,4 +118,25 @@ test('RN-0017: a cerca sai e o ID entre crases fica — no check inteiro', () =>
   withTempRepo({ ...ARVORE, 'docs/definition-of-done.md': dodComExemplo }, root => {
     assert.deepEqual(livingDocsDoneVerifiable.run(contextFor(root)), [])
   })
+})
+
+test('RN-0017, RN-0038: the human-verification marker is the fixed word `human`, in any case', () => {
+  const source = [
+    '- [ ] reviewed by a person — verification: human.',
+    '- [ ] reviewed by a person — verification: Human.',
+    '- [ ] reviewed by a person — verification: HUMAN, at the release.',
+    '- [ ] reviewed by humans.',
+  ].join('\n')
+
+  assert.deepEqual(
+    dodItemsWithoutVerification(source).map(item => item.line),
+    [4],
+  )
+})
+
+test('RN-0017: the old localized marker is no longer the marker', () => {
+  // Built from parts so the repository keeps a single non-English fixture.
+  const localized = ['hum', 'ana'].join('')
+
+  assert.equal(dodItemsWithoutVerification(`- [ ] Something — verification: ${localized}.`).length, 1)
 })
