@@ -99,22 +99,37 @@ test('cada campo obrigatório ausente vira uma finding', () => {
   }
 })
 
-test('RN-0002: trigger com cadência falha nomeando o campo e o termo — critério de aceite 3', () => {
+test('RN-0002, RN-0038: a trigger worded as a cadence is not judged by the check', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
       id: 'ADR-0001',
       title: 'x',
       status: 'draft',
       owner: '"@team"',
-      trigger: 'revisar trimestralmente',
+      trigger: 'review quarterly',
+      'last-reviewed': '2026-08-21',
+    }),
+  })
+
+  assert.deepEqual(findings, [])
+})
+
+test('RN-0002: a trigger that is only whitespace is an empty required field', () => {
+  const findings = run({
+    'docs/decisions/adr/ADR-0001-x.md': adr({
+      id: 'ADR-0001',
+      title: 'x',
+      status: 'draft',
+      owner: '"@team"',
+      trigger: "'   '",
       'last-reviewed': '2026-08-21',
     }),
   })
 
   assert.equal(findings.length, 1)
-  assert.match(findings[0]?.message ?? '', /trigger/)
-  assert.match(findings[0]?.message ?? '', /trimestral/i)
-  assert.equal(findings[0]?.line, 6)
+  assert.equal(findings[0]?.ruleId, 'living-docs/frontmatter')
+  assert.equal(findings[0]?.severity, 'error')
+  assert.match(findings[0]?.message ?? '', /`trigger`/)
 })
 
 test('last-reviewed fora do ISO falha', () => {

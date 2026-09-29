@@ -11,7 +11,7 @@ citados pela Definition of Done de quem usa o toolkit, e não mudam de significa
 
 | ID | Check | Falha quando | Comando |
 | --- | --- | --- | --- |
-| living-docs/frontmatter | structure lint | Frontmatter ausente ou inválido; campo obrigatório vazio; `id` fora do formato ou do território do artefato; `status` num artefato sem `states` declarado; item de coleção sem `status`; `trigger` ausente ou descrevendo cadência; `last-reviewed` fora do formato ISO. | `living-docs validate` |
+| living-docs/frontmatter | structure lint | Frontmatter ausente ou inválido; campo obrigatório vazio; `id` fora do formato ou do território do artefato; `status` num artefato sem `states` declarado; item de coleção sem `status`; `trigger` ausente ou vazio; `last-reviewed` fora do formato ISO. | `living-docs validate` |
 | living-docs/id-integrity | ID lint | ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente. | `living-docs validate` |
 | living-docs/citation-coverage | traceability | Par bidirecional aberto; requisito `active` sem citação nos caminhos de `cited-by`; ADR `accepted` sem `relates-to`; decisão aberta `resolved` sem o ADR que a fechou. | `living-docs validate` |
 | living-docs/staleness | staleness | Uma dívida `open` não declara `pay-when` verificável, ou o gatilho declarado já aconteceu no repositório. `last-reviewed` além de `stale-after-months` produz aviso, não falha — e item em estado congelado não vence. | `living-docs validate` |

@@ -25,7 +25,7 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     name: 'structure lint',
     command: 'living-docs validate',
     failsWhen:
-      'Frontmatter ausente ou inválido; campo obrigatório vazio; `id` fora do formato ou do território do artefato; `status` num artefato sem `states` declarado; item de coleção sem `status`; `trigger` ausente ou descrevendo cadência; `last-reviewed` fora do formato ISO.',
+      'Frontmatter ausente ou inválido; campo obrigatório vazio; `id` fora do formato ou do território do artefato; `status` num artefato sem `states` declarado; item de coleção sem `status`; `trigger` ausente ou vazio; `last-reviewed` fora do formato ISO.',
   },
   {
     id: 'living-docs/id-integrity',

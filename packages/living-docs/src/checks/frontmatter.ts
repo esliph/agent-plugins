@@ -1,7 +1,7 @@
 import type { Check, CheckContext, Finding } from '../core/types.ts'
 import type { ArtifactDoc } from '../docs/collect.ts'
 import type { IdFormat } from '../docs/schema.ts'
-import { REQUIRED_FIELDS, CONTAINER_REQUIRED_FIELDS, findCadence, isIsoDate, parseId, writeId } from '../docs/schema.ts'
+import { REQUIRED_FIELDS, CONTAINER_REQUIRED_FIELDS, isIsoDate, parseId, writeId } from '../docs/schema.ts'
 
 const RULE = 'living-docs/frontmatter'
 
@@ -101,22 +101,6 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
           lineOf('status'),
           `Prefixo ${doc.rule.idPrefix} não tem máquina de estados declarada.`,
           'Declare `states:` na entrada deste artefato no arquivo de ownership.',
-        ),
-      )
-    }
-  }
-
-  if (isFilled(data.trigger)) {
-    const cadence = findCadence(String(data.trigger))
-
-    if (cadence) {
-      findings.push(
-        error(
-          doc.file,
-          lineOf('trigger'),
-          `\`trigger\` descreve cadência ("${cadence}") em vez de um evento observável.`,
-          // Regra de origem: spec §2, mecanismo 2.
-          'Nomeie o evento: "no mesmo PR que altera src/domain/billing", "quando um código de erro novo é adicionado".',
         ),
       )
     }

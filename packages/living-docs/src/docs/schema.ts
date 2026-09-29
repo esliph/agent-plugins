@@ -19,43 +19,6 @@ export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.
   { from: 'draft', to: 'published' },
 ])
 
-/**
- * Vocabulário de cadência proibido em `trigger` (spec §2 e anti-requisito §13).
- * Um gatilho válido nomeia um evento observável, não uma data de calendário.
- */
-const CADENCE_PATTERNS: readonly RegExp[] = [
-  /\b(?:tri|bi|se)?mestral(?:mente)?\b/i,
-  /\bmensal(?:mente)?\b/i,
-  /\bsemanal(?:mente)?\b/i,
-  /\bdiariamente\b/i,
-  /\banual(?:mente)?\b/i,
-  /\bperi[oó]dic[ao](?:mente)?\b/i,
-  /\bcad[êe]ncia\b/i,
-  /\ba cada\b/i,
-  /\bquarterly\b/i,
-  /\bmonthly\b/i,
-  /\bweekly\b/i,
-  /\bdaily\b/i,
-  /\bannually\b/i,
-  /\bperiodically\b/i,
-  /\bevery\s+\w+/i,
-  /\bsprint\b/i,
-  /\btod[oa]\s+(?:m[êe]s|ano|semana|sprint)\b/i,
-]
-
-/** Devolve o trecho que caracteriza cadência, ou null. */
-export function findCadence(trigger: string): string | null {
-  for (const pattern of CADENCE_PATTERNS) {
-    const match = pattern.exec(trigger)
-
-    if (match) {
-      return match[0]
-    }
-  }
-
-  return null
-}
-
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
 export function isIsoDate(value: unknown): boolean {

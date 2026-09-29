@@ -163,7 +163,7 @@ test('DA-0001/RNF-0003: validate roda contra a configuração do repositório va
         'title: X',
         'status: draft',
         'owner: "@consumidor"',
-        'trigger: revisar trimestralmente',
+        "trigger: ''",
         'last-reviewed: 2026-08-24',
         '---',
         '',

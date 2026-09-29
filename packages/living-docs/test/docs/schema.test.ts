@@ -5,7 +5,6 @@ import {
   HUMAN_PROMOTIONS,
   REQUIRED_FIELDS,
   DEFAULT_ID_FORMAT,
-  findCadence,
   isIsoDate,
   canonicalId,
   digitRange,
@@ -34,37 +33,6 @@ test('RN-0005: toda promoção que significa aceitação exige ato humano', () =
 
 test('REQUIRED_FIELDS reflete o frontmatter da spec §2', () => {
   assert.deepEqual(REQUIRED_FIELDS, ['id', 'title', 'status', 'owner', 'trigger', 'last-reviewed'])
-})
-
-test('findCadence reprova o vocabulário de cadência da spec §2', () => {
-  const rejeitados = [
-    'revisar trimestralmente',
-    'Mensal',
-    'anualmente',
-    'periodicamente',
-    'revisar a cada release',
-    'quarterly review',
-    'toda sprint',
-    'a cada 3 meses',
-    'every 2 weeks',
-  ]
-
-  for (const trigger of rejeitados) {
-    assert.ok(findCadence(trigger) !== null, `deveria reprovar: ${trigger}`)
-  }
-})
-
-test('findCadence aprova gatilhos que nomeiam um evento observável', () => {
-  const aceitos = [
-    'no mesmo PR que altera `src/domain/billing`',
-    'quando um código de erro novo é adicionado',
-    'quando um agente errar por falta de contexto',
-    'Nunca. Imutável após aceito; uma decisão nova o supersede.',
-  ]
-
-  for (const trigger of aceitos) {
-    assert.equal(findCadence(trigger), null, `não deveria reprovar: ${trigger}`)
-  }
 })
 
 test('isIsoDate aceita string ISO e Date, rejeita o resto', () => {

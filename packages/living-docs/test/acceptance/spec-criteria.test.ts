@@ -77,14 +77,14 @@ test('critério 2: living-docs/append-only nega alterar o corpo de um ADR accept
   })
 })
 
-test('critério 3: trigger com cadência falha no CI nomeando o campo', () => {
+test('critério 3: a trigger left empty fails in CI naming the field', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'draft')
 
     writeFileSync(
       join(root, file),
-      readFileSync(join(root, file), 'utf8').replace('trigger: Nunca. Imutável após aceito.', 'trigger: revisar trimestralmente'),
+      readFileSync(join(root, file), 'utf8').replace('trigger: Nunca. Imutável após aceito.', "trigger: ''"),
       'utf8',
     )
 
@@ -94,7 +94,6 @@ test('critério 3: trigger com cadência falha no CI nomeando o campo', () => {
     const finding = result.findings.find(f => f.ruleId === 'living-docs/frontmatter' && /trigger/.test(f.message))
 
     assert.ok(finding, 'living-docs/frontmatter deveria acusar o campo trigger')
-    assert.match(finding.message, /trimestral/i)
   })
 })
 

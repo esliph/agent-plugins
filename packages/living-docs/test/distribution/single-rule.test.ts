@@ -108,8 +108,8 @@ test('cada regra que ficou é reportada pelo living-docs, e o núcleo fica calad
       [OWNERSHIP_FILE]: `${BASE_OWNED}`,
       CODEOWNERS: 'docs/ @time\nCHANGELOG.md @time\n.ownership.yml @time\nCODEOWNERS @time\nout.md @time\n',
       'out.md': 'x\n',
-      // frontmatter: trigger com cadência.
-      'docs/decisions/adr/ADR-0001-a.md': ADR_OK.replace('trigger: Nunca.', 'trigger: Revisar mensalmente.'),
+      // frontmatter: empty trigger.
+      'docs/decisions/adr/ADR-0001-a.md': ADR_OK.replace('trigger: Nunca.', "trigger: ''"),
       // done-verifiable: item sem verificação nomeada.
       'docs/definition-of-done.md': "---\ntitle: DoD\nowner: '@time'\ntrigger: Quando muda o que é pronto.\nlast-reviewed: 2026-09-01\n---\n\n- [ ] Algo sem quem verifique.\n",
       // external-audience e links: ID de artefato e link quebrado em texto externo.

@@ -48,7 +48,7 @@ test('RF-0001: erro de qualquer check leva a exit 1', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: CONFIG,
-      'docs/decisions/adr/ADR-0001-a.md': GOOD.replace('trigger: Nunca. Imutável após aceito.', 'trigger: Revisar mensalmente.'),
+      'docs/decisions/adr/ADR-0001-a.md': GOOD.replace('trigger: Nunca. Imutável após aceito.', "trigger: ''"),
     },
     root => {
       const result = runValidate(root)
