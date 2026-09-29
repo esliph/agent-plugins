@@ -1,81 +1,82 @@
 ---
-title: Requisitos não funcionais
+title: Non-functional requirements
 owner: '@esliph/engineering'
 trigger: >
-  Antes de implementar qualquer comportamento desta família, e a toda regra nova
-  ou alterada.
+  Before implementing any behavior of this family, and on every new or changed
+  rule.
 last-reviewed: 2026-09-18
 ---
 
-# Requisitos não funcionais
+# Non-functional requirements
 
-Cada requisito é uma seção com ID citável. Formato: `templates/requirements.md`.
+Each requirement is a section with a citable ID. Format: `templates/requirements.md`.
 
-## RNF-0001 — Hook falha aberta, em até 5 segundos, sem rede
+## RNF-0001 — A hook fails open, within 5 seconds, with no network
 
 - **status:** active
-- **fora de escopo:** o CI, que falha fechado de propósito
+- **out of scope:** CI, which fails closed on purpose
 
-Qualquer erro na execução de um hook — configuração ilegível, dependência
-ausente, timeout — resulta em deixar passar. O enforcement que sobrevive a hook
-quebrado é o CI; hook quebrado que trava o trabalho é removido pelo usuário no
-primeiro dia, e aí não há enforcement nenhum.
+Any error in the execution of a hook — unreadable configuration, missing
+dependency, timeout — results in letting it through. The enforcement that survives
+a broken hook is CI; a broken hook that blocks the work is removed by the user on
+day one, and then there is no enforcement at all.
 
-## RNF-0002 — O toolkit roda no Node do host, sem passo de build no checkout
+## RNF-0002 — The toolkit runs on the host's Node, with no build step in the checkout
 
 - **status:** active
 - **relates-to:** ADR-0015, ADR-0025
-- **fora de escopo:** o `git`; o caminho conteinerizado opcional de `RNF-0006`, que é alternativa e não exigência; como o toolkit chega ao repositório de quem o consome (`DA-0003`); e o pacote publicado, que é compilado no `prepack` (`ADR-0025`) e não é o que se executa a partir do checkout
+- **out of scope:** `git`; the optional containerized path of `RNF-0006`, which is an alternative and not a requirement; how the toolkit reaches the repository of whoever consumes it (`DA-0003`); and the published package, which is compiled on `prepack` (`ADR-0025`) and is not what runs from the checkout
 
-Node 24 ou maior, e o npm que vem com ele, são o único toolchain exigido de quem
-clona este repositório. `npm ci` instala as dependências; `node` executa a fonte
-TypeScript direto do checkout, sem artefato compilado no meio. O pacote
-publicado em npm é compilado no `prepack` — essa compilação existe só dentro
-do tarball e nunca chega a um checkout de desenvolvimento.
+Node 24 or greater, and the npm that comes with it, are the only toolchain required
+of whoever clones this repository. `npm ci` installs the dependencies; `node` runs
+the TypeScript source straight from the checkout, with no compiled artifact in the
+middle. The package published on npm is compiled on `prepack` — that compilation
+exists only inside the tarball and never reaches a development checkout.
 
-## RNF-0003 — A raiz do toolkit e a do repositório validado são independentes
+## RNF-0003 — The toolkit root and the validated repository root are independent
 
 - **status:** active
 - **relates-to:** ADR-0003
-- **fora de escopo:** o mecanismo de distribuição do toolkit, que ADR-0003 deliberadamente não decide
+- **out of scope:** the toolkit's distribution mechanism, which ADR-0003 deliberately does not decide
 
-Descobrir onde o toolkit está e descobrir qual repositório validar são duas
-perguntas distintas, com respostas que podem coincidir e não podem se confundir.
+Discovering where the toolkit is and discovering which repository to validate are
+two distinct questions, with answers that may coincide and must not be confused.
 
-## RNF-0004 — O resultado de um check não depende do relógio nem da máquina
+## RNF-0004 — The result of a check depends neither on the clock nor on the machine
 
 - **status:** active
 - **relates-to:** ADR-0007
-- **fora de escopo:** o valor de `stale-after-months`, que é configuração do projeto
+- **out of scope:** the value of `stale-after-months`, which is project configuration
 
-Dados a mesma árvore, a mesma configuração e a mesma data, dois checks
-produzem o mesmo resultado. A data entra por valor, de quem chama; nenhum check
-e nenhum hook lê o relógio por dentro.
+Given the same tree, the same configuration and the same date, two runs of a check
+produce the same result. The date comes in by value, from the caller; no check and
+no hook reads the clock from the inside.
 
-Sem isso, o único teste possível para o que depende de tempo é o que passa hoje
-e reprova em seis meses — e teste que reprova sozinho é teste que se apaga.
+Without this, the only possible test for what depends on time is the one that
+passes today and fails in six months — and a test that fails by itself is a test
+that gets deleted.
 
-## RNF-0005 — O conjunto de checks cabe num teto de tempo declarado e medido
+## RNF-0005 — The set of checks fits within a declared and measured time ceiling
 
 - **status:** draft
-- **fora de escopo:** o tempo de cada check isolado, e o tempo de construção da imagem
+- **out of scope:** the time of each check in isolation, and the image build time
 
-A spec exige que os checks rodem "em minutos, no PR". O teto é do **conjunto**,
-não de cada check — é o conjunto que roda no PR —, está declarado no código e é
-**medido** a cada execução, nunca estimado. Um orçamento que ninguém mede é uma
-intenção, e a primeira execução lenta o descobre em produção.
+The spec demands that the checks run "in minutes, on the PR". The ceiling belongs to
+the **set**, not to each check — it is the set that runs on the PR —, is declared
+in the code and is **measured** on every run, never estimated. A budget nobody
+measures is an intention, and the first slow run discovers it in production.
 
-## RNF-0006 — Existe um caminho de execução conteinerizado, opcional e em paridade com o host
+## RNF-0006 — There is a containerized execution path, optional and in parity with the host
 
 - **status:** draft
 - **relates-to:** ADR-0016
-- **fora de escopo:** os hooks, que rodam sempre no host (`RNF-0001`)
+- **out of scope:** the hooks, which always run on the host (`RNF-0001`)
 
-Quem não quer instalar Node no host consegue rodar qualquer comando de
-manutenção do toolkit dentro de um container. O conjunto de comandos que funciona
-por esse caminho é o mesmo que funciona no host, e é assim porque o ponto de
-entrada não conhece comando nenhum: ele repassa o que recebeu. Uma lista de
-comandos suportados não existe, e o que não existe não diverge.
+Whoever does not want to install Node on the host can run any toolkit maintenance
+command inside a container. The set of commands that works through that path is the
+same that works on the host, and that is so because the entry point knows no command
+at all: it passes on what it received. A list of supported commands does not exist,
+and what does not exist does not diverge.
 
-O caminho de registro continua sendo o host (`RNF-0002`): é ele que o CI
-reproduz em todo PR e é ele que a Definition of Done mede.
+The path of record remains the host (`RNF-0002`): it is the one CI reproduces on
+every PR and the one the Definition of Done measures.

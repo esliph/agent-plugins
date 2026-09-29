@@ -1,509 +1,518 @@
 ---
-title: Regras de negócio
+title: Business rules
 owner: '@esliph/engineering'
 trigger: >
-  Antes de implementar qualquer comportamento desta família, e a toda regra nova
-  ou alterada.
+  Before implementing any behavior of this family, and on every new or changed
+  rule.
 last-reviewed: 2026-09-18
 ---
 
-# Regras de negócio
+# Business rules
 
-Cada requisito é uma seção com ID citável. O ID nunca é reciclado, e é ele que
-torna o raio de impacto calculável por `grep`. Formato: `templates/requirements.md`.
+Each requirement is a section with a citable ID. The ID is never recycled, and it
+is what makes the blast radius computable by `grep`. Format: `templates/requirements.md`.
 
-## RN-0001 — Todo artefato tem exatamente um dono declarado
+## RN-0001 — Every artifact has exactly one declared owner
 
 - **status:** active
 - **relates-to:** ADR-0002
-- **fora de escopo:** quem revisa o artefato; isto trata de propriedade, não de revisão
+- **out of scope:** who reviews the artifact; this is about ownership, not review
 
-Um artefato de documentação viva pertence a um e apenas um dono, declarado em
-`.ownership.yml`, na raiz do repositório, e espelhado no CODEOWNERS. Dois donos para o mesmo caminho
-é divergência garantida; zero donos torna o artefato órfão e não enforceável.
+A living-documentation artifact belongs to one and only one owner, declared in
+`.ownership.yml`, at the repository root, and mirrored in CODEOWNERS. Two owners for the same path
+is guaranteed divergence; zero owners makes the artifact an orphan and not enforceable.
 
-## RN-0002 — `trigger` nomeia um evento observável, nunca uma cadência
-
-- **status:** active
-- **fora de escopo:** a redação do gatilho; o que se exige é a natureza dele. No check judges the wording: the check only requires `trigger` to be present and non-empty, and the nature of the event is judged by the agent and the reviewer
-
-O campo `trigger` declara **quando** o artefato deve ser atualizado, e a resposta
-é sempre um evento que alguém pode observar acontecer. Data de calendário
-("trimestral", "a cada sprint") descreve intenção de revisão, não necessidade de
-mudança — e é o que transforma documento em ritual.
-
-## RN-0003 — Um ID identifica um item, para sempre
+## RN-0002 — `trigger` names an observable event, never a cadence
 
 - **status:** active
-- **fora de escopo:** o formato do ID, que é contrato de máquina e não regra de negócio
+- **out of scope:** the wording of the trigger; what is required is its nature. No check judges the wording: the check only requires `trigger` to be present and non-empty, and the nature of the event is judged by the agent and the reviewer
 
-Um ID nunca identifica dois itens, e nunca é reaproveitado depois que o item
-deixa de existir. `ADR-001` e `ADR-0001` são o mesmo ID: repadding não cria um
-item novo. Sem isso, uma citação antiga passa a apontar para outra coisa em
-silêncio, que é pior do que apontar para nada.
+The `trigger` field declares **when** the artifact must be updated, and the answer
+is always an event someone can observe happening. A calendar date
+("quarterly", "every sprint") describes an intention to review, not a need to
+change — and it is what turns a document into a ritual.
 
-## RN-0004 — Item congelado só muda nos campos da allowlist
+## RN-0003 — An ID identifies one item, forever
+
+- **status:** active
+- **out of scope:** the format of the ID, which is a machine contract and not a business rule
+
+An ID never identifies two items, and is never reused after the item stops
+existing. `ADR-001` and `ADR-0001` are the same ID: re-padding does not create a
+new item. Without this, an old citation comes to point to something else
+silently, which is worse than pointing to nothing.
+
+## RN-0004 — A frozen item only changes in the allowlist fields
 
 - **status:** active
 - **relates-to:** RN-0006
-- **fora de escopo:** quem decide congelar; isso é a máquina de estados
+- **out of scope:** who decides to freeze; that is the state machine
 
-Um item em estado terminal aceita mudança apenas nos campos que o `.ownership.yml`
-declara mutáveis — tipicamente `status`, `superseded-by` e `last-reviewed`. É
-essa allowlist que permite supersedir um ADR sem violar a imutabilidade dele.
+An item in a terminal state accepts change only in the fields `.ownership.yml`
+declares mutable — typically `status`, `superseded-by` and `last-reviewed`. It is
+this allowlist that allows superseding an ADR without violating its immutability.
 
-## RN-0005 — Promoção de estado é ato humano
+## RN-0005 — Promoting a state is a human act
 
 - **status:** active
-- **fora de escopo:** a criação do item, que é ato de agente
+- **out of scope:** creating the item, which is an agent act
 
-Nenhum agente promove sozinho um item para um estado que significa aceitação
-(`draft → accepted`, `open → resolved`, `draft → active`, `active → revoked`). O
-máximo que uma skill escreve é `draft`/`open`. Aceitar é decidir, e decidir não
-é do agente.
+No agent on its own promotes an item to a state that means acceptance
+(`draft → accepted`, `open → resolved`, `draft → active`, `active → revoked`). The
+most a skill writes is `draft`/`open`. Accepting is deciding, and deciding is not
+the agent's.
 
-## RN-0006 — Estado terminal não permite edição do corpo
+## RN-0006 — A terminal state does not allow editing the body
 
 - **status:** active
 - **relates-to:** TDR-0001
-- **fora de escopo:** o congelamento por seção dentro de arquivo de coleção, que TDR-0001 registra como dívida
+- **out of scope:** freezing per section inside a collection file, which TDR-0001 records as debt
 
-Um item que chegou ao estado terminal não se corrige: a história é o ativo. Um
-ADR aceito que se revelou errado ganha `superseded`, e a decisão nova explica o
-erro.
+An item that reached the terminal state is not corrected: the history is the
+asset. An accepted ADR that turned out to be wrong gets `superseded`, and the new
+decision explains the error.
 
-## RN-0007 — Toda citação resolve, ou o CI falha
+## RN-0007 — Every citation resolves, or CI fails
 
 - **status:** active
-- **fora de escopo:** citação a prefixo não declarado no `.ownership.yml`, que é ignorada de propósito para permitir instalação por fases
+- **out of scope:** a citation to a prefix not declared in `.ownership.yml`, which is ignored on purpose to allow installation in phases
 
-Uma referência `<PREFIXO>-<número>` a um prefixo conhecido aponta para um item
-existente e não retirado. Citação pendurada é pior que ausência de citação:
-ela afirma uma rastreabilidade que não existe.
+A `<PREFIX>-<number>` reference to a known prefix points to an existing,
+non-retired item. A dangling citation is worse than no citation: it asserts a
+traceability that does not exist.
 
-## RN-0008 — Caminho vigiado e doc dono viajam no mesmo commit
+## RN-0008 — The watched path and the owning doc travel in the same commit
 
 - **status:** active
 - **relates-to:** RN-0001
-- **fora de escopo:** qual caminho exige qual doc, que é configuração do projeto e mora em `watches`
+- **out of scope:** which path requires which doc, which is project configuration and lives in `watches`
 
-Um caminho de código declarado em `watches` tem um documento dono, e a mudança
-dos dois cabe no mesmo commit. Documentação que espera um segundo PR é
-documentação que não acontece: quem a adiaria já está com o contexto na cabeça
-agora, e não estará depois.
+A code path declared in `watches` has an owning document, and the change to both
+fits in the same commit. Documentation that waits for a second PR is
+documentation that does not happen: whoever would postpone it has the context in
+their head now, and will not later.
 
-Quando a mudança realmente não afeta o doc, quem decide isso é uma pessoa, no
-momento em que o enforcement pergunta — não o agente, e não o silêncio.
+When the change really does not affect the doc, deciding that is up to a person,
+at the moment the enforcement asks — not the agent, and not silence.
 
-## RN-0009 — O enforcement do vínculo código→doc lembra e pergunta, nunca nega
+## RN-0009 — The enforcement of the code→doc link reminds and asks, and never denies
 
 - **status:** active
 - **relates-to:** RN-0008
-- **fora de escopo:** o congelamento de item imutável (`RN-0006`), que nega por outro motivo
+- **out of scope:** the freezing of an immutable item (`RN-0006`), which denies for another reason
 
-O que liga código a documento informa (`additionalContext`) ou pergunta
-(`ask`). Nunca bloqueia. Um atalho legítimo existe e precisa ser possível: o
-enforcement que impede um commit honesto é desligado no primeiro dia, e um
-enforcement desligado não protege nada.
+What links code to a document informs (`additionalContext`) or asks (`ask`). It
+never blocks. A legitimate shortcut exists and has to be possible: enforcement
+that prevents an honest commit is switched off on day one, and switched-off
+enforcement protects nothing.
 
-Isto não afrouxa `RN-0006`: item congelado continua sendo `deny`. A diferença é
-o que se protege — lá, uma história que não se reescreve; aqui, um hábito que se
-ensina.
+This does not loosen `RN-0006`: a frozen item is still `deny`. The difference is
+what is being protected — there, a history that is not rewritten; here, a habit
+that is being taught.
 
-## RN-0010 — O contrato do agente é índice e política, não conteúdo
+## RN-0010 — The agent contract is index and policy, not content
 
 - **status:** active
-- **fora de escopo:** a detecção automática de duplicação textual, que é `living-docs/agent-contract-duplication` e chega na Fase 7
+- **out of scope:** automatic detection of textual duplication, which is `living-docs/agent-contract-duplication` and arrives in Phase 7
 
-O documento que orienta agentes (`CLAUDE.md`, `AGENTS.md`) aponta onde a verdade
-mora e declara o que nunca fazer. Toda afirmação factual vive no artefato dono e
-é linkada de lá.
+The document that guides agents (`CLAUDE.md`, `AGENTS.md`) points to where the
+truth lives and declares what to never do. Every factual claim lives in the owning
+artifact and is linked from there.
 
-Conteúdo copiado para dentro dele apodrece igual a qualquer duplicata — com o
-agravante de ser lido em toda sessão, o que faz a versão velha ganhar da nova
-por repetição.
+Content copied into it rots like any duplicate — with the aggravating factor of
+being read in every session, which makes the old version beat the new one by
+repetition.
 
-## RN-0011 — Termo do glossary tem um significado só, identificado pelo nome
+## RN-0011 — A glossary term has a single meaning, identified by name
 
 - **status:** active
 - **relates-to:** ADR-0004
-- **fora de escopo:** a declaração de `docs/glossary.md` em `artifacts:` no `.ownership.yml` — fica em aberto por `DA-0002` (`ADR-0004` não a resolve)
+- **out of scope:** the declaration of `docs/glossary.md` in `artifacts:` in `.ownership.yml` — left open by `DA-0002` (`ADR-0004` does not resolve it)
 
-Um termo do glossary é identificado pelo nome — não por um ID numerado do
-tipo `<PREFIXO>-<número>` — e cobre exatamente um significado. Duas coisas
-com o mesmo nome não são a mesma entrada: criam-se dois termos, e um deles é
-`banned`, apontando o substituto. Divergência entre o nome no código e o
-termo é bug a corrigir no código, não um segundo termo no glossary.
+A glossary term is identified by its name — not by a numbered ID of the
+`<PREFIX>-<number>` kind — and covers exactly one meaning. Two things with the
+same name are not the same entry: two terms are created, and one of them is
+`banned`, pointing to the replacement. A divergence between the name in the code
+and the term is a bug to fix in the code, not a second term in the glossary.
 
-## RN-0012 — Artefato gerado não se edita: muda-se a fonte
+## RN-0012 — A generated artifact is not edited: the source is changed
 
 - **status:** active
 - **relates-to:** ADR-0005
-- **fora de escopo:** qual é a fonte de cada artefato gerado, que é
-  configuração do projeto e mora em `generated[].command`
+- **out of scope:** what the source of each generated artifact is, which is
+  project configuration and lives in `generated[].command`
 
-Um artefato declarado em `generated[]`, ou que carrega o marcador
-`generated: do not edit`, só muda por execução do gerador. Uma edição à mão
-sobrevive até a próxima execução e mente até lá — com o agravante de parecer
-verdade assinada por uma ferramenta.
+An artifact declared in `generated[]`, or carrying the marker
+`generated: do not edit`, only changes by running the generator. A hand edit
+survives until the next run and lies until then — with the aggravating factor of
+looking like a truth signed by a tool.
 
-O que se escreve à mão é a política em volta do contrato — versionamento,
-depreciação, catálogo de erros —, nunca o contrato.
+What is written by hand is the policy around the contract — versioning,
+deprecation, the error catalog —, never the contract.
 
-## RN-0013 — Mudança visível ao consumidor viaja com a entrada de CHANGELOG
+## RN-0013 — A consumer-visible change travels with a CHANGELOG entry
 
 - **status:** active
 - **relates-to:** ADR-0006
-- **fora de escopo:** o formato da entrada, que é Keep a Changelog e mora no
-  template, não nesta regra
+- **out of scope:** the format of the entry, which is Keep a Changelog and lives in
+  the template, not in this rule
 
-Uma mudança que toca caminho de uma regra de `watches` marcada
-`consumer-visible: true` leva, no
-mesmo diff, a entrada em `## [Unreleased]` do doc marcado
-`consumer-visible: true` — ou uma razão escrita, no formato
-`Changelog: none — <razão>`, em alguma mensagem de commit do intervalo. Rótulo
-sem razão não é exceção: é a caixinha marcada.
+A change that touches a path of a `watches` rule marked
+`consumer-visible: true` carries, in the
+same diff, the entry under `## [Unreleased]` of the doc marked
+`consumer-visible: true` — or a written reason, in the form
+`Changelog: none — <reason>`, in some commit message of the range. A label with no
+reason is not an exception: it is the ticked box.
 
-A entrada é voltada a quem consome o software. Teste único: se ela só faz
-sentido para quem escreveu o código, ela não pertence ao CHANGELOG — e um
-CHANGELOG derivado do `git log` é o documento que narra o código, que a spec
-§13 recusa.
+The entry is aimed at whoever consumes the software. Single test: if it only makes
+sense to whoever wrote the code, it does not belong in the CHANGELOG — and a
+CHANGELOG derived from `git log` is the document that narrates the code, which
+spec §13 refuses.
 
-## RN-0014 — Atalho consciente vira dívida registrada, e o lembrete nunca bloqueia
-
-- **status:** active
-- **relates-to:** RN-0013
-- **fora de escopo:** arquivos Markdown, onde `TODO` e `FIXME` são prosa sobre
-  o marcador e não o marcador
-
-Marcador de atalho novo — `TODO`, `FIXME`, `HACK`, `XXX`, supressão de tipo ou
-de lint, teste ignorado — sem um `TDR-nnnn` a até duas linhas de distância
-gera lembrete, com o caminho para registrar a dívida. Nunca bloqueio: um atalho
-legítimo existe, e um hook que o proíbe ensina a escondê-lo com outro nome.
-
-O que se cobra é o registro do atalho com gatilho de pagamento observável, não
-a ausência do atalho.
-
-## RN-0015 — Depreciação sem as quatro coisas não é depreciação
+## RN-0014 — A conscious shortcut becomes recorded debt, and the reminder never blocks
 
 - **status:** active
 - **relates-to:** RN-0013
-- **fora de escopo:** o prazo entre anúncio e remoção, que é política de
-  versionamento do projeto e mora em `docs/contracts/versioning-policy.md`
+- **out of scope:** Markdown files, where `TODO` and `FIXME` are prose about the
+  marker and not the marker
 
-Uma entrada de depreciação registra quatro coisas: a data do anúncio, a versão
-ou data de remoção, o substituto, e o link para o guia de migração. Faltando
-qualquer uma, não é depreciação — é quebra de compatibilidade anunciada, e
-passa por ADR.
+A new shortcut marker — `TODO`, `FIXME`, `HACK`, `XXX`, a type or lint
+suppression, an ignored test — without a `TDR-nnnn` within two lines of distance
+generates a reminder, with the path to record the debt. Never a block: a
+legitimate shortcut exists, and a hook that forbids it teaches people to hide it
+under another name.
 
-Anunciar remoção sem lugar para o guia de migração é a depreciação que ninguém
-consegue seguir.
+What is charged is the recording of the shortcut with an observable payment
+trigger, not the absence of the shortcut.
 
-## RN-0016 — Documento sem dono declarado não passa
+## RN-0015 — A deprecation without the four things is not a deprecation
+
+- **status:** active
+- **relates-to:** RN-0013
+- **out of scope:** the period between announcement and removal, which is the
+  project's versioning policy and lives in `docs/contracts/versioning-policy.md`
+
+A deprecation entry records four things: the announcement date, the removal
+version or date, the replacement, and the link to the migration guide. If any is
+missing, it is not a deprecation — it is an announced compatibility break, and it
+goes through an ADR.
+
+Announcing a removal without a place for the migration guide is the deprecation
+nobody can follow.
+
+## RN-0016 — A document without a declared owner does not pass
 
 - **status:** active
 - **relates-to:** ADR-0008, RN-0001
-- **fora de escopo:** quem é o dono, que é do projeto e mora no `.ownership.yml` e no CODEOWNERS
+- **out of scope:** who the owner is, which belongs to the project and lives in `.ownership.yml` and CODEOWNERS
 
-Todo arquivo do repositório tem entrada no `.ownership.yml` — em `owned` ou em
-`generated:` — **e** linha no CODEOWNERS; a cobertura do repositório inteiro é do
-núcleo, e o living-docs cobra o mesmo do corpus de documentação, a união dos
-caminhos com bloco `living-docs:` e dos de `generated[]`. Os dois lugares, não um: o
-`.ownership.yml` diz qual skill responde, o CODEOWNERS diz quem revisa, e
-documento com dono em um lugar só é documento cujo dono desaparece na primeira
-dúvida.
+Every file in the repository has an entry in `.ownership.yml` — in `owned` or in
+`generated:` — **and** a line in CODEOWNERS; the coverage of the whole repository
+is the core's, and living-docs charges the same of the documentation corpus, the
+union of the paths with a `living-docs:` block and those of `generated[]`. Both
+places, not one: `.ownership.yml` says which skill answers, CODEOWNERS says who
+reviews, and a document with an owner in only one place is a document whose owner
+disappears at the first doubt.
 
-Artefato e documento não são a mesma coisa. Artefato tem família de IDs, ciclo
-de vida e congelamento; documento tem dono, e talvez uma skill. Os dois têm
-dono, e é isso que esta regra cobra. O que os distingue é o bloco `living-docs:`
-da entrada: com `id-prefix` é artefato, sem ele é documento.
+Artifact and document are not the same thing. An artifact has an ID family,
+lifecycle and freezing; a document has an owner, and maybe a skill. Both have an
+owner, and that is what this rule charges. What distinguishes them is the
+`living-docs:` block of the entry: with `id-prefix` it is an artifact, without it
+it is a document.
 
-## RN-0017 — Item de Definition of Done sem verificação nomeada não é item
+## RN-0017 — A Definition of Done item without a named verification is not an item
 
 - **status:** active
 - **relates-to:** RN-0016
-- **fora de escopo:** se a verificação nomeada é boa o suficiente, que é julgamento humano
+- **out of scope:** whether the named verification is good enough, which is human judgment
 
-Cada caixa da Definition of Done nomeia o que a verifica: um ID de check, um ID
-de hook, ou o marcador fixo `human`. Item sem verificação é
-intenção, e intenção não é definição de pronto.
+Each box of the Definition of Done names what verifies it: a check ID, a hook ID,
+or the fixed marker `human`. An item with no verification is an
+intention, and an intention is not a definition of done.
 
-É a Definition of Done que dá autoridade ao enforcement: item que ninguém
-verifica é item que nenhum check tem como cobrar.
+It is the Definition of Done that gives authority to enforcement: an item nobody
+verifies is an item no check has a way to charge.
 
-## RN-0018 — Documento vencido avisa; dívida com gatilho cumprido reprova
+## RN-0018 — An expired document warns; a debt with its trigger met fails
 
 - **status:** active
 - **relates-to:** ADR-0007, RN-0002
-- **fora de escopo:** o valor de `stale-after-months`, que é configuração do projeto
+- **out of scope:** the value of `stale-after-months`, which is project configuration
 
-`last-reviewed` além do limite do projeto gera **aviso** e não reprova o build:
-a correção é ler o documento, e build vermelho empurra para o bump em massa que
-desliga o mecanismo fingindo cumpri-lo.
+`last-reviewed` past the project's limit generates a **warning** and does not fail
+the build: the fix is to read the document, and a red build pushes toward the mass
+bump that switches the mechanism off while pretending to perform it.
 
-Dívida `open` cujo gatilho de pagamento já aconteceu **reprova**, e continua
-reprovando até que a dívida seja paga ou reclassificada. As duas coisas são ato
-humano.
+An `open` debt whose payment trigger has already happened **fails**, and keeps
+failing until the debt is paid or reclassified. Both things are human acts.
 
-Item em estado congelado não vence. Não há o que revisar num item cujo corpo não
-se edita, e avisar sobre ele ensinaria justamente o bump que a regra recusa.
+An item in a frozen state does not expire. There is nothing to review in an item
+whose body is not edited, and warning about it would teach precisely the bump the
+rule refuses.
 
-## RN-0019 — Dívida `open` declara o gatilho de pagamento de forma verificável
+## RN-0019 — An `open` debt declares the payment trigger in a verifiable way
 
 - **status:** active
 - **relates-to:** ADR-0007, RN-0018
-- **fora de escopo:** a redação em prosa do gatilho, que continua no corpo, é para gente ler, e é ela que explica o porquê
+- **out of scope:** the prose wording of the trigger, which stays in the body, is for people to read, and is what explains the why
 
-Uma dívida `open` declara `pay-when` com um padrão e os caminhos onde ele é
-procurado. Gatilho que só existe em prosa não é verificável, e gatilho não
-verificável é `TODO` órfão com número — a coisa que a dívida registrada existia
-para não ser.
+An `open` debt declares `pay-when` with a pattern and the paths where it is looked
+for. A trigger that only exists in prose is not verifiable, and a non-verifiable
+trigger is an orphan `TODO` with a number — the very thing recorded debt existed to
+not be.
 
-O padrão nomeia uma condição no repositório, não uma data. Dívida não vence no
-calendário: vence quando a condição que a tornava aceitável deixa de valer.
+The pattern names a condition in the repository, not a date. A debt does not
+expire on the calendar: it expires when the condition that made it acceptable
+stops holding.
 
-## RN-0020 — O contrato do agente não repete texto de artefato dono, e o limiar é escrito
+## RN-0020 — The agent contract does not repeat text from an owning artifact, and the threshold is written
 
 - **status:** active
 - **relates-to:** RN-0010, ADR-0009
-- **fora de escopo:** duplicata por paráfrase, que nenhum check detecta e cuja recusa é humana
+- **out of scope:** duplication by paraphrase, which no check detects and whose refusal is human
 
-Uma frase de doze palavras ou mais do contrato do agente que reapareça, palavra
-por palavra, num artefato com skill dona é duplicata e reprova. A correção é
-apagar a frase e deixar o ponteiro para o artefato dono.
+A sentence of twelve words or more from the agent contract that reappears, word
+for word, in an artifact with an owning skill is a duplicate and fails. The fix is
+to delete the sentence and leave the pointer to the owning artifact.
 
-Abaixo do limiar é vocabulário compartilhado, não conteúdo copiado. O contrato
-do agente fala das mesmas coisas que os artefatos donos falam — é a função dele
-— e um check que reprovasse vocabulário compartilhado seria desligado no
-primeiro dia, deixando a regra sem enforcement nenhum.
+Below the threshold it is shared vocabulary, not copied content. The agent
+contract talks about the same things the owning artifacts talk about — that is its
+job — and a check that failed shared vocabulary would be switched off on day one,
+leaving the rule with no enforcement at all.
 
-## RN-0021 — Caminho vigiado sem doc dono reprova no CI, e a saída é a razão escrita
+## RN-0021 — A watched path without an owning doc fails in CI, and the way out is the written reason
 
 - **status:** active
 - **relates-to:** RN-0008, RN-0009, ADR-0010
-- **fora de escopo:** o momento do commit, onde o enforcement pergunta em vez de reprovar (`RN-0009`)
+- **out of scope:** the moment of the commit, where the enforcement asks instead of failing (`RN-0009`)
 
-No CI, o diff que toca caminho vigiado sem o doc dono reprova. A única saída é
-uma razão escrita em alguma mensagem de commit do intervalo, no formato
-`Docs: none — <razão>`. Rótulo sem razão não é exceção: é a caixinha marcada.
+In CI, a diff that touches a watched path without the owning doc fails. The only
+way out is a written reason in some commit message of the range, in the form
+`Docs: none — <reason>`. A label with no reason is not an exception: it is the
+ticked box.
 
-Isto não afrouxa nem contradiz `RN-0009`: lá quem enforce é um hook, no momento
-em que existe uma pessoa para responder à pergunta; aqui não existe pessoa
-nenhuma, e o custo do silêncio é uma documentação desatualizada passando com a
-autoridade de um CI verde.
+This neither loosens nor contradicts `RN-0009`: there the enforcer is a hook, at
+the moment there is a person to answer the question; here there is no person at
+all, and the cost of silence is out-of-date documentation passing with the
+authority of a green CI.
 
-## RN-0022 — O início de sessão entrega o inventário, e nunca bloqueia
+## RN-0022 — The session start delivers the inventory, and never blocks
 
 - **status:** active
 - **relates-to:** RN-0009
-- **fora de escopo:** o que fazer com o inventário, que é julgamento de quem o recebe
+- **out of scope:** what to do with the inventory, which is the judgment of whoever receives it
 
-No início de uma sessão, o que está presente e ausente, as decisões abertas, as
-dívidas com gatilho cumprido e os documentos vencidos chegam ao contexto sem
-ninguém precisar procurar. É injeção de contexto, nunca decisão de permissão.
+At the start of a session, what is present and absent, the open decisions, the
+debts with their trigger met and the expired documents reach the context without
+anyone needing to look for them. It is context injection, never a permission
+decision.
 
-E é curto por obrigação: inventário que ninguém lê é a wiki morta chegando pelo
-outro lado, com o agravante de custar contexto em toda sessão.
+And it is short by obligation: an inventory nobody reads is the dead wiki arriving
+from the other side, with the aggravating factor of costing context in every
+session.
 
-## RN-0023 — Link quebrado e anexo binário num caminho do corpus reprovam
+## RN-0023 — A broken link and a binary attachment in a corpus path fail
 
 - **status:** active
 - **relates-to:** RN-0016
-- **fora de escopo:** âncora dentro do arquivo (`#seção`), que o enforcement não resolve — e diz que não resolve
+- **out of scope:** an anchor inside the file (`#section`), which the enforcement does not resolve — and says it does not resolve
 
-Link relativo que não resolve para arquivo ou diretório existente, `[[wikilink]]`
-sem destino, e arquivo em formato binário num caminho do corpus reprovam.
-Link quebrado é pior que ausência de link: afirma uma ligação que não existe.
-Anexo binário não se lê em diff nem se revisa em PR.
+A relative link that does not resolve to an existing file or directory, a
+`[[wikilink]]` with no destination, and a file in binary format in a corpus path
+fail. A broken link is worse than no link: it asserts a connection that does not
+exist. A binary attachment cannot be read in a diff or reviewed in a PR.
 
-Código não é link: o que está dentro de bloco cercado ou de marcação inline é
-exemplo, e cobrar exemplo ensina a não escrever exemplo.
+Code is not a link: what is inside a fenced block or inline markup is an example,
+and charging for an example teaches people not to write examples.
 
-## RN-0024 — A forma escrita de um ID é do projeto; a identidade não depende dela
+## RN-0024 — The written form of an ID belongs to the project; identity does not depend on it
 
 - **status:** draft
 - **relates-to:** ADR-0011, RN-0003
-- **fora de escopo:** qual forma um projeto deve escolher, que é decisão dele
+- **out of scope:** which form a project should choose, which is its own decision
 
-Um projeto declara como seus IDs se escrevem — separador e número de dígitos — e
-é essa forma que o toolkit reconhece ao ler e imprime ao sugerir um ID novo. A
-identidade do item não depende da forma: `RN009` e `RN-0009` são o mesmo item,
-pela mesma razão que `ADR-001` e `ADR-0001` sempre foram.
+A project declares how its IDs are written — separator and number of digits — and
+it is that form the toolkit recognizes when reading and prints when suggesting a
+new ID. The identity of the item does not depend on the form: `RN009` and
+`RN-0009` are the same item, for the same reason `ADR-001` and `ADR-0001` always
+were.
 
-Quem escreve um ID é uma função só. Nenhum check monta ID por concatenação —
-formato montado à mão em dois lugares é a garantia de que um deles vai divergir.
+Whoever writes an ID is a single function. No check assembles an ID by
+concatenation — a format assembled by hand in two places is the guarantee that one
+of them will diverge.
 
-## RN-0025 — O enforcement instalado é o das fases do estágio
+## RN-0025 — The installed enforcement is that of the stage's phases
 
 - **status:** draft
 - **relates-to:** ADR-0012, RF-0013
-- **fora de escopo:** quais fases cada estágio pede, que é a spec §10
+- **out of scope:** which phases each stage asks for, which is spec §10
 
-O conjunto de checks que o workflow instalado roda é o das fases do estágio, nem
-mais nem menos. Estágio que instala moldura vazia é a wiki morta nascendo de
-fábrica; estágio que instala check de fase que o projeto não tem é enforcement
-que reprova por algo que ninguém pediu.
+The set of checks the installed workflow runs is that of the stage's phases,
+neither more nor less. A stage that installs an empty frame is the dead wiki being
+born at the factory; a stage that installs the check of a phase the project does
+not have is enforcement that fails for something nobody asked for.
 
-Os hooks são peça única, e o que os estagia é a configuração que eles leem: hook
-sem a configuração dele fica em silêncio.
+The hooks are a single piece, and what stages them is the configuration they read:
+a hook without its configuration stays quiet.
 
-## RN-0026 — Caminho reivindicado por decisão aberta é lembrado na edição e cobrado no diff
+## RN-0026 — A path claimed by an open decision is reminded on edit and charged on the diff
 
 - **status:** draft
 - **relates-to:** ADR-0010, RN-0009
-- **fora de escopo:** julgar se uma edição é a implementação da regra que falta — hook que julga está no lugar errado
+- **out of scope:** judging whether an edit is the implementation of the missing rule — a hook that judges is in the wrong place
 
-Uma decisão aberta pode nomear os caminhos que ela bloqueia. Quando nomeia,
-editar um deles **pergunta**, nomeando a decisão, o que ela bloqueia e a skill
-dona; e o diff que os leva **reprova**, com a razão escrita como única saída.
+An open decision can name the paths it blocks. When it does, editing one of them
+**asks**, naming the decision, what it blocks and the owning skill; and the diff
+that carries them **fails**, with the written reason as the only way out.
 
-O campo é opcional: decisão aberta sem caminho declarado continua válida e não
-bloqueia nada. O que não se aceita é o contrário — declarar o caminho e não ser
-lembrado.
+The field is optional: an open decision with no declared path remains valid and
+blocks nothing. What is not accepted is the reverse — declaring the path and not
+being reminded.
 
-## RN-0027 — Bump em massa de `last-reviewed` reprova
+## RN-0027 — A mass bump of `last-reviewed` fails
 
 - **status:** draft
 - **relates-to:** ADR-0013
-- **fora de escopo:** atualizar a data de um documento que mudou de verdade, que é o mecanismo funcionando
+- **out of scope:** updating the date of a document that really changed, which is the mechanism working
 
-Um diff em que vários documentos alteram a data de revisão e nada mais no corpo
-reprova, nomeando o anti-requisito. Um documento revisado de verdade muda em mais
-do que a data; vinte documentos que só mudaram a data são o mecanismo de revisão
-sendo desligado enquanto se finge cumpri-lo.
+A diff in which several documents change the review date and nothing else in the
+body fails, naming the anti-requirement. A document really reviewed changes in
+more than the date; twenty documents that only changed the date are the review
+mechanism being switched off while pretending to perform it.
 
-O limiar é escrito e configurável, e não existe rótulo de exceção: o rótulo seria
-a caixinha marcada que o anti-requisito descreve.
+The threshold is written and configurable, and there is no exception label: the
+label would be the ticked box the anti-requirement describes.
 
-## RN-0028 — Commit que altera artefato cita o ID afetado
+## RN-0028 — A commit that changes an artifact cites the affected ID
 
 - **status:** draft
-- **fora de escopo:** o formato da mensagem de commit, que é acordo de trabalho e não regra do toolkit
+- **out of scope:** the format of the commit message, which is a working agreement and not a rule of the toolkit
 
-Quando o diff altera um arquivo de artefato, alguma mensagem de commit do mesmo
-diff cita ao menos um dos IDs declarados naquele arquivo. É o que torna o
-`git log` navegável por regra: sem a citação, o histórico responde "o que mudou"
-e nunca "por causa de qual regra".
+When the diff changes an artifact file, some commit message of the same diff cites
+at least one of the IDs declared in that file. It is what makes `git log`
+navigable by rule: without the citation, the history answers "what changed" and
+never "because of which rule".
 
-## RN-0029 — O gatilho do artefato e a `description` da skill dona falam do mesmo evento
+## RN-0029 — The artifact's trigger and the owning skill's `description` speak of the same event
 
 - **status:** revoked
 - **revoked-by:** ADR-0034
 - **relates-to:** ADR-0013, RN-0010
-- **fora de escopo:** o `trigger` de um item dentro de uma coleção, que é do item e não do artefato
+- **out of scope:** the `trigger` of an item inside a collection, which belongs to the item and not to the artifact
 
-O campo `trigger` de um documento e a `description` da skill declarada como dona
-dele descrevem o mesmo evento. Se divergirem, o documento declara um gatilho que
-nada dispara: o mecanismo de gatilho e o roteamento de skill deixam de se
-encontrar, e o documento passa a depender de alguém lembrar dele.
+The `trigger` field of a document and the `description` of the skill declared as
+its owner describe the same event. If they diverge, the document declares a
+trigger that nothing fires: the trigger mechanism and the skill routing stop
+meeting, and the document comes to depend on someone remembering it.
 
-Quando a skill dona declarada não existe na raiz do toolkit, o resultado é aviso
-e não falha — um projeto pode declarar skill própria, e reprovar por isso seria
-exigir que todo dono fosse do plugin.
+When the declared owning skill does not exist in the toolkit root, the result is a
+warning and not a failure — a project may declare a skill of its own, and failing
+on that would be demanding that every owner come from the plugin.
 
-## RN-0030 — Documento para quem vem de fora não cita ID de artefato
+## RN-0030 — A document for readers from the outside does not cite an artifact ID
 
 - **status:** draft
 - **relates-to:** ADR-0017, RN-0013
-- **fora de escopo:** os identificadores da interface pública, que a política de versionamento declara; o frontmatter, que é contrato de máquina e é de `living-docs/frontmatter`; e o bloco de código cercado, que é exemplo
+- **out of scope:** the identifiers of the public interface, which the versioning policy declares; the frontmatter, which is a machine contract and belongs to `living-docs/frontmatter`; and the fenced code block, which is an example
 
-O corpo de um documento ou artefato declarado `audience: external` não contém
-citação a um prefixo declarado em `living-docs.id-prefix` — nem em prosa, nem entre
-crases, nem no caminho de um link. Quem lê de fora não tem como resolver o ID, e
-um link até o artefato o leva a um documento escrito para quem mantém o
-repositório.
+The body of a document or artifact declared `audience: external` contains no
+citation to a prefix declared in `living-docs.id-prefix` — neither in prose, nor
+between backticks, nor in the path of a link. A reader from the outside has no way
+to resolve the ID, and a link to the artifact takes them to a document written for
+whoever maintains the repository.
 
-O vínculo que o ID carregaria não se perde: ele existe e mora do lado de dentro,
-no próprio artefato ou na mensagem de commit. Conta toda citação a prefixo
-declarado — a que resolve, a retirada e a que não resolve —, porque a regra é
-sobre o que o leitor vê, e não sobre o item existir.
+The link the ID would carry is not lost: it exists and lives on the inside, in the
+artifact itself or in the commit message. Every citation to a declared prefix
+counts — the one that resolves, the retired one and the one that does not resolve
+—, because the rule is about what the reader sees, and not about whether the item
+exists.
 
-## RN-0031 — O que o toolkit entrega a quem instala não cita o rastro interno do toolkit
+## RN-0031 — What the toolkit delivers to whoever installs does not cite the toolkit's internal trail
 
 - **status:** draft
 - **relates-to:** ADR-0018, RN-0030
-- **fora de escopo:** comentário de código e mensagem de commit; os documentos do próprio repositório do toolkit; os IDs do projeto de quem instala que uma mensagem mostra; os identificadores da interface pública, os nomes de skill e os comandos
+- **out of scope:** code comments and commit messages; the documents of the toolkit's own repository; the IDs of the installer's project that a message shows; the identifiers of the public interface, skill names and commands
 
-Os arquivos que o `init` semeia, os templates, o texto do plugin e a saída do
-CLI e dos hooks não citam prefixo declarado em `living-docs.id-prefix` do toolkit, seção da
-spec do toolkit nem caminho de documento interno dele. Quem instala não resolve
-a citação — ou a resolve para um item seu, com outro significado.
+The files `init` seeds, the templates, the plugin's text and the output of the CLI
+and of the hooks do not cite a prefix declared in the toolkit's
+`living-docs.id-prefix`, a section of the toolkit's spec or a path of an internal
+document of it. Whoever installs does not resolve the citation — or resolves it to
+an item of their own, with another meaning.
 
-## RN-0032 — O arquivo de ownership v2 é estrito: uma lista `owned`, bloco por plugin, leitura separada de política
+## RN-0032 — The v2 ownership file is strict: one `owned` list, a block per plugin, reading separated from policy
 
 - **status:** draft
 - **relates-to:** ADR-0020
-- **fora de escopo:** o comando de migração de v1 para v2, e o conteúdo dos blocos que cada plugin declara sob o próprio nome
+- **out of scope:** the command to migrate from v1 to v2, and the content of the blocks each plugin declares under its own name
 
-Um arquivo de ownership válido declara `version` em toda instância e, na
-raiz, a lista `plugins:` com o nome de todo bloco de primeiro nível que não é
-do núcleo. Bloco de primeiro nível cujo nome não está em `plugins:` é erro.
-Dentro de uma entrada de `owned`, as chaves que dizem como o parser encontra
-o item dentro do arquivo (`collection`, `key`, `state-field`) só são lidas
-de dentro de um bloco `format:` — nunca no mesmo nível das chaves de
-política.
+A valid ownership file declares `version` in every instance and, at the root, the
+`plugins:` list with the name of every top-level block that is not the core's. A
+top-level block whose name is not in `plugins:` is an error. Inside an `owned`
+entry, the keys that say how the parser finds the item inside the file
+(`collection`, `key`, `state-field`) are only read from inside a `format:` block —
+never at the same level as the policy keys.
 
-## RN-0033 — A identidade de um item é uma chave opaca ao núcleo
+## RN-0033 — The identity of an item is a key opaque to the core
 
 - **status:** draft
 - **relates-to:** ADR-0021
-- **fora de escopo:** forma de ID, prefixo, sequência e aposentadoria — que continuam sendo política do plugin dono, não do núcleo
+- **out of scope:** ID shape, prefix, sequence and retirement — which remain plugin policy, the owning plugin's, not the core's
 
-O núcleo garante apenas que a chave de um item não é vazia e é única dentro
-do arquivo que a declara, e usa essa chave para parear o item antes e depois
-de uma mudança. Ele nunca valida a forma da chave. `state-field`, quando
-declarado, nomeia onde o estado do item mora; quando ausente, o padrão é
-`status`, sem distinção de maiúscula.
+The core guarantees only that an item's key is not empty and is unique within the
+file that declares it, and uses that key to pair the item before and after a
+change. It never validates the shape of the key. `state-field`, when declared,
+names where the item's state lives; when absent, the default is `status`,
+case-insensitive.
 
-## RN-0034 — Os caminhos governados por todos os arquivos de ownership de um repositório são disjuntos
+## RN-0034 — The paths governed by all the ownership files of a repository are disjoint
 
 - **status:** draft
 - **relates-to:** ADR-0023
-- **fora de escopo:** o que `include:` concede de autoridade — nada, por decisão; e a poda de arquivos fora da base num hook, que é otimização e não regra de cobertura
+- **out of scope:** what `include:` grants in authority — nothing, by decision; and the pruning of files outside the base in a hook, which is an optimization and not a coverage rule
 
-Resolvidos contra as próprias bases, os `owned[].path` de todos os arquivos
-de ownership de um repositório formam um conjunto disjunto: nenhum é igual a
-outro, e nenhum é prefixo de diretório de outro. Colisão é erro que nomeia
-os dois arquivos e o caminho, ocorra ela dentro de um arquivo, entre
-arquivos irmãos ou entre um arquivo e outro que o inclui.
+Resolved against their own bases, the `owned[].path` of all the ownership files of
+a repository form a disjoint set: none equals another, and none is a directory
+prefix of another. A collision is an error that names the two files and the path,
+whether it occurs inside a file, between sibling files or between a file and
+another that includes it.
 
-## RN-0035 — A resolução do arquivo de ownership raiz nunca escolhe entre candidatos ambíguos
+## RN-0035 — Resolving the root ownership file never chooses between ambiguous candidates
 
 - **status:** draft
 - **relates-to:** ADR-0024
-- **fora de escopo:** a resolução de arquivos incluídos, que não são candidatos e seguem a regra de composição (RN-0034)
+- **out of scope:** the resolution of included files, which are not candidates and follow the composition rule (RN-0034)
 
-O arquivo de ownership raiz é achado pela ordem de candidatos — explícito,
-`./.ownership.yml`, `./docs/.ownership.yml` —, e a ausência de qualquer
-candidato é silêncio válido. Encontrar mais de um candidato ao mesmo tempo é
-erro que nomeia os dois; o sistema nunca escolhe um deles sozinho.
+The root ownership file is found by candidate order — explicit,
+`./.ownership.yml`, `./docs/.ownership.yml` —, and the absence of any candidate is
+valid silence. Finding more than one candidate at the same time is an error that
+names both; the system never picks one on its own.
 
-## RN-0036 — O gatilho doc→doc exige tipo declarado no ownership e instância declarada no documento
+## RN-0036 — The doc→doc trigger requires a type declared in ownership and an instance declared in the document
 
 - **status:** draft
 - **relates-to:** ADR-0022, RN-0008, RN-0009
-- **fora de escopo:** o gatilho código→doc (`watches`), que RN-0008 e RN-0009 já cobrem
+- **out of scope:** the code→doc trigger (`watches`), which RN-0008 and RN-0009 already cover
 
-Um documento só é lembrado como derivado de outro quando o arquivo de
-ownership declara o tipo da derivação (`derives-from: source, field`) e a
-instância declara, no próprio frontmatter, o alvo exato pelo campo nomeado.
-Derivação sem as duas metades não gera lembrete.
+A document is only reminded as derived from another when the ownership file
+declares the type of the derivation (`derives-from: source, field`) and the
+instance declares, in its own frontmatter, the exact target through the named
+field. A derivation without both halves generates no reminder.
 
-## RN-0037 — A cobertura de dono alcança o repositório inteiro, e só `ignore` retira caminho dela
+## RN-0037 — Owner coverage reaches the whole repository, and only `ignore` removes a path from it
 
 - **status:** draft
 - **relates-to:** ADR-0020, RN-0016, RN-0021
-- **fora de escopo:** o que `generated[].path` conta como coberto sozinho, sem entrar em `owned` — ele já satisfaz a cobertura por ser gerado
+- **out of scope:** what `generated[].path` counts as covered on its own, without entering `owned` — it already satisfies coverage by being generated
 
-Todo caminho do repositório tem uma entrada de dono que o cobre, exceto o
-que uma entrada de `ignore:` retira explicitamente da cobertura. Caminho sem
-dono e sem `ignore` reprova.
+Every path in the repository has an owner entry that covers it, except what an
+`ignore:` entry explicitly removes from coverage. A path with no owner and no
+`ignore` fails.
 
 ## RN-0038 — No check depends on the language of a document's prose
 
-- **status:** draft
+- **status:** accept
 - **relates-to:** ADR-0032, ADR-0034
-- **fora de escopo:** the machine vocabulary a check reads — frontmatter keys, state names, IDs, the fixed markers `human` and `Docs: none —` — which is structure and is the same in every language
+- **out of scope:** the machine vocabulary a check reads — frontmatter keys, state names, IDs, the fixed markers `human` and `Docs: none —` — which is structure and is the same in every language
 
 A check reads the structure of a document — frontmatter, IDs, table columns
 through `field-map`, fixed markers — and never its headings or prose. A corpus
@@ -512,9 +521,9 @@ corpus would produce in English.
 
 ## RN-0039 — A missing canonical table column points to `field-map`
 
-- **status:** draft
+- **status:** accept
 - **relates-to:** ADR-0032, RN-0038
-- **fora de escopo:** a column that exists and is empty, which is reported as an empty value
+- **out of scope:** a column that exists and is empty, which is reported as an empty value
 
 When a check needs a canonical field of a collection item and the item has no
 such column or bullet, the finding says the field is missing and tells how to
