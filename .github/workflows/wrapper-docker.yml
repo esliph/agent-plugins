@@ -16,6 +16,8 @@ on:
       - 'bin/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'packages/*/package.json'
+      - 'packages/*/package-lock.json'
       - '.github/workflows/wrapper-docker.yml'
   pull_request:
     paths: *wrapper-paths
@@ -25,6 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # O container roda como `node` (uid 1000), e o checkout do runner pertence
+      # a outro uid. Ler basta para quase tudo, mas o teste de empacotamento
+      # escreve `dist/` e o tarball dentro do pacote — sem isto o `tsc` do
+      # prepack morre com EACCES.
+      - name: Entregar o checkout ao usuário do container
+        run: sudo chown -R 1000:1000 "$GITHUB_WORKSPACE"
 
       # A primeira invocação de bin/dev subiria o container sozinha (E-2). Subir
       # aqui, em passo próprio, mantém o tempo de build atribuível: uma falha de
@@ -38,4 +47,4 @@ jobs:
         run: bin/dev npm test
 
       - name: CI-1 a CI-4, CI-7, CI-8 e CI-10 — documentação viva, pelo wrapper
-        run: bin/dev node src/cli/index.ts validate
+        run: bin/dev node --conditions=development packages/living-docs/src/cli/index.ts validate

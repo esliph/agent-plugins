@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Antes de implementar qualquer comportamento desta família, e a toda regra nova
   ou alterada.
-last-reviewed: 2026-09-15
+last-reviewed: 2026-09-18
 ---
 
 # Requisitos funcionais
@@ -76,6 +76,11 @@ não existir. Sem entrada nenhuma declarada, ele diz isso e sai com 0.
 `living-docs validate` não roda essa comparação; quando há artefato gerado
 declarado, ele aponta o subcomando que a faz.
 
+**Revogação proposta.** Com o living-docs sobre o núcleo (`ADR-0029`,
+`ADR-0030`), a comparação passa a ser do `ownership validate`, e
+`living-docs drift` deixa de existir. Este requisito descreve um comando que
+sai, e a revogação (`active → revoked`) é ato humano.
+
 ## RF-0007 — `init --stage production` instala a moldura de contratos
 
 - **status:** active
@@ -108,18 +113,25 @@ sai com 2 — a base do diff não se adivinha. `living-docs validate` não faz e
 comparação; quando há `consumer-visible-paths` declarado, ele aponta o
 subcomando que a faz.
 
+**Revogação proposta.** Com o living-docs sobre o núcleo (`ADR-0029`,
+`ADR-0030`), a cobrança é do `ownership validate --base`, que lê as regras de
+`watches` marcadas `consumer-visible: true`, e `living-docs changelog` deixa de
+existir; `consumer-visible-paths` também. Este requisito descreve um comando que
+sai, e a revogação (`active → revoked`) é ato humano.
+
 ## RF-0009 — `init --stage production` instala a moldura de rastro histórico
 
 - **status:** active
 - **relates-to:** RF-0007
-- **fora de escopo:** declarar `consumer-visible-paths`, que nasce vazio com
-  exemplo comentado pela mesma razão que `watches` e `generated[]` nascem
-  vazios (`RF-0004`)
+- **fora de escopo:** declarar regras de `watches` com `consumer-visible: true`,
+  que nascem vazias com exemplo comentado pela mesma razão que `watches` e
+  `generated[]` nascem vazios (`RF-0004`)
 
 No estágio `production`, `living-docs init` cria, além de tudo que já criava,
 `CHANGELOG.md`, `docs/deprecations.md`, `docs/releases/` e `docs/migrations/` a
-partir dos templates, e declara o artefato `REL` em `artifacts:` — com a mesma
-idempotência e a mesma política de adoção dos demais artefatos.
+partir dos templates, e declara o `REL` como entrada de `owned` com
+`living-docs.id-prefix: REL` — com a mesma idempotência e a mesma política de
+adoção dos demais artefatos.
 
 A lista do que o estágio pede e não instala fica vazia: `production` cobre as
 Fases 5 e 6 da spec §10, e as duas existem.
@@ -128,11 +140,13 @@ Fases 5 e 6 da spec §10, e as duas existem.
 
 - **status:** active
 - **relates-to:** ADR-0007, ADR-0008
-- **fora de escopo:** a metade de `CI-7` que depende do diff, que entra por `--base` e é `RF-0011`
+- **fora de escopo:** a metade que depende do diff (`living-docs/open-decision-claim`), que entra por `--base` e é `RF-0011`
 
 Uma execução de `validate` roda todos os checks que se contentam com o estado da
-árvore — hoje `CI-1`, `CI-2`, `CI-3`, `CI-4`, `CI-7` e `CI-8` — e reporta os
-achados dos seis juntos. Achado `error` leva a código de saída 1; achado
+árvore — hoje `living-docs/frontmatter`, `living-docs/id-integrity`,
+`living-docs/citation-coverage`, `living-docs/staleness`,
+`living-docs/agent-contract-duplication`, `living-docs/done-verifiable` e
+`living-docs/links` — e reporta os achados dos sete juntos. Achado `error` leva a código de saída 1; achado
 `warning` é reportado e **não** muda o código de saída.
 
 Quando existe algo que `validate` não verifica — artefato gerado, entrada de
@@ -143,12 +157,14 @@ verifica. Check que não roda e não avisa que não rodou é cobertura fingida.
 
 - **status:** active
 - **relates-to:** ADR-0010, RN-0021
-- **fora de escopo:** a entrada de CHANGELOG, que é `CI-6` e tem comando próprio
+- **fora de escopo:** a entrada de CHANGELOG, que é `ownership/consumer-change-logged` e tem comando próprio
 
-Com `--base <ref>`, `validate` acrescenta a `CI-7` a verificação que depende do
-diff: caminho vigiado alterado entre a base e `HEAD` sem o doc dono no mesmo
-diff reprova, salvo razão escrita no histórico. Sem `--base`, essa verificação
-não roda e o comando diz que não rodou.
+Com `--base <ref>`, `living-docs validate` acrescenta a verificação que depende do
+diff e que continua sendo dele: o caminho reivindicado por decisão aberta e
+alterado entre a base e `HEAD` reprova. A cobrança do doc dono do caminho vigiado
+que mudou passa a ser do `ownership validate --base`, e o living-docs deixa de
+fazê-la. Sem `--base`, a verificação por diff não roda e o comando diz que não
+rodou.
 
 A base não se adivinha. Sem ela, o comando não escolhe uma por conta própria:
 escolher errado produziria achado sobre mudança que não é desta branch.
@@ -157,12 +173,13 @@ escolher errado produziria achado sobre mudança que não é desta branch.
 
 - **status:** active
 - **relates-to:** ADR-0008, RN-0016
-- **fora de escopo:** o vínculo `watches`, o gerador e `consumer-visible-paths`, que o `init` continua não inventando (`RF-0004`)
+- **fora de escopo:** o vínculo `watches`, o gerador e as regras `consumer-visible: true`, que o `init` continua não inventando (`RF-0004`)
 
 Todo documento que o `init` escreve e que não tem família de IDs é declarado em
-`documents:`, com dono e — quando existe uma — a skill dona. Um `init` que cria
+`owned`, com dono, o bloco `living-docs:` sem `id-prefix` e — quando existe uma —
+a skill dona. Um `init` que cria
 documento sem declará-lo entrega, na primeira execução, um repositório que
-reprova no próprio `CI-7`.
+reprova no próprio `ownership/owner-coverage`.
 
 Isso vale em todos os estágios: dono não é função de maturidade. O que muda com
 o estágio é **quais** documentos existem.
@@ -170,7 +187,7 @@ o estágio é **quais** documentos existem.
 ## RF-0013 — `init` instala o enforcement do estágio, mesclando com o que já existe
 
 - **status:** draft
-- **relates-to:** ADR-0012
+- **relates-to:** ADR-0012, ADR-0030
 - **fora de escopo:** o modo de invocação do CLI dentro do workflow, que é parâmetro de quem instala (`DA-0003`); e `.claude/settings.json` e o workflow instalado, que não são documentação e por isso não entram em `documents:`
 
 Além da moldura, `living-docs init` escreve as duas peças de enforcement: o
@@ -179,6 +196,9 @@ duas entram por **mesclagem**: um repositório com workflows próprios e hooks j
 registrados mantém tudo o que tem, e o toolkit acrescenta o que falta e nada
 mais. Rodar duas vezes não duplica entrada — a idempotência vale para o
 enforcement igual vale para o documento.
+
+O workflow instalado roda as duas CLIs, a do `ownership` e a do living-docs. O
+`--invoke-ownership` diz como chamar a primeira, e o padrão é `npx ownership`.
 
 Um repositório com documento e nenhum check rodando é a promessa que este toolkit
 recusa: o enforcement é o que faz a regra valer.
@@ -209,3 +229,26 @@ reescreve a linha: relata, entre o que não instalou, cada entrada declarada sem
 a marca, dizendo que marcá-la é o que liga a verificação para ela. É a mesma
 política de quando ele acrescenta ao `.ownership.yml` e ao CODEOWNERS: o que já
 está escrito é de quem escreveu.
+
+## RF-0016 — `ownership validate [--base]` verifica dono, ciclo de vida, gatilho e gerado
+
+- **status:** draft
+- **relates-to:** ADR-0019, RN-0032, RN-0034, RN-0035, RN-0037
+- **fora de escopo:** os checks de família de IDs, congelamento, staleness e citação, que continuam em `living-docs validate`
+
+O comando `ownership validate` verifica dono, ciclo de vida, gatilho e
+artefato gerado do repositório inteiro. Com `--base <ref>`, restringe a
+verificação de vigiado (`watches`) aos caminhos que mudaram desde a ref
+informada, sem restringir a cobertura de dono, que nunca poda.
+
+## RF-0017 — `ownership explain <caminho>` responde qual arquivo e qual entrada cobrem um caminho
+
+- **status:** draft
+- **relates-to:** ADR-0019, ADR-0023, RN-0034
+- **fora de escopo:** explicar cobertura de família de ID ou de congelamento — perguntas do living-docs, não do núcleo
+
+Para um caminho dado, `ownership explain <caminho>` responde qual entrada de
+`owned` o cobre e de qual arquivo de ownership ela vem. Quando nenhuma
+entrada cobre o caminho, responde qual arquivo de ownership tem base que o
+contém — a mesma pergunta que falta responder quando a cobertura de dono
+reprova.

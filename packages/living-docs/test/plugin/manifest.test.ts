@@ -1,0 +1,276 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import { toolkitRoot } from '../../src/core/roots.ts'
+import { checkoutRoot } from '../helpers/checkout.ts'
+
+const ROOT = toolkitRoot()
+const CHECKOUT = checkoutRoot()
+
+function readJson(relative: string): Record<string, unknown> {
+  return JSON.parse(readFileSync(join(ROOT, relative), 'utf8')) as Record<string, unknown>
+}
+
+test('o manifesto do plugin declara nome, versão e descrição', () => {
+  const manifest = readJson('.claude-plugin/plugin.json')
+
+  assert.equal(manifest.name, 'living-docs')
+  assert.equal(typeof manifest.version, 'string')
+  assert.equal(typeof manifest.description, 'string')
+})
+
+test('hooks.json registra os cinco hooks do living-docs nos eventos e matchers da spec §7', () => {
+  const config = readJson('hooks/hooks.json')
+  const hooks = config.hooks as Record<string, { matcher?: string; hooks: { command: string }[] }[]>
+
+  const grupos = new Map<string, string[]>(
+    Object.entries(hooks).flatMap(([evento, lista]) =>
+      lista.map(grupo => [grupo.matcher === undefined ? evento : `${evento}:${grupo.matcher}`, grupo.hooks.map(hook => hook.command)] as const),
+    ),
+  )
+
+  const esperado: Record<string, string[]> = {
+    'PreToolUse:Edit|Write': ['append-only', 'state-promotion', 'open-decision-guard'],
+    'PostToolUse:Edit|Write': ['shortcut-debt'],
+    // SessionStart não tem matcher: o evento não é de ferramenta (spec §7).
+    SessionStart: ['session-inventory'],
+  }
+
+  assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort())
+  for (const [chave, nomes] of Object.entries(esperado)) {
+    const comandos = grupos.get(chave) ?? []
+
+    assert.equal(comandos.length, nomes.length, `${chave}: ${comandos.length} hooks`)
+    for (const nome of nomes) {
+      assert.ok(
+        comandos.some(comando => comando.includes(nome)),
+        `${chave} deveria invocar ${nome}`,
+      )
+    }
+    for (const comando of comandos) {
+      assert.ok(comando.includes('${CLAUDE_PLUGIN_ROOT}'), 'o comando precisa ser relocável')
+    }
+  }
+})
+
+test('RNF-0002: o wrapper existe, é executável e roda o node do host, falhando aberta', () => {
+  const relative = 'hooks/run-hook.sh'
+  const wrapper = join(ROOT, relative)
+
+  assert.ok(existsSync(wrapper))
+
+  // O bit de execução vem do índice do git, não do sistema de arquivos: um
+  // checkout Windows não tem modo POSIX, e o que chega a quem instala é o modo
+  // versionado.
+  const entry = execFileSync('git', ['ls-files', '-s', '--', relative], { cwd: ROOT, encoding: 'utf8' })
+
+  assert.equal(entry.split(/\s+/)[0], '100755', `${relative} precisa estar versionado como executável`)
+
+  const source = readFileSync(wrapper, 'utf8')
+
+  assert.match(source, /\bnode\b/, 'o hook roda no node do host (RNF-0002)')
+  assert.doesNotMatch(source, /docker/i, 'não existe mais ponte para container nenhum')
+  assert.match(source, /timeout 5/, 'precisa respeitar o teto de 5s da spec §7')
+  assert.match(source, /exit 0/, 'precisa falhar aberta')
+  assert.doesNotMatch(source, /set -e\b/, 'set -e mataria a falha aberta')
+})
+
+test('todo hook referenciado existe no repositório', () => {
+  const config = readJson('hooks/hooks.json')
+  const hooks = config.hooks as Record<string, { hooks: { command: string }[] }[]>
+  let vistos = 0
+
+  for (const grupos of Object.values(hooks)) {
+    for (const grupo of grupos) {
+      for (const hook of grupo.hooks) {
+        const name = hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? ''
+
+        assert.ok(existsSync(join(ROOT, 'src/hooks', `${name}.ts`)), `src/hooks/${name}.ts deveria existir`)
+        vistos += 1
+      }
+    }
+  }
+
+  assert.equal(vistos, 5, 'a varredura deveria ver os cinco hooks')
+})
+
+function hookNames(pluginRoot: string): string[] {
+  const config = JSON.parse(readFileSync(join(pluginRoot, 'hooks/hooks.json'), 'utf8')) as { hooks: Record<string, { hooks: { command: string }[] }[]> }
+
+  return Object.values(config.hooks).flatMap(grupos => grupos.flatMap(grupo => grupo.hooks.map(hook => hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? '')))
+}
+
+test('os dois plugins não registram hook em comum — cada guarda roda num plugin só', () => {
+  const living = hookNames(ROOT)
+  const core = hookNames(join(ROOT, '..', 'ownership'))
+
+  assert.ok(core.length >= 3, 'a varredura deveria ver os hooks do núcleo')
+  assert.deepEqual(
+    living.filter(name => core.includes(name)),
+    [],
+  )
+  for (const assumido of ['generated', 'watch-reminder', 'commit-guard']) {
+    assert.ok(!living.some(name => name.includes(assumido)), `o living-docs não pode mais registrar o hook de ${assumido}: é do núcleo`)
+  }
+})
+
+test('o living-docs declara o plugin ownership como dependência, e o marketplace publica os dois', () => {
+  const manifest = readJson('.claude-plugin/plugin.json')
+  const marketplace = JSON.parse(readFileSync(join(CHECKOUT, '.claude-plugin/marketplace.json'), 'utf8')) as { plugins: { name: string; source: string; version: string }[] }
+  const core = JSON.parse(readFileSync(join(ROOT, '..', 'ownership', '.claude-plugin/plugin.json'), 'utf8')) as { version: string }
+
+  assert.deepEqual(manifest.dependencies, ['ownership'])
+  assert.deepEqual(
+    marketplace.plugins.map(plugin => plugin.name).sort(),
+    ['living-docs', 'ownership'],
+  )
+  const entry = marketplace.plugins.find(plugin => plugin.name === 'ownership')!
+
+  assert.equal(entry.source, './packages/ownership')
+  assert.equal(entry.version, core.version)
+})
+
+/**
+ * Toda referência a uma skill, em qualquer artefato que o repositório publica,
+ * precisa apontar para uma skill que existe. É o irmão do teste de hooks acima:
+ * nome citado sem arquivo por trás é um comando que não faz nada.
+ */
+const SKILL_REFERENCES: readonly { root: string; file: string; pattern: RegExp }[] = [
+  ...readdirSync(join(ROOT, 'commands')).map(name => ({
+    root: ROOT,
+    file: `commands/${name}`,
+    pattern: /skill\s+`([a-z][a-z0-9-]*)`/g,
+  })),
+  { root: ROOT, file: 'src/cli/index.ts', pattern: /skill dona:\s*([a-z][a-z0-9-]*)/g },
+  { root: ROOT, file: 'src/config/ownership.ts', pattern: /skill dona:\s*([a-z][a-z0-9-]*)/g },
+  { root: ROOT, file: 'templates/ownership.yml', pattern: /^\s*skill:\s*([a-z][a-z0-9-]*)\s*$/gm },
+  { root: CHECKOUT, file: '.ownership.yml', pattern: /^\s*skill:\s*([a-z][a-z0-9-]*)\s*$/gm },
+]
+
+function referencedSkills(): Map<string, string[]> {
+  const found = new Map<string, string[]>()
+
+  for (const { root, file, pattern } of SKILL_REFERENCES) {
+    const source = readFileSync(join(root, file), 'utf8')
+
+    for (const match of source.matchAll(pattern)) {
+      const name = match[1]
+
+      if (name === undefined) {
+        continue
+      }
+      found.set(name, [...(found.get(name) ?? []), file])
+    }
+  }
+
+  return found
+}
+
+test('toda skill referenciada existe em skills/', () => {
+  const referenced = referencedSkills()
+
+  // Guarda contra um scanner que casa nada e passa por vacuidade.
+  assert.ok(referenced.has('decision-recorder'), 'o scanner deveria achar decision-recorder')
+  assert.ok(referenced.has('living-docs-bootstrap'), 'o scanner deveria achar living-docs-bootstrap')
+
+  for (const [name, files] of referenced) {
+    const skill = join(ROOT, 'skills', name, 'SKILL.md')
+
+    assert.ok(existsSync(skill), `skills/${name}/SKILL.md deveria existir — citado em ${files.join(', ')}`)
+  }
+})
+
+test('o nome no frontmatter de cada skill casa com o diretório', () => {
+  const dirs = readdirSync(join(ROOT, 'skills'))
+
+  assert.ok(dirs.length > 0)
+  for (const dir of dirs) {
+    const source = readFileSync(join(ROOT, 'skills', dir, 'SKILL.md'), 'utf8')
+
+    assert.match(source, new RegExp(`^name:\\s*${dir}\\s*$`, 'm'), `${dir}/SKILL.md declara outro name`)
+  }
+})
+
+test('RNF-0002: nenhum script executável carrega CR — o wrapper roda em bash', () => {
+  const scripts = [
+    { label: 'bin/dev', path: join(CHECKOUT, 'bin/dev') },
+    { label: 'bin/living-docs', path: join(CHECKOUT, 'bin/living-docs') },
+    { label: 'hooks/run-hook.sh', path: join(ROOT, 'hooks/run-hook.sh') },
+  ]
+
+  for (const { label, path } of scripts) {
+    const source = readFileSync(path, 'utf8')
+
+    assert.equal(source.includes('\r'), false, `${label} com CRLF: o shebang quebra com "bad interpreter"`)
+  }
+})
+
+/**
+ * Varredura, não lista fixa — mesma escolha que `authoring.test.ts` faz para as
+ * skills: um agent novo entra nas convenções no dia em que nasce, sem ninguém
+ * lembrar de acrescentá-lo aqui.
+ */
+const AGENTS = readdirSync(join(ROOT, 'agents')).filter(name => name.endsWith('.md'))
+
+test('AG-1 e AG-2: os dois agents da spec §6 existem', () => {
+  assert.ok(AGENTS.includes('decision-adversary.md'), `agents: ${AGENTS.join(', ') || 'vazio'}`)
+  assert.ok(AGENTS.includes('docs-divergence-auditor.md'), `agents: ${AGENTS.join(', ') || 'vazio'}`)
+})
+
+for (const file of AGENTS) {
+  test(`${file}: frontmatter com name casando o arquivo, description e tools declaradas`, () => {
+    const source = readFileSync(join(ROOT, 'agents', file), 'utf8')
+    const name = file.replace(/\.md$/, '')
+
+    assert.match(source, new RegExp(`^name:\\s*${name}\\s*$`, 'm'), `${file} declara outro name`)
+    assert.match(source, /^description:/m, `${file} sem description — é ela que diz quando usar`)
+    assert.notEqual(source.match(/^tools:\s*(.+)$/m)?.[1] ?? '', '', `${file} precisa declarar tools explicitamente — agent sem allowlist herda tudo`)
+  })
+}
+
+test('AG-1 e AG-2 apontam e param — sem Edit nem Write (spec §6)', () => {
+  for (const file of ['decision-adversary.md', 'docs-divergence-auditor.md']) {
+    const source = readFileSync(join(ROOT, 'agents', file), 'utf8')
+    const toolsLine = source.match(/^tools:\s*(.+)$/m)?.[1] ?? ''
+
+    assert.doesNotMatch(toolsLine, /\bEdit\b/, `${file}: agent que aponta não reescreve`)
+    assert.doesNotMatch(toolsLine, /\bWrite\b/, `${file}: agent que aponta não reescreve`)
+  }
+})
+
+test('AG-1 lê o mapa de propriedade em vez de adivinhar caminho', () => {
+  const source = readFileSync(join(ROOT, 'agents/docs-divergence-auditor.md'), 'utf8')
+
+  assert.match(source, /\.ownership\.yml/)
+  assert.doesNotMatch(source, /docs\/\.ownership\.yml/)
+  assert.match(source, /DA-nnnn|open-decision/, 'comportamento sem regra vira decisão aberta, não código')
+})
+
+test('decision-recorder referencia o agent decision-adversary antes da aceitação', () => {
+  const source = readFileSync(join(ROOT, 'skills/decision-recorder/SKILL.md'), 'utf8')
+
+  assert.match(source, /decision-adversary/)
+})
+
+test('o manifesto de marketplace aponta para o plugin deste repositório', () => {
+  const marketplace = JSON.parse(readFileSync(join(CHECKOUT, '.claude-plugin/marketplace.json'), 'utf8')) as Record<string, unknown>
+  const plugins = marketplace.plugins as { name: string; source: string; version: string }[]
+
+  // O marketplace identifica quem distribui; o plugin, o que se instala. Os dois
+  // com o mesmo nome davam `living-docs@living-docs` no comando de instalação.
+  assert.equal(marketplace.name, 'esliph')
+  const entry = plugins.find(plugin => plugin.name === 'living-docs')
+
+  assert.ok(entry, `marketplace.plugins deveria ter uma entrada "living-docs": ${JSON.stringify(plugins)}`)
+  assert.equal(entry?.source, './packages/living-docs')
+  // O diretório do plugin é o do pacote: é o que põe src/, templates/ e o
+  // lockfile dentro do que o cache copia.
+  assert.equal(resolve(CHECKOUT, entry?.source ?? ''), ROOT)
+  assert.ok(existsSync(join(ROOT, '.claude-plugin/plugin.json')), 'a fonte precisa ter manifesto')
+
+  const plugin = readJson('.claude-plugin/plugin.json')
+
+  assert.equal(entry?.version, plugin.version, 'duas versões é a garantia de que uma está errada')
+})

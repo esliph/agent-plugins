@@ -1,0 +1,280 @@
+# Dono, ciclo de vida e gatilho de cada caminho deste repositório. Hooks e
+# checks não conhecem caminho nenhum: leem daqui. O núcleo (`ownership`) lê o
+# esquema; o bloco `living-docs:` é do plugin de documentação viva, opaco ao
+# núcleo. Regra de origem: ADR-0020, ADR-0028 e ADR-0029.
+version: 2
+plugins: [living-docs]
+
+living-docs:
+  stale-after-months: 6
+
+owned:
+  # --- Artefatos: entrada com `living-docs.id-prefix`. Família de IDs e ciclo de vida.
+  - path: docs/decisions/adr/
+    owner: '@esliph/engineering'
+    skill: decision-recorder
+    states: [draft, accepted, superseded]
+    living-docs:
+      id-prefix: ADR
+      append-only: true
+      mutable-fields: [status, superseded-by, last-reviewed]
+
+  - path: docs/open-decisions.md
+    owner: '@esliph/engineering'
+    skill: decision-recorder
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+      # A tabela é lida por gente, em português; o check pergunta pelo nome
+      # canônico. O mapeamento mora aqui porque é específico do projeto.
+      field-map:
+        resolved-by: 'Resolvida por'
+        blocks: 'Bloqueia'
+        gap: 'Lacuna'
+
+  - path: docs/decisions/debt/
+    owner: '@esliph/engineering'
+    skill: decision-recorder
+    states: [open, paid, accepted-permanently]
+    living-docs:
+      id-prefix: TDR
+      append-only: true
+      mutable-fields: [status, last-reviewed]
+
+  - path: docs/requirements/functional.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RF
+      cited-by: ['packages/living-docs/test/**', 'packages/ownership/test/**']
+
+  - path: docs/requirements/non-functional.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RNF
+      cited-by: ['packages/living-docs/test/**', 'packages/ownership/test/**']
+
+  - path: docs/requirements/rules.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RN
+      cited-by: ['packages/living-docs/test/**', 'packages/living-docs/src/**', 'packages/ownership/test/**', 'packages/ownership/src/**']
+
+  - path: docs/releases/
+    owner: '@esliph/engineering'
+    skill: release-historian
+    states: [draft, published]
+    living-docs:
+      id-prefix: REL
+      # Lida por quem consome: o texto não cita ID de artefato (ADR-0017).
+      audience: external
+      # Release note publicada é congelada: é por isso que REL tem família de
+      # IDs e CHANGELOG.md não.
+      append-only: true
+      mutable-fields: [status, last-reviewed]
+
+  # --- Documentos: bloco `living-docs:` sem `id-prefix` (ADR-0008, ADR-0029).
+  # `role` é vocabulário fechado; `audience: external` marca o texto para quem
+  # vem de fora, que não cita ID de artefato.
+  - path: .ownership.yml
+    owner: '@esliph/engineering'
+    skill: living-docs-bootstrap
+    living-docs: {}
+  - path: docs/ids-retired.txt
+    owner: '@esliph/engineering'
+    skill: living-docs-bootstrap
+    living-docs: {}
+  - path: CONTRIBUTING.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+    living-docs: {}
+  - path: docs/definition-of-done.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+    living-docs: { role: definition-of-done }
+  - path: CLAUDE.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+    living-docs: { role: agent-contract }
+  - path: docs/glossary.md
+    owner: '@esliph/engineering'
+    skill: glossary-keeper
+    living-docs: {}
+  - path: docs/charter/
+    owner: '@esliph/engineering'
+    skill: charter-keeper
+    living-docs: {}
+  - path: docs/contracts/errors.md
+    owner: '@esliph/engineering'
+    skill: contract-keeper
+    living-docs: {}
+  - path: docs/contracts/versioning-policy.md
+    owner: '@esliph/engineering'
+    skill: contract-keeper
+    living-docs: {}
+  # Gerado: o guarda de gerado bloqueia editá-lo à mão, e
+  # `ownership/generated-drift` compara com a saída do gerador.
+  - path: docs/contracts/checks.gen.md
+    owner: '@esliph/engineering'
+    living-docs: {}
+  - path: CHANGELOG.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+    living-docs: { audience: external }
+  - path: docs/deprecations.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+    living-docs: { audience: external }
+  - path: docs/migrations/
+    owner: '@esliph/engineering'
+    skill: release-historian
+    living-docs: { audience: external }
+  # Sem skill dona, e isso é informação: plano, spec e README têm dono e não têm
+  # keeper. Ficam fora do corpus de duplicação do contrato do agente (ADR-0009).
+  - path: docs/superpowers/
+    owner: '@esliph/engineering'
+    living-docs: {}
+  - path: README.md
+    owner: '@esliph/engineering'
+    living-docs: { audience: external }
+
+  # --- Só dono: fora da documentação viva. `ownership/owner-coverage` exige
+  # dono para todo arquivo do repositório, não só para a documentação.
+  - path: packages/living-docs/
+    owner: '@esliph/engineering'
+  - path: packages/ownership/
+    owner: '@esliph/engineering'
+  - path: bin/
+    owner: '@esliph/engineering'
+  - path: .github/
+    owner: '@esliph/engineering'
+  - path: .claude-plugin/
+    owner: '@esliph/engineering'
+  - path: CODEOWNERS
+    owner: '@esliph/engineering'
+  - path: package.json
+    owner: '@esliph/engineering'
+  - path: package-lock.json
+    owner: '@esliph/engineering'
+  - path: .gitattributes
+    owner: '@esliph/engineering'
+  - path: .gitignore
+    owner: '@esliph/engineering'
+  - path: .prettierignore
+    owner: '@esliph/engineering'
+  - path: .prettierrc
+    owner: '@esliph/engineering'
+  - path: .dockerignore
+    owner: '@esliph/engineering'
+  - path: Dockerfile
+    owner: '@esliph/engineering'
+  - path: compose.yaml
+    owner: '@esliph/engineering'
+  - path: eslint.config.mjs
+    owner: '@esliph/engineering'
+
+# O núcleo varre o sistema de arquivos, não o índice do git: o que existe só no
+# checkout de quem roda (worktrees, estado local de sessão) fica de fora.
+ignore:
+  - 'node_modules/**'
+  - '**/node_modules/**'
+  - '.worktrees/**'
+  - '.claude/**'
+  - '.superpowers/**'
+
+generated:
+  # O comando IMPRIME o conteúdo esperado e não escreve arquivo nenhum: um check
+  # que reescreve o que está checando apaga a evidência no mesmo instante em que
+  # a reporta (ADR-0005).
+  - path: docs/contracts/checks.gen.md
+    command: node --conditions=development packages/living-docs/src/tools/gen-checks.ts
+
+# Código → doc dono. O lembrete na edição, a pergunta no commit e a cobrança no
+# diff do PR leem daqui. `consumer-visible: true` é a única lista de caminhos
+# visíveis a quem consome (ADR-0020).
+watches:
+  - code: 'packages/living-docs/src/checks/**'
+    doc: docs/requirements/rules.md
+    reason: 'check é regra executável — a RN vem antes, e é ela que o check verifica'
+
+  - code: 'packages/living-docs/src/checks/catalog.ts'
+    doc: docs/contracts/checks.gen.md
+    reason: 'o contrato público dos checks deriva do catálogo — regerar faz parte da mudança, e editar à mão é bloqueado. Skill dona: contract-keeper'
+
+  - code: 'packages/living-docs/src/hooks/**'
+    doc: docs/requirements/rules.md
+    reason: 'hook bloqueia ou pergunta em nome de uma regra; sem RN citada, o bloqueio não tem origem'
+
+  - code: 'packages/ownership/src/{checks,hooks}/**'
+    doc: docs/requirements/rules.md
+    reason: 'check e hook do núcleo são regra executável como os do living-docs'
+
+  - code: 'packages/living-docs/src/cli/**'
+    doc: docs/requirements/functional.md
+    reason: 'o que o comando faz de observável é RF, não detalhe de implementação'
+
+  - code: 'packages/living-docs/src/core/**'
+    doc: docs/requirements/non-functional.md
+    reason: 'as duas raízes são propriedade do sistema (ADR-0003), não comportamento de comando'
+
+  - code: 'packages/living-docs/skills/**'
+    doc: CONTRIBUTING.md
+    reason: 'skill nova ou alterada muda como se trabalha aqui'
+
+  - code: '.github/workflows/**'
+    doc: docs/definition-of-done.md
+    reason: "a última linha da Definition of Done nomeia o que o workflow roda — mudar o workflow muda o que 'pronto' significa"
+
+  - code: '.github/workflows/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'o enforcement é literalmente o que o consumidor instala'
+
+  - code: 'packages/living-docs/src/cli/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'subcomando, opção e código de saída são contrato público (docs/contracts/versioning-policy.md)'
+
+  - code: 'packages/living-docs/src/checks/catalog.ts'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'os identificadores dos checks são públicos e não mudam de significado'
+
+  - code: 'packages/living-docs/src/config/ownership.ts'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'o bloco living-docs do arquivo de ownership é contrato de quem instala'
+
+  - code: 'packages/living-docs/{.claude-plugin,hooks,commands,skills,agents}/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'identificadores de skill, hook e comando são públicos'
+
+  - code: 'packages/living-docs/templates/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'é o que `init` escreve no repositório de quem instala'
+
+  - code: 'packages/ownership/src/cli/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'subcomando, opção e código de saída do núcleo são contrato público'
+
+  - code: 'packages/ownership/{.claude-plugin,hooks}/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'o plugin do núcleo é o que quem instala recebe na sessão'
+
+  - code: 'bin/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'o wrapper é um ponto de entrada público do toolkit — mudar como se invoca muda o que quem consome usa'

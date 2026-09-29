@@ -7,14 +7,15 @@
 # uma lista de comandos suportados para manter — a lista não existe.
 #
 # O caminho de registro continua sendo o node do host (RNF-0002, ADR-0015), e os
-# hooks nunca passam por aqui: plugin/hooks/run-hook.sh invoca node direto.
+# hooks nunca passam por aqui: packages/living-docs/hooks/run-hook.sh invoca node direto.
 set -euo pipefail
 
 CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-living-docs}"
 
-# Um nível acima de bin/ — mesma derivação que plugin/hooks/run-hook.sh faz com
-# dois níveis, porque aquele script está mais fundo (ADR-0003: a raiz sai do
-# caminho do próprio arquivo, nunca do diretório de trabalho de quem chamou).
+# Um nível acima de bin/ — a mesma derivação que
+# packages/living-docs/hooks/run-hook.sh faz para achar a raiz do plugin
+# (ADR-0003: a raiz sai do caminho do próprio arquivo, nunca do diretório de
+# trabalho de quem chamou).
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Garantir o container. Na primeira vez isto constrói a imagem; nas seguintes é
@@ -23,6 +24,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null)" != "true" ]; then
   docker compose -f "$ROOT/compose.yaml" up -d >&2
 fi
+
+# Daqui em diante todo caminho é do container, e o Git Bash do Windows
+# reescreveria `/opt/living-docs` (e qualquer caminho em "$@") como caminho do
+# host — o docker recusa o exec com "Cwd must be an absolute path". A conversão
+# só é desligada depois do compose: lá "$ROOT" é caminho do host e precisa dela.
+export MSYS_NO_PATHCONV=1
 
 # `-t` só quando stdin é um terminal: com um pipe na entrada, o docker exec
 # recusa a alocação. A expansão com `+` é o que mantém o array vazio compatível

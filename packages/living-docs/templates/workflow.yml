@@ -1,0 +1,28 @@
+# Enforcement de documentação viva, instalado por `living-docs init`.
+#
+# O modo de invocação é parâmetro de quem instala: `--invoke` e
+# `--invoke-ownership` escolhem como cada CLI é chamada neste CI.
+#
+# Este arquivo é seu: o `init` só o cria quando ele não existe, e nunca o
+# reescreve.
+name: living-docs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  living-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # O diff do PR compara <base>...HEAD, e um clone raso não tem a base.
+          fetch-depth: 0
+
+      - name: Dono, ciclo de vida e artefato gerado
+        run: {{INVOKE_OWNERSHIP}} validate
+
+      - name: Documentação viva — estado da árvore
+        run: {{INVOKE}} validate
+{{WORKFLOW_STEPS}}

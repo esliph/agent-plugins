@@ -1,0 +1,5 @@
+{
+  "name": "ownership",
+  "version": "0.1.0",
+  "description": "Núcleo de ownership de artefatos: dono, ciclo de vida e gatilho código→doc e doc→doc."
+}

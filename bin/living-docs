@@ -3,6 +3,6 @@
 # Delegação, não implementação: toda a conversa com o daemon mora em bin/dev, e
 # um segundo lugar que a tivesse seria um segundo lugar para divergir (ADR-0016).
 #
-# No host, o comando equivalente é `node src/cli/index.ts …`, e é ele que o CI
-# reproduz em todo PR (RNF-0002).
-exec "$(dirname "${BASH_SOURCE[0]}")/dev" node src/cli/index.ts "$@"
+# No host, o comando equivalente é `node --conditions=development packages/living-docs/src/cli/index.ts …`,
+# rodado da raiz do checkout, e é ele que o CI reproduz em todo PR (RNF-0002).
+exec "$(dirname "${BASH_SOURCE[0]}")/dev" node --conditions=development packages/living-docs/src/cli/index.ts "$@"

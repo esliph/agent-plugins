@@ -1,0 +1,8 @@
+# Espelha o campo `owner` de .ownership.yml. Um artefato, um dono.
+{{ADR_PATH}}    {{OWNER}}
+{{DA_PATH}}    {{OWNER}}
+{{TDR_PATH}}    {{OWNER}}
+{{REQUIREMENTS_CODEOWNERS}}{{AGREEMENTS_CODEOWNERS}}{{CONTRACTS_CODEOWNERS}}{{HISTORY_CODEOWNERS}}.ownership.yml    {{OWNER}}
+CODEOWNERS    {{OWNER}}
+.github/workflows/living-docs.yml    {{OWNER}}
+{{RETIRED_CODEOWNERS}}

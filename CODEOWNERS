@@ -1,4 +1,4 @@
-# Espelha o campo `owner` de docs/.ownership.yml. Um artefato, um dono.
+# Espelha o campo `owner` do .ownership.yml. Um caminho, um dono.
 
 docs/decisions/adr/ @esliph/engineering
 docs/open-decisions.md @esliph/engineering
@@ -14,10 +14,23 @@ CHANGELOG.md @esliph/engineering
 docs/deprecations.md @esliph/engineering
 docs/releases/ @esliph/engineering
 docs/migrations/ @esliph/engineering
-docs/.ownership.yml @esliph/engineering
+.ownership.yml @esliph/engineering
 docs/ids-retired.txt @esliph/engineering
 docs/superpowers/ @esliph/engineering
-docs/superpowers/research/2026-08-24-living-documentation-toolkit.md @esliph/engineering
-docs/superpowers/research/2026-08-24-living-documentation.md @esliph/engineering
 README.md @esliph/engineering
-
+packages/living-docs/ @esliph/engineering
+packages/ownership/ @esliph/engineering
+bin/ @esliph/engineering
+.github/ @esliph/engineering
+.claude-plugin/ @esliph/engineering
+CODEOWNERS @esliph/engineering
+package.json @esliph/engineering
+package-lock.json @esliph/engineering
+.gitattributes @esliph/engineering
+.gitignore @esliph/engineering
+.prettierignore @esliph/engineering
+.prettierrc @esliph/engineering
+.dockerignore @esliph/engineering
+Dockerfile @esliph/engineering
+compose.yaml @esliph/engineering
+eslint.config.mjs @esliph/engineering

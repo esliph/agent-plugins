@@ -10,6 +10,14 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Added
 
+- Plugin `ownership` no marketplace: dono, ciclo de vida, artefato gerado e
+  vínculo código→doc, com os próprios hooks.
+- `living-docs init --invoke-ownership <comando>`: como o CLI do núcleo é
+  chamado no workflow instalado (padrão `npx ownership`, que só funciona
+  depois da publicação do núcleo no npm).
+- O arquivo de ownership raiz aceita, no topo, um bloco de configuração por
+  plugin listado em `plugins:`; num arquivo incluído, é erro.
+- O `owner` do frontmatter sem `@` passa a ser achado de `ownership validate`.
 - `validate`, `drift` e `changelog` passam a relatar quanto o conjunto de checks
   levou e qual é o teto declarado. A medida não altera o código de saída.
 - `CI-9` (`living-docs validate --base <ref>`): reprova o diff que só altera a
@@ -106,6 +114,60 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- Renomeação dos identificadores de checks e hooks: o número dá lugar ao nome, e
+  o prefixo diz de quem é a regra. O mapa completo:
+
+  | Antigo                       | Novo                                     |
+  | ---------------------------- | ---------------------------------------- |
+  | `CI-1`                       | `living-docs/frontmatter`                |
+  | `CI-2`                       | `living-docs/id-integrity`               |
+  | `CI-3`                       | `living-docs/citation-coverage`          |
+  | `CI-4`                       | `living-docs/staleness`                  |
+  | `CI-5`                       | `ownership/generated-drift`              |
+  | `CI-6`                       | `ownership/consumer-change-logged`       |
+  | `CI-7` (contrato do agente)  | `living-docs/agent-contract-duplication` |
+  | `CI-7` (Definition of Done)  | `living-docs/done-verifiable`            |
+  | `CI-7` (decisão aberta)      | `living-docs/open-decision-claim`        |
+  | `CI-8`                       | `living-docs/links`                      |
+  | `CI-9`                       | `living-docs/commit-discipline`          |
+  | `CI-10`                      | `living-docs/trigger-routing`            |
+  | `CI-11`                      | `living-docs/external-audience`          |
+  | `HK-1`                       | `living-docs/append-only`                |
+  | `HK-2`                       | `ownership/generated-guard`              |
+  | `HK-3`                       | `living-docs/state-promotion`            |
+  | `HK-4`                       | `ownership/watch-reminder`               |
+  | `HK-5`                       | `ownership/commit-guard`                 |
+  | `HK-6`                       | `living-docs/session-inventory`          |
+  | `HK-7`                       | `living-docs/shortcut-debt`              |
+  | `HK-8`                       | `living-docs/open-decision-guard`        |
+
+  Quem cita um destes identificadores na própria Definition of Done precisa
+  trocá-lo pelo nome novo — o número não é mais reconhecido como verificação.
+- Os checks e hooks do `living-docs` passam a ser identificados por nome
+  (`living-docs/frontmatter`, …) em vez de número; o mapa completo está na
+  entrada de renomeação desta versão. O antigo `CI-7` vira três checks:
+  `living-docs/agent-contract-duplication`, `living-docs/done-verifiable` e
+  `living-docs/open-decision-claim`.
+- O plugin `living-docs` passa a depender do plugin `ownership`, e deixa de
+  registrar os hooks de artefato gerado, de lembrete de caminho vigiado e de
+  guarda de commit — eles moram no `ownership`.
+- O workflow instalado roda `ownership validate` e `living-docs validate`, e,
+  em PR, os dois com `--base`.
+- `living-docs init --marketplace` habilita os dois plugins.
+- A invocação da CLI no checkout passa a ser
+  `node --conditions=development packages/living-docs/src/cli/index.ts`, porque o
+  toolkit agora depende do núcleo de ownership pelo código-fonte.
+- Instalado pelo marketplace, o plugin `living-docs` não instala as dependências
+  até o núcleo ser publicado no npm; os hooks falham abertos e não respondem.
+- O erro de esquema v1 do `ownership` diz que o arquivo precisa ser reescrito na
+  v2.
+- Bloco de plugin que não é mapa passa a ser erro de carga.
+- O toolkit passa a morar em `packages/living-docs/`, e esse diretório é ao mesmo
+  tempo o pacote e o plugin do Claude Code. Quem invoca o CLI de um clone passa a
+  chamá-lo por `node packages/living-docs/src/cli/index.ts`, sempre da raiz do
+  checkout. O plugin passa a trazer, no próprio diretório, o código e as
+  dependências que os ganchos executam. Arquivos já semeados por `init` não
+  mudam, porque o comando do workflow instalado vem de `--invoke`.
 - O toolkit passa a rodar no Node do host: os ganchos do plugin invocam `node`
   direto, e o workflow de CI deste repositório instala Node e npm em vez de
   construir uma imagem. Quem clona precisa de Node 24 ou maior e de um `npm ci`
@@ -163,9 +225,33 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   skills. As mensagens dos checks, dos hooks e do CLI e o texto das skills
   deixam de citar regras internas do toolkit. Repositório já instalado mantém o
   texto antigo.
+- O arquivo de ownership passa a morar na raiz (`.ownership.yml`) e a ser lido
+  no esquema v2: uma lista `owned`, com o bloco `living-docs:` em cada entrada
+  da documentação viva e no topo para a configuração global. O esquema v1 não
+  é lido, e não há comando de migração — reescreva o arquivo seguindo o
+  `templates/ownership.yml`.
+- `living-docs init` semeia a v2 na raiz, e não escreve um arquivo novo quando
+  já existe um.
+- `living-docs validate` deixa de verificar o dono de cada documento, o
+  CODEOWNERS, o vínculo de `watches`, o `owner` do frontmatter e o `status`
+  fora dos estados declarados — tudo isso é de `ownership validate`.
+
+### Removed
+
+- `living-docs drift` e `living-docs changelog`: a deriva de artefato gerado e
+  a entrada de CHANGELOG passam a ser verificadas por `ownership validate`
+  (`--base <ref>` para o diff).
+- `consumer-visible-paths`: a marca `consumer-visible: true` nas regras de
+  `watches` é a lista.
 
 ### Fixed
 
+- `bin/dev` volta a funcionar pelo Git Bash no Windows: o shell reescrevia o
+  diretório de trabalho do container como caminho do host, e o `docker exec`
+  falhava sem rodar o comando. Dentro do container, o `git` passa a aceitar o
+  checkout montado — antes, tudo que o consultava (testes inclusive) falhava com
+  "dubious ownership". A imagem precisa ser reconstruída uma vez
+  (`docker compose up -d --build`).
 - Os templates que `living-docs init` semeia voltam a trazer os placeholders
   `{{ID}}`, `{{TITLE}}` e `{{TODAY}}` na forma que o `init` substitui. Um
   formatador de código os havia reescrito como `{ { ID } }` — o YAML os lê como

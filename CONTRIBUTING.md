@@ -21,8 +21,10 @@ dependências entram com `npm ci`, e ele vem antes de qualquer outro comando:
 npm ci
 npm test
 npm run typecheck
-node src/cli/index.ts validate
-node src/cli/index.ts validate --base origin/master
+node --conditions=development packages/ownership/src/cli/index.ts validate
+node --conditions=development packages/living-docs/src/cli/index.ts validate
+node --conditions=development packages/ownership/src/cli/index.ts validate --base origin/master
+node --conditions=development packages/living-docs/src/cli/index.ts validate --base origin/master
 ```
 
 Comando que falha com `ERR_MODULE_NOT_FOUND` é comando rodado antes do
@@ -37,7 +39,7 @@ sobe o container sozinho quando ele não está de pé:
 ```bash
 bin/dev npm test
 bin/dev npm run typecheck
-bin/dev node src/cli/index.ts validate
+bin/dev node --conditions=development packages/living-docs/src/cli/index.ts validate
 bin/living-docs validate     # o mesmo, pelo wrapper do CLI
 bin/dev                      # um shell dentro do container
 ```
@@ -58,7 +60,7 @@ já declarou.
    resultado é uma `DA-nnnn` em `docs/open-decisions.md` e a implementação
    **para** — inventar a regra é o erro que este repositório existe para evitar.
 2. **Teste antes da implementação**, citando o ID do requisito que ele cobre. É
-   a citação que `CI-3` procura; teste sem ID deixa a regra descoberta.
+   a citação que `living-docs/citation-coverage` procura; teste sem ID deixa a regra descoberta.
 3. **Implementação mínima.** O que não tem requisito não é escopo.
 4. **Commit citando o ID afetado** — é o que torna `git log` navegável por regra.
 5. **A Definition of Done** (`docs/definition-of-done.md`) diz quando acabou.
@@ -76,13 +78,13 @@ já declarou.
 | Por que foi feito assim                      | `docs/decisions/adr/`                                                  |
 | O que ainda não foi decidido                 | `docs/open-decisions.md`                                               |
 | O que se aceitou dever                       | `docs/decisions/debt/`                                                 |
-| Quem é dono de cada caminho                  | `docs/.ownership.yml` e `CODEOWNERS`                                   |
+| Quem é dono de cada caminho                  | `.ownership.yml` e `CODEOWNERS`                                        |
 | Qual é o vocabulário do domínio              | `docs/glossary.md`                                                     |
 | O que é inviolável, e a visão do produto     | `docs/charter/`                                                        |
 | O que é público, e o que cada erro significa | `docs/contracts/`                                                      |
 | O que mudou para quem usa                    | `CHANGELOG.md` e `docs/releases/`                                      |
 | Quando está pronto                           | `docs/definition-of-done.md`                                           |
-| Quem responde por cada documento sem ID      | `docs/.ownership.yml` (`documents:`)                                   |
+| Quem responde por cada documento sem ID      | `.ownership.yml` (entrada com bloco `living-docs:`)                    |
 
 Nenhuma dessas respostas é copiada para outro lugar. Duplicata apodrece, e a
 versão velha ganha da nova por repetição.
