@@ -19,7 +19,7 @@ Requisitos dizem o que o sistema **deve** ser. Três famílias, um arquivo cada:
 requisito é uma seção com ID citável, e é o ID que torna o raio de impacto de
 uma mudança calculável por `grep`.
 
-Os caminhos, donos e prefixos vêm de `docs/.ownership.yml` — leia-o primeiro,
+Os caminhos, donos e prefixos vêm de `.ownership.yml` — leia-o primeiro,
 nunca assuma caminho.
 
 ## Do que você é dono
@@ -46,7 +46,7 @@ o caminho é `decision-recorder` (`/open-decision`), que abre uma `DA-nnnn` e
 
 ## Procedimento
 
-1. **Leia `docs/.ownership.yml`** e descubra caminho, dono e prefixo de cada
+1. **Leia `.ownership.yml`** e descubra caminho, dono e prefixo de cada
    família. Se não existir, pare e rode `/docs-setup`.
 2. **Não olhe o código, e isso é deliberado.** A spec diz o que deve ser;
    justificar a regra pelo que o código faz hoje inverte a relação e apaga o gap.

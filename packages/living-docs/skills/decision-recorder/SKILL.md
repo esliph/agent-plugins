@@ -28,7 +28,7 @@ Esta skill decide **onde um pedaço de conhecimento mora** e **qual ID ele
 recebe**. Ela não decide o mérito: levanta as alternativas e o trade-off,
 escreve `draft`/`open`, e para.
 
-Os caminhos, donos e prefixos vêm de `docs/.ownership.yml` — leia-o primeiro,
+Os caminhos, donos e prefixos vêm de `.ownership.yml` — leia-o primeiro,
 nunca assuma caminho.
 
 ## Do que você é dono
@@ -55,7 +55,7 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
 
 ## Procedimento
 
-1. **Leia `docs/.ownership.yml`** e descubra o caminho, o dono e o prefixo de
+1. **Leia `.ownership.yml`** e descubra o caminho, o dono e o prefixo de
    cada artefato. Se o arquivo não existir, pare e rode `/docs-setup`.
 2. **Classifique** o que está na sua frente:
    - já se sabe o que fazer e é caro reverter → **ADR**;

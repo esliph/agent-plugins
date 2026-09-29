@@ -22,9 +22,9 @@ O erro caro aqui tem nome: derivar o CHANGELOG do `git log`. O resultado é o
 documento que narra o código, e ele apodrece rápido, porque ninguém de fora
 consegue usá-lo para decidir se atualiza.
 
-Os caminhos vêm de `docs/.ownership.yml`; não assuma. `consumer-visible-paths`
-diz o que é visível ao consumidor neste projeto, e a regra de `watches` marcada
-`consumer-visible: true` diz onde a entrada mora.
+Os caminhos vêm de `.ownership.yml`; não assuma. A regra de `watches` marcada
+`consumer-visible: true` diz o que é visível ao consumidor neste projeto e onde
+a entrada mora.
 
 ## Do que você é dono
 
@@ -41,7 +41,7 @@ conteúdo delas aqui.
 
 ## Quando usar / quando não
 
-**Use** quando o diff toca `consumer-visible-paths`; quando uma versão vai ser
+**Use** quando o diff toca caminho de uma regra de `watches` com `consumer-visible: true`; quando uma versão vai ser
 publicada; quando algo publicado é anunciado para remoção; quando uma mudança
 quebra compatibilidade.
 
@@ -57,7 +57,7 @@ legível é humano.
 ## Procedimento
 
 1. **Descubra o que é visível ao consumidor neste projeto.** Leia
-   `consumer-visible-paths` no `docs/.ownership.yml`. Se estiver vazio, o
+   as regras de `watches` com `consumer-visible: true` no `.ownership.yml`. Se não houver nenhuma, o
    projeto ainda não declarou a fronteira: essa é a primeira conversa, e ela é
    humana.
 2. **Escreva a entrada no PR que causa a mudança**, sob `## [Unreleased]`, na

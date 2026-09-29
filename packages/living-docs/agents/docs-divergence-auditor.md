@@ -22,7 +22,7 @@ redirecionamento.
 
 ## Insumo obrigatório
 
-1. **`docs/.ownership.yml`** — leia antes de qualquer coisa. É de lá que vem
+1. **`.ownership.yml`** — leia antes de qualquer coisa. É de lá que vem
    qual caminho de código tem qual documento dono (`watches`), quem responde por
    cada artefato, e o que é visível a quem consome. **Não adivinhe caminho**: se
    um documento não está declarado ali, o achado é outro, e ele é de `ownership/owner-coverage`.

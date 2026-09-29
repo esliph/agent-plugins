@@ -243,7 +243,8 @@ test('AG-1 e AG-2 apontam e param — sem Edit nem Write (spec §6)', () => {
 test('AG-1 lê o mapa de propriedade em vez de adivinhar caminho', () => {
   const source = readFileSync(join(ROOT, 'agents/docs-divergence-auditor.md'), 'utf8')
 
-  assert.match(source, /docs\/\.ownership\.yml/)
+  assert.match(source, /\.ownership\.yml/)
+  assert.doesNotMatch(source, /docs\/\.ownership\.yml/)
   assert.match(source, /DA-nnnn|open-decision/, 'comportamento sem regra vira decisão aberta, não código')
 })
 

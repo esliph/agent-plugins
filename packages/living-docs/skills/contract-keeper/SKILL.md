@@ -23,7 +23,7 @@ Confundir as duas é o erro caro: um contrato editado à mão vive até a próxi
 execução do gerador e mente até lá, com a autoridade de um arquivo que parece
 oficial.
 
-Os caminhos vêm de `docs/.ownership.yml` (`generated[]` e o dono de
+Os caminhos vêm de `.ownership.yml` (`generated[]` e o dono de
 `docs/contracts/`); não assuma.
 
 ## Do que você é dono
@@ -55,12 +55,12 @@ publicar o que não precisava ser público é dívida que ninguém registrou.
 ## Procedimento
 
 1. **Descubra se o artefato é gerado.** Consulte `generated[]` no
-   `docs/.ownership.yml` e procure o marcador `generated: do not edit` no topo
+   `.ownership.yml` e procure o marcador `generated: do not edit` no topo
    do arquivo. Se for gerado, **pare de pensar em editá-lo**.
 2. **Para mudar o que é gerado, mude a fonte anotada** e rode o comando
    declarado em `generated[].command`. O comando imprime na saída padrão e não
    escreve arquivo — redirecione você mesmo para o `path`.
-3. **Rode `living-docs drift`** e confirme exit 0. É `ownership/generated-drift`, e ele é o que
+3. **Rode `ownership validate`** e confirme exit 0. É `ownership/generated-drift`, e ele é o que
    sobrevive a alguém editando pelo navegador.
 4. **Artefato gerado novo entra em `generated[]`** com o comando que o produz.
    Sem a declaração, `ownership/generated-guard` só o pega pelo marcador e `ownership/generated-drift` não o vê.
@@ -74,7 +74,7 @@ publicar o que não precisava ser público é dívida que ninguém registrou.
    escreveu o endpoint.
 8. **Mudança visível ao consumidor gera entrada no CHANGELOG** — a entrada é
    de `release-historian`, e `ownership/consumer-change-logged` a cobra nos caminhos que o projeto declara
-   em `consumer-visible-paths`.
+   nas regras de `watches` marcadas `consumer-visible: true`.
 9. **Cite o ID afetado na mensagem de commit.**
 10. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
     semeou, `CODIGO-EXEMPLO` sai, e o que não for verdade na política de
@@ -92,7 +92,7 @@ publicar o que não precisava ser público é dívida que ninguém registrou.
 
 ## Checklist
 
-- [ ] Nenhum artefato gerado foi editado à mão — verificação: `ownership/generated-guard` (bloqueia) e `ownership/generated-drift` (`living-docs drift`)
+- [ ] Nenhum artefato gerado foi editado à mão — verificação: `ownership/generated-guard` (bloqueia) e `ownership/generated-drift` (`ownership validate`)
 - [ ] O artefato gerado no commit é a saída atual do gerador — verificação: `ownership/generated-drift`
 - [ ] Todo artefato gerado está declarado em `generated[]`, com o comando que o produz — verificação: humana
 - [ ] O gerador imprime na saída padrão e não escreve arquivo — verificação: humana

@@ -5,7 +5,7 @@ artefato dono e é lida de lá.
 
 ## Antes de mexer em qualquer coisa
 
-- O mapa de propriedade é `docs/.ownership.yml`. Nenhum caminho de documento se
+- O mapa de propriedade é `.ownership.yml`. Nenhum caminho de documento se
   adivinha: lê-se de lá.
 - Como se trabalha aqui: `CONTRIBUTING.md`. Quando algo está pronto:
   `docs/definition-of-done.md`.

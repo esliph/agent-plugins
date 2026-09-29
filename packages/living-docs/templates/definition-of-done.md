@@ -20,8 +20,8 @@ verifica não pertence a esta lista.
 - [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: `living-docs/shortcut-debt` lembra; registrar é humana.
 - [ ] O doc dono de todo caminho vigiado tocado está no mesmo commit — verificação: `ownership/watch-reminder` e `ownership/commit-guard`.
 - [ ] Nenhum item congelado teve o corpo editado — verificação: `living-docs/append-only`.
-- [ ] Nenhum artefato gerado foi editado à mão — verificação: `ownership/generated-guard` e `ownership/generated-drift` (`living-docs drift`).
-- [ ] A mudança visível ao consumidor levou a entrada em `## [Unreleased]`, ou a razão escrita no commit — verificação: `ownership/consumer-change-logged` (`living-docs changelog --base <ref>`).
+- [ ] Nenhum artefato gerado foi editado à mão — verificação: `ownership/generated-guard` e `ownership/generated-drift` (`ownership validate`).
+- [ ] A mudança visível ao consumidor levou a entrada em `## [Unreleased]`, ou a razão escrita no commit — verificação: `ownership/consumer-change-logged` (`ownership validate --base <ref>`).
 - [ ] A mensagem de commit cita o ID afetado — verificação: humana.
 
 Acrescente aqui os passos do seu projeto (build, lint, deploy), **cada um com a

@@ -10,7 +10,7 @@ isso na primeira linha do relatório.
 
 O agent aponta e para: ele não tem `Edit` nem `Write`. Cada achado nomeia o
 artefato dono que deveria mudar — a correção é de quem é dono dele, pela skill
-dona que o `docs/.ownership.yml` declara.
+dona que o `.ownership.yml` declara.
 
 Comportamento sem regra escrita não vira código: vira `DA-nnnn`
 (`/open-decision`) e a implementação para.

@@ -32,6 +32,12 @@ function observe(root: string, rule: ResolvedOwnedRule, file: string): Observed 
   }
 
   if (rule.format.collection === 'per-file') {
+    // Sem ciclo de vida declarado não há estado nem dono a conferir, e ler o
+    // frontmatter de um modelo (`id: {{ID}}`) só faria o parser avisar.
+    if (rule.states === null) {
+      return NOTHING
+    }
+
     let frontmatter
 
     try {

@@ -17,7 +17,7 @@ O glossary é a única fonte de nome para um conceito. Um termo é identificado
 pelo **nome**, nunca por um ID numerado — divergência entre o nome no código e
 o termo é bug, não sinônimo.
 
-O caminho é `docs/glossary.md` — leia `docs/.ownership.yml` mesmo assim,
+O caminho é `docs/glossary.md` — leia `.ownership.yml` mesmo assim,
 porque outros artefatos podem ter mudado de lugar.
 
 ## Do que você é dono

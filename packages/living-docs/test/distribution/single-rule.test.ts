@@ -130,3 +130,44 @@ test('cada regra que ficou é reportada pelo living-docs, e o núcleo fica calad
     },
   )
 })
+
+test('a única sobreposição é de propósito: chave duplicada numa coleção é do núcleo e também do id-integrity', () => {
+  // `living-docs/id-integrity` cobre também sequência e citação, e não está entre
+  // as regras movidas: a duplicata de ID continua nos dois plugins. Este teste
+  // fixa a sobreposição para que ela seja vista, e não podada por engano.
+  const tabela = [
+    '| ID | Lacuna | Status |',
+    '| --- | --- | --- |',
+    '| DA-0001 | Primeira | open |',
+    '| DA-0001 | Repetida | open |',
+    '',
+  ].join('\n')
+
+  withTempRepo(
+    {
+      [OWNERSHIP_FILE]: `version: 2
+plugins: [living-docs]
+owned:
+  - path: docs/open-decisions.md
+    owner: '@time'
+    skill: decision-recorder
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs: { id-prefix: DA }
+  - path: .ownership.yml
+    owner: '@time'
+    living-docs: {}
+  - path: CODEOWNERS
+    owner: '@time'
+`,
+      CODEOWNERS: 'docs/ @time\n.ownership.yml @time\nCODEOWNERS @time\n',
+      'docs/open-decisions.md': tabela,
+    },
+    root => {
+      const diff = { base: 'main', changed: [], messages: [] }
+
+      assert.ok(coreFindings(root, diff).some(finding => finding.ruleId === 'ownership/declared-state' && /DA-0001/.test(finding.message)))
+      assert.ok(livingDocsFindings(root, diff).some(finding => finding.ruleId === 'living-docs/id-integrity' && /DA-0001/.test(finding.message)))
+    },
+  )
+})

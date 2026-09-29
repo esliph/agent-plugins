@@ -28,7 +28,7 @@ last-reviewed: {{TODAY}}
 | Por que foi feito assim | `docs/decisions/adr/` |
 | O que ainda não foi decidido | `docs/open-decisions.md` |
 | O que se aceitou dever | `docs/decisions/debt/` |
-| Quem é dono de cada caminho | `docs/.ownership.yml` e `CODEOWNERS` |
+| Quem é dono de cada caminho | `.ownership.yml` e `CODEOWNERS` |
 | Quando está pronto | `docs/definition-of-done.md` |
 
 Nenhuma dessas respostas é copiada para outro lugar.

@@ -22,7 +22,7 @@ O segundo gatilho desta skill é o melhor do catálogo: **toda vez que alguém e
 por falta de contexto**, falta uma linha em um destes três. É isso que torna o
 documento auto-corretivo em vez de decorativo.
 
-Caminhos e donos vêm de `docs/.ownership.yml` e do `CODEOWNERS`; não assuma.
+Caminhos e donos vêm de `.ownership.yml` e do `CODEOWNERS`; não assuma.
 
 ## Do que você é dono
 
@@ -51,7 +51,7 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 
 ## Procedimento
 
-1. **Leia `docs/.ownership.yml`** e confirme quais dos três artefatos existem e
+1. **Leia `.ownership.yml`** e confirme quais dos três artefatos existem e
    onde. Se nenhum existir, rode `/docs-setup` com o estágio `small-team`.
 2. **Classifique o que você tem em mãos**: processo → `CONTRIBUTING.md`;
    condição de pronto → Definition of Done; política ou índice para agente →
@@ -72,7 +72,7 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
    os artefatos com skill dona. Quando ele acusa, a correção é
    apagar a frase e deixar o ponteiro — nunca mexer no limiar.
 9. **Documento novo é declarado nos dois lugares:** `documents:` no
-   `docs/.ownership.yml` (com a skill dona, e o `role` quando for o contrato do
+   `.ownership.yml` (com a skill dona, e o `role` quando for o contrato do
    agente ou a Definition of Done) e uma linha no CODEOWNERS.
 10. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
     semeou, o que não for verdade neste projeto sai — apagar o que sobra é parte

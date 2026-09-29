@@ -119,3 +119,26 @@ test('per-file: entrada sem states não tem o owner do frontmatter cobrado — m
     assert.deepEqual(ownershipDeclaredState().run({ root, config, today: '2026-09-28' }), [])
   })
 })
+
+test('per-file: entrada sem states não lê o frontmatter — modelo com {{ID}} sem aspas não faz o parser avisar', async () => {
+  const warnings: string[] = []
+  const onWarning = (warning: Error): void => {
+    warnings.push(warning.message)
+  }
+
+  process.on('warning', onWarning)
+  try {
+    withTempRepo({ 'modelos/adr.md': '---\nid: {{ID}}\ntitle: {{TITLE}}\nowner: {{OWNER}}\n---\n' }, root => {
+      forgetTree(root)
+      const config = buildConfig({ owned: [{ path: 'modelos/', owner: '@a' }] })
+
+      assert.deepEqual(ownershipDeclaredState().run({ root, config, today: '2026-09-28' }), [])
+    })
+    // O aviso do Node sai no tick seguinte.
+    await new Promise(resolve => setImmediate(resolve))
+  } finally {
+    process.off('warning', onWarning)
+  }
+
+  assert.deepEqual(warnings, [])
+})

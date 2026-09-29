@@ -4,7 +4,7 @@ description: >
   Use quando alguém disser "não temos documentação nenhuma", "onde eu registro
   isso?", "esse projeto não tem ADR", "quero começar a documentar direito",
   "instala o toolkit de documentação viva aqui", "cadê o .ownership.yml?",
-  quando um comando ou hook reclamar que `docs/.ownership.yml` não existe, ou
+  quando um comando ou hook reclamar que `.ownership.yml` não existe, ou
   quando o projeto mudar de estágio de maturidade (virou time, virou produção,
   virou múltiplos times) e a moldura atual ficar pequena. Também quando existe
   documentação espalhada sob outro nome (`adr/`, `rfc/`, `requisitos.md`, wiki
@@ -20,7 +20,7 @@ templates e a instalação de `HK-*`/`CI-*`. Ela não escreve o conteúdo de nen
 artefato — quem escreve ADR, DA e TDR é `decision-recorder`.
 
 O trabalho **mecânico** (criar os arquivos, adotar caminho preexistente,
-preencher `docs/.ownership.yml` a partir do template) é do CLI:
+preencher `.ownership.yml` a partir do template) é do CLI:
 `living-docs init [--owner @handle] [--dry-run]`. Não reproduza aqui o formato
 do `.ownership.yml` nem o conteúdo dos templates — eles moram em
 `templates/ownership.yml`, `templates/open-decisions.md`, `templates/CODEOWNERS`
@@ -35,7 +35,7 @@ uma nova varredura.
 
 | Artefato                      | O que é                                                                     | Forma                                                                            |
 | ----------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `docs/.ownership.yml`         | O único arquivo específico do projeto: caminhos, donos, prefixos, `watches` | Arquivo único, mutável                                                           |
+| `.ownership.yml`              | O único arquivo específico do projeto: caminhos, donos, prefixos, `watches` | Arquivo único, mutável                                                           |
 | A estrutura de diretórios     | Onde cada artefato mora                                                     | Diretórios + `.gitkeep`                                                          |
 | `docs/ids-retired.txt`        | Registro de IDs retirados, que nunca voltam                                 | Arquivo único, append-only                                                       |
 | `CODEOWNERS`                  | O dono de cada caminho de doc, espelhando `owner:`                          | Arquivo único                                                                    |
@@ -63,7 +63,7 @@ garantida.
    `requisitos.md`, `spec/`, wiki exportada). Rode `living-docs init --dry-run`
    e leia as linhas `adotado` — se algo que você viu no repositório não aparece
    lá, é você que decide adotá-lo, registrando o caminho real em
-   `docs/.ownership.yml`. **Nunca** crie um paralelo.
+   `.ownership.yml`. **Nunca** crie um paralelo.
 
    Leia também a linha `formato`: quando o repositório escreve IDs de outro
    jeito (sem separador, ou com outra quantidade de zeros), o inventário diz
@@ -78,7 +78,7 @@ garantida.
    diga em voz alta qual estágio você concluiu e por quê.
 3. **Rode `living-docs init --owner <@handle>`** para escrever a moldura. Ele
    cria só o que falta e mantém o que existe. Depois **revise à mão** o
-   `docs/.ownership.yml` gerado: os donos precisam ser os donos reais, e os
+   `.ownership.yml` gerado: os donos precisam ser os donos reais, e os
    `watches` (código → doc dono) precisam refletir a estrutura real do código —
    o template não sabe nada disso.
    - **`documents:`** declara o que tem dono e não tem família de IDs
@@ -115,7 +115,7 @@ garantida.
 ## Checklist
 
 - [ ] O repositório foi inventariado e nenhum artefato preexistente foi duplicado ou sobrescrito — verificação humana
-- [ ] Todo caminho adotado está declarado em `docs/.ownership.yml`, e nenhum artefato tem dois donos — `living-docs/frontmatter`
+- [ ] Todo caminho adotado está declarado em `.ownership.yml`, e nenhum artefato tem dois donos — `living-docs/frontmatter`
 - [ ] Todo artefato coletado tem frontmatter completo — `living-docs/frontmatter`
 - [ ] Os donos declarados espelham o `CODEOWNERS` — verificação humana
 - [ ] Todo `trigger` nomeia um evento observável, nunca uma cadência — `living-docs/frontmatter`
