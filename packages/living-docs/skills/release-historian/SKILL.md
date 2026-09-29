@@ -1,104 +1,109 @@
 ---
 name: release-historian
 description: >
-  Use quando algo mudar para quem consome este software — endpoint, opção de
-  linha de comando, formato de saída, comportamento observável —, quando for
-  hora de publicar uma versão, quando alguém perguntar "o que mudou na versão
-  X?", "isso quebra quem já usa?", "quando isso vai ser removido?", "por onde
-  eu migro?", "isso precisa de entrada no CHANGELOG?", ou quando o CI reclamar
-  que falta a entrada. Também ao anunciar ou concluir uma depreciação, e ao
-  escrever o guia de migração de uma mudança quebra-compatibilidade.
+  Use when something changes for whoever consumes this software — endpoint,
+  command-line option, output format, observable behavior —, when it is time to
+  publish a version, when someone asks "what changed in version X?", "does this
+  break whoever already uses it?", "when will this be removed?", "how do I
+  migrate?", "does this need a CHANGELOG entry?", or when CI complains that the
+  entry is missing. Also when announcing or concluding a deprecation, and when
+  writing the migration guide for a compatibility-breaking change.
 ---
 
-# release-historian — dono do rastro histórico
+# release-historian — owner of the historical trail
 
 ## Overview
 
-Quatro artefatos, um público só: quem está do lado de fora. O `CHANGELOG.md`
-diz o que mudou, a release note dá a moldura de uma versão, `docs/deprecations.md`
-avisa o que vai sair, e `docs/migrations/` ensina a atravessar.
+Four artifacts, one audience: whoever is on the outside. `CHANGELOG.md` says
+what changed, the release note gives the frame of a version,
+`docs/deprecations.md` warns what is going away, and `docs/migrations/` teaches
+how to cross over.
 
-O erro caro aqui tem nome: derivar o CHANGELOG do `git log`. O resultado é o
-documento que narra o código, e ele apodrece rápido, porque ninguém de fora
-consegue usá-lo para decidir se atualiza.
+The expensive mistake here has a name: deriving the CHANGELOG from `git log`.
+The result is the document that narrates the code, and it rots fast, because
+nobody on the outside can use it to decide whether to upgrade.
 
-Os caminhos vêm de `.ownership.yml`; não assuma. A regra de `watches` marcada
-`consumer-visible: true` diz o que é visível ao consumidor neste projeto e onde
-a entrada mora.
+The paths come from `.ownership.yml`; do not assume them. The `watches` rule
+marked `consumer-visible: true` says what is consumer-visible in this project
+and where the entry lives.
 
-## Do que você é dono
+## What you own
 
-| Artefato               | O que é                            | Forma                                                            |
-| ---------------------- | ---------------------------------- | ---------------------------------------------------------------- |
-| `CHANGELOG.md`         | O que mudou, para quem consome     | Arquivo único, Keep a Changelog, `Unreleased` no topo            |
-| `docs/releases/`       | A moldura de cada versão publicada | Um arquivo por versão, `REL-nnnn`, congelado depois de publicado |
-| `docs/deprecations.md` | O que foi anunciado para remoção   | Arquivo único, tabela, mutável                                   |
-| `docs/migrations/`     | Como atravessar cada quebra        | Um arquivo por migração                                          |
+| Artifact               | What it is                          | Shape                                                            |
+| ---------------------- | ----------------------------------- | ---------------------------------------------------------------- |
+| `CHANGELOG.md`         | What changed, for whoever consumes  | Single file, Keep a Changelog, `Unreleased` at the top           |
+| `docs/releases/`       | The frame of each published version | One file per version, `REL-nnnn`, frozen once published          |
+| `docs/deprecations.md` | What was announced for removal      | Single file, table, mutable                                      |
+| `docs/migrations/`     | How to cross each break             | One file per migration                                           |
 
-As sementes estão em `templates/changelog.md`, `templates/release-note.md`,
-`templates/deprecations.md` e `templates/migration.md`. Não reproduza o
-conteúdo delas aqui.
+The seeds are in `templates/changelog.md`, `templates/release-note.md`,
+`templates/deprecations.md` and `templates/migration.md`. Do not reproduce their
+content here.
 
-## Quando usar / quando não
+## When to use / when not to
 
-**Use** quando o diff toca caminho de uma regra de `watches` com `consumer-visible: true`; quando uma versão vai ser
-publicada; quando algo publicado é anunciado para remoção; quando uma mudança
-quebra compatibilidade.
+**Use** when the diff touches a path of a `watches` rule with
+`consumer-visible: true`; when a version is going to be published; when
+something published is announced for removal; when a change breaks
+compatibility.
 
-**Não use** para registrar mudança interna. Refatoração, renomeação de arquivo,
-teste novo e ajuste de mensagem não têm entrada — o caminho ali é o rótulo
-`Changelog: none — <razão>`, e a razão é obrigatória.
+**Do not use** to record an internal change. Refactoring, file renames, a new
+test and a message tweak get no entry — the way out there is the
+`Changelog: none — <reason>` label, and the reason is mandatory.
 
-**O custo de usar à toa** é a entrada que ninguém consegue ler: um CHANGELOG
-com trinta linhas de detalhe interno esconde a única linha que importava, e o
-consumidor para de ler. `ownership/consumer-change-logged` cobra a existência da entrada; que ela seja
-legível é humano.
+**The cost of using it needlessly** is the entry nobody can read: a CHANGELOG
+with thirty lines of internal detail hides the one line that mattered, and the
+consumer stops reading. `ownership/consumer-change-logged` enforces that the
+entry exists; that it is readable is human.
 
-## Procedimento
+## Procedure
 
-1. **Descubra o que é visível ao consumidor neste projeto.** Leia
-   as regras de `watches` com `consumer-visible: true` no `.ownership.yml`. Se não houver nenhuma, o
-   projeto ainda não declarou a fronteira: essa é a primeira conversa, e ela é
-   humana.
-2. **Escreva a entrada no PR que causa a mudança**, sob `## [Unreleased]`, na
-   subseção certa (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`,
-   `Security`). Uma frase, do ponto de vista de quem usa.
-3. **Aplique o teste único:** se a entrada só faz sentido para quem escreveu o
-   código, apague-a e use `Changelog: none — <razão>` na mensagem de commit.
-4. **Depreciação exige quatro coisas** — data do anúncio, versão ou data de
-   remoção, substituto, link para o guia de migração. Faltando qualquer uma,
-   **pare** e traga a lacuna: não registre depreciação pela metade.
-5. **Guia de migração por mudança quebra-compatibilidade**, em
-   `docs/migrations/`. O guia diz, em texto corrido, por que a quebra foi
-   decidida — sem o ID do ADR, porque quem o lê está do lado de fora —, e o
-   commit que cria o guia cita o ADR. Quebra sem ADR é decisão sem porquê — o
-   caminho é `/adr` antes.
-6. **Release note é derivada do CHANGELOG**, não escrita de novo: mova as
-   entradas de `Unreleased` para a seção da versão, e escreva só a moldura.
-7. **Nasce `draft`.** Publicar é ato humano — `living-docs/state-promotion` intercepta, e a resposta
-   não é sua. Depois de `published`, `living-docs/append-only` congela o arquivo.
+1. **Find out what is consumer-visible in this project.** Read the `watches`
+   rules with `consumer-visible: true` in `.ownership.yml`. If there are none,
+   the project has not declared the boundary yet: that is the first
+   conversation, and it is a human one.
+2. **Write the entry in the PR that causes the change**, under
+   `## [Unreleased]`, in the right subsection (`Added`, `Changed`,
+   `Deprecated`, `Removed`, `Fixed`, `Security`). One sentence, from the point
+   of view of whoever uses it.
+3. **Apply the single test:** if the entry only makes sense to whoever wrote the
+   code, delete it and use `Changelog: none — <reason>` in the commit message.
+4. **A deprecation requires four things** — announcement date, removal version
+   or date, replacement, link to the migration guide. If any is missing,
+   **stop** and bring up the gap: do not record a half deprecation.
+5. **A migration guide per compatibility-breaking change**, in
+   `docs/migrations/`. The guide says, in running text, why the break was
+   decided — without the ADR's ID, because whoever reads it is on the outside —
+   and the commit that creates the guide cites the ADR. A break with no ADR is
+   a decision with no why — the way is `/adr` first.
+6. **The release note is derived from the CHANGELOG**, not written anew: move
+   the entries from `Unreleased` to the version's section, and write only the
+   frame.
+7. **It is born `draft`.** Publishing is a human act —
+   `living-docs/state-promotion` intercepts, and the answer is not yours. After
+   `published`, `living-docs/append-only` freezes the file.
 
-## Fronteiras
+## Boundaries
 
-| É seu                                    | Não é seu                                                            |
+| Yours                                    | Not yours                                                            |
 | ---------------------------------------- | -------------------------------------------------------------------- |
-| A entrada de CHANGELOG e a subseção dela | Decidir o que é público (é `contract-keeper`)                        |
-| A release note e o congelamento dela     | Promover para `published` (é humano)                                 |
-| A tabela de depreciações                 | A política de versionamento (é `contract-keeper`)                    |
-| O guia de migração                       | O ADR que decidiu a quebra (é `decision-recorder`)                   |
-| Recusar depreciação incompleta           | Bloquear a mudança que não tem entrada (`ownership/consumer-change-logged` falha, você não nega) |
-| Apontar `Changelog: none` como saída     | Escrever a razão no lugar de quem decidiu                            |
+| The CHANGELOG entry and its subsection   | Deciding what is public (that is `contract-keeper`)                  |
+| The release note and its freezing        | Promoting to `published` (that is human)                             |
+| The deprecations table                   | The versioning policy (that is `contract-keeper`)                    |
+| The migration guide                      | The ADR that decided the break (that is `decision-recorder`)         |
+| Refusing an incomplete deprecation       | Blocking the change that has no entry (`ownership/consumer-change-logged` fails, you do not deny) |
+| Pointing to `Changelog: none` as the way out | Writing the reason in place of whoever decided                   |
 
 ## Checklist
 
-- [ ] A entrada nasceu no PR que causou a mudança, não depois — verificação: `ownership/consumer-change-logged`.
-- [ ] O doc marcado `consumer-visible: true` viajou no mesmo diff — verificação: `ownership/consumer-change-logged` (e `ownership/commit-guard` pergunta antes).
-- [ ] A entrada é legível por quem consome, e não narra o código — verificação: humana.
-- [ ] Quando não há entrada, existe `Changelog: none — <razão>` com razão escrita — verificação: `ownership/consumer-change-logged`.
-- [ ] Toda depreciação registrada tem as quatro coisas — verificação: humana.
-- [ ] Toda quebra de compatibilidade tem guia de migração que diz em texto corrido por que foi decidida, e o commit que o cria cita o ADR — verificação: humana.
-- [ ] Nenhum comentário do template sobreviveu ao preenchimento da release note ou do guia de migração — verificação: humana.
-- [ ] Nenhum documento externo cita ID de artefato — verificação: `living-docs/external-audience`.
-- [ ] A release note nasceu `draft` e foi promovida por uma pessoa — verificação: `living-docs/state-promotion`.
-- [ ] Nenhuma release note publicada foi editada no corpo — verificação: `living-docs/append-only`.
-- [ ] Nenhum atalho novo ficou sem `TDR-nnnn` — verificação: `living-docs/shortcut-debt` lembra; registrar é humano.
+- [ ] The entry was born in the PR that caused the change, not afterwards — verification: `ownership/consumer-change-logged`.
+- [ ] The doc marked `consumer-visible: true` traveled in the same diff — verification: `ownership/consumer-change-logged` (and `ownership/commit-guard` asks beforehand).
+- [ ] The entry is readable by whoever consumes, and does not narrate the code — verification: human.
+- [ ] When there is no entry, there is a `Changelog: none — <reason>` with a written reason — verification: `ownership/consumer-change-logged`.
+- [ ] Every recorded deprecation has the four things — verification: human.
+- [ ] Every compatibility break has a migration guide that says in running text why it was decided, and the commit that creates it cites the ADR — verification: human.
+- [ ] No template comment survived filling in the release note or the migration guide — verification: human.
+- [ ] No external document cites an artifact ID — verification: `living-docs/external-audience`.
+- [ ] The release note was born `draft` and was promoted by a person — verification: `living-docs/state-promotion`.
+- [ ] No published release note had its body edited — verification: `living-docs/append-only`.
+- [ ] No new shortcut was left without a `TDR-nnnn` — verification: `living-docs/shortcut-debt` reminds; recording it is human.

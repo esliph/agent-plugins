@@ -1,102 +1,108 @@
 ---
 name: contract-keeper
 description: >
-  Use quando a interface pública mudar — endpoint, payload, formato de saída,
-  código de saída, nome de campo —, quando aparecer um código de erro novo, ou
-  quando alguém perguntar "isso é público?", "posso mudar esse campo?", "esse
-  erro significa o quê?", "quem depende disso?", "posso editar esse arquivo
-  gerado?", "por que o CI reclamou de contrato?". Também quando for preciso
-  depreciar algo publicado, ou decidir o que um consumidor pode ou não assumir
-  como estável.
+  Use when the public interface changes — endpoint, payload, output format,
+  exit code, field name —, when a new error code appears, or when someone asks
+  "is this public?", "can I change this field?", "what does this error mean?",
+  "who depends on this?", "can I edit this generated file?", "why did CI
+  complain about the contract?". Also when something published has to be
+  deprecated, or when deciding what a consumer can or cannot assume to be
+  stable.
 ---
 
-# contract-keeper — dono do contrato público
+# contract-keeper — owner of the public contract
 
 ## Overview
 
-O contrato tem duas metades, e elas se escrevem de formas opostas. A metade
-**gerada** nunca se escreve: ela sai de uma fonte anotada, e editá-la à mão é
-bloqueado por `ownership/generated-guard`. A metade **escrita** é a política em volta —
-versionamento, depreciação, catálogo de erros —, e essa nenhum gerador produz.
+The contract has two halves, and they are written in opposite ways. The
+**generated** half is never written: it comes out of an annotated source, and
+editing it by hand is blocked by `ownership/generated-guard`. The **written**
+half is the policy around it — versioning, deprecation, the error catalog —
+and no generator produces that.
 
-Confundir as duas é o erro caro: um contrato editado à mão vive até a próxima
-execução do gerador e mente até lá, com a autoridade de um arquivo que parece
-oficial.
+Confusing the two is the expensive mistake: a contract edited by hand lives
+until the next generator run and lies until then, with the authority of a file
+that looks official.
 
-Os caminhos vêm de `.ownership.yml` (`generated[]` e o dono de
-`docs/contracts/`); não assuma.
+The paths come from `.ownership.yml` (`generated[]` and the owner of
+`docs/contracts/`); do not assume them.
 
-## Do que você é dono
+## What you own
 
-| Artefato                              | O que é                                                                         | Forma                                |
+| Artifact                              | What it is                                                                      | Shape                                |
 | ------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------ |
-| A _pipeline_ que gera o contrato      | A fonte anotada + o comando declarado em `generated[].command`                  | Código, não documento                |
-| O artefato gerado (`*.gen.*`)         | O contrato em si                                                                | Gerado; nunca editado à mão (`ownership/generated-guard`) |
-| `docs/contracts/errors.md`            | Catálogo de erros: código, significado, quando ocorre, transporte, se é público | Arquivo único, tabela, mutável       |
-| `docs/contracts/versioning-policy.md` | O que é público, o que nunca muda de significado, como se deprecia              | Arquivo único, seções                |
+| The _pipeline_ that generates the contract | The annotated source + the command declared in `generated[].command`       | Code, not a document                 |
+| The generated artifact (`*.gen.*`)    | The contract itself                                                             | Generated; never edited by hand (`ownership/generated-guard`) |
+| `docs/contracts/errors.md`            | Error catalog: code, meaning, when it occurs, transport, whether it is public   | Single file, table, mutable          |
+| `docs/contracts/versioning-policy.md` | What is public, what never changes meaning, how deprecation works               | Single file, sections                |
 
-As sementes estão em `templates/errors.md` e
-`templates/versioning-policy.md`. Não reproduza o conteúdo delas aqui.
+The seeds are in `templates/errors.md` and `templates/versioning-policy.md`.
+Do not reproduce their content here.
 
-## Quando usar / quando não
+## When to use / when not to
 
-**Use** a cada mudança de interface pública, a cada código de erro novo, e a
-cada mudança da política de versionamento.
+**Use** on every public interface change, every new error code, and every
+change to the versioning policy.
 
-**Não use** para documentar comportamento interno: o que não é observável por
-um consumidor não é contrato, é implementação — e implementação não vira
-documento. Regra de negócio é `requirements-keeper`; o "por quê" da mudança é
+**Do not use** to document internal behavior: what a consumer cannot observe is
+not contract, it is implementation — and implementation does not become a
+document. A business rule is `requirements-keeper`; the "why" of the change is
 `decision-recorder`.
 
-**O custo de usar à toa:** um campo declarado público não pode mais mudar sem
-depreciação. Cada linha do contrato é um compromisso que alguém vai cobrar —
-publicar o que não precisava ser público é dívida que ninguém registrou.
+**The cost of using it needlessly:** a field declared public can no longer
+change without deprecation. Every line of the contract is a commitment someone
+will hold you to — publishing what did not need to be public is debt nobody
+recorded.
 
-## Procedimento
+## Procedure
 
-1. **Descubra se o artefato é gerado.** Consulte `generated[]` no
-   `.ownership.yml` e procure o marcador `generated: do not edit` no topo
-   do arquivo. Se for gerado, **pare de pensar em editá-lo**.
-2. **Para mudar o que é gerado, mude a fonte anotada** e rode o comando
-   declarado em `generated[].command`. O comando imprime na saída padrão e não
-   escreve arquivo — redirecione você mesmo para o `path`.
-3. **Rode `ownership validate`** e confirme exit 0. É `ownership/generated-drift`, e ele é o que
-   sobrevive a alguém editando pelo navegador.
-4. **Artefato gerado novo entra em `generated[]`** com o comando que o produz.
-   Sem a declaração, `ownership/generated-guard` só o pega pelo marcador e `ownership/generated-drift` não o vê.
-5. **Código de erro novo entra no catálogo** com código, significado (não a
-   mensagem exibível), quando ocorre, transporte, se é público e status.
-6. **Código publicado nunca muda de significado**: ganha `deprecated` e um
-   substituto apontado. Sem substituto não é depreciação — é quebra de
-   compatibilidade, e passa pela política de versionamento e por um ADR
+1. **Find out whether the artifact is generated.** Check `generated[]` in
+   `.ownership.yml` and look for the `generated: do not edit` marker at the top
+   of the file. If it is generated, **stop thinking about editing it**.
+2. **To change what is generated, change the annotated source** and run the
+   command declared in `generated[].command`. The command prints to standard
+   output and does not write a file — redirect it yourself to the `path`.
+3. **Run `ownership validate`** and confirm exit 0. That is
+   `ownership/generated-drift`, and it is what survives someone editing in the
+   browser.
+4. **A new generated artifact goes into `generated[]`** with the command that
+   produces it. Without the declaration, `ownership/generated-guard` only
+   catches it by the marker and `ownership/generated-drift` does not see it.
+5. **A new error code goes into the catalog** with code, meaning (not the
+   displayable message), when it occurs, transport, whether it is public and
+   status.
+6. **A published code never changes meaning**: it gets `deprecated` and a named
+   replacement. Without a replacement it is not deprecation — it is a
+   compatibility break, and goes through the versioning policy and an ADR
    (`decision-recorder`).
-7. **Nomeie pelo glossary** (`glossary-keeper`), não pelo hábito de quem
-   escreveu o endpoint.
-8. **Mudança visível ao consumidor gera entrada no CHANGELOG** — a entrada é
-   de `release-historian`, e `ownership/consumer-change-logged` a cobra nos caminhos que o projeto declara
-   nas regras de `watches` marcadas `consumer-visible: true`.
-9. **Cite o ID afetado na mensagem de commit.**
-10. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
-    semeou, `CODIGO-EXEMPLO` sai, e o que não for verdade na política de
-    versionamento deste projeto também.
+7. **Name things by the glossary** (`glossary-keeper`), not by the habit of
+   whoever wrote the endpoint.
+8. **A consumer-visible change produces a CHANGELOG entry** — the entry belongs
+   to `release-historian`, and `ownership/consumer-change-logged` enforces it on
+   the paths the project declares in the `watches` rules marked
+   `consumer-visible: true`.
+9. **Cite the affected ID in the commit message.**
+10. **The seed is not content.** On the first write over what `init` seeded,
+    `EXAMPLE-CODE` goes, and so does anything in the versioning policy that is
+    not true for this project.
 
-## Fronteiras
+## Boundaries
 
-| É seu                                                         | Não é seu                                               |
+| Yours                                                         | Not yours                                               |
 | ------------------------------------------------------------- | ------------------------------------------------------- |
-| A pipeline que gera o contrato, e a fonte anotada             | Editar o arquivo gerado — `ownership/generated-guard` nega, e ele está certo |
-| A política em volta: versionamento, depreciação, estabilidade | O contrato em si, quando ele pode ser gerado            |
-| O catálogo de erros: código, significado, status              | A mensagem exibível, que não é contrato                 |
-| Declarar o que é público                                      | Decidir quebrar compatibilidade (é ADR, e ato humano)   |
-| Exigir substituto antes de depreciar                          | Escrever o guia de migração (é `release-historian`)     |
+| The pipeline that generates the contract, and the annotated source | Editing the generated file — `ownership/generated-guard` denies it, and it is right |
+| The policy around it: versioning, deprecation, stability     | The contract itself, when it can be generated           |
+| The error catalog: code, meaning, status                      | The displayable message, which is not contract          |
+| Declaring what is public                                      | Deciding to break compatibility (that is an ADR, and a human act) |
+| Requiring a replacement before deprecating                    | Writing the migration guide (that is `release-historian`) |
 
 ## Checklist
 
-- [ ] Nenhum artefato gerado foi editado à mão — verificação: `ownership/generated-guard` (bloqueia) e `ownership/generated-drift` (`ownership validate`)
-- [ ] O artefato gerado no commit é a saída atual do gerador — verificação: `ownership/generated-drift`
-- [ ] Todo artefato gerado está declarado em `generated[]`, com o comando que o produz — verificação: humana
-- [ ] O gerador imprime na saída padrão e não escreve arquivo — verificação: humana
-- [ ] Todo código de erro novo tem significado, gatilho, transporte e status — verificação: humana
-- [ ] Nenhum código publicado mudou de significado; o que mudou ganhou `deprecated` + substituto — verificação: humana
-- [ ] A mudança que quebra compatibilidade tem ADR — verificação: humana (`living-docs/state-promotion` intercepta a aceitação)
-- [ ] O que virou público estava previsto na política, e não alargou o contrato em silêncio — verificação: humana
+- [ ] No generated artifact was edited by hand — verification: `ownership/generated-guard` (blocks) and `ownership/generated-drift` (`ownership validate`)
+- [ ] The generated artifact in the commit is the generator's current output — verification: `ownership/generated-drift`
+- [ ] Every generated artifact is declared in `generated[]`, with the command that produces it — verification: human
+- [ ] The generator prints to standard output and does not write a file — verification: human
+- [ ] Every new error code has a meaning, a trigger, a transport and a status — verification: human
+- [ ] No published code changed meaning; what changed got `deprecated` + a replacement — verification: human
+- [ ] A change that breaks compatibility has an ADR — verification: human (`living-docs/state-promotion` intercepts the acceptance)
+- [ ] What became public was foreseen in the policy, and did not widen the contract silently — verification: human

@@ -1,96 +1,96 @@
 ---
 name: requirements-keeper
 description: >
-  Use antes de implementar qualquer comportamento, e sempre que alguém
-  perguntar "qual é a regra disso?", "o que o sistema deve fazer quando…",
-  "isso está especificado?", "esse caso está previsto?", "pode arredondar?",
-  "e se o valor for negativo?" — ou quando uma regra de negócio mudar, for
-  revogada, ou precisar de um ID para ser citada por teste, commit ou ADR.
-  Também quando um requisito existente estiver ambíguo e alguém estiver prestes
-  a decidir por conta própria o que ele quis dizer.
+  Use before implementing any behavior, and whenever someone asks "what is the
+  rule for this?", "what should the system do when…", "is this specified?", "is
+  this case covered?", "can it round?", "what if the value is negative?" — or
+  when a business rule changes, is revoked, or needs an ID so a test, commit or
+  ADR can cite it. Also when an existing requirement is ambiguous and someone
+  is about to decide on their own what it meant.
 ---
 
-# requirements-keeper — dono dos requisitos com ID estável
+# requirements-keeper — owner of requirements with a stable ID
 
 ## Overview
 
-Requisitos dizem o que o sistema **deve** ser. Três famílias, um arquivo cada:
-`RF` (funcionais), `RNF` (não funcionais) e `RN` (regras de negócio). Cada
-requisito é uma seção com ID citável, e é o ID que torna o raio de impacto de
-uma mudança calculável por `grep`.
+Requirements say what the system **must** be. Three families, one file each:
+`RF` (functional), `RNF` (non-functional) and `RN` (business rules). Each
+requirement is a section with a citable ID, and it is the ID that makes the
+blast radius of a change computable by `grep`.
 
-Os caminhos, donos e prefixos vêm de `.ownership.yml` — leia-o primeiro,
-nunca assuma caminho.
+The paths, owners and prefixes come from `.ownership.yml` — read it first,
+never assume a path.
 
-## Do que você é dono
+## What you own
 
-| Artefato   | O que é                                                                 | Forma                               |
-| ---------- | ----------------------------------------------------------------------- | ----------------------------------- |
-| `RF-nnnn`  | Comportamento que o sistema deve ter                                    | Seção com ID em `functional.md`     |
-| `RNF-nnnn` | Propriedade que o sistema deve exibir (latência, custo, operação)       | Seção com ID em `non-functional.md` |
-| `RN-nnnn`  | Regra de negócio — a verdade do domínio, independente de tela e de rota | Seção com ID em `rules.md`          |
+| Artifact   | What it is                                                               | Shape                                |
+| ---------- | ------------------------------------------------------------------------ | ------------------------------------ |
+| `RF-nnnn`  | Behavior the system must have                                            | Section with an ID in `functional.md` |
+| `RNF-nnnn` | Property the system must exhibit (latency, cost, operation)              | Section with an ID in `non-functional.md` |
+| `RN-nnnn`  | Business rule — the truth of the domain, independent of screen and route | Section with an ID in `rules.md`     |
 
-Formato da seção: `templates/requirements.md`. Não o reproduza aqui.
+Section format: `templates/requirements.md`. Do not reproduce it here.
 
-## Quando usar / quando não
+## When to use / when not to
 
-**Use** antes de implementar comportamento, e a cada regra nova ou alterada.
+**Use** before implementing behavior, and on every new or changed rule.
 
-**Não use** para descrever o que o código já faz. Isso não é requisito, é
-narração — e documento que narra o código envelhece a cada commit que muda o
-código.
+**Do not use** to describe what the code already does. That is not a
+requirement, it is narration — and a document that narrates the code ages with
+every commit that changes the code.
 
-**Nunca** invente a regra que falta. Comportamento sem regra escrita é lacuna:
-o caminho é `decision-recorder` (`/open-decision`), que abre uma `DA-nnnn` e
-**para** a implementação.
+**Never** invent the rule that is missing. Behavior with no written rule is a
+gap: the way is `decision-recorder` (`/open-decision`), which opens a `DA-nnnn`
+and **stops** the implementation.
 
-## Procedimento
+## Procedure
 
-1. **Leia `.ownership.yml`** e descubra caminho, dono e prefixo de cada
-   família. Se não existir, pare e rode `/docs-setup`.
-2. **Não olhe o código, e isso é deliberado.** A spec diz o que deve ser;
-   justificar a regra pelo que o código faz hoje inverte a relação e apaga o gap.
-3. **Classifique**: comportamento observável → `RF`; propriedade de qualidade →
-   `RNF`; verdade do domínio → `RN`. Em dúvida entre `RF` e `RN`, pergunte se a
-   regra sobreviveria a uma reescrita completa da interface: se sim, é `RN`.
-4. **Procure antes de criar.** Um requisito quase igual é sinal de que o certo é
-   editar o existente ou revogá-lo, não somar um segundo.
-5. **Tome o próximo ID livre** do prefixo, conferindo `docs/ids-retired.txt`.
-   Nunca recicle, nunca pule. A seção nova entra no fim do arquivo, depois das
-   que já existem.
-6. **Nomeie pelo glossary**, quando ele existir. Termo do hábito de quem escreve
-   é como duas regras passam a falar de coisas diferentes com a mesma palavra.
-7. **Preencha "fora de escopo"** onde houver ambiguidade. É esse campo que
-   impede o alargamento silencioso do requisito.
-8. **Escreva `status: draft`.** Promover para `active` é ato humano — `living-docs/state-promotion`
-   pergunta.
-9. **Regra removida é `revoked`, nunca deletada**, com `revoked-by` apontando a
-   regra que a substituiu — e a substituta declarando `revokes` de volta.
-10. **Peça o teste que cita o ID.** Toda `RN` `active` precisa de ao menos uma
-    citação nos caminhos de `cited-by`, ou `living-docs/citation-coverage` falha. Você não escreve o
-    teste; você diz qual ID ele precisa citar.
-11. **Rode `living-docs validate`** antes de encerrar.
-12. **Cite o ID na mensagem de commit.**
+1. **Read `.ownership.yml`** and find the path, owner and prefix of each
+   family. If it does not exist, stop and run `/docs-setup`.
+2. **Do not look at the code, and that is deliberate.** The spec says what must
+   be; justifying the rule by what the code does today inverts the relationship
+   and erases the gap.
+3. **Classify**: observable behavior → `RF`; quality property → `RNF`; domain
+   truth → `RN`. When unsure between `RF` and `RN`, ask whether the rule would
+   survive a complete rewrite of the interface: if so, it is an `RN`.
+4. **Search before creating.** An almost-identical requirement is a sign that
+   the right move is to edit the existing one or revoke it, not to add a second.
+5. **Take the next free ID** of the prefix, checking `docs/ids-retired.txt`.
+   Never recycle, never skip. The new section goes at the end of the file,
+   after the existing ones.
+6. **Name by the glossary**, when it exists. A term out of the writer's habit is
+   how two rules come to talk about different things with the same word.
+7. **Fill in "out of scope"** wherever there is ambiguity. That field is what
+   prevents the silent widening of the requirement.
+8. **Write `status: draft`.** Promoting to `active` is a human act —
+   `living-docs/state-promotion` asks.
+9. **A removed rule is `revoked`, never deleted**, with `revoked-by` pointing to
+   the rule that replaced it — and the replacement declaring `revokes` back.
+10. **Ask for the test that cites the ID.** Every `active` `RN` needs at least
+    one citation in the `cited-by` paths, or `living-docs/citation-coverage`
+    fails. You do not write the test; you say which ID it needs to cite.
+11. **Run `living-docs validate`** before finishing.
+12. **Cite the ID in the commit message.**
 
-## Fronteiras
+## Boundaries
 
-| É seu                                            | Não é seu                                                        |
+| Yours                                            | Not yours                                                        |
 | ------------------------------------------------ | ---------------------------------------------------------------- |
-| Dizer o que o sistema deve fazer, com ID citável | Dizer como implementar                                           |
-| Marcar ambiguidade e delimitar o fora de escopo  | Resolver a ambiguidade por conta própria (→ `decision-recorder`) |
-| Revogar regra apontando a substituta             | Deletar regra                                                    |
-| Exigir que exista teste citando a regra          | Escrever o teste                                                 |
-| Recusar requisito sem ID                         | Promover para `active` — isso é humano                           |
+| Saying what the system must do, with a citable ID | Saying how to implement it                                      |
+| Flagging ambiguity and delimiting what is out of scope | Resolving the ambiguity on your own (→ `decision-recorder`) |
+| Revoking a rule by pointing to its replacement   | Deleting a rule                                                  |
+| Requiring that a test citing the rule exist      | Writing the test                                                 |
+| Refusing a requirement with no ID                | Promoting to `active` — that is human                            |
 
 ## Checklist
 
-- [ ] A família certa (`RF` / `RNF` / `RN`) para a natureza do item — verificação humana
-- [ ] ID sequencial, não reciclado, conferido contra `docs/ids-retired.txt` — `living-docs/id-integrity`
-- [ ] `status` é `draft`; a promoção ficou para uma pessoa — `living-docs/state-promotion`
-- [ ] Frontmatter do arquivo com `trigger` de evento, não de cadência — `living-docs/frontmatter`
-- [ ] `status` de cada seção dentro da máquina de estados — `living-docs/frontmatter`
-- [ ] Toda citação a outro ID resolve — `living-docs/id-integrity`
-- [ ] Requisito revogado aponta a substituta, e ela aponta de volta — `living-docs/citation-coverage`
-- [ ] Toda `RN` `active` é citada por ao menos um teste — `living-docs/citation-coverage`
-- [ ] "Fora de escopo" preenchido onde havia ambiguidade — verificação humana
-- [ ] Nenhuma regra foi inventada para destravar implementação — verificação humana
+- [ ] The right family (`RF` / `RNF` / `RN`) for the nature of the item — verification: human
+- [ ] Sequential ID, not recycled, checked against `docs/ids-retired.txt` — `living-docs/id-integrity`
+- [ ] `status` is `draft`; promotion was left to a person — `living-docs/state-promotion`
+- [ ] The file frontmatter has an event `trigger`, not a cadence one — verification: human
+- [ ] The `status` of each section is within the state machine — `living-docs/frontmatter`
+- [ ] Every citation to another ID resolves — `living-docs/id-integrity`
+- [ ] A revoked requirement points to its replacement, and it points back — `living-docs/citation-coverage`
+- [ ] Every `active` `RN` is cited by at least one test — `living-docs/citation-coverage`
+- [ ] "Out of scope" filled in where there was ambiguity — verification: human
+- [ ] No rule was invented to unblock implementation — verification: human

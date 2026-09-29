@@ -42,7 +42,7 @@ for (const name of SKILLS) {
 
   test(`${name}: as seções da spec §11 estão presentes e na ordem`, () => {
     const source = skillSource(name)
-    const secoes = ['## Overview', '## Do que você é dono', '## Quando usar / quando não', '## Procedimento', '## Fronteiras', '## Checklist']
+    const secoes = ['## Overview', '## What you own', '## When to use / when not to', '## Procedure', '## Boundaries', '## Checklist']
     let cursor = -1
 
     for (const secao of secoes) {
@@ -61,9 +61,7 @@ for (const name of SKILLS) {
 
     assert.ok(itens.length >= 6, `${name}: checklist com apenas ${itens.length} itens`)
     for (const item of itens) {
-      // "human" casa tanto "humano" quanto "humana" — a concordância de gênero em
-      // português ("verificação humana") não deve ser tratada como item sem verificação.
-      assert.match(item, /\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|human/i, `${name}: item sem verificação nomeada — ${item}`)
+      assert.match(item, /\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|\bhuman\b/i, `${name}: item sem verificação nomeada — ${item}`)
     }
   })
 }
@@ -71,8 +69,8 @@ for (const name of SKILLS) {
 test('decision-recorder: a description nomeia os sintomas de decisão, lacuna e dívida', () => {
   const description = String(parseFrontmatter(skillSource('decision-recorder'))?.data.description ?? '')
 
-  assert.match(description, /Use quando/i)
-  for (const sintoma of ['por que', 'lacuna', 'dívida']) {
+  assert.match(description, /Use when/i)
+  for (const sintoma of ['why', 'gap', 'debt']) {
     assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
   }
 })
@@ -80,7 +78,7 @@ test('decision-recorder: a description nomeia os sintomas de decisão, lacuna e 
 test('decision-recorder não duplica o conteúdo dos artefatos que governa', () => {
   const source = skillSource('decision-recorder')
 
-  assert.doesNotMatch(source, /^## Contexto$/m, 'a skill não deve conter o template do ADR')
+  assert.doesNotMatch(source, /^## Context$/m, 'a skill não deve conter o template do ADR')
   assert.match(source, /templates\/adr\.md/, 'ela deve apontar para o template, não copiá-lo')
 })
 
@@ -88,7 +86,7 @@ test('requirements-keeper: a description fala em sintoma, não em categoria', ()
   const description = String(parseFrontmatter(skillSource('requirements-keeper'))?.data.description ?? '')
 
   assert.ok(description.length > 120)
-  for (const sintoma of ['qual é a regra', 'deve fazer', 'especificad']) {
+  for (const sintoma of ['what is the rule', 'what should the system do', 'specified']) {
     assert.ok(description.toLowerCase().includes(sintoma), `description sem o sintoma "${sintoma}"`)
   }
 })
@@ -123,8 +121,8 @@ test('os sete comandos existem, têm description e não contêm lógica própria
 test('glossary-keeper: a description nomeia os sintomas de termo novo, ambíguo ou renomeado', () => {
   const description = String(parseFrontmatter(skillSource('glossary-keeper'))?.data.description ?? '')
 
-  assert.match(description, /Use quando/i)
-  for (const sintoma of ['termo', 'renome']) {
+  assert.match(description, /Use when/i)
+  for (const sintoma of ['term', 'renam']) {
     assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
   }
 })
@@ -132,15 +130,15 @@ test('glossary-keeper: a description nomeia os sintomas de termo novo, ambíguo 
 test('glossary-keeper não duplica o formato da tabela que governa', () => {
   const source = skillSource('glossary-keeper')
 
-  assert.doesNotMatch(source, /\| Termo exemplo \|/, 'a skill não deve conter a linha de exemplo do template')
+  assert.doesNotMatch(source, /\| Example term \|/, 'a skill não deve conter a linha de exemplo do template')
   assert.match(source, /templates\/glossary\.md/, 'ela deve apontar para o template, não copiá-lo')
 })
 
 test('charter-keeper: a description nomeia princípio, visão e emenda', () => {
   const description = String(parseFrontmatter(skillSource('charter-keeper'))?.data.description ?? '')
 
-  assert.match(description, /Use quando/i)
-  for (const sintoma of ['princípio', 'visão']) {
+  assert.match(description, /Use when/i)
+  for (const sintoma of ['principle', 'vision']) {
     assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
   }
 })
@@ -150,8 +148,8 @@ test('charter-keeper não duplica o conteúdo dos artefatos que governa', () => 
 
   // Título de seção, não menção em prosa: é o corpo da Constitution que não
   // pode ser copiado para cá, e é ele que começa a linha com `## `.
-  assert.doesNotMatch(source, /^## Log de emendas/m, 'a skill não deve conter o corpo da Constitution')
-  assert.doesNotMatch(source, /^## Princípios/m, 'a skill não deve conter os princípios deste repositório')
+  assert.doesNotMatch(source, /^## Amendment log/m, 'a skill não deve conter o corpo da Constitution')
+  assert.doesNotMatch(source, /^## Principles/m, 'a skill não deve conter os princípios deste repositório')
   assert.match(source, /templates\/constitution\.md/, 'ela deve apontar para o template, não copiá-lo')
   assert.match(source, /templates\/vision\.md/, 'os dois templates, porque são dois artefatos')
 })
@@ -159,8 +157,8 @@ test('charter-keeper não duplica o conteúdo dos artefatos que governa', () => 
 test('working-agreements-keeper: a description nomeia o erro por falta de contexto', () => {
   const description = String(parseFrontmatter(skillSource('working-agreements-keeper'))?.data.description ?? '')
 
-  assert.match(description, /Use quando/i)
-  for (const sintoma of ['falta de contexto', 'não estava escrito', 'pronto']) {
+  assert.match(description, /Use when/i)
+  for (const sintoma of ['lack of context', "wasn't written", 'done']) {
     assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
   }
 })
@@ -175,8 +173,8 @@ test('working-agreements-keeper não duplica o conteúdo dos acordos que governa
 test('contract-keeper: a description nomeia interface pública, erro novo e versionamento', () => {
   const description = String(parseFrontmatter(skillSource('contract-keeper'))?.data.description ?? '')
 
-  assert.match(description, /Use quando/i)
-  for (const sintoma of ['contrato', 'erro', 'gerad']) {
+  assert.match(description, /Use when/i)
+  for (const sintoma of ['contract', 'error', 'generat']) {
     assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
   }
 })
@@ -187,14 +185,14 @@ test('contract-keeper não duplica o conteúdo dos artefatos que governa', () =>
   assert.match(source, /templates\/errors\.md/, 'ela deve apontar para o template, não copiá-lo')
   assert.match(source, /templates\/versioning-policy\.md/, 'os dois templates, porque são dois artefatos')
   assert.doesNotMatch(source, /^\| EXIT-\d/m, 'a skill não deve conter o catálogo deste repositório')
-  assert.doesNotMatch(source, /^## O que é público/m, 'nem a política deste repositório')
+  assert.doesNotMatch(source, /^## What is public/m, 'nem a política deste repositório')
 })
 
 test('release-historian: a description nomeia os sintomas de mudança visível, versão e depreciação', () => {
   const description = String(parseFrontmatter(skillSource('release-historian'))?.data.description ?? '')
 
-  assert.match(description, /Use quando/i)
-  for (const sintoma of ['consome', 'versão', 'migr', 'depreci']) {
+  assert.match(description, /Use when/i)
+  for (const sintoma of ['consum', 'version', 'migrat', 'deprecat']) {
     assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
   }
 })
@@ -218,8 +216,8 @@ test('a SK-0 não manda escolher estágio que o CLI rejeita', () => {
 test('RN-0030: release-historian não pede que o guia de migração aponte o ADR pelo ID', () => {
   const source = skillSource('release-historian')
 
-  assert.doesNotMatch(source, /apontando o ADR/, 'o guia é lido por quem vem de fora: o porquê vai em texto corrido')
-  assert.match(source, /commit que cria o guia cita o ADR/, 'o vínculo passa a morar no commit')
+  assert.doesNotMatch(source, /pointing to the ADR/, 'o guia é lido por quem vem de fora: o porquê vai em texto corrido')
+  assert.match(source, /commit that creates the guide cites the ADR/, 'o vínculo passa a morar no commit')
   assert.match(source, /living-docs\/external-audience/, 'o checklist nomeia quem verifica')
 })
 

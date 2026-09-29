@@ -1,127 +1,135 @@
 ---
 name: living-docs-bootstrap
 description: >
-  Use quando alguém disser "não temos documentação nenhuma", "onde eu registro
-  isso?", "esse projeto não tem ADR", "quero começar a documentar direito",
-  "instala o toolkit de documentação viva aqui", "cadê o .ownership.yml?",
-  quando um comando ou hook reclamar que `.ownership.yml` não existe, ou
-  quando o projeto mudar de estágio de maturidade (virou time, virou produção,
-  virou múltiplos times) e a moldura atual ficar pequena. Também quando existe
-  documentação espalhada sob outro nome (`adr/`, `rfc/`, `requisitos.md`, wiki
-  exportada) e alguém quer trazê-la para dentro do enforcement sem duplicar.
+  Use when someone says "we have no documentation at all", "where do I record
+  this?", "this project has no ADR", "I want to start documenting properly",
+  "install the living documentation toolkit here", "where is .ownership.yml?",
+  when a command or hook complains that `.ownership.yml` does not exist, or
+  when the project changes maturity stage (became a team, went to production,
+  became multiple teams) and the current frame gets too small. Also when
+  documentation exists scattered under another name (`adr/`, `rfc/`,
+  `requirements.md`, an exported wiki) and someone wants to bring it inside
+  the enforcement without duplicating it.
 ---
 
-# living-docs-bootstrap — dono da moldura e do enforcement
+# living-docs-bootstrap — owner of the frame and the enforcement
 
 ## Overview
 
-Esta skill monta a **moldura**: o mapa de propriedade, os diretórios, os
-templates e a instalação de `HK-*`/`CI-*`. Ela não escreve o conteúdo de nenhum
-artefato — quem escreve ADR, DA e TDR é `decision-recorder`.
+This skill assembles the **frame**: the ownership map, the directories, the
+templates and the installation of `HK-*`/`CI-*`. It does not write the content
+of any artifact — whoever writes ADR, DA and TDR is `decision-recorder`.
 
-O trabalho **mecânico** (criar os arquivos, adotar caminho preexistente,
-preencher `.ownership.yml` a partir do template) é do CLI:
-`living-docs init [--owner @handle] [--dry-run]`. Não reproduza aqui o formato
-do `.ownership.yml` nem o conteúdo dos templates — eles moram em
+The **mechanical** work (creating the files, adopting a pre-existing path,
+filling `.ownership.yml` from the template) belongs to the CLI:
+`living-docs init [--owner @handle] [--dry-run]`. Do not reproduce here the
+format of `.ownership.yml` or the content of the templates — they live in
 `templates/ownership.yml`, `templates/open-decisions.md`, `templates/CODEOWNERS`
-e `templates/ids-retired.txt`, e o `init` é a única coisa que os escreve. O que
-é seu é o **julgamento**: o que já existe, qual estágio, o que fica fora.
+and `templates/ids-retired.txt`, and `init` is the only thing that writes them.
+What is yours is the **judgment**: what already exists, which stage, what stays
+out.
 
-Rodar duas vezes não pode duplicar arquivo, reescrever conteúdo nem renumerar
-ID. Depois da primeira execução, os caminhos vêm do `.ownership.yml` — não de
-uma nova varredura.
+Running twice must not duplicate a file, rewrite content or renumber an ID.
+After the first run, the paths come from `.ownership.yml` — not from a new
+scan.
 
-## Do que você é dono
+## What you own
 
-| Artefato                      | O que é                                                                     | Forma                                                                            |
+| Artifact                      | What it is                                                                  | Shape                                                                            |
 | ----------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `.ownership.yml`              | O único arquivo específico do projeto: caminhos, donos, prefixos, `watches` | Arquivo único, mutável                                                           |
-| A estrutura de diretórios     | Onde cada artefato mora                                                     | Diretórios + `.gitkeep`                                                          |
-| `docs/ids-retired.txt`        | Registro de IDs retirados, que nunca voltam                                 | Arquivo único, append-only                                                       |
-| `CODEOWNERS`                  | O dono de cada caminho de doc, espelhando `owner:`                          | Arquivo único                                                                    |
-| Instalação de `HK-*` e `CI-*` | O enforcement das fases do estágio                                          | Workflow em `.github/workflows/` + registro do plugin em `.claude/settings.json` |
+| `.ownership.yml`              | The only project-specific file: paths, owners, prefixes, `watches`          | Single file, mutable                                                             |
+| The directory structure       | Where each artifact lives                                                   | Directories + `.gitkeep`                                                         |
+| `docs/ids-retired.txt`        | Register of retired IDs, which never come back                              | Single file, append-only                                                         |
+| `CODEOWNERS`                  | The owner of each doc path, mirroring `owner:`                              | Single file                                                                      |
+| Installation of `HK-*` and `CI-*` | The enforcement of the stage's phases                                   | Workflow in `.github/workflows/` + plugin registration in `.claude/settings.json` |
 
-## Quando usar / quando não
+## When to use / when not to
 
-**Use** para: montar a moldura num projeto que não tem; adotar documentação que
-já existe sob outro nome; reinstalar quando o estágio de maturidade mudar.
+**Use** to: assemble the frame in a project that has none; adopt documentation
+that already exists under another name; reinstall when the maturity stage
+changes.
 
-**Não use** para: escrever o conteúdo de um artefato (→ `decision-recorder` e as
-demais skills donas); criar artefato de fase que o estágio não pede — instalar
-demais é o caminho mais rápido para "vinte documentos de quatrocentas linhas";
-"organizar" documentação existente movendo arquivo de lugar sem registrar a
-adoção.
+**Do not use** to: write the content of an artifact (→ `decision-recorder` and
+the other owning skills); create a phase artifact the stage does not ask for —
+installing too much is the fastest path to "twenty four-hundred-line
+documents"; "organize" existing documentation by moving files around without
+recording the adoption.
 
-**Nunca** use para criar um artefato paralelo a um que já existe. Duplicata é o
-anti-padrão mais caro da lista: dois donos para a mesma verdade é divergência
-garantida.
+**Never** use it to create an artifact parallel to one that already exists. A
+duplicate is the most expensive anti-pattern on the list: two owners for the
+same truth is guaranteed divergence.
 
-## Procedimento
+## Procedure
 
-1. **Inventarie antes de criar.** Varra o repositório por artefatos que já
-   existem sob outro nome ou caminho (`decisions/`, `adr/`, `rfc/`,
-   `requisitos.md`, `spec/`, wiki exportada). Rode `living-docs init --dry-run`
-   e leia as linhas `adotado` — se algo que você viu no repositório não aparece
-   lá, é você que decide adotá-lo, registrando o caminho real em
-   `.ownership.yml`. **Nunca** crie um paralelo.
+1. **Take inventory before creating.** Scan the repository for artifacts that
+   already exist under another name or path (`decisions/`, `adr/`, `rfc/`,
+   `requirements.md`, `spec/`, an exported wiki). Run
+   `living-docs init --dry-run` and read the `adopted` lines — if something you
+   saw in the repository does not show up there, it is you who decides to adopt
+   it, recording the real path in `.ownership.yml`. **Never** create a
+   parallel one.
 
-   Leia também a linha `formato`: quando o repositório escreve IDs de outro
-   jeito (sem separador, ou com outra quantidade de zeros), o inventário diz
-   qual forma achou e quantas ocorrências leu nela. **Confirme com quem é dono
-   do repositório** e declare com `--id-separator` e `--id-padding` — nunca
-   renumere o que já existe para caber no padrão do toolkit.
+   Read the `format` line too: when the repository writes IDs another way
+   (no separator, or a different number of zeros), the inventory says which
+   form it found and how many occurrences it read in it. **Confirm with the
+   repository owner** and declare it with `--id-separator` and `--id-padding` —
+   never renumber what already exists to fit the toolkit's pattern.
 
-2. **Determine o estágio** — `solo` (protótipo), `small-team` (time pequeno),
-   `production` (produção com usuários) ou `multi-team` (múltiplos times) — e
-   derive o conjunto **mínimo** de fases. Os quatro nomes são os que
-   `living-docs init --stage` aceita. Não instale o que o estágio não pede, e
-   diga em voz alta qual estágio você concluiu e por quê.
-3. **Rode `living-docs init --owner <@handle>`** para escrever a moldura. Ele
-   cria só o que falta e mantém o que existe. Depois **revise à mão** o
-   `.ownership.yml` gerado: os donos precisam ser os donos reais, e os
-   `watches` (código → doc dono) precisam refletir a estrutura real do código —
-   o template não sabe nada disso.
-   - **`documents:`** declara o que tem dono e não tem família de IDs
-     (`CONTRIBUTING.md`, a Definition of Done, o contrato do agente, o glossary, o
-     charter, o CHANGELOG, e o que mais o projeto tiver). `artifacts:` continua
-     exigindo `id-prefix`; `living-docs/frontmatter`, `living-docs/id-integrity` e `living-docs/append-only` não leem `documents:`, e `living-docs/staleness` e
-     `living-docs/agent-contract-duplication` leem.
-4. **Instale na ordem das fases.** Frontmatter + `living-docs/frontmatter` primeiro: sem contrato
-   de máquina nada mais é enforceável. Só depois `living-docs/id-integrity`, os hooks e as skills
-   donas.
-5. **Registre o índice no contrato do agente** (`AGENTS.md`/`CLAUDE.md`, via
-   `working-agreements-keeper`): qual artefato responde a quê e qual skill é dona.
-   Apenas o índice — nada de conteúdo copiado.
-6. **Confirme a idempotência**: rode `living-docs init` uma segunda vez e
-   confira que nada foi criado, nada foi reescrito e nenhum caminho foi
-   readotado.
-7. **Rode `living-docs validate`** e não entregue com finding aberto.
-8. **Entregue em um PR só**, com a matriz de gatilhos preenchida (cada artefato
-   instalado, seu `trigger` e sua skill dona) e a **lista explícita do que ficou
-   fora e por quê** — o que ficou fora sem justificativa volta como surpresa.
-9. **Cite na mensagem de commit** os IDs das peças instaladas (`living-docs/frontmatter`, `living-docs/append-only`, …).
+2. **Determine the stage** — `solo` (prototype), `small-team` (small team),
+   `production` (production with users) or `multi-team` (multiple teams) — and
+   derive the **minimum** set of phases. The four names are the ones
+   `living-docs init --stage` accepts. Do not install what the stage does not
+   ask for, and say out loud which stage you concluded and why.
+3. **Run `living-docs init --owner <@handle>`** to write the frame. It creates
+   only what is missing and keeps what exists. Then **review by hand** the
+   generated `.ownership.yml`: the owners must be the real owners, and the
+   `watches` (code → owning doc) must reflect the real structure of the code —
+   the template knows nothing about that.
+   - **`documents:`** declares what has an owner and no ID family
+     (`CONTRIBUTING.md`, the Definition of Done, the agent contract, the
+     glossary, the charter, the CHANGELOG, and whatever else the project has).
+     `artifacts:` still requires `id-prefix`; `living-docs/frontmatter`,
+     `living-docs/id-integrity` and `living-docs/append-only` do not read
+     `documents:`, while `living-docs/staleness` and
+     `living-docs/agent-contract-duplication` do.
+4. **Install in the order of the phases.** Frontmatter +
+   `living-docs/frontmatter` first: without a machine contract nothing else is
+   enforceable. Only then `living-docs/id-integrity`, the hooks and the owning
+   skills.
+5. **Register the index in the agent contract** (`AGENTS.md`/`CLAUDE.md`, via
+   `working-agreements-keeper`): which artifact answers what and which skill
+   owns it. Only the index — no copied content.
+6. **Confirm idempotence**: run `living-docs init` a second time and check that
+   nothing was created, nothing was rewritten and no path was re-adopted.
+7. **Run `living-docs validate`** and do not deliver with an open finding.
+8. **Deliver in a single PR**, with the trigger matrix filled in (each installed
+   artifact, its `trigger` and its owning skill) and the **explicit list of what
+   was left out and why** — what was left out without justification comes back
+   as a surprise.
+9. **Cite in the commit message** the IDs of the installed pieces
+   (`living-docs/frontmatter`, `living-docs/append-only`, …).
 
-## Fronteiras
+## Boundaries
 
-| É seu                                                 | Não é seu                                             |
+| Yours                                                 | Not yours                                             |
 | ----------------------------------------------------- | ----------------------------------------------------- |
-| Decidir o estágio e o conjunto mínimo de fases        | Escrever o conteúdo de um artefato                    |
-| Adotar o que já existe, registrando o caminho real    | Mover ou renomear documentação existente por estética |
-| Preencher donos e `watches` reais no `.ownership.yml` | Reproduzir o formato do `.ownership.yml` nesta skill  |
-| Instalar `HK-*`/`CI-*` na ordem das fases             | Instalar fase que o estágio não pede                  |
-| Apontar `living-docs init` para o trabalho mecânico   | Reimplementar o `init` em prosa                       |
-| Listar o que ficou fora e por quê                     | Decidir que o que ficou fora nunca entra              |
+| Deciding the stage and the minimum set of phases      | Writing the content of an artifact                    |
+| Adopting what already exists, recording the real path | Moving or renaming existing documentation for aesthetics |
+| Filling in real owners and `watches` in `.ownership.yml` | Reproducing the `.ownership.yml` format in this skill |
+| Installing `HK-*`/`CI-*` in the order of the phases   | Installing a phase the stage does not ask for         |
+| Pointing `living-docs init` at the mechanical work    | Reimplementing `init` in prose                        |
+| Listing what was left out and why                     | Deciding that what was left out never comes in        |
 
 ## Checklist
 
-- [ ] O repositório foi inventariado e nenhum artefato preexistente foi duplicado ou sobrescrito — verificação humana
-- [ ] Todo caminho adotado está declarado em `.ownership.yml`, e nenhum artefato tem dois donos — `living-docs/frontmatter`
-- [ ] Todo artefato coletado tem frontmatter completo — `living-docs/frontmatter`
-- [ ] Os donos declarados espelham o `CODEOWNERS` — verificação humana
-- [ ] Todo `trigger` nomeia um evento observável, nunca uma cadência — `living-docs/frontmatter`
-- [ ] `docs/ids-retired.txt` existe e nenhum ID foi reciclado ou renumerado — `living-docs/id-integrity`
-- [ ] A forma escrita dos IDs foi confirmada com quem é dono do repositório, e nenhum ID preexistente foi reescrito — verificação humana
-- [ ] Os hooks instalados são os das fases do estágio, e falham abertos — `living-docs/append-only`, `living-docs/state-promotion`
-- [ ] `living-docs init` rodado duas vezes não criou, reescreveu nem readotou nada — verificação humana
-- [ ] `living-docs validate` passa sem finding — `living-docs/frontmatter`, `living-docs/id-integrity`
-- [ ] O PR traz a matriz de gatilhos e a lista do que ficou fora e por quê — verificação humana
+- [ ] The repository was inventoried and no pre-existing artifact was duplicated or overwritten — verification: human
+- [ ] Every adopted path is declared in `.ownership.yml`, and no artifact has two owners — `living-docs/frontmatter`
+- [ ] Every collected artifact has complete frontmatter — `living-docs/frontmatter`
+- [ ] The declared owners mirror `CODEOWNERS` — verification: human
+- [ ] Every `trigger` names an observable event, never a cadence — verification: human
+- [ ] `docs/ids-retired.txt` exists and no ID was recycled or renumbered — `living-docs/id-integrity`
+- [ ] The written form of the IDs was confirmed with the repository owner, and no pre-existing ID was rewritten — verification: human
+- [ ] The installed hooks are those of the stage's phases, and fail open — `living-docs/append-only`, `living-docs/state-promotion`
+- [ ] `living-docs init` run twice did not create, rewrite or re-adopt anything — verification: human
+- [ ] `living-docs validate` passes with no finding — `living-docs/frontmatter`, `living-docs/id-integrity`
+- [ ] The PR carries the trigger matrix and the list of what was left out and why — verification: human
