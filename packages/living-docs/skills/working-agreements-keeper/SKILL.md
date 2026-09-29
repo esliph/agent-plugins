@@ -1,100 +1,105 @@
 ---
 name: working-agreements-keeper
 description: >
-  Use quando um agente ou uma pessoa errou por falta de contexto — "ninguém me
-  disse que era assim", "isso não estava escrito em lugar nenhum", "achei que
-  podia rodar direto", "como é que se faz isso aqui?", "quando é que isso está
-  pronto?" — e sempre que o processo de trabalho mudar: comando novo, passo
-  obrigatório novo, regra de commit, política sobre o que agente pode ou não
-  fazer sozinho. Também quando o contrato do agente (CLAUDE.md/AGENTS.md)
-  estiver repetindo conteúdo que pertence a outro documento.
+  Use when an agent or a person went wrong for lack of context — "nobody told
+  me it was like this", "that wasn't written down anywhere", "I thought I could
+  just run it", "how do you do this here?", "when is this done?" — and whenever
+  the work process changes: a new command, a new mandatory step, a commit rule,
+  a policy about what an agent may or may not do alone. Also when the agent
+  contract (CLAUDE.md/AGENTS.md) is repeating content that belongs to another
+  document.
 ---
 
-# working-agreements-keeper — dono de como se trabalha aqui
+# working-agreements-keeper — owner of how we work here
 
 ## Overview
 
-Três artefatos respondem "como se trabalha neste repositório": `CONTRIBUTING.md`
-(o processo), `docs/definition-of-done.md` (quando acabou) e o contrato do
-agente (`CLAUDE.md` ou `AGENTS.md` — índice e política).
+Three artifacts answer "how do we work in this repository": `CONTRIBUTING.md`
+(the process), `docs/definition-of-done.md` (when it is finished) and the agent
+contract (`CLAUDE.md` or `AGENTS.md` — index and policy).
 
-O segundo gatilho desta skill é o melhor do catálogo: **toda vez que alguém erra
-por falta de contexto**, falta uma linha em um destes três. É isso que torna o
-documento auto-corretivo em vez de decorativo.
+The second trigger of this skill is the best in the catalog: **every time
+someone goes wrong for lack of context**, a line is missing in one of these
+three. That is what makes the document self-correcting instead of decorative.
 
-Caminhos e donos vêm de `.ownership.yml` e do `CODEOWNERS`; não assuma.
+Paths and owners come from `.ownership.yml` and from `CODEOWNERS`; do not
+assume them.
 
-## Do que você é dono
+## What you own
 
-| Artefato                     | O que é                                                            |
+| Artifact                     | What it is                                                         |
 | ---------------------------- | ------------------------------------------------------------------ |
-| `CONTRIBUTING.md`            | O processo: ambiente, ciclo, idioma, onde a verdade mora           |
-| `docs/definition-of-done.md` | A lista do que precisa estar feito, com a verificação de cada item |
-| `CLAUDE.md` / `AGENTS.md`    | Contrato do agente: índice e política, nunca conteúdo              |
+| `CONTRIBUTING.md`            | The process: environment, cycle, language, where the truth lives   |
+| `docs/definition-of-done.md` | The list of what must be done, with the verification of each item  |
+| `CLAUDE.md` / `AGENTS.md`    | Agent contract: index and policy, never content                    |
 
-As sementes estão em `templates/contributing.md`,
-`templates/definition-of-done.md` e `templates/agent-contract.md`. Não reproduza
-o conteúdo delas aqui.
+The seeds are in `templates/contributing.md`,
+`templates/definition-of-done.md` and `templates/agent-contract.md`. Do not
+reproduce their content here.
 
-## Quando usar / quando não
+## When to use / when not to
 
-**Use** quando o processo mudar, e quando um erro por falta de contexto
-acontecer — a correção é uma linha nova, e ela tem uma de duas formas: _onde
-está a verdade_ ou _o que nunca fazer_.
+**Use** when the process changes, and when an error from lack of context
+happens — the fix is a new line, and it takes one of two forms: _where the
+truth is_ or _what to never do_.
 
-**Não use** para registrar regra de negócio (é `requirements-keeper`), decisão
-técnica (é `decision-recorder`) ou o que o linter já pega — configuração de
-ferramenta não é documento.
+**Do not use** to record a business rule (that is `requirements-keeper`), a
+technical decision (that is `decision-recorder`) or what the linter already
+catches — tool configuration is not a document.
 
-**O custo de usar à toa:** cada linha acrescentada é lida em toda sessão. Uma
-lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está vivo".
+**The cost of using it needlessly:** every line added is read in every
+session. A list that grows without end is read by nobody, and "if nobody reads
+it, it is not alive".
 
-## Procedimento
+## Procedure
 
-1. **Leia `.ownership.yml`** e confirme quais dos três artefatos existem e
-   onde. Se nenhum existir, rode `/docs-setup` com o estágio `small-team`.
-2. **Classifique o que você tem em mãos**: processo → `CONTRIBUTING.md`;
-   condição de pronto → Definition of Done; política ou índice para agente →
-   contrato do agente.
-3. **Procure a linha que já cobre isso.** Erro repetido costuma ser linha
-   existente mal colocada, não linha faltando.
-4. **Escreva uma linha, não um parágrafo.** Forma: _onde está a verdade_ ("a
-   regra de X mora em `docs/requirements/rules.md`") ou _o que nunca fazer_
-   ("nunca promova uma decisão sem revisão humana").
-5. **Item novo na DoD nomeia sua verificação**: um `CI-n`, um `HK-n`, ou
-   explicitamente "humana". Item sem verificação não entra.
-6. **No contrato do agente, linke — não copie.** Se a frase que você ia escrever
-   é uma afirmação factual, ela pertence ao artefato dono; aqui fica o link.
-7. **Se a mudança de processo alterou o vínculo código→doc**, atualize `watches`
-   no `.ownership.yml`: é ele que `ownership/watch-reminder` e `ownership/commit-guard` leem.
-8. **O contrato do agente não repete texto de artefato dono, e isso agora é
-   verificado.** `living-docs/agent-contract-duplication` compara frase por frase (piso de doze palavras) contra
-   os artefatos com skill dona. Quando ele acusa, a correção é
-   apagar a frase e deixar o ponteiro — nunca mexer no limiar.
-9. **Documento novo é declarado nos dois lugares:** `documents:` no
-   `.ownership.yml` (com a skill dona, e o `role` quando for o contrato do
-   agente ou a Definition of Done) e uma linha no CODEOWNERS.
-10. **A semente não é conteúdo.** Na primeira escrita sobre o que o `init`
-    semeou, o que não for verdade neste projeto sai — apagar o que sobra é parte
-    do trabalho.
+1. **Read `.ownership.yml`** and confirm which of the three artifacts exist and
+   where. If none exists, run `/docs-setup` with the `small-team` stage.
+2. **Classify what you have in hand**: process → `CONTRIBUTING.md`; done
+   condition → Definition of Done; policy or index for the agent → agent
+   contract.
+3. **Look for the line that already covers this.** A repeated error is usually
+   an existing line badly placed, not a missing line.
+4. **Write a line, not a paragraph.** Form: _where the truth is_ ("the rule for
+   X lives in `docs/requirements/rules.md`") or _what to never do_ ("never
+   promote a decision without human review").
+5. **A new DoD item names its verification**: a `CI-n`, an `HK-n`, or
+   explicitly the marker `human`. An item with no verification does not go in.
+6. **In the agent contract, link — do not copy.** If the sentence you were about
+   to write is a factual claim, it belongs to the owning artifact; what stays
+   here is the link.
+7. **If the process change altered the code→doc link**, update `watches` in
+   `.ownership.yml`: it is what `ownership/watch-reminder` and
+   `ownership/commit-guard` read.
+8. **The agent contract does not repeat text from an owning artifact, and that is
+   now verified.** `living-docs/agent-contract-duplication` compares sentence by
+   sentence (a floor of twelve words) against the artifacts that have an owning
+   skill. When it flags something, the fix is to delete the sentence and leave
+   the pointer — never touch the threshold.
+9. **A new document is declared in both places:** `documents:` in
+   `.ownership.yml` (with the owning skill, and the `role` when it is the agent
+   contract or the Definition of Done) and a line in CODEOWNERS.
+10. **The seed is not content.** On the first write over what `init` seeded,
+    whatever is not true in this project goes — deleting what is left is part of
+    the work.
 
-## Fronteiras
+## Boundaries
 
-| É seu                                                | Não é seu                                           |
+| Yours                                                | Not yours                                           |
 | ---------------------------------------------------- | --------------------------------------------------- |
-| Como se trabalha, e quando algo está pronto          | A regra de negócio que o CONTRIBUTING referencia    |
-| Transformar erro por falta de contexto em linha nova | Duplicar conteúdo de outro artefato                 |
-| A política sobre o que um agente pode fazer sozinho  | Aceitar a decisão em si (é ato humano, `living-docs/state-promotion`)      |
-| O item da DoD e a verificação que o cobre            | Escrever o check que verifica (é `CI-n`, na engine) |
+| How we work, and when something is finished          | The business rule that CONTRIBUTING references      |
+| Turning an error from lack of context into a new line | Duplicating the content of another artifact        |
+| The policy on what an agent may do alone             | Accepting the decision itself (a human act, `living-docs/state-promotion`) |
+| The DoD item and the verification that covers it     | Writing the check that verifies (that is `CI-n`, in the engine) |
 
 ## Checklist
 
-- [ ] Cada afirmação factual do contrato do agente é um link para o artefato dono, não uma cópia — verificação: humana; `living-docs/agent-contract-duplication` pega a cópia palavra por palavra.
-- [ ] Todo item novo da DoD nomeia o que o verifica: `CI-n`, `HK-n`, ou "humana" explícita — verificação: humana.
-- [ ] O caminho vigiado que a mudança criou está em `watches`, com doc dono — verificação: `ownership/watch-reminder` e `ownership/commit-guard`.
-- [ ] Nenhum dos três artefatos ganhou conteúdo que pertence a `docs/requirements/` ou a `docs/decisions/` — verificação: humana.
-- [ ] O `trigger` do artefato alterado continua nomeando evento, não cadência — verificação: `living-docs/frontmatter`.
-- [ ] A alteração nasceu de um erro observado ou de uma mudança real de processo, não de vontade de documentar — verificação: humana.
-- [ ] `last-reviewed` foi atualizado só nos arquivos que mudaram de verdade — verificação: humana (bump em massa desliga a revisão fingindo cumpri-la).
-- [ ] Nenhuma frase do contrato do agente repete artefato dono — verificação: `living-docs/agent-contract-duplication`.
-- [ ] Cada item novo da Definition of Done nomeia o que o verifica — verificação: `living-docs/done-verifiable`.
+- [ ] Each factual claim in the agent contract is a link to the owning artifact, not a copy — verification: human; `living-docs/agent-contract-duplication` catches the word-for-word copy.
+- [ ] Every new DoD item names what verifies it: the identifier of a check or a hook, or the marker `human` — verification: human.
+- [ ] The watched path the change created is in `watches`, with an owning doc — verification: `ownership/watch-reminder` and `ownership/commit-guard`.
+- [ ] None of the three artifacts gained content that belongs in `docs/requirements/` or `docs/decisions/` — verification: human.
+- [ ] The `trigger` of the changed artifact still names an event, not a cadence — verification: human.
+- [ ] The change came from an observed error or a real process change, not from a wish to document — verification: human.
+- [ ] `last-reviewed` was updated only on the files that really changed — verification: human (a mass bump switches review off while pretending to perform it).
+- [ ] No sentence in the agent contract repeats an owning artifact — verification: `living-docs/agent-contract-duplication`.
+- [ ] Each new Definition of Done item names what verifies it — verification: `living-docs/done-verifiable`.

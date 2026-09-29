@@ -36,11 +36,11 @@ function collectDeclarations(context: CheckContext, format: IdFormat): Declarati
 }
 
 /**
- * Chave de identidade de um ID. `ADR-001` e `ADR-0001` são a mesma coisa: sem
- * canonizar, um repadding criaria um segundo artefato com o mesmo número e
- * driblaria `ids-retired.txt` (spec §2 — "id nunca é reciclado").
- * Linha que não é ID válido (comentário solto em `ids-retired.txt`) volta crua:
- * ela nunca casa com uma declaração, que sempre passou por `parseId`.
+ * Identity key of an ID. `ADR-001` and `ADR-0001` are the same thing: without
+ * canonicalizing, a repadding would create a second artifact with the same number and
+ * would dodge `ids-retired.txt` (spec §2 — "an id is never recycled").
+ * A line that is not a valid ID (a loose comment in `ids-retired.txt`) comes back raw:
+ * it never matches a declaration, which always went through `parseId`.
  */
 function key(id: string, format: IdFormat): string {
   const parsed = parseId(id, format)
@@ -68,8 +68,8 @@ export const livingDocsIdIntegrity: Check = {
           error(
             declaration.file,
             declaration.line,
-            `ID ${declaration.id} duplicado — já declarado em ${previous.file}:${previous.line}.`,
-            'Um ID identifica um único item. Escolha o próximo número livre da sequência.',
+            `Duplicate ID ${declaration.id} — already declared in ${previous.file}:${previous.line}.`,
+            'An ID identifies a single item. Pick the next free number in the sequence.',
           ),
         )
         continue
@@ -81,20 +81,20 @@ export const livingDocsIdIntegrity: Check = {
           error(
             declaration.file,
             declaration.line,
-            `ID ${declaration.id} está em ${RETIRED_IDS_PATH} e não pode ser reciclado.`,
-            // Regra de origem: spec §2.
-            'Use o próximo número livre; IDs retirados nunca voltam.',
+            `ID ${declaration.id} is in ${RETIRED_IDS_PATH} and cannot be recycled.`,
+            // Rule of origin: spec §2.
+            'Use the next free number; retired IDs never come back.',
           ),
         )
       }
     }
 
-    // Sequência contígua por prefixo, contando os retirados.
+    // Contiguous sequence per prefix, counting the retired ones.
     const known = new Set(context.config.artifacts.map(artifact => artifact.idPrefix))
     const numbersByPrefix = new Map<string, Set<number>>()
 
     for (const id of [...byId.keys(), ...retired]) {
-      // As chaves são canônicas — `parseId` sem formato é o leitor certo aqui.
+      // The keys are canonical — `parseId` without a format is the right reader here.
       const parsed = parseId(id)
 
       if (!parsed || !known.has(parsed.prefix)) {
@@ -119,14 +119,14 @@ export const livingDocsIdIntegrity: Check = {
           error(
             RETIRED_IDS_PATH,
             0,
-            `Sequência de ${prefix} tem buraco: ${missing} não existe nem está retirado.`,
-            `Se o item foi removido, registre \`${missing}\` em ${RETIRED_IDS_PATH}; senão, renumere sem pular.`,
+            `The ${prefix} sequence has a gap: ${missing} neither exists nor is retired.`,
+            `If the item was removed, record \`${missing}\` in ${RETIRED_IDS_PATH}; otherwise, renumber without skipping.`,
           ),
         )
       }
     }
 
-    // Citações precisam resolver para um ID existente e não retirado.
+    // Citations must resolve to an existing, non-retired ID.
     for (const doc of context.docs) {
       const declaredHere = new Set(declarations.filter(declaration => declaration.file === doc.file).map(d => key(d.id, format)))
 
@@ -149,8 +149,8 @@ export const livingDocsIdIntegrity: Check = {
           error(
             doc.file,
             citation.line,
-            retired.has(cited) ? `Citação a ${citation.id}, que está retirado.` : `Citação a ${citation.id}, que não resolve para nenhum artefato existente.`,
-            `Cite um ID existente ou crie o artefato (skill dona: ${doc.rule.skill}).`,
+            retired.has(cited) ? `Citation of ${citation.id}, which is retired.` : `Citation of ${citation.id}, which does not resolve to any existing artifact.`,
+            `Cite an existing ID or create the artifact (owning skill: ${doc.rule.skill}).`,
           ),
         )
       }

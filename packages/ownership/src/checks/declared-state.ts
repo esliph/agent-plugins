@@ -18,7 +18,7 @@ function filesUnder(root: string, rulePath: string): string[] {
 interface Observed {
   states: { state: string; line: number }[]
   duplicates: DocItem[]
-  /** `owner` do frontmatter que não começa com `@`, só em per-file com `states` declarado. */
+  /** Frontmatter `owner` that does not start with `@`, only in per-file with `states` declared. */
   badOwner: { value: string; line: number } | null
 }
 
@@ -32,8 +32,8 @@ function observe(root: string, rule: ResolvedOwnedRule, file: string): Observed 
   }
 
   if (rule.format.collection === 'per-file') {
-    // Sem ciclo de vida declarado não há estado nem dono a conferir, e ler o
-    // frontmatter de um modelo (`id: {{ID}}`) só faria o parser avisar.
+    // With no declared lifecycle there is no state or owner to check, and reading
+    // the frontmatter of a template (`id: {{ID}}`) would only make the parser warn.
     if (rule.states === null) {
       return NOTHING
     }
@@ -47,8 +47,8 @@ function observe(root: string, rule: ResolvedOwnedRule, file: string): Observed 
     }
     const value = frontmatter?.data[rule.format.stateField]
     const owner = frontmatter?.data.owner
-    // Só onde o caminho tem ciclo de vida declarado: entrada só de dono não
-    // governa o frontmatter, e um modelo com `{{OWNER}}` não é violação.
+    // Only where the path has a declared lifecycle: an owner-only entry does not
+    // govern the frontmatter, and a template with `{{OWNER}}` is not a violation.
     const badOwner = rule.states !== null && typeof owner === 'string' && owner !== '' && !owner.startsWith('@') ? { value: owner, line: frontmatter?.lines.owner ?? 0 } : null
 
     return {
@@ -86,8 +86,8 @@ export function ownershipDeclaredState(): Check {
               error(
                 file,
                 duplicate.line,
-                `A chave "${duplicate.key}" aparece mais de uma vez neste arquivo — a chave identifica o item dentro do arquivo.`,
-                'Dê a este item uma chave própria, ou funda as duas entradas.',
+                `The key "${duplicate.key}" appears more than once in this file — the key identifies the item within the file.`,
+                'Give this item a key of its own, or merge the two entries.',
               ),
             )
           }
@@ -96,8 +96,8 @@ export function ownershipDeclaredState(): Check {
               error(
                 file,
                 observed.badOwner.line,
-                `\`owner\` "${observed.badOwner.value}" precisa começar com @ e espelhar o CODEOWNERS.`,
-                'Use o handle de pessoa ou time, ex.: "@time-plataforma".',
+                `\`owner\` "${observed.badOwner.value}" must start with @ and mirror CODEOWNERS.`,
+                'Use a person or team handle, e.g. "@platform-team".',
               ),
             )
           }
@@ -110,8 +110,8 @@ export function ownershipDeclaredState(): Check {
                 error(
                   file,
                   line,
-                  `"${state}" não está entre os estados declarados para \`${rule.path}\`: ${rule.states.join(', ')}.`,
-                  `Use um dos estados declarados, ou acrescente "${state}" a \`states\` em \`owned[]\` (${rule.origin}), se ele for legítimo.`,
+                  `"${state}" is not among the states declared for \`${rule.path}\`: ${rule.states.join(', ')}.`,
+                  `Use one of the declared states, or add "${state}" to \`states\` in \`owned[]\` (${rule.origin}) if it is legitimate.`,
                 ),
               )
             }

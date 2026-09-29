@@ -7,20 +7,20 @@ import { dirname, join, sep } from 'node:path'
 import { toolkitRoot } from '../../src/core/roots.ts'
 
 /**
- * Simulação do cache do marketplace: o Claude Code copia só o diretório do
- * plugin, instala dependências a partir do lockfile que está nele e roda os
- * hooks de lá. Nada do resto do checkout chega (achados 2 a 4 da pesquisa do
- * núcleo de ownership).
+ * Simulation of the marketplace cache: Claude Code copies only the plugin
+ * directory, installs dependencies from the lockfile that is in it and runs the
+ * hooks from there. Nothing from the rest of the checkout arrives (findings 2 to 4
+ * of the ownership core research).
  */
 const PACKAGE_ROOT = toolkitRoot()
 
-/** Repositório validado mínimo: uma família append-only que o living-docs/append-only guarda. */
+/** Minimal validated repository: an append-only family that living-docs/append-only guards. */
 const OWNERSHIP = [
   'version: 2',
   'plugins: [living-docs]',
   'owned:',
   '  - path: docs/decisions/adr/',
-  "    owner: '@time'",
+  "    owner: '@team'",
   '    skill: decision-recorder',
   '    states: [draft, accepted, superseded]',
   '    living-docs: { id-prefix: ADR, append-only: true, mutable-fields: [status, superseded-by, last-reviewed] }',
@@ -30,8 +30,8 @@ const OWNERSHIP = [
 const PAYLOAD = JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: 'docs/decisions/adr/ADR-0001.md' } })
 
 /**
- * No Windows, o `bash` do PATH pode ser o do WSL, que não enxerga `C:\…`. O
- * Claude Code roda hooks no bash do Git for Windows, e é esse que se usa aqui.
+ * On Windows, the `bash` on PATH may be the WSL one, which does not see `C:\…`.
+ * Claude Code runs hooks in the Git for Windows bash, and that is the one used here.
  */
 function bashExecutable(): string | null {
   if (process.platform !== 'win32') {
@@ -42,7 +42,7 @@ function bashExecutable(): string | null {
   return existsSync(candidate) ? candidate : null
 }
 
-/** Copia só o que o git versiona no pacote, como o cache faz com o plugin. */
+/** Copies only what git versions in the package, as the cache does with the plugin. */
 function copyVersioned(to: string): number {
   const files = execFileSync('git', ['ls-files', '-z', '--', '.'], { cwd: PACKAGE_ROOT, encoding: 'utf8' })
     .split('\0')
@@ -59,54 +59,54 @@ function copyVersioned(to: string): number {
 function runHook(bash: string, cache: string, project: string): { status: number | null; stdout: string; stderr: string } {
   const env: NodeJS.ProcessEnv = { ...process.env, CLAUDE_PROJECT_DIR: project }
 
-  // Nada do ambiente do checkout pode ajudar o hook a se achar.
+  // Nothing from the checkout environment may help the hook find itself.
   delete env.LIVING_DOCS_TOOLKIT_ROOT
   delete env.LIVING_DOCS_REPO_ROOT
 
-  // Caminho absoluto com `/`: `dirname` do bash não entende `\`. O cwd é o
-  // projeto, como no Claude Code, e não o cache: um wrapper que se achasse pelo
-  // cwd reprovaria aqui.
+  // Absolute path with `/`: bash `dirname` does not understand `\`. The cwd is the
+  // project, as in Claude Code, and not the cache: a wrapper that found itself through the
+  // cwd would fail here.
   const script = join(cache, 'hooks', 'run-hook.sh').split(sep).join('/')
   const run = spawnSync(bash, [script, 'append-only'], { cwd: project, env, input: PAYLOAD, encoding: 'utf8' })
 
   return { status: run.status, stdout: run.stdout, stderr: run.stderr }
 }
 
-test('RNF-0002: o wrapper de hooks chega a quem instala como executável', () => {
+test('RNF-0002: the hooks wrapper reaches whoever installs it as executable', () => {
   const entry = execFileSync('git', ['ls-files', '-s', '--', 'hooks/run-hook.sh'], { cwd: PACKAGE_ROOT, encoding: 'utf8' })
 
   assert.equal(entry.split(/\s+/)[0], '100755')
 })
 
-test('RNF-0002: copiado sozinho para o cache, sem dependências o hook se cala e sai com 0', { timeout: 60_000 }, t => {
+test('RNF-0002: copied alone into the cache, without dependencies the hook stays silent and exits with 0', { timeout: 60_000 }, t => {
   const bash = bashExecutable()
 
   if (bash === null) {
-    t.skip('sem o bash do Git for Windows: o CI (ubuntu) roda esta prova')
+    t.skip('without the Git for Windows bash: CI (ubuntu) runs this proof')
 
     return
   }
 
   const cache = mkdtempSync(join(tmpdir(), 'living-docs-cache-'))
-  const project = mkdtempSync(join(tmpdir(), 'living-docs-projeto-'))
+  const project = mkdtempSync(join(tmpdir(), 'living-docs-project-'))
 
   try {
-    assert.ok(copyVersioned(cache) > 50, 'cópia vazia demais: o cache não recebeu o plugin')
+    assert.ok(copyVersioned(cache) > 50, 'copy too empty: the cache did not receive the plugin')
     assert.equal(existsSync(join(cache, 'node_modules')), false)
     writeFileSync(join(project, '.ownership.yml'), OWNERSHIP, 'utf8')
 
-    const semDependencias = runHook(bash, cache, project)
+    const withoutDependencies = runHook(bash, cache, project)
 
-    assert.equal(semDependencias.status, 0, 'falha aberta: exit 0 mesmo quebrado')
-    assert.equal(semDependencias.stdout.trim(), '', 'sem node_modules o hook deveria se calar')
+    assert.equal(withoutDependencies.status, 0, 'fail open: exit 0 even when broken')
+    assert.equal(withoutDependencies.stdout.trim(), '', 'without node_modules the hook should stay silent')
   } finally {
     rmSync(cache, { recursive: true, force: true })
     rmSync(project, { recursive: true, force: true })
   }
 })
 
-// TDR-0003: no cache do marketplace o `file:../ownership` aponta para um
-// diretório que não existe, o `npm ci` falha e o hook só pode falhar aberto.
-// A prova de que ele responde volta quando @esliph/ownership estiver no npm e a
-// dependência for uma faixa semver do registro.
-test.todo('RNF-0002: copiado sozinho para o cache, o plugin instala e o hook responde de lá — espera a publicação do núcleo no npm')
+// TDR-0003: in the marketplace cache `file:../ownership` points at a
+// directory that does not exist, `npm ci` fails and the hook can only fail open.
+// The proof that it responds returns when @esliph/ownership is on npm and the
+// dependency is a semver range from the registry.
+test.todo('RNF-0002: copied alone into the cache, the plugin installs and the hook responds from there — waits for the core to be published on npm')

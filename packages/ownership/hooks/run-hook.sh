@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Wrapper dos hooks do núcleo de ownership: executa no node do host.
-# Falha aberta por contrato — node ausente, timeout ou erro de execução
-# resultam em saída vazia e exit 0.
+# Wrapper for the ownership core hooks: runs on the host node.
+# Fails open by contract — a missing node, a timeout or an execution error
+# all result in empty output and exit 0.
 #
-# TOOLKIT_ROOT é a raiz DESTE plugin (um nível acima de hooks/, porque
-# hooks/ e src/ moram lado a lado em packages/ownership/). REPO_ROOT é o
-# repositório que este plugin julga, vindo de CLAUDE_PROJECT_DIR.
+# TOOLKIT_ROOT is the root of THIS plugin (one level above hooks/, because
+# hooks/ and src/ live side by side in packages/ownership/). REPO_ROOT is the
+# repository this plugin judges, taken from CLAUDE_PROJECT_DIR.
 
 HOOK="${1:-}"
 TOOLKIT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

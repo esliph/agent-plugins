@@ -2,11 +2,11 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseFrontmatter, FrontmatterSyntaxError } from '../../src/frontmatter/parse.ts'
 
-const DOC = ['---', 'id: ADR-0042', 'title: Fila de eventos', 'status: accepted', 'relates-to: [RN-014, DA-0007]', '---', '', '## Contexto', 'texto', ''].join(
+const DOC = ['---', 'id: ADR-0042', 'title: Event queue', 'status: accepted', 'relates-to: [RN-014, DA-0007]', '---', '', '## Context', 'text', ''].join(
   '\n',
 )
 
-test('extrai os dados do bloco YAML', () => {
+test('extracts the data from the YAML block', () => {
   const fm = parseFrontmatter(DOC)
 
   assert.ok(fm)
@@ -15,7 +15,7 @@ test('extrai os dados do bloco YAML', () => {
   assert.deepEqual(fm.data['relates-to'], ['RN-014', 'DA-0007'])
 })
 
-test('mapeia cada chave de topo para sua linha 1-indexed no arquivo', () => {
+test('maps each top-level key to its 1-indexed line in the file', () => {
   const fm = parseFrontmatter(DOC)
 
   assert.ok(fm)
@@ -24,25 +24,25 @@ test('mapeia cada chave de topo para sua linha 1-indexed no arquivo', () => {
   assert.equal(fm.lines['relates-to'], 5)
 })
 
-test('marca o fim do bloco e devolve o corpo separado', () => {
+test('marks the end of the block and returns the body separately', () => {
   const fm = parseFrontmatter(DOC)
 
   assert.ok(fm)
   assert.equal(fm.endLine, 6)
   assert.equal(fm.bodyStartLine, 7)
-  assert.match(fm.body, /## Contexto/)
+  assert.match(fm.body, /## Context/)
   assert.doesNotMatch(fm.body, /ADR-0042/)
 })
 
-test('devolve null quando o arquivo não abre com ---', () => {
-  assert.equal(parseFrontmatter('# Só um título\n'), null)
+test('returns null when the file does not open with ---', () => {
+  assert.equal(parseFrontmatter('# Just a title\n'), null)
 })
 
-test('devolve null quando o bloco nunca fecha', () => {
-  assert.equal(parseFrontmatter('---\nid: ADR-1\nsem fechamento\n'), null)
+test('returns null when the block never closes', () => {
+  assert.equal(parseFrontmatter('---\nid: ADR-1\nno closing\n'), null)
 })
 
-test('aceita CRLF e BOM', () => {
+test('accepts CRLF and BOM', () => {
   const fm = parseFrontmatter('﻿---\r\nid: ADR-1\r\n---\r\ncorpo\r\n')
 
   assert.ok(fm)
@@ -50,8 +50,8 @@ test('aceita CRLF e BOM', () => {
   assert.equal(fm.lines.id, 2)
 })
 
-test('lança FrontmatterSyntaxError com a linha quando o YAML é inválido', () => {
-  const bad = '---\nid: "unterminated\nstatus: accepted\n---\ncorpo\n'
+test('throws FrontmatterSyntaxError with the line when the YAML is invalid', () => {
+  const bad = '---\nid: "unterminated\nstatus: accepted\n---\nbody\n'
 
   assert.throws(
     () => parseFrontmatter(bad),
@@ -59,8 +59,8 @@ test('lança FrontmatterSyntaxError com a linha quando o YAML é inválido', () 
   )
 })
 
-test('bloco vazio produz data vazio, não erro', () => {
-  const fm = parseFrontmatter('---\n---\ncorpo\n')
+test('an empty block produces empty data, not an error', () => {
+  const fm = parseFrontmatter('---\n---\nbody\n')
 
   assert.ok(fm)
   assert.deepEqual(fm.data, {})

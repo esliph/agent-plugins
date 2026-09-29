@@ -1,59 +1,61 @@
 ---
-title: Política de versionamento
+title: Versioning policy
 owner: '@esliph/engineering'
 trigger: >
-  Mudança na interface pública do CLI, dos checks ou do `.ownership.yml`;
-  decisão de depreciar algo publicado; mudança na própria política.
+  A change to the public interface of the CLI, of the checks or of
+  `.ownership.yml`; a decision to deprecate something published; a change to the
+  policy itself.
 last-reviewed: 2026-09-15
 ---
 
-# Política de versionamento
+# Versioning policy
 
-A política em volta do contrato. O contrato em si — a tabela dos checks — é
-gerado (`docs/contracts/checks.gen.md`) e não se escreve à mão.
+The policy around the contract. The contract itself — the table of checks — is
+generated (`docs/contracts/checks.gen.md`) and is not written by hand.
 
-## O que é público
+## What is public
 
-- Os IDs dos checks (`CI-n`), dos hooks (`HK-n`), das skills (`SK-n`) e dos
-  comandos (`CM-n`), e o que cada um significa.
-- Os subcomandos do CLI (`validate`, `drift`, `changelog`, `init`), suas
-  opções, e os códigos de saída de `docs/contracts/errors.md`.
-- O esquema de `docs/.ownership.yml` com `version: 1`: os nomes das chaves e o
-  que cada uma exige.
-- O contrato do gerador: `generated[].command` imprime na saída padrão e não
-  escreve arquivo (`ADR-0005`).
-- O rótulo de exceção `Changelog: none — <razão>` e as chaves
-  `consumer-visible-paths` e `watches[].consumer-visible` do
+- The IDs of the checks (`CI-n`), of the hooks (`HK-n`), of the skills (`SK-n`)
+  and of the commands (`CM-n`), and what each one means.
+- The subcommands of the CLI (`validate`, `drift`, `changelog`, `init`), their
+  options, and the exit codes in `docs/contracts/errors.md`.
+- The schema of `docs/.ownership.yml` with `version: 1`: the names of the keys and
+  what each one requires.
+- The generator contract: `generated[].command` prints to standard output and does
+  not write a file (`ADR-0005`).
+- The exception label `Changelog: none — <reason>` and the keys
+  `consumer-visible-paths` and `watches[].consumer-visible` of
   `docs/.ownership.yml` (`ADR-0006`).
-- A chave `audience` de `documents:` e de `artifacts:` no
-  `docs/.ownership.yml`, e os dois valores que ela aceita: `internal`, que é o
-  padrão, e `external`, que marca o texto escrito para quem lê de fora
+- The `audience` key of `documents:` and of `artifacts:` in
+  `docs/.ownership.yml`, and the two values it accepts: `internal`, which is the
+  default, and `external`, which marks text written for readers from the outside
   (`ADR-0017`).
 
-O que não está nesta lista pode mudar sem aviso — a estrutura de `src/`, o
-texto das mensagens, o formato exato da saída de `validate`.
+What is not on this list can change without notice — the structure of `src/`, the
+text of the messages, the exact format of the output of `validate`.
 
-## O que nunca muda de significado
+## What never changes meaning
 
-Um identificador publicado não é reaproveitado nem redefinido. `living-docs/staleness` nunca
-passa a medir outra coisa; `EXIT-2` nunca vira "falhou a validação". Quando o
-significado precisa mudar, o identificador antigo ganha `deprecated` e um
-substituto nasce ao lado — é a mesma regra que `docs/ids-retired.txt` impõe aos
-artefatos, aplicada à interface.
+A published identifier is neither reused nor redefined. `living-docs/staleness` never
+starts measuring something else; `EXIT-2` never becomes "validation failed". When
+the meaning has to change, the old identifier gets `deprecated` and a replacement
+is born beside it — it is the same rule that `docs/ids-retired.txt` imposes on
+artifacts, applied to the interface.
 
-## Como se deprecia
+## How to deprecate
 
-Quatro coisas, sem exceção: data do anúncio, versão ou data de remoção,
-substituto, e o link para o guia de migração. Faltando qualquer uma, não é
-depreciação — é quebra de compatibilidade, e passa por um ADR.
+Four things, without exception: the announcement date, the removal version or
+date, a replacement, and the link to the migration guide. If any is missing, it
+is not a deprecation — it is a compatibility break, and it goes through an ADR.
 
-O rastro está completo: `CHANGELOG.md` registra o anúncio, `docs/deprecations.md`
-guarda as quatro coisas exigidas, `docs/migrations/` recebe o guia, e
-`docs/releases/` a nota da versão que removeu. Skill dona: `release-historian`.
+The trail is complete: `CHANGELOG.md` records the announcement,
+`docs/deprecations.md` keeps the four required things, `docs/migrations/`
+receives the guide, and `docs/releases/` the note of the version that removed it.
+Owning skill: `release-historian`.
 
-## Quem decide
+## Who decides
 
-Mudança quebra-compatibilidade passa por um ADR, com as alternativas e o que se
-aceita perder. Aceitar é ato humano (`RN-0005`).
+A compatibility-breaking change goes through an ADR, with the alternatives and
+what we accept to lose. Accepting is a human act (`RN-0005`).
 
-<!-- Skill dona: contract-keeper. -->
+<!-- Owning skill: contract-keeper. -->

@@ -8,13 +8,13 @@ export type { Collection, DerivesFrom, FormatBlock, GeneratedRuleRaw, OwnedRuleR
 
 export interface ParseOptions {
   isRoot: boolean
-  /** Nomes de plugin válidos como bloco dentro de `owned[]` — vêm de `plugins:` na raiz. */
+  /** Plugin names valid as a block inside `owned[]` — they come from `plugins:` in the root. */
   pluginNames: readonly string[]
 }
 
 function asRecord(value: unknown, where: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new OwnershipError(`${where}: precisa ser um mapa.`)
+    throw new OwnershipError(`${where}: must be a map.`)
   }
 
   return value as Record<string, unknown>
@@ -25,19 +25,19 @@ function asStringList(value: unknown, where: string): string[] {
     return []
   }
   if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
-    throw new OwnershipError(`${where}: precisa ser uma lista de strings.`)
+    throw new OwnershipError(`${where}: must be a list of strings.`)
   }
 
   return value as string[]
 }
 
-/** Ausente é lista vazia; presente e não-lista é erro — nunca vira `[]` em silêncio. */
+/** Absent is an empty list; present and not a list is an error — it never becomes `[]` in silence. */
 function asList(value: unknown, where: string): unknown[] {
   if (value === undefined || value === null) {
     return []
   }
   if (!Array.isArray(value)) {
-    throw new OwnershipError(`${where}: precisa ser uma lista.`)
+    throw new OwnershipError(`${where}: must be a list.`)
   }
 
   return value
@@ -47,7 +47,7 @@ function requireString(source: Record<string, unknown>, key: string, where: stri
   const value = source[key]
 
   if (typeof value !== 'string' || value.trim() === '') {
-    throw new OwnershipError(`${where}: precisa do campo \`${key}\` não vazio.`)
+    throw new OwnershipError(`${where}: needs a non-empty \`${key}\` field.`)
   }
 
   return value
@@ -66,7 +66,7 @@ function dirOf(file: string): string {
 function assertKnownKeys(item: Record<string, unknown>, allowed: ReadonlySet<string>, where: string, hint = ''): void {
   for (const key of Object.keys(item)) {
     if (!allowed.has(key)) {
-      throw new OwnershipError(`${where}: chave "${key}" desconhecida.${hint}`)
+      throw new OwnershipError(`${where}: unknown key "${key}".${hint}`)
     }
   }
 }
@@ -80,15 +80,15 @@ function parseFormat(raw: unknown, where: string): FormatBlock {
   const stateFieldRaw = item['state-field'] ?? 'status'
 
   if (typeof stateFieldRaw !== 'string' || stateFieldRaw.trim() === '') {
-    throw new OwnershipError(`${where}.format.state-field: precisa ser uma string não vazia.`)
+    throw new OwnershipError(`${where}.format.state-field: must be a non-empty string.`)
   }
   const stateField = normalizeKey(stateFieldRaw)
 
-  // per-file não tem chave a localizar (a identidade é o arquivo), mas o
-  // estado ainda mora num campo do frontmatter, e esse campo é configurável
-  // (spec §3, `state-field`). O bloco existe só para isso: `key` é erro.
+  // per-file has no key to locate (the identity is the file), but the
+  // state still lives in a frontmatter field, and that field is configurable
+  // (spec §3, `state-field`). The block exists only for that: `key` is an error.
   if (item.collection === 'per-file') {
-    assertKnownKeys(item, new Set(['collection', 'state-field']), `${where}.format`, ' Em per-file a identidade é o arquivo.')
+    assertKnownKeys(item, new Set(['collection', 'state-field']), `${where}.format`, ' In per-file the identity is the file.')
 
     return { collection: 'per-file', key: null, keyMode: null, stateField }
   }
@@ -103,13 +103,13 @@ function parseFormat(raw: unknown, where: string): FormatBlock {
     const keyMode = item.key ?? 'first-token'
 
     if (keyMode !== 'first-token' && keyMode !== 'heading') {
-      throw new OwnershipError(`${where}.format.key: precisa ser "first-token" ou "heading" (recebido: ${String(keyMode)}).`)
+      throw new OwnershipError(`${where}.format.key: must be "first-token" or "heading" (received: ${String(keyMode)}).`)
     }
 
     return { collection: 'sections', key: null, keyMode, stateField }
   }
 
-  throw new OwnershipError(`${where}.format.collection: precisa ser "per-file", "table" ou "sections".`)
+  throw new OwnershipError(`${where}.format.collection: must be "per-file", "table" or "sections".`)
 }
 
 function parseDerivesFrom(raw: unknown, where: string): DerivesFrom | null {
@@ -127,12 +127,12 @@ function parseDerivesFrom(raw: unknown, where: string): DerivesFrom | null {
 }
 
 /**
- * O valor de um bloco de plugin é sempre um mapa: `x: {}` declara o vínculo sem
- * configuração, e qualquer outro valor é erro de carga (ADR-0020).
+ * The value of a plugin block is always a map: `x: {}` declares the binding with no
+ * configuration, and any other value is a load error (ADR-0020).
  */
 function asPluginBlock(value: unknown, where: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new OwnershipError(`${where}: o bloco de plugin precisa ser um mapa — use \`{}\` para declarar o vínculo sem configuração.`)
+    throw new OwnershipError(`${where}: a plugin block must be a map — use \`{}\` to declare the link without configuration.`)
   }
 
   return value as Record<string, unknown>
@@ -148,13 +148,13 @@ function parseOwned(raw: unknown, index: number, file: string, pluginNames: read
     if (OWNED_CORE_KEYS.has(key) || pluginNames.includes(key)) {
       continue
     }
-    throw new OwnershipError(`${where}: chave "${key}" desconhecida. Se é de um plugin, declare-o em \`plugins:\` na raiz.`)
+    throw new OwnershipError(`${where}: unknown key "${key}". If it belongs to a plugin, declare it in \`plugins:\` at the root.`)
   }
 
   const ownerRaw = item.owner
 
   if (typeof ownerRaw !== 'string' || !ownerRaw.startsWith('@')) {
-    throw new OwnershipError(`${where}.owner "${String(ownerRaw)}" precisa ser uma string começando com @. Toda entrada declara o próprio dono.`)
+    throw new OwnershipError(`${where}.owner "${String(ownerRaw)}" must be a string starting with @. Every entry declares its own owner.`)
   }
 
   const owner = ownerRaw
@@ -162,7 +162,7 @@ function parseOwned(raw: unknown, index: number, file: string, pluginNames: read
   const skill = item.skill
 
   if (skill !== undefined && (typeof skill !== 'string' || skill.trim() === '')) {
-    throw new OwnershipError(`${where}.skill: precisa ser uma string não vazia, ou ficar ausente.`)
+    throw new OwnershipError(`${where}.skill: must be a non-empty string, or be absent.`)
   }
 
   const pluginBlocks: Record<string, Record<string, unknown>> = {}
@@ -212,19 +212,19 @@ function parseWatch(raw: unknown, index: number, file: string): WatchRuleRaw {
 const ROOT_KEYS = new Set(['version', 'plugins', 'basePath', 'owned', 'generated', 'watches', 'ignore', 'include'])
 const CHILD_KEYS = new Set(['version', 'basePath', 'owned', 'generated', 'watches', 'ignore', 'include'])
 
-/** Só desce: sem `..`, sem glob, sem caminho absoluto — é o que mantém a poda correta sem abrir o arquivo (spec §5). */
+/** Only descends: no `..`, no glob, no absolute path — what keeps the pruning correct without opening the file (spec §5). */
 function parseBasePath(value: unknown, file: string): string | null {
   if (value === undefined || value === null) {
     return null
   }
   if (typeof value !== 'string' || value.trim() === '') {
-    throw new OwnershipError(`${file}: \`basePath\` precisa ser uma string não vazia.`)
+    throw new OwnershipError(`${file}: \`basePath\` must be a non-empty string.`)
   }
 
   const normalized = value.replace(/\\/g, '/').replace(/\/$/, '')
 
   if (normalized.startsWith('/') || normalized === '..' || normalized.startsWith('../') || normalized.includes('/../') || normalized.includes('*')) {
-    throw new OwnershipError(`${file}: \`basePath\` "${value}" precisa apontar para dentro do diretório do arquivo — sem \`..\`, sem glob e sem caminho absoluto.`)
+    throw new OwnershipError(`${file}: \`basePath\` "${value}" must point inside the directory of the file — no \`..\`, no glob and no absolute path.`)
   }
 
   return normalized
@@ -236,7 +236,7 @@ export function parseOwnershipFile(source: string, file: string, opts: ParseOpti
   try {
     raw = YAML.parse(source)
   } catch (err) {
-    throw new OwnershipError(`${file}: YAML inválido — ${err instanceof Error ? err.message : String(err)}`)
+    throw new OwnershipError(`${file}: Invalid YAML — ${err instanceof Error ? err.message : String(err)}`)
   }
 
   const root = asRecord(raw, file)
@@ -244,17 +244,17 @@ export function parseOwnershipFile(source: string, file: string, opts: ParseOpti
   let pluginNames = opts.pluginNames
   let plugins: string[] | undefined
 
-  // A versão vem antes da checagem de chaves, e vale para todo arquivo, não só a
-  // raiz: um arquivo v1 tem `artifacts`/`documents`, e "chave desconhecida"
-  // esconderia o motivo real.
+  // The version comes before the key check, and applies to every file, not only the
+  // root: a v1 file has `artifacts`/`documents`, and "unknown key"
+  // would hide the real reason.
   if (root.version === 1) {
     throw new OwnershipError(
-      `${file}: esquema v1 — este arquivo não é lido. O núcleo só lê a v2 (lista \`owned\`, blocos por plugin); ` +
-        'reescreva o arquivo na v2.',
+      `${file}: schema v1 — this file is not read. The core reads only v2 (an \`owned\` list, blocks per plugin); ` +
+        'rewrite the file as v2.',
     )
   }
   if (root.version !== 2) {
-    throw new OwnershipError(`${file}: campo \`version\` precisa ser 2 (recebido: ${String(root.version)}).`)
+    throw new OwnershipError(`${file}: \`version\` field must be 2 (received: ${String(root.version)}).`)
   }
 
   if (opts.isRoot) {
@@ -262,19 +262,19 @@ export function parseOwnershipFile(source: string, file: string, opts: ParseOpti
 
     for (const name of plugins) {
       if (ROOT_KEYS.has(name)) {
-        throw new OwnershipError(`${file}.plugins: "${name}" é chave do núcleo e não pode nomear plugin.`)
+        throw new OwnershipError(`${file}.plugins: "${name}" is a core key and cannot name a plugin.`)
       }
     }
     pluginNames = plugins
-    // Bloco de topo: só a raiz, e só com nome listado em `plugins:` (ADR-0028).
+    // Top-level block: only the root, and only with a name listed in `plugins:` (ADR-0028).
     assertKnownKeys(root, new Set([...ROOT_KEYS, ...plugins]), file)
   } else {
     for (const key of Object.keys(root)) {
       if (opts.pluginNames.includes(key)) {
-        throw new OwnershipError(`${file}: bloco de plugin "${key}" no topo é exclusivo do arquivo raiz.`)
+        throw new OwnershipError(`${file}: top-level plugin block "${key}" is exclusive to the root file.`)
       }
     }
-    assertKnownKeys(root, CHILD_KEYS, file, ' `plugins` é exclusivo do arquivo raiz.')
+    assertKnownKeys(root, CHILD_KEYS, file, ' `plugins` is exclusive to the root file.')
   }
 
   const ownedRaw = asList(root.owned, `${file}.owned`)

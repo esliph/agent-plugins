@@ -3,11 +3,11 @@ export type SectionKeyMode = 'first-token' | 'heading'
 
 export interface FormatBlock {
   collection: Collection
-  /** Nome da coluna, quando `collection` é `table`. Null nos outros dois casos. */
+  /** Column name, when `collection` is `table`. Null in the other two cases. */
   key: string | null
-  /** Só quando `collection` é `sections`. */
+  /** Only when `collection` is `sections`. */
   keyMode: SectionKeyMode | null
-  /** Normalizado (minúsculo, sem espaço nas pontas). Default `'status'`. */
+  /** Normalized (lowercase, no surrounding whitespace). Default `'status'`. */
   stateField: string
 }
 
@@ -18,16 +18,16 @@ export interface DerivesFrom {
 
 export interface OwnedRuleRaw {
   path: string
-  /** Obrigatório: sem cascata, nenhuma entrada herda dono de outro arquivo (spec §5). */
+  /** Required: no cascade, no entry inherits an owner from another file (spec §5). */
   owner: string
   skill: string | null
-  /** Vocabulário do projeto; `null` quando o caminho não declara ciclo de vida. */
+  /** Project vocabulary; `null` when the path declares no lifecycle. */
   states: string[] | null
   format: FormatBlock
-  /** Se o arquivo escreveu `format:` — o default do parser não é declaração. */
+  /** Whether the file wrote `format:` — the parser default is not a declaration. */
   formatDeclared: boolean
   derivesFrom: DerivesFrom | null
-  /** Por nome de plugin declarado em `plugins:`. Sempre um mapa; o conteúdo é opaco ao núcleo. */
+  /** By plugin name declared in `plugins:`. Always a map; the content is opaque to the core. */
   pluginBlocks: Record<string, Record<string, unknown>>
 }
 
@@ -44,12 +44,12 @@ export interface WatchRuleRaw {
 }
 
 export interface ParsedFile {
-  /** Caminho deste arquivo de ownership, relativo à raiz do repositório. */
+  /** Path of this ownership file, relative to the repository root. */
   file: string
-  /** Diretório deste arquivo, relativo à raiz. `''` para a raiz do repositório. */
+  /** Directory of this file, relative to the root. `''` for the repository root. */
   dir: string
   version: 2
-  /** Desloca a base para dentro do diretório do arquivo; `null` quando a base é o próprio diretório. */
+  /** Shifts the base into the file's directory; `null` when the base is the directory itself. */
   basePath: string | null
   owned: OwnedRuleRaw[]
   generated: GeneratedRuleRaw[]
@@ -60,7 +60,7 @@ export interface ParsedFile {
 
 export interface RootFile extends ParsedFile {
   plugins: string[]
-  /** Blocos de topo, por nome de plugin — só a raiz os tem (ADR-0028). */
+  /** Top-level blocks, by plugin name — only the root has them (ADR-0028). */
   pluginBlocks: Record<string, Record<string, unknown>>
 }
 

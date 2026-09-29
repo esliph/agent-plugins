@@ -2,22 +2,21 @@
 title: Product Vision
 owner: '@esliph/engineering'
 trigger: >
-  Mudança de estratégia de produto — nunca como efeito colateral de outra
-  tarefa.
+  A change of product strategy — never as a side effect of another task.
 last-reviewed: 2026-08-25
 ---
 
 # Product Vision
 
-**Que problema:** Documentação que descola do código e apodrece em silêncio —
-decisões, requisitos e dívidas técnicas viram conhecimento tribal que evapora
-quando quem lembra sai do time.
+**What problem:** Documentation that drifts from the code and rots in silence —
+decisions, requirements and technical debts become tribal knowledge that
+evaporates when whoever remembers leaves the team.
 
-**Para quem:** Quem mantém um repositório sozinho ou em time pequeno e
-precisa que "por que foi feito assim" e "o que ainda não decidimos"
-sobrevivam à rotatividade de quem lembra — sem depender de uma wiki paralela
-que ninguém atualiza.
+**For whom:** Whoever maintains a repository alone or in a small team and
+needs "why was it done this way" and "what have we not decided yet" to
+survive the turnover of whoever remembers — without depending on a parallel wiki
+that nobody updates.
 
-**Métrica de sucesso:** `living-docs validate` roda em minutos no PR e falha
-antes de mesclar; toda `RN` `active` é citada por ao menos um teste (`CI-3`
-sem achado); nenhum ADR aceito foi reescrito retroativamente.
+**Success metric:** `living-docs validate` runs in minutes on the PR and fails
+before merging; every `active` `RN` is cited by at least one test (`CI-3`
+with no finding); no accepted ADR was rewritten retroactively.

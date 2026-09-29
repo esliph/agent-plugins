@@ -1,26 +1,26 @@
 ---
-title: Depreciações
+title: Deprecations
 owner: '@esliph/engineering'
 trigger: >
-  Quando algo publicado é anunciado para remoção, e quando uma depreciação
-  anunciada é de fato removida.
+  When something published is announced for removal, and when an announced
+  deprecation is actually removed.
 last-reviewed: 2026-09-15
 ---
 
-# Depreciações
+# Deprecations
 
-Uma depreciação registra quatro coisas, sem exceção: a data do anúncio, a
-versão ou data de remoção, o substituto, e o link para o guia de migração.
-Faltando qualquer uma, não é depreciação — é quebra de compatibilidade, e passa
-por um ADR.
+A deprecation records four things, without exception: the announcement date, the
+removal version or date, the replacement, and the link to the migration guide.
+If any is missing, it is not a deprecation — it is a compatibility break, and it
+goes through an ADR.
 
-O que é público, e portanto pode ser depreciado, está em
+What is public, and therefore can be deprecated, is in
 `docs/contracts/versioning-policy.md`.
 
-| O que | Anunciado em | Removido em | Substituto | Guia de migração | Status |
-| ----- | ------------ | ----------- | ---------- | ---------------- | ------ |
+| What | Announced on | Removed in | Replacement | Migration guide | Status |
+| ---- | ------------ | ---------- | ----------- | --------------- | ------ |
 
-Nenhuma depreciação anunciada até aqui. A tabela vazia é informação: nada do
-que é público mudou de significado desde a primeira versão.
+No deprecation announced so far. The empty table is information: nothing that is
+public has changed meaning since the first version.
 
-<!-- Skill dona: release-historian. -->
+<!-- Owning skill: release-historian. -->

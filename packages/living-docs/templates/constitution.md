@@ -2,20 +2,20 @@
 title: Constitution
 owner: "{{OWNER}}"
 trigger: >
-  Emenda deliberada — nunca como efeito colateral de outra tarefa.
+  Deliberate amendment — never as a side effect of another task.
 last-reviewed: {{TODAY}}
 version: 1
 ---
 
 # Constitution
 
-O que é inviolável neste projeto. Cada princípio nomeia o que o verifica: um
-hook, um lint, um teste, uma revisão ou um check.
+What is inviolable in this project. Each principle names what verifies it: a
+hook, a lint, a test, a review or a check.
 
-## Princípios
+## Principles
 
-1. Substitua por um princípio real deste projeto — verificado por <nomeie aqui>.
+1. Replace with a real principle of this project — verified by <name it here>.
 
-## Log de emendas
+## Amendment log
 
-- {{TODAY}} — v1 — Criação inicial — humana.
+- {{TODAY}} — v1 — Initial creation — human.

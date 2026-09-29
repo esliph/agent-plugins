@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { coversDoc, pendingDocs, watchesFor } from '../../src/triggers/watches.ts'
 import { buildConfig } from '../helpers/config.ts'
 
-test('watchesFor agrupa por doc e acumula os caminhos que bateram', () => {
+test('watchesFor groups by doc and accumulates the paths that matched', () => {
   const config = buildConfig({
     owned: [{ path: 'docs/requirements/rules.md', owner: '@a', skill: 'requirements-keeper' }],
     watches: [
@@ -12,7 +12,7 @@ test('watchesFor agrupa por doc e acumula os caminhos que bateram', () => {
     ],
   })
 
-  const matches = watchesFor(config, ['src/checks/a.ts', 'src/hooks/b.ts', 'src/outro.ts'])
+  const matches = watchesFor(config, ['src/checks/a.ts', 'src/hooks/b.ts', 'src/other.ts'])
 
   assert.equal(matches.length, 1)
   assert.equal(matches[0]?.doc, 'docs/requirements/rules.md')
@@ -22,7 +22,7 @@ test('watchesFor agrupa por doc e acumula os caminhos que bateram', () => {
   assert.equal(matches[0]?.owner, '@a')
 })
 
-test('consumerVisible é true se QUALQUER regra que aponta pro doc trouxer a marca', () => {
+test('consumerVisible is true if ANY rule that points to the doc carries the mark', () => {
   const config = buildConfig({
     watches: [
       { code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true },
@@ -33,7 +33,7 @@ test('consumerVisible é true se QUALQUER regra que aponta pro doc trouxer a mar
   assert.equal(watchesFor(config, ['src/cli/a.ts', 'plugin/b.md'])[0]?.consumerVisible, true)
 })
 
-test('doc sem owned declarado ainda é doc dono — skill e owner ficam null', () => {
+test('a doc with no declared owned is still an owning doc — skill and owner stay null', () => {
   const config = buildConfig({ watches: [{ code: 'src/**', doc: 'README.md' }] })
   const matches = watchesFor(config, ['src/a.ts'])
 
@@ -41,13 +41,13 @@ test('doc sem owned declarado ainda é doc dono — skill e owner ficam null', (
   assert.equal(matches[0]?.owner, null)
 })
 
-test('coversDoc: diretório por prefixo, arquivo por igualdade', () => {
+test('coversDoc: directory by prefix, file by equality', () => {
   assert.equal(coversDoc('docs/', ['docs/x.md']), true)
   assert.equal(coversDoc('docs/x.md', ['docs/x.md']), true)
   assert.equal(coversDoc('docs/x.md', ['docs/y.md']), false)
 })
 
-test('pendingDocs tira o que já foi tocado no mesmo conjunto de caminhos', () => {
+test('pendingDocs drops what was already touched in the same set of paths', () => {
   const config = buildConfig({ watches: [{ code: 'src/**', doc: 'docs/x.md', reason: 'r' }] })
 
   assert.equal(pendingDocs(config, ['src/a.ts']).length, 1)

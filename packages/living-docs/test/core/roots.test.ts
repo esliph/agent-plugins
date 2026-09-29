@@ -5,36 +5,36 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { repoRoot, templatesDir, toolkitRoot } from '../../src/core/roots.ts'
 
-test('toolkitRoot aponta para o checkout do toolkit', () => {
+test('toolkitRoot points at the toolkit checkout', () => {
   assert.ok(existsSync(join(toolkitRoot(), 'package.json')))
   assert.ok(existsSync(join(templatesDir(), 'adr.md')))
 })
 
-test('RNF-0003: repoRoot respeita LIVING_DOCS_REPO_ROOT e não move toolkitRoot', () => {
-  const antes = toolkitRoot()
-  const anterior = process.env.LIVING_DOCS_REPO_ROOT
-  // Caminho derivado do sistema, não escrito à mão: `repoRoot()` resolve, e um
-  // caminho POSIX literal vira `C:\...` no Windows.
-  const outro = join(tmpdir(), 'outro-projeto')
+test('RNF-0003: repoRoot honors LIVING_DOCS_REPO_ROOT and does not move toolkitRoot', () => {
+  const before = toolkitRoot()
+  const previous = process.env.LIVING_DOCS_REPO_ROOT
+  // Path derived from the system, not hand-written: `repoRoot()` resolves, and a
+  // literal POSIX path becomes `C:\...` on Windows.
+  const other = join(tmpdir(), 'other-project')
 
-  process.env.LIVING_DOCS_REPO_ROOT = outro
+  process.env.LIVING_DOCS_REPO_ROOT = other
   try {
-    assert.equal(repoRoot(), resolve(outro))
-    assert.equal(toolkitRoot(), antes, 'a raiz do toolkit não pode seguir a do repositório (ADR-0003)')
+    assert.equal(repoRoot(), resolve(other))
+    assert.equal(toolkitRoot(), before, 'the toolkit root must not follow the repository one (ADR-0003)')
   } finally {
-    if (anterior === undefined) {
+    if (previous === undefined) {
       delete process.env.LIVING_DOCS_REPO_ROOT
     } else {
-      process.env.LIVING_DOCS_REPO_ROOT = anterior
+      process.env.LIVING_DOCS_REPO_ROOT = previous
     }
   }
 })
 
-test('RNF-0003: nenhum caminho absoluto de container está embutido em src/ ou test/', () => {
-  // Montados por concatenação de propósito: escrito inteiro, este array
-  // reprovaria o próprio arquivo que o contém.
-  const proibidos = ['/' + 'app', '/' + 'workspace', '/' + 'opt/living-docs']
-  const ofensas: string[] = []
+test('RNF-0003: no absolute container path is embedded in src/ or test/', () => {
+  // Built by concatenation on purpose: written whole, this array
+  // would fail the very file that contains it.
+  const forbidden = ['/' + 'app', '/' + 'workspace', '/' + 'opt/living-docs']
+  const offenses: string[] = []
 
   const walk = (dir: string): void => {
     for (const entry of readdirSync(join(toolkitRoot(), dir))) {
@@ -49,9 +49,9 @@ test('RNF-0003: nenhum caminho absoluto de container está embutido em src/ ou t
       }
       const source = readFileSync(join(toolkitRoot(), relative), 'utf8')
 
-      for (const proibido of proibidos) {
-        if (source.includes(`'${proibido}`) || source.includes(`"${proibido}`)) {
-          ofensas.push(`${relative}: ${proibido}`)
+      for (const forbiddenPath of forbidden) {
+        if (source.includes(`'${forbiddenPath}`) || source.includes(`"${forbiddenPath}`)) {
+          offenses.push(`${relative}: ${forbiddenPath}`)
         }
       }
     }
@@ -59,30 +59,30 @@ test('RNF-0003: nenhum caminho absoluto de container está embutido em src/ ou t
 
   walk('src')
   walk('test')
-  assert.deepEqual(ofensas, [], 'caminho de container só pode aparecer em Dockerfile, compose e wrappers (ADR-0003)')
+  assert.deepEqual(offenses, [], 'a container path may only appear in Dockerfile, compose and wrappers (ADR-0003)')
 })
 
-test('RNF-0003: sem variável nenhuma, cada raiz vem da sua própria fonte', () => {
-  // Substitui a antiga asserção "o container declara as duas raízes", que lia
-  // do ambiente duas variáveis que só existiam porque o compose as injetava.
-  // O que ADR-0003 de fato exige sobrevive à saída do container: o toolkit se
-  // acha pelo próprio arquivo, e o repositório validado é o cwd de quem chamou.
-  const anteriorRepo = process.env.LIVING_DOCS_REPO_ROOT
-  const anteriorToolkit = process.env.LIVING_DOCS_TOOLKIT_ROOT
+test('RNF-0003: with no variable at all, each root comes from its own source', () => {
+  // Replaces the old assertion "the container declares both roots", which read
+  // from the environment two variables that only existed because compose injected them.
+  // What ADR-0003 actually demands survives leaving the container: the toolkit
+  // finds itself through its own file, and the validated repository is the caller's cwd.
+  const previousRepo = process.env.LIVING_DOCS_REPO_ROOT
+  const previousToolkit = process.env.LIVING_DOCS_TOOLKIT_ROOT
 
   delete process.env.LIVING_DOCS_REPO_ROOT
   delete process.env.LIVING_DOCS_TOOLKIT_ROOT
   try {
-    // Este arquivo está dois níveis abaixo da raiz, exatamente como
-    // `src/core/roots.ts`: a derivação é a mesma, e é ela que se afirma.
+    // This file is two levels below the root, exactly like
+    // `src/core/roots.ts`: the derivation is the same, and it is what is asserted.
     assert.equal(toolkitRoot(), resolve(join(import.meta.dirname, '..', '..')))
     assert.equal(repoRoot(), resolve(process.cwd()))
   } finally {
-    if (anteriorRepo !== undefined) {
-      process.env.LIVING_DOCS_REPO_ROOT = anteriorRepo
+    if (previousRepo !== undefined) {
+      process.env.LIVING_DOCS_REPO_ROOT = previousRepo
     }
-    if (anteriorToolkit !== undefined) {
-      process.env.LIVING_DOCS_TOOLKIT_ROOT = anteriorToolkit
+    if (previousToolkit !== undefined) {
+      process.env.LIVING_DOCS_TOOLKIT_ROOT = previousToolkit
     }
   }
 })

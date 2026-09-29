@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { runValidate } from '../../src/cli/validate.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-test('sem arquivo de ownership, installed: false e exitCode 0', () => {
+test('with no ownership file, installed: false and exitCode 0', () => {
   withTempRepo({}, root => {
     const result = runValidate(root)
 
@@ -14,16 +14,16 @@ test('sem arquivo de ownership, installed: false e exitCode 0', () => {
   })
 })
 
-test('com achado de erro, exitCode 1', () => {
+test('with an error finding, exitCode 1', () => {
   withTempRepo({ '.ownership.yml': 'version: 2\nowned:\n  - path: docs/x.md\n    owner: "@a"\n' }, root => {
     const result = runValidate(root)
 
-    assert.equal(result.exitCode, 1) // ownership/owner-coverage: CODEOWNERS ausente e caminho inexistente
+    assert.equal(result.exitCode, 1) // ownership/owner-coverage: CODEOWNERS missing and nonexistent path
     assert.ok(result.errors > 0)
   })
 })
 
-test('sem --base, os checks de diff não rodam', () => {
+test('without --base, the diff checks do not run', () => {
   withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\nwatches:\n  - code: "src/**"\n    doc: docs/x.md\n' }, root => {
     const result = runValidate(root)
 
@@ -31,11 +31,11 @@ test('sem --base, os checks de diff não rodam', () => {
   })
 })
 
-test('base que não resolve: sai com 2 e diz que o clone precisa conter a base', { timeout: 30_000 }, () => {
+test('base that does not resolve: exits with 2 and says the clone must contain the base', { timeout: 30_000 }, () => {
   withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n' }, root => {
     spawnSync('git', ['init', '-q'], { cwd: root })
     const cli = join(import.meta.dirname, '..', '..', 'src', 'cli', 'index.ts')
-    const run = spawnSync('node', [cli, 'validate', '--base', 'nao-existe'], { cwd: root, encoding: 'utf8', env: { ...process.env, OWNERSHIP_REPO_ROOT: root } })
+    const run = spawnSync('node', [cli, 'validate', '--base', 'does-not-exist'], { cwd: root, encoding: 'utf8', env: { ...process.env, OWNERSHIP_REPO_ROOT: root } })
 
     assert.equal(run.status, 2, run.stderr)
     assert.match(run.stderr, /fetch-depth/)

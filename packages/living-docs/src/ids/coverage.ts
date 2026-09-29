@@ -4,18 +4,18 @@ import type { IdFormat } from '../docs/schema.ts'
 import { findCitations } from './citations.ts'
 
 export interface CitationSite {
-  /** Caminho relativo à raiz do repositório, sempre com `/`. */
+  /** Path relative to the repository root, always with `/`. */
   file: string
-  /** Linha 1-indexed. */
+  /** 1-indexed line. */
   line: number
 }
 
 /**
- * Onde cada ID aparece, restrito aos caminhos de `globs`.
- * Chave: o ID exatamente como escrito no texto — a canonização é de quem compara.
+ * Where each ID appears, restricted to the paths of `globs`.
+ * Key: the ID exactly as written in the text — canonicalization is up to whoever compares.
  *
- * A varredura da árvore e a leitura segura moram em `src/core/files.ts` desde a
- * Fase 7: `living-docs/staleness`, `ownership/owner-coverage` e `living-docs/links` fazem a mesma caminhada.
+ * The tree scan and the safe read have lived in `src/core/files.ts` since
+ * Phase 7: `living-docs/staleness`, `ownership/owner-coverage` and `living-docs/links` do the same walk.
  */
 export function scanCitations(root: string, globs: readonly string[], format: IdFormat = DEFAULT_ID_FORMAT): Map<string, CitationSite[]> {
   const sites = new Map<string, CitationSite[]>()

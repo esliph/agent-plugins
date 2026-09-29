@@ -10,35 +10,35 @@ version: 2
 plugins: [living-docs]
 owned:
   - path: docs/requirements/rules.md
-    owner: "@time"
+    owner: "@team"
     skill: requirements-keeper
     states: [draft, active, revoked]
     format: { collection: sections, key: first-token }
     living-docs: { id-prefix: RN }
   - path: docs/decisions/adr/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs: { id-prefix: ADR }
 `
 
-const REGRAS = [
+const RULES = [
   '---',
-  'title: Regras',
-  'owner: "@time"',
-  'trigger: Antes de implementar comportamento novo.',
+  'title: Rules',
+  'owner: "@team"',
+  'trigger: Before implementing new behavior.',
   'last-reviewed: 2026-08-31',
   '---',
   '',
-  '## RN-0001 — Centavos arredondam para cima',
+  '## RN-0001 — Cents round up',
   '',
   '- **status:** active',
   '',
-  'Prosa.',
+  'Prose.',
   '',
 ].join('\n')
 
-const ARVORE = { 'docs/requirements/rules.md': REGRAS }
+const TREE = { 'docs/requirements/rules.md': RULES }
 
 function contextFor(root: string, ownership = OWNERSHIP) {
   const config = configFrom(ownership)
@@ -46,17 +46,17 @@ function contextFor(root: string, ownership = OWNERSHIP) {
   return { root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-31' }
 }
 
-/** Uma edição que só mexeu na data de revisão. */
+/** An edit that only touched the review date. */
 function bump(path: string) {
   return { path, added: ['last-reviewed: 2026-08-31'], removed: ['last-reviewed: 2026-01-01'] }
 }
 
-test('RN-0027: tres documentos que so mudaram a data reprovam, nomeando o anti-requisito', () => {
-  withTempRepo(ARVORE, root => {
+test('RN-0027: three documents that only changed the date fail, naming the anti-requirement', () => {
+  withTempRepo(TREE, root => {
     const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
-      messages: ['chore: revisao da documentacao'],
+      messages: ['chore: documentation review'],
       edits: [bump('docs/a.md'), bump('docs/b.md'), bump('docs/c.md')],
     }).run(contextFor(root))
 
@@ -70,79 +70,79 @@ test('RN-0027: tres documentos que so mudaram a data reprovam, nomeando o anti-r
   })
 })
 
-test('RN-0027: dois bumps passam, e documento que mudou de verdade nunca conta', () => {
-  withTempRepo(ARVORE, root => {
-    const doisBumps = livingDocsCommitDiscipline({
+test('RN-0027: two bumps pass, and a document that really changed never counts', () => {
+  withTempRepo(TREE, root => {
+    const twoBumps = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/a.md', 'docs/b.md'],
-      messages: ['docs: revisao'],
+      messages: ['docs: review'],
       edits: [bump('docs/a.md'), bump('docs/b.md')],
     }).run(contextFor(root))
 
     assert.deepEqual(
-      doisBumps.filter(f => /last-reviewed/.test(f.message)),
+      twoBumps.filter(f => /last-reviewed/.test(f.message)),
       [],
     )
 
-    // Tres documentos tocados, mas um deles mudou no corpo: revisao de verdade.
-    const comCorpo = livingDocsCommitDiscipline({
+    // Three documents touched, but one of them changed in the body: a real review.
+    const withBody = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
-      messages: ['docs: revisao'],
+      messages: ['docs: review'],
       edits: [
         bump('docs/a.md'),
         bump('docs/b.md'),
         {
           path: 'docs/c.md',
-          added: ['last-reviewed: 2026-08-31', 'paragrafo novo'],
+          added: ['last-reviewed: 2026-08-31', 'new paragraph'],
           removed: ['last-reviewed: 2026-01-01'],
         },
       ],
     }).run(contextFor(root))
 
     assert.deepEqual(
-      comCorpo.filter(f => /last-reviewed/.test(f.message)),
+      withBody.filter(f => /last-reviewed/.test(f.message)),
       [],
     )
   })
 })
 
-test('RN-0027: o limiar e configuravel, e o padrao e tres', () => {
-  withTempRepo(ARVORE, root => {
+test('RN-0027: the threshold is configurable, and the default is three', () => {
+  withTempRepo(TREE, root => {
     const facts = {
       base: 'origin/master',
       changed: ['docs/a.md', 'docs/b.md'],
-      messages: ['docs: revisao'],
+      messages: ['docs: review'],
       edits: [bump('docs/a.md'), bump('docs/b.md')],
     }
-    const comLimiar2 = livingDocsCommitDiscipline(facts).run(contextFor(root, OWNERSHIP.replace('owned:', 'living-docs:\n  last-reviewed-bump-limit: 2\nowned:')))
+    const withLimit2 = livingDocsCommitDiscipline(facts).run(contextFor(root, OWNERSHIP.replace('owned:', 'living-docs:\n  last-reviewed-bump-limit: 2\nowned:')))
 
-    assert.ok(comLimiar2.some(f => /last-reviewed/.test(f.message)))
+    assert.ok(withLimit2.some(f => /last-reviewed/.test(f.message)))
   })
 })
 
-test('RN-0028: commit que altera artefato sem citar o ID declarado nele reprova', () => {
-  withTempRepo(ARVORE, root => {
+test('RN-0028: a commit that changes an artifact without citing the ID declared in it fails', () => {
+  withTempRepo(TREE, root => {
     const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/requirements/rules.md'],
-      messages: ['docs: ajusta a prosa da regra'],
+      messages: ['docs: adjust the rule prose'],
       edits: [],
     }).run(contextFor(root))
 
     assert.equal(findings.length, 1)
     assert.equal(findings[0]?.file, 'docs/requirements/rules.md')
     assert.match(findings[0]?.message ?? '', /RN-0001/)
-    assert.match(findings[0]?.fix ?? '', /mensagem de commit/)
+    assert.match(findings[0]?.fix ?? '', /commit message/)
   })
 })
 
-test('RN-0028: basta uma mensagem do diff citar um dos IDs do arquivo', () => {
-  withTempRepo(ARVORE, root => {
+test('RN-0028: it is enough for one message of the diff to cite one of the IDs in the file', () => {
+  withTempRepo(TREE, root => {
     const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/requirements/rules.md'],
-      messages: ['chore: mexe em outra coisa', 'docs(RN-0001): a regra ganha o caso do negativo'],
+      messages: ['chore: touch something else', 'docs(RN-0001): the rule gains the negative case'],
       edits: [],
     }).run(contextFor(root))
 
@@ -150,12 +150,12 @@ test('RN-0028: basta uma mensagem do diff citar um dos IDs do arquivo', () => {
   })
 })
 
-test('RN-0028: arquivo que nao e artefato, e artefato ausente, nao sao cobrados', () => {
-  withTempRepo(ARVORE, root => {
+test('RN-0028: a file that is not an artifact, and an absent artifact, are not enforced', () => {
+  withTempRepo(TREE, root => {
     const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
-      changed: ['src/cli/index.ts', 'docs/decisions/adr/ADR-0001-apagado.md'],
-      messages: ['refactor: renomeia interno'],
+      changed: ['src/cli/index.ts', 'docs/decisions/adr/ADR-0001-deleted.md'],
+      messages: ['refactor: rename internal'],
       edits: [],
     }).run(contextFor(root))
 
@@ -163,14 +163,14 @@ test('RN-0028: arquivo que nao e artefato, e artefato ausente, nao sao cobrados'
   })
 })
 
-test('RN-0024: a citacao e comparada por identidade, nao pela forma escrita', () => {
-  withTempRepo({ 'docs/requirements/rules.md': REGRAS.replace('## RN-0001', '## RN001') }, root => {
-    // O projeto escreve `RN001`; o commit cita `RN001`. Mesma identidade que
-    // `RN-0001` teria — e quem compara e `canonicalId`, nao a forma escrita.
+test('RN-0024: the citation is compared by identity, not by written form', () => {
+  withTempRepo({ 'docs/requirements/rules.md': RULES.replace('## RN-0001', '## RN001') }, root => {
+    // The project writes `RN001`; the commit cites `RN001`. The same identity
+    // `RN-0001` would have — and what compares is `canonicalId`, not the written form.
     const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/requirements/rules.md'],
-      messages: ['docs(RN001): a regra ganha o caso do negativo'],
+      messages: ['docs(RN001): the rule gains the negative case'],
       edits: [],
     }).run(contextFor(root, OWNERSHIP.replace('owned:', 'living-docs:\n  id-format: { separator: "", padding: 3 }\nowned:')))
 
@@ -178,14 +178,14 @@ test('RN-0024: a citacao e comparada por identidade, nao pela forma escrita', ()
   })
 })
 
-test('ADR-0010: sem diff, living-docs/commit-discipline nao tem o que dizer', () => {
-  withTempRepo(ARVORE, root => {
+test('ADR-0010: without a diff, living-docs/commit-discipline has nothing to say', () => {
+  withTempRepo(TREE, root => {
     assert.deepEqual(livingDocsCommitDiscipline(null).run(contextFor(root)), [])
   })
 })
 
-test('RN-0027: isPureDateBump e so a data, e nada mais', () => {
+test('RN-0027: isPureDateBump is only the date, and nothing more', () => {
   assert.equal(isPureDateBump(bump('docs/a.md')), true)
-  assert.equal(isPureDateBump({ path: 'docs/a.md', added: ['last-reviewed: x', 'outra'], removed: ['last-reviewed: y'] }), false)
-  assert.equal(isPureDateBump({ path: 'docs/a.md', added: ['titulo'], removed: ['titulo antigo'] }), false)
+  assert.equal(isPureDateBump({ path: 'docs/a.md', added: ['last-reviewed: x', 'other'], removed: ['last-reviewed: y'] }), false)
+  assert.equal(isPureDateBump({ path: 'docs/a.md', added: ['title'], removed: ['old title'] }), false)
 })

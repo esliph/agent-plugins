@@ -9,13 +9,13 @@ import { parseId } from './schema.ts'
 import type { IdFormat } from './schema.ts'
 
 export interface ArtifactDoc {
-  /** Caminho relativo à raiz do repositório, sempre com `/`. */
+  /** Path relative to the repository root, always with `/`. */
   file: string
   rule: ArtifactRule
   source: string
   frontmatter: Frontmatter | null
   syntaxError: FrontmatterSyntaxError | null
-  /** Itens da coleção (`table` ou `sections`); vazio para `per-file`. */
+  /** Items of the collection (`table` or `sections`); empty for `per-file`. */
   items: DocItem[]
 }
 
@@ -45,10 +45,10 @@ function listMarkdown(root: string, relativeDir: string): string[] {
 }
 
 /**
- * Os itens de um artefato de coleção, lidos pelo núcleo segundo o `format` da
- * entrada. A forma do ID é política do living-docs, não do parser: a chave
- * chega opaca e só vira item o que é ID na forma declarada pelo projeto
- * (`ADR-0011`). Título sem ID, e linha de tabela sem ID, não são item.
+ * The items of a collection artifact, read by the core according to the entry's
+ * `format`. The ID form is living-docs policy, not the parser's: the key
+ * arrives opaque and only what is an ID in the form declared by the project becomes an item
+ * (`ADR-0011`). A heading without an ID, and a table row without an ID, are not items.
  */
 function parseItems(rule: ArtifactRule, source: string, body: string | null, bodyStart: number, format: IdFormat): DocItem[] {
   const text = body ?? source
@@ -110,21 +110,21 @@ export function collectArtifacts(root: string, config: LivingDocsConfig): Artifa
 }
 
 export interface DocumentDoc {
-  /** Caminho relativo à raiz do repositório, sempre com `/`. */
+  /** Path relative to the repository root, always with `/`. */
   file: string
   rule: DocumentRule
   source: string
-  /** `null` quando o documento não tem frontmatter — o que é legítimo (`CHANGELOG.md`). */
+  /** `null` when the document has no frontmatter — which is legitimate (`CHANGELOG.md`). */
   frontmatter: Frontmatter | null
 }
 
 /**
- * Documentos declarados em `documents:` que existem no repositório (`ADR-0008`).
+ * Documents declared in `documents:` that exist in the repository (`ADR-0008`).
  *
- * Só markdown: `docs/.ownership.yml` e `docs/ids-retired.txt` têm dono e não têm
- * frontmatter, e nada nesta fase pergunta a eles a data de revisão. Frontmatter
- * com sintaxe inválida vira `null` em silêncio, porque `living-docs/frontmatter` não lê `documents:`
- * e derrubar o `validate` por causa disso seria pior do que não reportar.
+ * Markdown only: `docs/.ownership.yml` and `docs/ids-retired.txt` have an owner and no
+ * frontmatter, and nothing in this phase asks them for a review date. Frontmatter
+ * with invalid syntax becomes `null` silently, because `living-docs/frontmatter` does not read `documents:`
+ * and taking `validate` down because of it would be worse than not reporting.
  */
 export function collectDocuments(root: string, config: LivingDocsConfig): DocumentDoc[] {
   const documents: DocumentDoc[] = []
@@ -143,7 +143,7 @@ export function collectDocuments(root: string, config: LivingDocsConfig): Docume
       try {
         source = readFileSync(join(root, file), 'utf8')
       } catch {
-        continue // declarado e ausente: quem cobra ausência é ownership/owner-coverage, não a coleta
+        continue // declared and absent: whoever charges for absence is ownership/owner-coverage, not the collection
       }
 
       let frontmatter: Frontmatter | null = null

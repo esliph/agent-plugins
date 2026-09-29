@@ -5,12 +5,13 @@ import { stripFences } from '../docs/markdown.ts'
 const RULE = 'living-docs/done-verifiable'
 
 /**
- * Vocabulário de verificação de um item de Definition of Done (`RN-0017`): o
- * identificador de um check ou hook (`plugin/nome`), o de agente ou skill, ou a
- * palavra que marca verificação humana — em português ou em inglês. Os
- * numerados `CI-n`/`HK-n` não valem mais, sem alias de nome antigo.
+ * Verification vocabulary of a Definition of Done item (RN-0017): the
+ * identifier of a check or hook (`plugin/name`), of an agent or skill, or the
+ * fixed marker `human`. The marker is a fixed word and not a language: a
+ * Definition of Done in any language names human verification with it
+ * (RN-0038). Numbered `CI-n`/`HK-n` no longer count.
  */
-const VERIFICATION = /\b(?:AG|SK)-\d+\b|\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|\bhumana?\b|\bhuman\b/i
+const VERIFICATION = /\b(?:AG|SK)-\d+\b|\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|\bhuman\b/i
 
 const DOD_ITEM = /^\s*[-*+]\s+\[[ xX]\]\s+\S/
 
@@ -23,13 +24,13 @@ function normalizePath(path: string): string {
 }
 
 /**
- * Itens de Definition of Done que não nomeiam o que os verifica (`RN-0017`).
+ * Definition of Done items that do not name what verifies them (`RN-0017`).
  *
- * `stripFences`, não `stripCode`: o vocabulário de verificação (`plugin/nome`,
- * …) é normalmente escrito entre crases, e apagar código inline apagaria o
- * próprio ID que este check procura. A cerca, essa sai — a Definition of Done
- * que documenta o próprio formato num bloco de exemplo não pode reprovar por
- * causa do exemplo.
+ * `stripFences`, not `stripCode`: the verification vocabulary (`plugin/name`,
+ * …) is normally written between backticks, and erasing inline code would erase the
+ * very ID this check looks for. The fence, that one goes — a Definition of Done
+ * that documents its own format in an example block cannot fail because of
+ * the example.
  */
 export function dodItemsWithoutVerification(source: string): { text: string; line: number }[] {
   const lines = stripFences(source).split('\n')
@@ -51,10 +52,10 @@ export function dodItemsWithoutVerification(source: string): { text: string; lin
 }
 
 /**
- * `living-docs/done-verifiable` — item de Definition of Done sem verificação
- * nomeada (`RN-0017`). Um dos três pedaços do antigo check de cobertura de
- * propriedade: nomes separados porque "falhou o check sete" nunca disse qual
- * parte falhou (§7 da spec de 2026-09-18).
+ * `living-docs/done-verifiable` — Definition of Done item without a named
+ * verification (`RN-0017`). One of the three pieces of the former ownership
+ * coverage check: separate names because "check seven failed" never said which
+ * part failed (§7 of the 2026-09-18 spec).
  */
 export const livingDocsDoneVerifiable: Check = {
   id: RULE,
@@ -79,10 +80,10 @@ export const livingDocsDoneVerifiable: Check = {
         error(
           dodPath,
           item.line,
-          `Item da Definition of Done sem verificação nomeada: "${item.text.slice(0, 120)}".`,
-          'Nomeie o que verifica o item — o identificador de um check ou de um hook (`plugin/nome`), ou a palavra que marca verificação humana. ' +
-            // Regra de origem: RN-0017.
-            'Item que ninguém verifica é intenção, e intenção não é definição de pronto.',
+          `Definition of Done item with no named verification: "${item.text.slice(0, 120)}".`,
+          'Name what verifies the item — the identifier of a check or a hook (`plugin/name`), or the fixed marker `human`. ' +
+            // Rule of origin: RN-0017.
+            'An item nobody verifies is an intention, and an intention is not a definition of done.',
         ),
       )
     }

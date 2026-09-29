@@ -15,9 +15,9 @@ function ownershipOf(root: string) {
 }
 
 /**
- * O que o init deixa de fora além do aviso fixo de que o resto do repositório
- * precisa ser declarado: aquele aviso é do arquivo recém-semeado, e não é o que
- * estes testes medem.
+ * What init leaves out besides the fixed notice that the rest of the repository
+ * needs to be declared: that notice belongs to the freshly seeded file, and is
+ * not what these tests measure.
  */
 function leftOut(items: readonly string[]): string[] {
   return items.filter(item => !/ownership validate/.test(item))
@@ -30,15 +30,15 @@ const OPTIONS = {
   idFormat: DEFAULT_ID_FORMAT,
   invoke: 'npx living-docs',
   invokeOwnership: 'npx living-docs',
-  marketplace: 'time/living-docs',
+  marketplace: 'team/living-docs',
 }
 
-test('cria a moldura das fases 0–1 num repositório vazio — critério de aceite 1', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('creates the phase 0–1 scaffold in an empty repository — acceptance criterion 1', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     const result = runInit(root, OPTIONS)
 
     for (const path of [OWNERSHIP_FILE, RETIRED_IDS_PATH, 'docs/open-decisions.md', 'CODEOWNERS']) {
-      assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
+      assert.ok(existsSync(join(root, path)), `${path} should exist`)
       assert.ok(result.created.includes(path))
     }
     assert.ok(existsSync(join(root, 'docs/decisions/adr')))
@@ -51,7 +51,7 @@ test('cria a moldura das fases 0–1 num repositório vazio — critério de ace
   })
 })
 
-test('o repositório recém-inicializado passa no próprio validate', () => {
+test('the freshly initialized repository passes its own validate', () => {
   withTempRepo({ 'README.md': '' }, root => {
     runInit(root, OPTIONS)
     const result = runValidate(root)
@@ -61,22 +61,22 @@ test('o repositório recém-inicializado passa no próprio validate', () => {
   })
 })
 
-test('RF-0002: é idempotente — a segunda execução não recria nem reescreve nada', () => {
+test('RF-0002: is idempotent — the second run recreates and rewrites nothing', () => {
   withTempRepo({ 'README.md': '' }, root => {
     runInit(root, OPTIONS)
-    writeFileSync(join(root, 'docs/open-decisions.md'), 'CONTEÚDO DO USUÁRIO\n', 'utf8')
+    writeFileSync(join(root, 'docs/open-decisions.md'), 'USER CONTENT\n', 'utf8')
 
     const second = runInit(root, OPTIONS)
 
     assert.deepEqual(second.created, [])
-    assert.deepEqual(second.adopted, [], 'a segunda execução lê os caminhos do .ownership.yml, não readota')
+    assert.deepEqual(second.adopted, [], 'the second run reads the paths from .ownership.yml, it does not re-adopt')
     assert.ok(second.skipped.includes('docs/open-decisions.md'))
-    assert.equal(readFileSync(join(root, 'docs/open-decisions.md'), 'utf8'), 'CONTEÚDO DO USUÁRIO\n')
+    assert.equal(readFileSync(join(root, 'docs/open-decisions.md'), 'utf8'), 'USER CONTENT\n')
   })
 })
 
-test('RF-0002: adota diretório de ADR preexistente em vez de criar um paralelo', () => {
-  withTempRepo({ 'docs/adr/0001-antigo.md': '# antigo\n' }, root => {
+test('RF-0002: adopts a preexisting ADR directory instead of creating a parallel one', () => {
+  withTempRepo({ 'docs/adr/0001-old.md': '# old\n' }, root => {
     const result = runInit(root, OPTIONS)
 
     assert.ok(result.adopted.some(entry => entry.idPrefix === 'ADR' && entry.path === 'docs/adr/'))
@@ -85,8 +85,8 @@ test('RF-0002: adota diretório de ADR preexistente em vez de criar um paralelo'
   })
 })
 
-test('adoção + segunda execução: nada é readotado, duplicado nem reescrito', () => {
-  withTempRepo({ 'docs/adr/0001-antigo.md': '# antigo\n', 'README.md': '' }, root => {
+test('adoption + second run: nothing is re-adopted, duplicated or rewritten', () => {
+  withTempRepo({ 'docs/adr/0001-old.md': '# old\n', 'README.md': '' }, root => {
     const first = runInit(root, OPTIONS)
 
     assert.ok(first.adopted.some(entry => entry.idPrefix === 'ADR' && entry.path === 'docs/adr/'))
@@ -95,26 +95,26 @@ test('adoção + segunda execução: nada é readotado, duplicado nem reescrito'
 
     const second = runInit(root, OPTIONS)
 
-    assert.deepEqual(second.adopted, [], 'os caminhos vêm do .ownership.yml, não de uma nova varredura')
-    assert.deepEqual(second.created, [], 'a segunda execução não cria nada')
-    assert.ok(second.skipped.includes('docs/adr/'), 'o diretório adotado é mantido, não recriado')
+    assert.deepEqual(second.adopted, [], 'the paths come from .ownership.yml, not from a new scan')
+    assert.deepEqual(second.created, [], 'the second run creates nothing')
+    assert.ok(second.skipped.includes('docs/adr/'), 'the adopted directory is kept, not recreated')
 
-    // Nenhum paralelo criado, e nem o mapa nem o artefato preexistente reescritos.
+    // No parallel created, and neither the map nor the preexisting artifact rewritten.
     assert.equal(existsSync(join(root, 'docs/decisions/adr')), false)
     assert.equal(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), config)
-    assert.equal(readFileSync(join(root, 'docs/adr/0001-antigo.md'), 'utf8'), '# antigo\n')
+    assert.equal(readFileSync(join(root, 'docs/adr/0001-old.md'), 'utf8'), '# old\n')
   })
 })
 
-test('RF-0002: adota arquivo de open decisions preexistente sob outro nome', () => {
-  withTempRepo({ 'docs/decisoes-abertas.md': '# abertas\n', 'README.md': '' }, root => {
+test('RF-0002: adopts a preexisting open-decisions file under another name', () => {
+  withTempRepo({ 'docs/decisoes-abertas.md': '# open\n', 'README.md': '' }, root => {
     const result = runInit(root, OPTIONS)
 
     assert.ok(result.adopted.some(entry => entry.path === 'docs/decisoes-abertas.md'))
   })
 })
 
-test('dry-run não escreve nada mas relata o que faria', () => {
+test('dry-run writes nothing but reports what it would do', () => {
   withTempRepo({ 'README.md': '' }, root => {
     const result = runInit(root, {
       owner: '@team',
@@ -123,7 +123,7 @@ test('dry-run não escreve nada mas relata o que faria', () => {
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
 
     assert.ok(result.created.includes(OWNERSHIP_FILE))
@@ -132,234 +132,234 @@ test('dry-run não escreve nada mas relata o que faria', () => {
 })
 
 const SMALL_TEAM = {
-  owner: '@time',
+  owner: '@team',
   dryRun: false,
   stage: 'small-team' as const,
   idFormat: DEFAULT_ID_FORMAT,
   invoke: 'npx living-docs',
   invokeOwnership: 'npx living-docs',
-  marketplace: 'time/living-docs',
+  marketplace: 'team/living-docs',
 }
 const REQUIREMENT_FILES = ['docs/requirements/functional.md', 'docs/requirements/non-functional.md', 'docs/requirements/rules.md']
 
-test('RF-0003: --stage solo não cria requisitos', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('RF-0003: --stage solo does not create requirements', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     const result = runInit(root, OPTIONS)
 
     assert.equal(result.stage, 'solo')
     for (const file of REQUIREMENT_FILES) {
-      assert.equal(existsSync(join(root, file)), false, `${file} não pertence ao estágio solo`)
+      assert.equal(existsSync(join(root, file)), false, `${file} does not belong to the solo stage`)
     }
     assert.equal(readFileSync(join(root, OWNERSHIP_FILE), 'utf8').includes('id-prefix: RN'), false)
     assert.deepEqual(leftOut(result.notInstalled), [])
   })
 })
 
-test('RF-0003: --stage small-team cria os três arquivos e as três entradas no .ownership.yml', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('RF-0003: --stage small-team creates the three files and the three entries in .ownership.yml', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     runInit(root, SMALL_TEAM)
     for (const file of REQUIREMENT_FILES) {
-      assert.ok(existsSync(join(root, file)), `${file} deveria existir no estágio small-team`)
+      assert.ok(existsSync(join(root, file)), `${file} should exist in the small-team stage`)
     }
 
     const ownership = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
     for (const prefix of ['RF', 'RNF', 'RN']) {
-      // A vírgula é o que impede `RN` de casar dentro de `RNF`.
-      assert.ok(ownership.includes(`id-prefix: ${prefix},`), `${prefix} sem artefato declarado`)
+      // The comma is what keeps `RN` from matching inside `RNF`.
+      assert.ok(ownership.includes(`id-prefix: ${prefix},`), `${prefix} has no declared artifact`)
     }
     assert.match(ownership, /collection: sections/)
     assert.match(ownership, /cited-by: \["test\/\*\*", "src\/\*\*"\]/)
 
     const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
-    assert.match(codeowners, /docs\/requirements\/rules\.md\s+@time/)
+    assert.match(codeowners, /docs\/requirements\/rules\.md\s+@team/)
 
-    // a moldura recém-criada passa nos próprios checks
+    // the freshly created scaffold passes its own checks
     assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
   })
 })
 
-test('RF-0002: --stage small-team é idempotente: a segunda execução não reescreve nem duplica', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('RF-0002: --stage small-team is idempotent: the second run neither rewrites nor duplicates', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     runInit(root, SMALL_TEAM)
-    const antes = REQUIREMENT_FILES.map(file => readFileSync(join(root, file), 'utf8'))
-    const ownershipAntes = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
+    const before = REQUIREMENT_FILES.map(file => readFileSync(join(root, file), 'utf8'))
+    const ownershipBefore = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
-    const segunda = runInit(root, SMALL_TEAM)
+    const second = runInit(root, SMALL_TEAM)
 
-    assert.deepEqual(segunda.created, [])
+    assert.deepEqual(second.created, [])
     assert.deepEqual(
       REQUIREMENT_FILES.map(file => readFileSync(join(root, file), 'utf8')),
-      antes,
+      before,
     )
-    assert.equal(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), ownershipAntes)
+    assert.equal(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), ownershipBefore)
   })
 })
 
-test('RF-0003: subir de solo para small-team declara os requisitos, sem tocar no que já existia', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('RF-0003: moving from solo to small-team declares the requirements, without touching what already existed', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     runInit(root, OPTIONS)
-    const antes = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
+    const before = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
     runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner })
-    const depois = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
+    const after = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
 
-    assert.match(depois, /id-prefix: RN\b/)
-    assert.ok(depois.includes('id-prefix: ADR'), 'o artefato que já existia não pode sumir')
+    assert.match(after, /id-prefix: RN\b/)
+    assert.ok(after.includes('id-prefix: ADR'), 'the artifact that already existed must not vanish')
     assert.ok(
-      antes.split('\n').every(line => depois.includes(line)),
-      'nenhuma linha preexistente pode ser reescrita',
+      before.split('\n').every(line => after.includes(line)),
+      'no preexisting line may be rewritten',
     )
     assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
   })
 })
 
-test('RF-0002: solo depois de small-team não remove os requisitos já criados', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('RF-0002: solo after small-team does not remove the requirements already created', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     runInit(root, SMALL_TEAM)
     const result = runInit(root, { ...OPTIONS, owner: SMALL_TEAM.owner })
 
     assert.deepEqual(result.created, [])
     for (const file of REQUIREMENT_FILES) {
-      assert.ok(existsSync(join(root, file)), `${file} não pode desaparecer ao rodar solo`)
+      assert.ok(existsSync(join(root, file)), `${file} must not disappear when running solo`)
     }
     assert.match(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), /id-prefix: RN\b/)
   })
 })
 
-test('adota docs/requisitos.md preexistente em vez de criar um paralelo', () => {
-  withTempRepo({ 'docs/requisitos.md': '# requisitos antigos\n' }, root => {
+test('adopts a preexisting docs/requisitos.md instead of creating a parallel one', () => {
+  withTempRepo({ 'docs/requisitos.md': '# old requirements\n' }, root => {
     const result = runInit(root, SMALL_TEAM)
 
     assert.ok(
       result.adopted.some(entry => entry.path === 'docs/requisitos.md'),
       JSON.stringify(result.adopted),
     )
-    assert.equal(readFileSync(join(root, 'docs/requisitos.md'), 'utf8'), '# requisitos antigos\n')
+    assert.equal(readFileSync(join(root, 'docs/requisitos.md'), 'utf8'), '# old requirements\n')
     assert.equal(existsSync(join(root, 'docs/requirements/functional.md')), false)
     assert.match(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), /path: docs\/requisitos\.md/)
   })
 })
 
-test('RF-0003: small-team não deixa nada de fora nesta versão — Fases 2, 3 e 4 completas', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('RF-0003: small-team leaves nothing out in this version — Phases 2, 3 and 4 complete', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     const result = runInit(root, SMALL_TEAM)
 
     assert.deepEqual(leftOut(result.notInstalled), [])
   })
 })
 
-test('RF-0003: quando algo realmente fica de fora, o resultado diz o que é', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
-    runInit(root, OPTIONS) // solo: o .ownership.yml nasce sem RF/RNF/RN
+test('RF-0003: when something is really left out, the result says what it is', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
+    runInit(root, OPTIONS) // solo: the .ownership.yml is born without RF/RNF/RN
     const file = join(root, OWNERSHIP_FILE)
-    // `owned:` continua sendo a chave, mas deixa de ser a linha inteira que o
-    // init reconhece. Sem a âncora, subir de estágio não adivinha onde declarar
-    // os requisitos.
-    const sem = readFileSync(file, 'utf8').replace('\nowned:\n', '\nowned: # âncora removida\n')
+    // `owned:` is still the key, but stops being the whole line that init
+    // recognizes. Without the anchor, moving up a stage does not guess where to declare
+    // the requirements.
+    const without = readFileSync(file, 'utf8').replace('\nowned:\n', '\nowned: # anchor removed\n')
 
-    assert.notEqual(sem, readFileSync(file, 'utf8'), 'a âncora precisa ter sido removida de fato')
-    writeFileSync(file, sem, 'utf8')
+    assert.notEqual(without, readFileSync(file, 'utf8'), 'the anchor must have actually been removed')
+    writeFileSync(file, without, 'utf8')
 
     const result = runInit(root, { ...SMALL_TEAM, owner: OPTIONS.owner })
 
     assert.ok(
       result.notInstalled.some(item => item.includes(OWNERSHIP_FILE)),
-      `o que ficou de fora precisa ser nomeado — ${JSON.stringify(result.notInstalled)}`,
+      `what was left out must be named — ${JSON.stringify(result.notInstalled)}`,
     )
   })
 })
 
-test('a semente de requisitos não declara requisito nenhum — o exemplo é literal', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('the requirements seed declares no requirement — the example is literal', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     runInit(root, SMALL_TEAM)
     const rules = readFileSync(join(root, 'docs/requirements/rules.md'), 'utf8')
 
-    assert.match(rules, /RN-nnnn/, 'o exemplo precisa usar o placeholder literal')
-    assert.doesNotMatch(rules, /RN-\d{3,4}/, 'a semente não pode nascer com um requisito fantasma')
+    assert.match(rules, /RN-nnnn/, 'the example must use the literal placeholder')
+    assert.doesNotMatch(rules, /RN-\d{3,4}/, 'the seed must not be born with a phantom requirement')
     assert.equal(runValidate(root).exitCode, 0)
   })
 })
 
-test('RF-0004: small-team instala os acordos de trabalho', () => {
+test('RF-0004: small-team installs the working agreements', () => {
   withTempRepo({}, root => {
     const result = runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
 
     for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
-      assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
-      assert.ok(result.created.includes(path), `${path} deveria constar como criado`)
+      assert.ok(existsSync(join(root, path)), `${path} should exist`)
+      assert.ok(result.created.includes(path), `${path} should be listed as created`)
     }
-    assert.match(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), /@time/)
+    assert.match(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), /@team/)
   })
 })
 
-test('RF-0004: solo não instala acordo de trabalho nenhum', () => {
+test('RF-0004: solo installs no working agreement', () => {
   withTempRepo({}, root => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'time/living-docs' })
+    runInit(root, { owner: '@team', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'team/living-docs' })
     for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md']) {
-      assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`)
+      assert.equal(existsSync(join(root, path)), false, `${path} should not exist in the solo stage`)
     }
   })
 })
 
-test('RF-0004: AGENTS.md existente é adotado; nenhum CLAUDE.md paralelo nasce', () => {
-  withTempRepo({ 'AGENTS.md': '# contrato antigo\n' }, root => {
+test('RF-0004: an existing AGENTS.md is adopted; no parallel CLAUDE.md is born', () => {
+  withTempRepo({ 'AGENTS.md': '# old contract\n' }, root => {
     const result = runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
 
     assert.equal(existsSync(join(root, 'CLAUDE.md')), false)
-    assert.equal(readFileSync(join(root, 'AGENTS.md'), 'utf8'), '# contrato antigo\n')
+    assert.equal(readFileSync(join(root, 'AGENTS.md'), 'utf8'), '# old contract\n')
     assert.ok(result.adopted.some(entry => entry.path === 'AGENTS.md'))
   })
 })
 
-test('RF-0004: acordo já escrito não é reescrito na segunda execução', () => {
-  withTempRepo({ 'CONTRIBUTING.md': '# do jeito deles\n' }, root => {
+test('RF-0004: an already written agreement is not rewritten on the second run', () => {
+  withTempRepo({ 'CONTRIBUTING.md': '# their own way\n' }, root => {
     const options = {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team' as const,
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     }
 
     runInit(root, options)
-    const segunda = runInit(root, options)
+    const second = runInit(root, options)
 
-    assert.equal(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), '# do jeito deles\n')
-    assert.ok(segunda.skipped.includes('CONTRIBUTING.md'))
-    assert.deepEqual(segunda.created, [])
+    assert.equal(readFileSync(join(root, 'CONTRIBUTING.md'), 'utf8'), '# their own way\n')
+    assert.ok(second.skipped.includes('CONTRIBUTING.md'))
+    assert.deepEqual(second.created, [])
   })
 })
 
-test('o init não inventa `watches` — o vínculo código→doc é ato humano', () => {
+test('init does not invent `watches` — the code→doc link is a human act', () => {
   withTempRepo({}, root => {
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
     const config = loadLivingDocsConfig(root)
 
@@ -367,295 +367,295 @@ test('o init não inventa `watches` — o vínculo código→doc é ato humano',
   })
 })
 
-test('RF-0005: small-team instala glossary e charter', () => {
+test('RF-0005: small-team installs glossary and charter', () => {
   withTempRepo({}, root => {
     const result = runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
 
     for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
-      assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
-      assert.ok(result.created.includes(path), `${path} deveria constar como criado`)
+      assert.ok(existsSync(join(root, path)), `${path} should exist`)
+      assert.ok(result.created.includes(path), `${path} should be listed as created`)
     }
-    assert.match(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), /@time/)
+    assert.match(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), /@team/)
   })
 })
 
-test('RF-0005: solo não instala glossary nem charter', () => {
+test('RF-0005: solo installs neither glossary nor charter', () => {
   withTempRepo({}, root => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'time/living-docs' })
+    runInit(root, { owner: '@team', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'team/living-docs' })
     for (const path of ['docs/glossary.md', 'docs/charter/constitution.md', 'docs/charter/vision.md']) {
-      assert.equal(existsSync(join(root, path)), false, `${path} não deveria existir no estágio solo`)
+      assert.equal(existsSync(join(root, path)), false, `${path} should not exist in the solo stage`)
     }
   })
 })
 
-test('RF-0005: glossary já escrito não é reescrito na segunda execução', () => {
-  withTempRepo({ 'docs/glossary.md': '# do jeito deles\n' }, root => {
+test('RF-0005: an already written glossary is not rewritten on the second run', () => {
+  withTempRepo({ 'docs/glossary.md': '# their own way\n' }, root => {
     const options = {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team' as const,
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     }
 
     runInit(root, options)
-    const segunda = runInit(root, options)
+    const second = runInit(root, options)
 
-    assert.equal(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), '# do jeito deles\n')
-    assert.ok(segunda.skipped.includes('docs/glossary.md'))
+    assert.equal(readFileSync(join(root, 'docs/glossary.md'), 'utf8'), '# their own way\n')
+    assert.ok(second.skipped.includes('docs/glossary.md'))
   })
 })
 
-test('RN-0016: subir de estágio acrescenta ao CODEOWNERS que já existe, sem reescrever o que estava lá', () => {
+test('RN-0016: moving up a stage appends to the CODEOWNERS that already exists, without rewriting what was there', () => {
   withTempRepo({}, root => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'time/living-docs' })
-    const antes = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
+    runInit(root, { owner: '@team', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'team/living-docs' })
+    const before = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
-    const segunda = runInit(root, {
-      owner: '@time',
+    const second = runInit(root, {
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
-    const depois = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
+    const after = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
     assert.ok(
-      antes.split('\n').every(line => depois.includes(line)),
-      'nenhuma linha preexistente pode ser reescrita',
+      before.split('\n').every(line => after.includes(line)),
+      'no preexisting line may be rewritten',
     )
-    assert.match(depois, /docs\/glossary\.md\s+@time/)
-    assert.match(depois, /CLAUDE\.md\s+@time/)
+    assert.match(after, /docs\/glossary\.md\s+@team/)
+    assert.match(after, /CLAUDE\.md\s+@team/)
     assert.ok(
-      segunda.created.some(entry => entry.startsWith('CODEOWNERS (')),
-      'o que foi acrescentado ao CODEOWNERS precisa aparecer na saída',
+      second.created.some(entry => entry.startsWith('CODEOWNERS (')),
+      'what was appended to CODEOWNERS must appear in the output',
     )
 
-    // Sem as linhas novas, `ownership/owner-coverage` acusaria documento sem quem o revise.
+    // Without the new lines, `ownership/owner-coverage` would flag a document with no reviewer.
     assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
   })
 })
 
-test('RF-0002: rodar de novo no mesmo estágio não acrescenta linha ao CODEOWNERS', () => {
+test('RF-0002: running again in the same stage adds no line to CODEOWNERS', () => {
   withTempRepo({}, root => {
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
-    const antes = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
+    const before = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
-    const segunda = runInit(root, {
-      owner: '@time',
+    const second = runInit(root, {
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
 
-    assert.equal(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), antes)
-    assert.ok(segunda.skipped.includes('CODEOWNERS'))
+    assert.equal(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), before)
+    assert.ok(second.skipped.includes('CODEOWNERS'))
   })
 })
 
-test('RF-0005: o CODEOWNERS semeado dá dono a glossary e charter', () => {
+test('RF-0005: the seeded CODEOWNERS gives glossary and charter an owner', () => {
   withTempRepo({}, root => {
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
     const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
-    assert.match(codeowners, /docs\/glossary\.md\s+@time/)
-    assert.match(codeowners, /docs\/charter\/\s+@time/)
+    assert.match(codeowners, /docs\/glossary\.md\s+@team/)
+    assert.match(codeowners, /docs\/charter\/\s+@team/)
   })
 })
 
 const PRODUCTION = {
-  owner: '@time',
+  owner: '@team',
   dryRun: false,
   stage: 'production' as const,
   idFormat: DEFAULT_ID_FORMAT,
   invoke: 'npx living-docs',
   invokeOwnership: 'npx living-docs',
-  marketplace: 'time/living-docs',
+  marketplace: 'team/living-docs',
 }
 const CONTRACT_FILES = ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md']
 
-test('RF-0007: production instala a moldura de contratos, e tudo que small-team instala', () => {
+test('RF-0007: production installs the contracts scaffold, and everything small-team installs', () => {
   withTempRepo({}, root => {
     const result = runInit(root, PRODUCTION)
 
     for (const path of CONTRACT_FILES) {
-      assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
-      assert.ok(result.created.includes(path), `${path} deveria constar como criado`)
+      assert.ok(existsSync(join(root, path)), `${path} should exist`)
+      assert.ok(result.created.includes(path), `${path} should be listed as created`)
     }
-    // O estágio é cumulativo: nada do small-team pode ter sumido.
+    // The stage is cumulative: nothing from small-team may have vanished.
     for (const path of ['CONTRIBUTING.md', 'docs/glossary.md', 'docs/requirements/rules.md']) {
-      assert.ok(existsSync(join(root, path)), `${path} pertence a production também`)
+      assert.ok(existsSync(join(root, path)), `${path} belongs to production as well`)
     }
-    assert.match(readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'), /@time/)
+    assert.match(readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'), /@team/)
     assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
   })
 })
 
-test('RF-0007: small-team não instala contrato nenhum', () => {
+test('RF-0007: small-team installs no contract', () => {
   withTempRepo({}, root => {
     runInit(root, SMALL_TEAM)
     for (const path of CONTRACT_FILES) {
-      assert.equal(existsSync(join(root, path)), false, `${path} não pertence ao estágio small-team`)
+      assert.equal(existsSync(join(root, path)), false, `${path} does not belong to the small-team stage`)
     }
   })
 })
 
-test('RF-0007: o init não inventa gerador — `generated[]` nasce vazio', () => {
+test('RF-0007: init does not invent a generator — `generated[]` is born empty', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
     assert.deepEqual(loadLivingDocsConfig(root).generated, [])
-    // ...e o exemplo comentado precisa estar lá, senão ninguém descobre o formato.
+    // ...and the commented example must be there, or nobody discovers the format.
     assert.match(readFileSync(join(root, OWNERSHIP_FILE), 'utf8'), /#\s+- path: docs\/contracts\/openapi\.gen\.yaml/)
   })
 })
 
-test('RF-0007: contrato já escrito não é reescrito na segunda execução', () => {
-  withTempRepo({ 'docs/contracts/errors.md': '# do jeito deles\n' }, root => {
+test('RF-0007: an already written contract is not rewritten on the second run', () => {
+  withTempRepo({ 'docs/contracts/errors.md': '# their own way\n' }, root => {
     runInit(root, PRODUCTION)
-    const segunda = runInit(root, PRODUCTION)
+    const second = runInit(root, PRODUCTION)
 
-    assert.equal(readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'), '# do jeito deles\n')
-    assert.ok(segunda.skipped.includes('docs/contracts/errors.md'))
-    assert.deepEqual(segunda.created, [])
+    assert.equal(readFileSync(join(root, 'docs/contracts/errors.md'), 'utf8'), '# their own way\n')
+    assert.ok(second.skipped.includes('docs/contracts/errors.md'))
+    assert.deepEqual(second.created, [])
   })
 })
 
-test('RF-0007: o CODEOWNERS semeado dá dono aos contratos', () => {
+test('RF-0007: the seeded CODEOWNERS gives the contracts an owner', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
-    assert.match(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), /docs\/contracts\/\s+@time/)
+    assert.match(readFileSync(join(root, 'CODEOWNERS'), 'utf8'), /docs\/contracts\/\s+@team/)
   })
 })
 
-test('RF-0009: production instala a moldura de rastro histórico', () => {
+test('RF-0009: production installs the historical trail scaffold', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
 
     for (const path of ['CHANGELOG.md', 'docs/deprecations.md', 'docs/releases/.gitkeep', 'docs/migrations/.gitkeep']) {
-      assert.ok(existsSync(join(root, path)), `${path} pertence a production`)
+      assert.ok(existsSync(join(root, path)), `${path} belongs to production`)
     }
 
     const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8')
 
-    assert.match(changelog, /^## \[Unreleased\]$/m, 'o CHANGELOG precisa abrir com Unreleased')
-    assert.doesNotMatch(changelog, /^---$/m, 'CHANGELOG é voltado ao consumidor: sem frontmatter')
+    assert.match(changelog, /^## \[Unreleased\]$/m, 'the CHANGELOG must open with Unreleased')
+    assert.doesNotMatch(changelog, /^---$/m, 'CHANGELOG is consumer-facing: no frontmatter')
   })
 })
 
-test('RF-0009: production declara o artefato REL, para que living-docs/append-only congele release note publicada', () => {
+test('RF-0009: production declares the REL artifact, so that living-docs/append-only freezes a published release note', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
 
     const config = loadLivingDocsConfig(root)
     const rel = config.artifacts.find(artifact => artifact.idPrefix === 'REL')
 
-    assert.ok(rel, 'sem REL declarado, living-docs/append-only não tem como congelar release note')
+    assert.ok(rel, 'without REL declared, living-docs/append-only cannot freeze a release note')
     assert.equal(rel?.path, 'docs/releases/')
     assert.equal(rel?.appendOnly, true)
     assert.equal(rel?.skill, 'release-historian')
   })
 })
 
-test('RF-0009: production não inventa regra de watches visível ao consumidor', () => {
+test('RF-0009: production does not invent a consumer-visible watches rule', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
     assert.deepEqual(loadLivingDocsConfig(root).watches, [])
   })
 })
 
-test('RF-0009: production não deixa nada da spec §10 de fora', () => {
+test('RF-0009: production leaves nothing of spec §10 out', () => {
   withTempRepo({}, root => {
     const result = runInit(root, PRODUCTION)
 
-    assert.deepEqual(leftOut(result.notInstalled), [], `production deveria estar completo — ${JSON.stringify(result.notInstalled)}`)
+    assert.deepEqual(leftOut(result.notInstalled), [], `production should be complete — ${JSON.stringify(result.notInstalled)}`)
   })
 })
 
-test('RF-0009: subir de small-team para production declara REL no .ownership.yml existente', () => {
+test('RF-0009: moving from small-team to production declares REL in the existing .ownership.yml', () => {
   withTempRepo({}, root => {
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
     assert.equal(
       loadLivingDocsConfig(root).artifacts.some(artifact => artifact.idPrefix === 'REL'),
       false,
-      'small-team não instala rastro histórico',
+      'small-team does not install the historical trail',
     )
 
     runInit(root, PRODUCTION)
     assert.ok(loadLivingDocsConfig(root).artifacts.some(artifact => artifact.idPrefix === 'REL'))
-    assert.equal(runValidate(root).exitCode, 0, 'o repositório recém-subido de estágio precisa passar limpo')
+    assert.equal(runValidate(root).exitCode, 0, 'the repository just moved up a stage must pass clean')
   })
 })
 
-test('RF-0012: solo declara o mapa e os IDs retirados como documentos', () => {
+test('RF-0012: solo declares the map and the retired IDs as documents', () => {
   withTempRepo({}, root => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'time/living-docs' })
+    runInit(root, { owner: '@team', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'team/living-docs' })
     const documents = ownershipOf(root).documents
 
     assert.deepEqual(documents.map(document => document.path).sort(), ['.ownership.yml', 'docs/ids-retired.txt'])
-    assert.ok(documents.every(document => document.owner === '@time'))
+    assert.ok(documents.every(document => document.owner === '@team'))
 
     const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
-    assert.match(codeowners, /docs\/ids-retired\.txt\s+@time/)
-    assert.match(codeowners, /^\.ownership\.yml\s+@time/m)
+    assert.match(codeowners, /docs\/ids-retired\.txt\s+@team/)
+    assert.match(codeowners, /^\.ownership\.yml\s+@team/m)
   })
 })
 
-test('RF-0012: small-team declara os acordos, a linguagem e os dois papéis', () => {
+test('RF-0012: small-team declares the agreements, the language and the two roles', () => {
   withTempRepo({}, root => {
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
     const documents = ownershipOf(root).documents
     const byPath = new Map(documents.map(document => [document.path, document]))
 
     for (const path of ['CONTRIBUTING.md', 'docs/definition-of-done.md', 'CLAUDE.md', 'docs/glossary.md', 'docs/charter/']) {
-      assert.ok(byPath.has(path), `${path} deveria estar declarado`)
+      assert.ok(byPath.has(path), `${path} should be declared`)
     }
     assert.equal(byPath.get('CLAUDE.md')?.role, 'agent-contract')
     assert.equal(byPath.get('docs/definition-of-done.md')?.role, 'definition-of-done')
@@ -664,35 +664,35 @@ test('RF-0012: small-team declara os acordos, a linguagem e os dois papéis', ()
   })
 })
 
-test('RF-0012: production declara contratos e rastro histórico', () => {
+test('RF-0012: production declares contracts and historical trail', () => {
   withTempRepo({}, root => {
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'production',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
     const paths = ownershipOf(root).documents.map(document => document.path)
 
     for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md', 'CHANGELOG.md', 'docs/deprecations.md', 'docs/migrations/']) {
-      assert.ok(paths.includes(path), `${path} deveria estar declarado`)
+      assert.ok(paths.includes(path), `${path} should be declared`)
     }
   })
 })
 
-test('RF-0012: o contrato do agente declarado é o adotado, não o padrão', () => {
-  withTempRepo({ 'AGENTS.md': '# contrato preexistente\n' }, root => {
+test('RF-0012: the declared agent contract is the adopted one, not the default', () => {
+  withTempRepo({ 'AGENTS.md': '# preexisting contract\n' }, root => {
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
     const documents = ownershipOf(root).documents
 
@@ -702,99 +702,99 @@ test('RF-0012: o contrato do agente declarado é o adotado, não o padrão', () 
       false,
     )
 
-    // O CODEOWNERS segue o mesmo caminho adotado: a linha é de `AGENTS.md`, e
-    // nenhuma linha aponta o `CLAUDE.md` que este repositório não tem.
+    // CODEOWNERS follows the same adopted path: the line is for `AGENTS.md`, and
+    // no line points at the `CLAUDE.md` this repository does not have.
     const codeowners = readFileSync(join(root, 'CODEOWNERS'), 'utf8')
 
-    assert.match(codeowners, /^AGENTS\.md\s+@time$/m)
+    assert.match(codeowners, /^AGENTS\.md\s+@team$/m)
     assert.doesNotMatch(codeowners, /CLAUDE\.md/)
 
     assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
   })
 })
 
-test('RF-0002 e RF-0012: subir de estágio acrescenta as entradas que faltam, sem duplicar', () => {
+test('RF-0002 and RF-0012: moving up a stage appends the missing entries, without duplicating', () => {
   withTempRepo({}, root => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'time/living-docs' })
+    runInit(root, { owner: '@team', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'team/living-docs' })
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
 
     const paths = ownershipOf(root).documents.map(document => document.path)
 
-    assert.ok(paths.includes('CONTRIBUTING.md'), 'a segunda execução declarou o que criou')
-    assert.equal(new Set(paths).size, paths.length, 'nenhuma entrada duplicada')
+    assert.ok(paths.includes('CONTRIBUTING.md'), 'the second run declared what it created')
+    assert.equal(new Set(paths).size, paths.length, 'no duplicated entry')
 
-    // e uma terceira execução não muda mais nada
-    const antes = readFileSync(join(root, '.ownership.yml'), 'utf8')
+    // and a third run changes nothing more
+    const before = readFileSync(join(root, '.ownership.yml'), 'utf8')
 
     runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
-    assert.equal(readFileSync(join(root, '.ownership.yml'), 'utf8'), antes)
+    assert.equal(readFileSync(join(root, '.ownership.yml'), 'utf8'), before)
   })
 })
 
-test('RF-0012: sem âncora no .ownership.yml, o init diz o que falta em vez de adivinhar', () => {
+test('RF-0012: without an anchor in .ownership.yml, init says what is missing instead of guessing', () => {
   withTempRepo({}, root => {
-    runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'time/living-docs' })
-    // arquivo reorganizado à mão: `owned` em fluxo, sem a linha `owned:` sozinha
+    runInit(root, { owner: '@team', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: 'team/living-docs' })
+    // hand-reorganized file: `owned` in flow style, without the lone `owned:` line
     writeFileSync(
       join(root, '.ownership.yml'),
-      'version: 2\nplugins: [living-docs]\nowned: [{ path: docs/decisions/adr/, owner: "@time", skill: decision-recorder, states: [draft, accepted, superseded], living-docs: { id-prefix: ADR } }]\n',
+      'version: 2\nplugins: [living-docs]\nowned: [{ path: docs/decisions/adr/, owner: "@team", skill: decision-recorder, states: [draft, accepted, superseded], living-docs: { id-prefix: ADR } }]\n',
       'utf8',
     )
 
     const result = runInit(root, {
-      owner: '@time',
+      owner: '@team',
       dryRun: false,
       stage: 'small-team',
       idFormat: DEFAULT_ID_FORMAT,
       invoke: 'npx living-docs',
       invokeOwnership: 'npx living-docs',
-      marketplace: 'time/living-docs',
+      marketplace: 'team/living-docs',
     })
 
-    assert.ok(result.notInstalled.some(item => /documentos.*owned/.test(item)))
+    assert.ok(result.notInstalled.some(item => /documents.*owned/.test(item)))
   })
 })
 
-test('RN-0019: o template de TDR traz o `pay-when` como exemplo comentado, não inventado', () => {
+test('RN-0019: the TDR template carries `pay-when` as a commented example, not an invented one', () => {
   const template = readFileSync(join(toolkitRoot(), 'templates/tdr.md'), 'utf8')
 
-  assert.match(template, /# pay-when:/, 'o exemplo é comentado — o init não inventa gatilho')
-  assert.doesNotMatch(template, /^pay-when:/m, 'gatilho preenchido de fábrica passaria em living-docs/staleness sem significar nada')
+  assert.match(template, /# pay-when:/, 'the example is commented out — init does not invent a trigger')
+  assert.doesNotMatch(template, /^pay-when:/m, 'a trigger filled in at the factory would pass living-docs/staleness while meaning nothing')
 })
 
-test('RF-0015: production declara o rastro histórico como externo, e só ele', () => {
+test('RF-0015: production declares the historical trail as external, and only it', () => {
   withTempRepo({}, root => {
     const result = runInit(root, PRODUCTION)
     const config = loadLivingDocsConfig(root)
     const byPath = new Map(config.documents.map(document => [document.path, document]))
 
     for (const path of ['CHANGELOG.md', 'docs/deprecations.md', 'docs/migrations/']) {
-      assert.equal(byPath.get(path)?.audience, 'external', `${path} é escrito para quem consome`)
+      assert.equal(byPath.get(path)?.audience, 'external', `${path} is written for whoever consumes`)
     }
     assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
 
     for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md', 'CONTRIBUTING.md', '.ownership.yml']) {
-      assert.equal(byPath.get(path)?.audience, 'internal', `${path} não é marcado pelo init`)
+      assert.equal(byPath.get(path)?.audience, 'internal', `${path} is not marked by init`)
     }
     assert.ok(
       config.artifacts.filter(artifact => artifact.idPrefix !== 'REL').every(artifact => artifact.audience === 'internal'),
-      'só REL nasce externo',
+      'only REL is born external',
     )
 
     assert.deepEqual(leftOut(result.notInstalled), [])
@@ -802,7 +802,7 @@ test('RF-0015: production declara o rastro histórico como externo, e só ele', 
   })
 })
 
-test('RF-0015: small-team não declara nada como externo', () => {
+test('RF-0015: small-team declares nothing as external', () => {
   withTempRepo({}, root => {
     runInit(root, SMALL_TEAM)
     const config = loadLivingDocsConfig(root)
@@ -812,47 +812,47 @@ test('RF-0015: small-team não declara nada como externo', () => {
   })
 })
 
-test('RF-0015: entrada já declarada sem a marca vira aviso, e o .ownership.yml não é reescrito', () => {
+test('RF-0015: an entry already declared without the mark becomes a warning, and .ownership.yml is not rewritten', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
 
-    // O repositório instalado por uma versão anterior: as mesmas entradas, sem a chave.
+    // The repository installed by an earlier version: the same entries, without the key.
     const file = join(root, OWNERSHIP_FILE)
-    const semMarca = readFileSync(file, 'utf8').replaceAll('{ audience: external }', '{}').replaceAll(', audience: external', '')
+    const unmarked = readFileSync(file, 'utf8').replaceAll('{ audience: external }', '{}').replaceAll(', audience: external', '')
 
-    writeFileSync(file, semMarca, 'utf8')
+    writeFileSync(file, unmarked, 'utf8')
     assert.ok(
       loadLivingDocsConfig(root).documents.every(document => document.audience === 'internal'),
-      'o cenário precisa estar sem marca',
+      'the scenario must be without the mark',
     )
 
-    const changelogAntes = readFileSync(join(root, 'CHANGELOG.md'), 'utf8')
+    const changelogBefore = readFileSync(join(root, 'CHANGELOG.md'), 'utf8')
     const result = runInit(root, PRODUCTION)
 
-    assert.equal(readFileSync(file, 'utf8'), semMarca, 'o init não reescreve linha já declarada')
-    assert.equal(readFileSync(join(root, 'CHANGELOG.md'), 'utf8'), changelogAntes)
+    assert.equal(readFileSync(file, 'utf8'), unmarked, 'init does not rewrite an already declared line')
+    assert.equal(readFileSync(join(root, 'CHANGELOG.md'), 'utf8'), changelogBefore)
 
-    for (const alvo of [/CHANGELOG\.md/, /docs\/deprecations\.md/, /docs\/migrations\//, /REL/]) {
+    for (const target of [/CHANGELOG\.md/, /docs\/deprecations\.md/, /docs\/migrations\//, /REL/]) {
       assert.ok(
-        result.notInstalled.some(item => alvo.test(item) && /audience: external/.test(item)),
-        `esperava aviso para ${alvo} — ${JSON.stringify(result.notInstalled)}`,
+        result.notInstalled.some(item => target.test(item) && /audience: external/.test(item)),
+        `expected a warning for ${target} — ${JSON.stringify(result.notInstalled)}`,
       )
     }
   })
 })
 
-test('arquivo de ownership v1 existente: o init não cria outro na raiz, e diz que ele precisa ser reescrito', () => {
+test('an existing v1 ownership file: init does not create another at the root, and says it must be rewritten', () => {
   withTempRepo({ 'docs/.ownership.yml': 'version: 1\nartifacts: []\n' }, root => {
-    const result = runInit(root, { owner: '@time', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: null })
+    const result = runInit(root, { owner: '@team', dryRun: false, stage: 'solo', idFormat: DEFAULT_ID_FORMAT, invoke: 'npx living-docs', invokeOwnership: 'npx living-docs', marketplace: null })
 
     assert.equal(existsSync(join(root, '.ownership.yml')), false)
     assert.ok(result.skipped.includes('docs/.ownership.yml'))
-    assert.ok(result.notInstalled.some(item => /docs\/\.ownership\.yml.*não lê como v2.*reescreva/.test(item)))
+    assert.ok(result.notInstalled.some(item => /docs\/\.ownership\.yml.*does not read as v2.*rewrite/.test(item)))
   })
 })
 
-test('o init semeia a v2 na raiz e avisa que o resto do repositório precisa de dono', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('init seeds v2 at the root and warns that the rest of the repository needs an owner', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     const result = runInit(root, OPTIONS)
     const source = readFileSync(join(root, '.ownership.yml'), 'utf8')
 
@@ -862,7 +862,7 @@ test('o init semeia a v2 na raiz e avisa que o resto do repositório precisa de 
     assert.equal(existsSync(join(root, 'docs/.ownership.yml')), false)
     assert.ok(
       result.notInstalled.some(item => /owned/.test(item) && /ownership validate/.test(item)),
-      `esperava o aviso do resto do repositório — ${JSON.stringify(result.notInstalled)}`,
+      `expected the notice about the rest of the repository — ${JSON.stringify(result.notInstalled)}`,
     )
   })
 })

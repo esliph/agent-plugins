@@ -14,12 +14,12 @@ function describe(match: WatchMatch): string {
   const parts = [`- \`${match.doc}\``]
 
   if (match.owner !== null) {
-    parts.push(`(dono: ${match.owner})`)
+    parts.push(`(owner: ${match.owner})`)
   }
   if (match.reason !== null) {
     parts.push(`— ${match.reason}`)
   }
-  parts.push(match.skill !== null ? `Skill dona: ${match.skill}.` : 'Sem skill declarada — o dono está no CODEOWNERS.')
+  parts.push(match.skill !== null ? `Owning skill: ${match.skill}.` : 'No skill declared — the owner is in CODEOWNERS.')
 
   return parts.join(' ')
 }
@@ -57,10 +57,10 @@ export function decideWatchReminder(payload: HookPayload, env: HookEnv): WatchRe
   return {
     action: 'remind',
     context:
-      `ownership/watch-reminder: \`${repoPath}\` é caminho vigiado em \`watches\`. ` +
-      'A atualização do doc dono cabe no mesmo PR; se não couber, ela não acontece.\n' +
-      `Doc dono a atualizar:\n${pending.map(describe).join('\n')}\n` +
-      'Isto é lembrete, não é bloqueio: se a mudança realmente não afeta o doc, siga em frente.',
+      `ownership/watch-reminder: \`${repoPath}\` is a watched path in \`watches\`. ` +
+      'Updating the owning doc belongs in the same PR; if it does not fit, it does not happen.\n' +
+      `Owning doc to update:\n${pending.map(describe).join('\n')}\n` +
+      'This is a reminder, not a block: if the change really does not affect the doc, go on.',
   }
 }
 

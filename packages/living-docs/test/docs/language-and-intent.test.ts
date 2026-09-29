@@ -7,29 +7,29 @@ import { checkoutRoot } from '../helpers/checkout.ts'
 const ROOT = checkoutRoot()
 
 /**
- * Índice da linha de cabeçalho de uma tabela markdown cuja primeira coluna se
- * chama `column`. Tolera o alinhamento por padding que um formatador insere
- * (`| Termo | ` vira `| Termo                | `); o `^` amarra a uma linha de
- * tabela de verdade, não a prosa que cite o nome da coluna.
+ * Index of the header line of a markdown table whose first column is called
+ * `column`. Tolerates the padding alignment a formatter inserts
+ * (`| Term | ` becomes `| Term                | `); the `^` ties it to a real
+ * table line, not to prose that cites the column name.
  */
 function headerIndex(source: string, column: string): number {
   const match = source.match(new RegExp(`^\\|\\s*${column}\\s*\\|`, 'm'))
 
-  assert.ok(match, `tabela não encontrada — esperava o cabeçalho | ${column} |`)
+  assert.ok(match, `table not found — expected the header | ${column} |`)
 
   return match.index!
 }
 
 /**
- * Linhas de uma tabela markdown, sem cabeçalho nem separador. Só o que começa
- * com `|` entra: prosa depois da tabela não pode virar um termo fantasma.
+ * Rows of a markdown table, without the header or the separator. Only what
+ * starts with `|` gets in: prose after the table cannot become a phantom term.
  */
 function rows(source: string, column: string): string[][] {
   return source
     .slice(headerIndex(source, column))
     .split('\n')
     .filter(line => line.trim().startsWith('|'))
-    .slice(2) // cabeçalho + separador
+    .slice(2) // header + separator
     .map(line =>
       line
         .trim()
@@ -40,63 +40,63 @@ function rows(source: string, column: string): string[][] {
     )
 }
 
-const GLOSSARY_HEADER = 'Termo'
+const GLOSSARY_HEADER = 'Term'
 const glossary = (): string => readFileSync(join(ROOT, 'docs/glossary.md'), 'utf8')
 
-test('RN-0011: todo termo do glossary tem um nome único, e nenhum tem ID numerado', () => {
+test('RN-0011: every glossary term has a unique name, and none has a numbered ID', () => {
   const source = glossary()
   const entries = rows(source, GLOSSARY_HEADER)
 
-  const nomes = entries.map(row => row[0])
+  const names = entries.map(row => row[0])
 
-  assert.ok(nomes.length >= 5, `esperava ao menos 5 termos, achei ${nomes.length}`)
-  assert.equal(new Set(nomes).size, nomes.length, 'há termo com nome duplicado')
+  assert.ok(names.length >= 5, `expected at least 5 terms, found ${names.length}`)
+  assert.equal(new Set(names).size, names.length, 'a term has a duplicate name')
 
   const start = headerIndex(source, GLOSSARY_HEADER)
   const header = source.slice(start, source.indexOf('\n', start))
 
-  assert.doesNotMatch(header, /\|\s*ID\s*\|/i, 'a tabela não tem coluna de ID — o termo é identificado pelo nome (RN-0011)')
+  assert.doesNotMatch(header, /\|\s*ID\s*\|/i, 'the table has no ID column — the term is identified by its name (RN-0011)')
 
   for (const row of entries) {
     const status = row[row.length - 1] ?? ''
 
-    // `renamed(para X)` é o estado com destino; a spec §4 o escreve assim.
-    assert.match(status, /^(active|banned|renamed(\(para .+\))?)$/, `status "${status}" fora do ciclo de vida do termo (RN-0011)`)
+    // `renamed(to X)` is the state with a target; spec §4 writes it that way.
+    assert.match(status, /^(active|banned|renamed(\(to .+\))?)$/, `status "${status}" outside the term lifecycle (RN-0011)`)
   }
 })
 
-test('RN-0011: todo termo aponta a fonte que o define', () => {
+test('RN-0011: every term points to the source that defines it', () => {
   for (const row of rows(glossary(), GLOSSARY_HEADER)) {
-    assert.notEqual(row[4] ?? '', '', `termo "${row[0]}" sem fonte`)
+    assert.notEqual(row[4] ?? '', '', `term "${row[0]}" without a source`)
   }
 })
 
-test('a Constitution: todo princípio nomeia o que o verifica', () => {
+test('the Constitution: every principle names what verifies it', () => {
   const source = readFileSync(join(ROOT, 'docs/charter/constitution.md'), 'utf8')
-  const secao = source.slice(source.indexOf('## Princípios'), source.indexOf('## Log de emendas'))
-  const principios = secao.split('\n').filter(line => /^\d+\./.test(line.trim()))
+  const section = source.slice(source.indexOf('## Principles'), source.indexOf('## Amendment log'))
+  const principles = section.split('\n').filter(line => /^\d+\./.test(line.trim()))
 
-  assert.ok(principios.length >= 3, `esperava ao menos 3 princípios, achei ${principios.length}`)
-  for (const principio of principios) {
-    assert.match(principio, /verificado por/, `princípio sem enforcement nomeado — ${principio}`)
+  assert.ok(principles.length >= 3, `expected at least 3 principles, found ${principles.length}`)
+  for (const principle of principles) {
+    assert.match(principle, /verified by/, `principle without a named enforcement — ${principle}`)
   }
 })
 
-test('a Constitution tem log de emendas — emenda é append, nunca reescrita no lugar', () => {
+test('the Constitution has an amendment log — an amendment is an append, never an in-place rewrite', () => {
   const source = readFileSync(join(ROOT, 'docs/charter/constitution.md'), 'utf8')
 
-  assert.match(source, /## Log de emendas/)
+  assert.match(source, /## Amendment log/)
 })
 
-test('a Vision responde só as três perguntas da spec §5', () => {
+test('the Vision answers only the three questions of spec §5', () => {
   const source = readFileSync(join(ROOT, 'docs/charter/vision.md'), 'utf8')
 
-  for (const pergunta of ['Que problema', 'Para quem', 'Métrica de sucesso']) {
-    assert.match(source, new RegExp(`\\*\\*${pergunta}:\\*\\*`), `Vision sem a pergunta "${pergunta}"`)
+  for (const question of ['What problem', 'For whom', 'Success metric']) {
+    assert.match(source, new RegExp(`\\*\\*${question}:\\*\\*`), `Vision without the question "${question}"`)
   }
 })
 
-test('RN-0001: glossary e charter têm dono no CODEOWNERS, como todo artefato', () => {
+test('RN-0001: glossary and charter have an owner in CODEOWNERS, like every artifact', () => {
   const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
 
   assert.match(codeowners, /^docs\/glossary\.md\s+@\S+$/m)

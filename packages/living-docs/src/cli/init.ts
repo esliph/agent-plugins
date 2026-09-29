@@ -13,25 +13,25 @@ import { todayIso } from '../core/dates.ts'
 
 const TEMPLATES_DIR = templatesDir()
 
-/** Onde o `init` escreve o arquivo de ownership: a raiz de quem instala. */
+/** Where `init` writes the ownership file: the installer's root. */
 export const OWNERSHIP_FILE = '.ownership.yml'
 
-/** Os candidatos que o núcleo lê, na ordem dele. Um só pode existir. */
+/** The candidates the core reads, in its order. Only one may exist. */
 const OWNERSHIP_CANDIDATES: readonly string[] = [OWNERSHIP_FILE, 'docs/.ownership.yml']
 
 /**
- * Estágios de maturidade (spec §10, `SK-0` passo 2). Cada estágio instala o
- * conjunto mínimo que ele pede — e nada além. `multi-team` existe desde o
- * fechamento porque passa a ter enforcement atrás dele: é o estágio que instala
- * a Fase 7 (`RN-0025`, `ADR-0012`). Um rótulo sem conteúdo é a wiki morta
- * nascendo de fábrica.
+ * Maturity stages (spec §10, `SK-0` step 2). Each stage installs the
+ * minimum set it asks for — and nothing beyond. `multi-team` has existed since the
+ * closing because it now has enforcement behind it: it is the stage that installs
+ * Phase 7 (`RN-0025`, `ADR-0012`). A label with no content is a dead wiki
+ * being born at the factory.
  */
 export const STAGES = ['solo', 'small-team', 'production', 'multi-team'] as const
 export type Stage = (typeof STAGES)[number]
 
 type Kind = 'ADR' | 'DA' | 'TDR' | 'RF' | 'RNF' | 'RN' | 'REL'
 
-/** Artefatos que só o estágio `small-team` em diante instala. */
+/** Artifacts that only the `small-team` stage onward installs. */
 const REQUIREMENT_KINDS: readonly Kind[] = ['RF', 'RNF', 'RN']
 
 export const DEFAULT_PATHS: Readonly<Record<Kind, string>> = Object.freeze({
@@ -45,62 +45,62 @@ export const DEFAULT_PATHS: Readonly<Record<Kind, string>> = Object.freeze({
 })
 
 const REQUIREMENT_TITLES: Readonly<Record<'RF' | 'RNF' | 'RN', string>> = Object.freeze({
-  RF: 'Requisitos funcionais',
-  RNF: 'Requisitos não funcionais',
-  RN: 'Regras de negócio',
+  RF: 'Functional requirements',
+  RNF: 'Non-functional requirements',
+  RN: 'Business rules',
 })
 
-/** Caminhos varridos por `cited-by` para provar cobertura de requisito (living-docs/citation-coverage). */
+/** Paths scanned by `cited-by` to prove requirement coverage (living-docs/citation-coverage). */
 const REQUIREMENT_CITED_BY: Readonly<Record<'RF' | 'RNF' | 'RN', readonly string[]>> = Object.freeze({
   RF: ['test/**'],
   RNF: ['test/**'],
   RN: ['test/**', 'src/**'],
 })
 
-/** Acordos de trabalho (SK-6), instalados a partir do estágio `small-team` (spec §10). */
+/** Working agreements (SK-6), installed from the `small-team` stage onward (spec §10). */
 const WORKING_AGREEMENTS: readonly { path: string; template: string }[] = Object.freeze([
   { path: 'CONTRIBUTING.md', template: 'contributing.md' },
   { path: 'docs/definition-of-done.md', template: 'definition-of-done.md' },
 ])
 
-/** Linguagem e intenção (SK-1, SK-2), instalados a partir do estágio `small-team` (spec §10, Fase 4). */
+/** Language and intent (SK-1, SK-2), installed from the `small-team` stage onward (spec §10, Phase 4). */
 const LANGUAGE_AND_INTENT: readonly { path: string; template: string }[] = Object.freeze([
   { path: 'docs/glossary.md', template: 'glossary.md' },
   { path: 'docs/charter/constitution.md', template: 'constitution.md' },
   { path: 'docs/charter/vision.md', template: 'vision.md' },
 ])
 
-/** Contratos (SK-5), instalados a partir do estágio `production` (spec §10, Fase 5). */
+/** Contracts (SK-5), installed from the `production` stage onward (spec §10, Phase 5). */
 const CONTRACTS: readonly { path: string; template: string }[] = Object.freeze([
   { path: 'docs/contracts/errors.md', template: 'errors.md' },
   { path: 'docs/contracts/versioning-policy.md', template: 'versioning-policy.md' },
 ])
 
-/** Rastro histórico (SK-7), instalado a partir do estágio `production` (spec §10, Fase 6). */
+/** Historical trail (SK-7), installed from the `production` stage onward (spec §10, Phase 6). */
 const HISTORY: readonly { path: string; template: string }[] = Object.freeze([
   { path: 'CHANGELOG.md', template: 'changelog.md' },
   { path: 'docs/deprecations.md', template: 'deprecations.md' },
 ])
 
-/** Diretórios de item por arquivo que o rastro histórico usa (spec §3). */
+/** Per-file item directories that the historical trail uses (spec §3). */
 const HISTORY_DIRS: readonly string[] = Object.freeze(['docs/migrations/'])
 
 /**
- * Documento que o `init` declara em `documents:` (`RF-0012`, `ADR-0008`).
+ * Document that `init` declares in `documents:` (`RF-0012`, `ADR-0008`).
  *
- * Todo documento que o `init` cria e que não tem família de IDs entra aqui: um
- * documento criado e não declarado é um repositório que reprova no próprio
- * `ownership/owner-coverage` na primeira execução.
+ * Every document `init` creates that has no ID family goes here: a
+ * document that is created but not declared is a repository that fails its own
+ * `ownership/owner-coverage` on the first run.
  */
 interface DocumentSeed {
   path: string
   skill: string | null
   role: DocumentRole | null
-  /** `external` para o que é escrito para quem vem de fora (`RF-0015`). */
+  /** `external` for what is written for readers from the outside (`RF-0015`). */
   audience: Audience
 }
 
-/** Declarados em todo estágio: os dois nascem já no `solo`. */
+/** Declared at every stage: both are born already at `solo`. */
 const BASE_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
   { path: OWNERSHIP_FILE, skill: 'living-docs-bootstrap', role: null, audience: 'internal' },
   { path: RETIRED_IDS_PATH, skill: 'living-docs-bootstrap', role: null, audience: 'internal' },
@@ -114,9 +114,9 @@ const SMALL_TEAM_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
 ])
 
 /**
- * O rastro histórico nasce externo: é escrito para quem consome (`RF-0015`).
- * Os contratos não — citam as próprias fontes, e marcá-los é decisão de quem os
- * mantém.
+ * The historical trail is born external: it is written for those who consume it (`RF-0015`).
+ * Contracts are not — they cite their own sources, and marking them is the decision of whoever
+ * maintains them.
  */
 const PRODUCTION_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
   { path: 'docs/contracts/errors.md', skill: 'contract-keeper', role: null, audience: 'internal' },
@@ -126,7 +126,7 @@ const PRODUCTION_DOCUMENTS: readonly DocumentSeed[] = Object.freeze([
   { path: 'docs/migrations/', skill: 'release-historian', role: null, audience: 'external' },
 ])
 
-/** O contrato do agente: adota `AGENTS.md` quando ele já existe (`RF-0002`). */
+/** The agent contract: adopts `AGENTS.md` when it already exists (`RF-0002`). */
 function agentContractPath(root: string): string {
   return existsSync(join(root, 'AGENTS.md')) ? 'AGENTS.md' : 'CLAUDE.md'
 }
@@ -167,25 +167,25 @@ function documentEntry(seed: DocumentSeed, owner: string): string {
   return lines.join('\n')
 }
 
-/** As entradas de documento de `owned` (o bloco `living-docs:` sem `id-prefix`). */
+/** The document entries of `owned` (the `living-docs:` block without `id-prefix`). */
 function documentsBlock(root: string, owner: string, stage: Stage): string {
   const entries = documentSeeds(root, stage).map(seed => documentEntry(seed, owner))
 
   return [
-    // Regra de origem: ADR-0008 e ADR-0029.
-    '  # Documento: bloco `living-docs:` sem `id-prefix`. Tem dono e não tem família de IDs.',
-    '  # `role` é vocabulário fechado: agent-contract, definition-of-done.',
-    '  # `audience` diz quem lê: ausente é internal; external reprova ID de artefato no texto.',
+    // Rule of origin: ADR-0008 and ADR-0029.
+    '  # Document: a `living-docs:` block without `id-prefix`. It has an owner and no ID family.',
+    '  # `role` is a closed vocabulary: agent-contract, definition-of-done.',
+    '  # `audience` says who reads it: absent means internal; external rejects artifact IDs in the text.',
     ...entries,
   ].join('\n')
 }
 
 /**
- * Caminhos onde um artefato equivalente pode já existir sob outro nome.
- * Adotar o que existe; nunca criar um paralelo (spec §5, SK-0 passo 1).
+ * Paths where an equivalent artifact may already exist under another name.
+ * Adopt what exists; never create a parallel one (spec §5, SK-0 step 1).
  *
- * As listas de requisito não se cruzam por acidente: `resolvePath` marca cada
- * caminho adotado, para que duas famílias nunca acabem donas do mesmo arquivo.
+ * The requirement lists do not cross by accident: `resolvePath` marks each
+ * adopted path, so that two families never end up owning the same file.
  */
 const ADOPTION_CANDIDATES: Readonly<Record<Kind, readonly string[]>> = Object.freeze({
   ADR: ['docs/adr/', 'adr/', 'doc/adr/', 'docs/architecture/decisions/'],
@@ -208,13 +208,13 @@ export interface InitOptions {
   owner: string
   dryRun: boolean
   stage: Stage
-  /** A forma escrita declarada por quem instala (`ADR-0011`). */
+  /** The written form declared by the installer (`ADR-0011`). */
   idFormat: IdFormat
-  /** Como o CLI é chamado no CI de quem instala (`DA-0003`). */
+  /** How the CLI is called in the installer's CI (`DA-0003`). */
   invoke: string
-  /** Como o CLI do núcleo é chamado no CI de quem instala. Padrão `npx ownership` (TDR-0003). */
+  /** How the core's CLI is called in the installer's CI. Defaults to `npx ownership` (TDR-0003). */
   invokeOwnership: string
-  /** Repositório do marketplace do plugin, ou `null` para não registrar (`DA-0003`). */
+  /** The plugin's marketplace repository, or `null` to not register (`DA-0003`). */
   marketplace: string | null
 }
 
@@ -223,18 +223,18 @@ export interface InitResult {
   skipped: string[]
   adopted: { idPrefix: string; path: string }[]
   stage: Stage
-  /** O que este estágio pediria e esta versão do toolkit ainda não entrega. */
+  /** What this stage would ask for and this toolkit version does not yet deliver. */
   notInstalled: string[]
-  /** A forma escrita que o inventário achou, quando difere da declarada (`RF-0014`). */
+  /** The written form the inventory found, when it differs from the declared one (`RF-0014`). */
   detected: DetectedFormat | null
 }
 
-/** Onde o workflow instalado mora no repositório de quem instala. */
+/** Where the installed workflow lives in the installer's repository. */
 export const WORKFLOW_PATH = '.github/workflows/living-docs.yml'
 
 /**
- * As fases da spec §10 que cada estágio instala. É daqui que sai o conjunto de
- * enforcement do estágio — nem mais, nem menos (`RN-0025`, `ADR-0012`).
+ * The phases of spec §10 that each stage installs. The stage's enforcement set
+ * comes from here — no more, no less (`RN-0025`, `ADR-0012`).
  */
 const STAGE_PHASES: Readonly<Record<Stage, readonly number[]>> = Object.freeze({
   solo: [0, 1],
@@ -243,14 +243,14 @@ const STAGE_PHASES: Readonly<Record<Stage, readonly number[]>> = Object.freeze({
   'multi-team': [0, 1, 2, 3, 4, 5, 6, 7],
 })
 
-/** Este estágio chega até a fase dada? É a pergunta que substitui comparar strings. */
+/** Does this stage reach the given phase? It is the question that replaces comparing strings. */
 function reaches(stage: Stage, phase: number): boolean {
   return STAGE_PHASES[stage].includes(phase)
 }
 
 /**
- * Os passos que este estágio acrescenta ao `validate`, que todo estágio roda.
- * Cada passo existe porque uma fase do estágio instalou o check que ele chama.
+ * The steps this stage adds to `validate`, which every stage runs.
+ * Each step exists because a phase of the stage installed the check it calls.
  */
 function workflowSteps(stage: Stage, invoke: string, invokeOwnership: string): string {
   const phases = STAGE_PHASES[stage]
@@ -260,7 +260,7 @@ function workflowSteps(stage: Stage, invoke: string, invokeOwnership: string): s
     steps.push(
       [
         '',
-        '      - name: Vínculo código→doc e entrada de CHANGELOG no diff do PR',
+        '      - name: Code→doc link and CHANGELOG entry in the PR diff',
         "        if: github.event_name == 'pull_request'",
         `        run: ${invokeOwnership} validate --base \${{ github.event.pull_request.base.sha }}`,
       ].join('\n'),
@@ -271,7 +271,7 @@ function workflowSteps(stage: Stage, invoke: string, invokeOwnership: string): s
     steps.push(
       [
         '',
-        '      - name: Documentação viva no diff do PR',
+        '      - name: Living documentation in the PR diff',
         "        if: github.event_name == 'pull_request'",
         `        run: ${invoke} validate --base \${{ github.event.pull_request.base.sha }}`,
       ].join('\n'),
@@ -282,15 +282,15 @@ function workflowSteps(stage: Stage, invoke: string, invokeOwnership: string): s
 }
 
 /**
- * O que este estágio pede e esta versão ainda não entrega. `solo` e `small-team`
- * saem vazios: as Fases 0–4 estão completas.
+ * What this stage asks for and this version does not yet deliver. `solo` and `small-team`
+ * come out empty: Phases 0–4 are complete.
  */
 const NOT_INSTALLED: Readonly<Record<Stage, readonly string[]>> = Object.freeze({
   solo: [],
   'small-team': [],
-  // `production` cobre as Fases 5 e 6 da spec §10, e as duas existem.
+  // `production` covers Phases 5 and 6 of spec §10, and both exist.
   production: [],
-  // `multi-team` cobre a Fase 7 da spec §10, e ela existe.
+  // `multi-team` covers Phase 7 of spec §10, and it exists.
   'multi-team': [],
 })
 
@@ -305,8 +305,8 @@ function template(name: string, values: Record<string, string>): string {
 }
 
 /**
- * Idempotência (spec §5): se já existe `.ownership.yml`, os caminhos vêm dele —
- * uma segunda execução não pode reinterpretar a estrutura que a primeira criou.
+ * Idempotence (spec §5): if `.ownership.yml` already exists, the paths come from it —
+ * a second run must not reinterpret the structure the first one created.
  */
 function resolvePath(root: string, kind: Kind, existing: LivingDocsConfig | null, result: InitResult, claimed: Set<string>): string {
   const declared = existing?.artifacts.find(artifact => artifact.idPrefix === kind)
@@ -365,7 +365,7 @@ function ensureDirectory(root: string, relative: string, options: InitOptions, r
   writeFileSync(join(root, relative, '.gitkeep'), '', 'utf8')
 }
 
-/** O bloco de artefatos de requisito do `.ownership.yml`, ou vazio no estágio solo. */
+/** The requirement-artifact block of `.ownership.yml`, or empty at the solo stage. */
 function requirementsBlock(owner: string, paths: Record<Kind, string>, stage: Stage): string {
   if (stage === 'solo') {
     return ''
@@ -387,7 +387,7 @@ function requirementsBlock(owner: string, paths: Record<Kind, string>, stage: St
   return `\n${entries.join('\n\n')}\n`
 }
 
-/** O artefato REL do `.ownership.yml`, ou vazio fora do estágio `production`. */
+/** The REL artifact of `.ownership.yml`, or empty outside the `production` stage. */
 function releasesBlock(owner: string, path: string, stage: Stage): string {
   if (!reaches(stage, 6)) {
     return ''
@@ -400,9 +400,9 @@ function releasesBlock(owner: string, path: string, stage: Stage): string {
       `    owner: "${owner}"`,
       '    skill: release-historian',
       '    states: [draft, published]',
-      '    # A release note é lida por quem consome: o texto não cita ID de artefato.',
-      // Regra de origem: spec §5, SK-7, regra 4.
-      '    # Release note publicada é congelada.',
+      '    # A release note is read by whoever consumes it: the text cites no artifact ID.',
+      // Rule of origin: spec §5, SK-7, rule 4.
+      '    # A published release note is frozen.',
       '    living-docs: { id-prefix: REL, audience: external, append-only: true, mutable-fields: [status, last-reviewed] }',
     ].join('\n') +
     '\n'
@@ -419,9 +419,9 @@ export function runInit(root: string, options: InitOptions): InitResult {
     detected: null,
   }
 
-  // Um arquivo de ownership já existe? Então é dele que vêm os caminhos, e o
-  // init não escreve outro ao lado: dois candidatos travam toda leitura por
-  // ambiguidade. Arquivo que não lê na v2 é relatado, nunca sobrescrito.
+  // Does an ownership file already exist? Then the paths come from it, and
+  // init writes no other beside it: two candidates block every read through
+  // ambiguity. A file that does not read in v2 is reported, never overwritten.
   const existingFile = OWNERSHIP_CANDIDATES.find(candidate => existsSync(join(root, candidate))) ?? null
   let existing: LivingDocsConfig | null = null
 
@@ -430,8 +430,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
       existing = loadLivingDocsConfig(root)
     } catch (err) {
       result.notInstalled.push(
-        `${existingFile} — o arquivo existe e não lê como v2 (${err instanceof Error ? err.message : String(err)}); ` +
-          'reescreva-o na v2 à mão, guiado pelo CHANGELOG. O init não o sobrescreve nem cria outro ao lado',
+        `${existingFile} — the file exists and does not read as v2 (${err instanceof Error ? err.message : String(err)}); ` +
+          'rewrite it as v2 by hand, guided by the CHANGELOG. init neither overwrites it nor creates another next to it',
       )
     }
   }
@@ -445,8 +445,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
         : ['ADR', 'DA', 'TDR', ...REQUIREMENT_KINDS]
   const paths = Object.fromEntries(kinds.map(kind => [kind, resolvePath(root, kind, existing, result, claimed)])) as Record<Kind, string>
 
-  // Relatar, nunca adotar em silêncio (`RF-0014`): adoção silenciosa de formato
-  // é a mesma classe de erro que adoção silenciosa de caminho.
+  // Report, never adopt silently (`RF-0014`): silent adoption of a format
+  // is the same class of error as silent adoption of a path.
   const detected = detectIdFormat(root, Object.values(paths))
 
   result.detected =
@@ -462,10 +462,10 @@ export function runInit(root: string, options: InitOptions): InitResult {
     TDR_PATH: paths.TDR,
     REQUIREMENTS_BLOCK: requirementsBlock(options.owner, paths, options.stage),
     REQUIREMENTS_CODEOWNERS: requirementsCodeowners,
-    // O contrato do agente entra no CODEOWNERS pelo caminho **adotado**, o mesmo
-    // que `documents:` declara: um repositório com `AGENTS.md` que recebesse a
-    // linha de `CLAUDE.md` nasceria com o contrato sem dono do lado de quem
-    // revisa — e reprovaria no próprio `ownership/owner-coverage` na primeira execução (`RF-0012`).
+    // The agent contract enters CODEOWNERS by the **adopted** path, the same one
+    // that `documents:` declares: a repository with `AGENTS.md` that received the
+    // `CLAUDE.md` line would be born with the contract unowned on the reviewer's
+    // side — and would fail its own `ownership/owner-coverage` on the first run (`RF-0012`).
     AGREEMENTS_CODEOWNERS:
       options.stage === 'solo'
         ? ''
@@ -488,11 +488,11 @@ export function runInit(root: string, options: InitOptions): InitResult {
 
   if (existingFile === null) {
     writeIfAbsent(root, OWNERSHIP_FILE, template('ownership.yml', values), options, result)
-    // O init não sabe onde mora o código de quem instala, e `ownership validate`
-    // exige dono para todo arquivo do repositório: dizer é o que resta a fazer.
+    // init does not know where the installer's code lives, and `ownership validate`
+    // requires an owner for every file in the repository: saying so is what is left to do.
     result.notInstalled.push(
-      `o resto do repositório em \`owned\` de ${OWNERSHIP_FILE} — \`ownership validate\` exige dono para todo arquivo, ` +
-        'e o init não sabe onde mora o seu código; declare-o (ou tire-o da governança em `ignore`) antes de rodá-lo',
+      `the rest of the repository in \`owned\` of ${OWNERSHIP_FILE} — \`ownership validate\` requires an owner for every file, ` +
+        'and init does not know where your code lives; declare it (or take it out of governance under `ignore`) before running it',
     )
   } else {
     result.skipped.push(existingFile)
@@ -510,12 +510,12 @@ export function runInit(root: string, options: InitOptions): InitResult {
   ensureDirectory(root, paths.TDR, options, result)
 
   if (options.stage !== 'solo') {
-    // Subir de estágio num repositório que já rodou `solo`: os três artefatos
-    // precisam ser declarados, senão os arquivos nascem sem dono — e artefato
-    // órfão não é enforceável (spec §3). Só entra o que ainda não está lá.
-    const faltando = REQUIREMENT_KINDS.filter(kind => !existing?.artifacts.some(artifact => artifact.idPrefix === kind))
+    // Moving up a stage in a repository that already ran `solo`: the three artifacts
+    // need to be declared, otherwise the files are born without an owner — and an
+    // orphan artifact is not enforceable (spec §3). Only what is not there yet goes in.
+    const missing = REQUIREMENT_KINDS.filter(kind => !existing?.artifacts.some(artifact => artifact.idPrefix === kind))
 
-    if (existing && faltando.length > 0) {
+    if (existing && missing.length > 0) {
       declareArtifacts(root, options, result, values.REQUIREMENTS_BLOCK, 'artefatos RF, RNF e RN', existing.rootFile)
     }
 
@@ -538,9 +538,9 @@ export function runInit(root: string, options: InitOptions): InitResult {
         writeIfAbsent(root, contract.path, template(contract.template, values), options, result)
       }
 
-      // Subir de estágio: o REL precisa ser declarado num `.ownership.yml` que
-      // já existe, senão a release note nasce sem dono — e artefato órfão não é
-      // enforceável (spec §3), nem congelável por living-docs/append-only.
+      // Moving up a stage: the REL must be declared in an `.ownership.yml` that
+      // already exists, otherwise the release note is born without an owner — and an orphan artifact is not
+      // enforceable (spec §3), nor freezable by living-docs/append-only.
       if (existing && !existing.artifacts.some(artifact => artifact.idPrefix === 'REL')) {
         declareArtifacts(root, options, result, values.RELEASES_BLOCK, 'artefato REL', existing.rootFile)
       }
@@ -554,24 +554,24 @@ export function runInit(root: string, options: InitOptions): InitResult {
       }
     }
 
-    // O contrato do agente pode já existir com outro nome. Adotar, nunca duplicar
-    // (RF-0002): dois contratos é a garantia de que um deles está errado.
+    // The agent contract may already exist under another name. Adopt, never duplicate
+    // (RF-0002): two contracts is a guarantee that one of them is wrong.
     const contract = agentContractPath(root)
 
     if (contract === 'AGENTS.md') {
-      result.adopted.push({ idPrefix: 'contrato do agente', path: 'AGENTS.md' })
+      result.adopted.push({ idPrefix: 'agent contract', path: 'AGENTS.md' })
     } else {
       writeIfAbsent(root, contract, template('agent-contract.md', values), options, result)
     }
   }
 
-  // O enforcement do estágio (`RF-0013`). Mesclar, nunca sobrescrever: o
-  // workflow que já existe é de quem o escreveu.
+  // The stage's enforcement (`RF-0013`). Merge, never overwrite: the
+  // workflow that already exists belongs to whoever wrote it.
   writeIfAbsent(root, WORKFLOW_PATH, template('workflow.yml', values), options, result)
   declarePlugin(root, options, result)
 
-  // O bloco vai no template na primeira execução; aqui é o caso de quem já tinha
-  // um `.ownership.yml` — de uma versão anterior, ou de um estágio menor.
+  // The block goes in the template on the first run; here is the case of whoever already had
+  // an `.ownership.yml` — from an earlier version, or from a smaller stage.
   if (existing !== null) {
     declareDocuments(root, options, result, existing)
     reportUnmarkedExternal(root, options.stage, result, existing)
@@ -581,19 +581,19 @@ export function runInit(root: string, options: InitOptions): InitResult {
 }
 
 /**
- * O registro que liga os hooks na sessão (`RF-0013`).
+ * The registration that wires the hooks into the session (`RF-0013`).
  *
- * Sem `--marketplace`, nada é escrito: a fonte do marketplace não se adivinha
- * (`DA-0003`), e o init não inventa — mesma política de `watches` e
- * `generated[]`. Settings ilegível também não é tocado: consertar configuração
- * alheia apaga trabalho de alguém.
+ * Without `--marketplace`, nothing is written: the marketplace source is not guessed
+ * (`DA-0003`), and init does not invent — same policy as `watches` and
+ * `generated[]`. Unreadable settings are not touched either: fixing someone
+ * else's configuration erases someone's work.
  */
 function declarePlugin(root: string, options: InitOptions, result: InitResult): void {
   if (options.marketplace === null) {
     result.notInstalled.push(
-      // Regra de origem: DA-0003.
-      `registro do plugin em ${SETTINGS_PATH} — sem \`--marketplace <owner/repo>\` a fonte não se ` +
-        'adivinha; os hooks não sobem na sessão até ele ser declarado',
+      // Rule of origin: DA-0003.
+      `plugin registration in ${SETTINGS_PATH} — without \`--marketplace <owner/repo>\` the source cannot be ` +
+        'guessed; the hooks do not come up in the session until it is declared',
     )
 
     return
@@ -608,8 +608,8 @@ function declarePlugin(root: string, options: InitOptions, result: InitResult): 
     merged = mergeSettings(current, options.marketplace)
   } catch (err) {
     result.notInstalled.push(
-      `registro do plugin em ${SETTINGS_PATH} — ${err instanceof SettingsError ? err.message : String(err)}; ` +
-        'declare-o à mão para não perder o que já está lá',
+      `plugin registration in ${SETTINGS_PATH} — ${err instanceof SettingsError ? err.message : String(err)}; ` +
+        'declare it by hand so as not to lose what is already there',
     )
 
     return
@@ -636,11 +636,11 @@ function insertAfterOwned(source: string, entries: string): string | null {
 }
 
 /**
- * Acrescenta um bloco de artefatos ao arquivo de ownership que já existe.
- * Nada é reescrito: as entradas entram logo depois de `owned:`, porque a ordem
- * de uma lista YAML não significa nada. Sem essa âncora — um arquivo
- * reorganizado à mão — o init não adivinha: ele diz o que falta e deixa a edição
- * para quem é dono do arquivo.
+ * Appends an artifact block to the ownership file that already exists.
+ * Nothing is rewritten: the entries go in right after `owned:`, because the order
+ * of a YAML list means nothing. Without that anchor — a file
+ * reorganized by hand — init does not guess: it says what is missing and leaves the edit
+ * to whoever owns the file.
  */
 function declareArtifacts(root: string, options: InitOptions, result: InitResult, block: string, what: string, file: string): void {
   const path = join(root, file)
@@ -648,7 +648,7 @@ function declareArtifacts(root: string, options: InitOptions, result: InitResult
   const next = insertAfterOwned(source, block)
 
   if (next === null) {
-    result.notInstalled.push(`${what} em ${file} — âncora \`owned:\` não encontrada; ` + 'declare-os à mão para que os artefatos tenham dono')
+    result.notInstalled.push(`${what} in ${file} — \`owned:\` anchor not found; ` + 'declare them by hand so the artifacts have an owner')
 
     return
   }
@@ -661,67 +661,67 @@ function declareArtifacts(root: string, options: InitOptions, result: InitResult
 }
 
 /**
- * Acrescenta ao CODEOWNERS que já existe as linhas que este estágio pede e que
- * não estão lá.
+ * Appends to the CODEOWNERS that already exists the lines this stage asks for and that
+ * are not there.
  *
- * O CODEOWNERS nasce inteiro na primeira execução, mas quem sobe de estágio já
- * tem um — e `writeIfAbsent` sozinho o deixaria congelado na forma do estágio
- * anterior, com os documentos novos nascendo sem quem os revise. `ownership/owner-coverage` cobra o
- * dono nos dois lugares, então o `documents:` sem a linha correspondente é
- * meio dono (`RN-0016`).
+ * CODEOWNERS is born whole on the first run, but whoever moves up a stage already
+ * has one — and `writeIfAbsent` alone would leave it frozen in the shape of the previous
+ * stage, with the new documents born without anyone to review them. `ownership/owner-coverage` requires the
+ * owner in both places, so `documents:` without the matching line is
+ * half an owner (`RN-0016`).
  *
- * Nada é reescrito: só se acrescenta, e a comparação é por padrão — a linha que
- * já existe fica como o dono do arquivo a escreveu, mesmo com outro `@handle`.
+ * Nothing is rewritten: only appended, and the comparison is by pattern — the line that
+ * already exists stays as the file's owner wrote it, even with another `@handle`.
  */
 function declareCodeowners(root: string, options: InitOptions, result: InitResult, rendered: string): void {
   const file = join(root, 'CODEOWNERS')
   const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
   const known = new Set(parseCodeowners(source).map(entry => entry.pattern))
 
-  const faltando = parseCodeowners(rendered)
+  const missing = parseCodeowners(rendered)
     .filter(entry => !known.has(entry.pattern))
     .map(entry => `${entry.pattern}    ${entry.owners.join(' ')}`)
 
-  if (faltando.length === 0) {
+  if (missing.length === 0) {
     result.skipped.push('CODEOWNERS')
 
     return
   }
 
-  result.created.push(`CODEOWNERS (${faltando.length} linha(s))`)
+  result.created.push(`CODEOWNERS (${missing.length} line(s))`)
   if (options.dryRun) {
     return
   }
-  writeFileSync(file, `${source.replace(/\n*$/, '\n')}${faltando.join('\n')}\n`, 'utf8')
+  writeFileSync(file, `${source.replace(/\n*$/, '\n')}${missing.join('\n')}\n`, 'utf8')
 }
 
 /**
- * Declara em `owned` o documento que ainda não está lá, num arquivo de ownership
- * que já existe. A âncora é uma só, `owned:`: sem ela — arquivo reorganizado à
- * mão — o init **não adivinha**: ele diz o que falta e deixa a edição para quem é
- * dono do arquivo. Mesma política de `declareArtifacts`.
+ * Declares in `owned` the document that is not there yet, in an ownership file
+ * that already exists. The anchor is only one, `owned:`: without it — a file reorganized by
+ * hand — init **does not guess**: it says what is missing and leaves the edit to whoever
+ * owns the file. Same policy as `declareArtifacts`.
  */
 function declareDocuments(root: string, options: InitOptions, result: InitResult, existing: LivingDocsConfig): void {
   const declared = new Set(existing.documents.map(document => document.path))
-  const faltando = documentSeeds(root, options.stage).filter(seed => !declared.has(seed.path))
+  const missing = documentSeeds(root, options.stage).filter(seed => !declared.has(seed.path))
 
-  if (faltando.length === 0) {
+  if (missing.length === 0) {
     return
   }
 
   const file = existing.rootFile
   const path = join(root, file)
   const source = readFileSync(path, 'utf8').replace(/\r\n/g, '\n')
-  const entries = faltando.map(seed => documentEntry(seed, options.owner)).join('\n')
+  const entries = missing.map(seed => documentEntry(seed, options.owner)).join('\n')
   const next = insertAfterOwned(source, entries)
 
   if (next === null) {
-    result.notInstalled.push(`documentos em ${file} — âncora \`owned:\` não encontrada; ` + 'declare os documentos à mão para que eles tenham dono')
+    result.notInstalled.push(`documents in ${file} — \`owned:\` anchor not found; ` + 'declare the documents by hand so they have an owner')
 
     return
   }
 
-  result.created.push(`${file} (${faltando.length} documento(s))`)
+  result.created.push(`${file} (${missing.length} document(s))`)
   if (options.dryRun) {
     return
   }
@@ -729,13 +729,13 @@ function declareDocuments(root: string, options: InitOptions, result: InitResult
 }
 
 /**
- * Relata a entrada já declarada que este estágio marcaria como externa e que
- * não está marcada (`RF-0015`).
+ * Reports the already-declared entry that this stage would mark as external and that
+ * is not marked (`RF-0015`).
  *
- * Não reescreve a linha: mesma política de `declareDocuments`,
- * `declareArtifacts` e `declareCodeowners`. A entrada é de quem a escreveu, e
- * marcá-la liga `living-docs/external-audience` sobre um texto que talvez ainda cite ID — a decisão é de
- * quem responde por ele.
+ * It does not rewrite the line: same policy as `declareDocuments`,
+ * `declareArtifacts` and `declareCodeowners`. The entry belongs to whoever wrote it, and
+ * marking it turns on `living-docs/external-audience` over a text that may still cite an ID — the decision belongs to
+ * whoever answers for it.
  */
 function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, existing: LivingDocsConfig): void {
   for (const seed of documentSeeds(root, stage)) {
@@ -758,7 +758,7 @@ function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, 
 
 function unmarkedExternal(what: string, file: string): string {
   return (
-    `audience: external para ${what}, em ${file} — a entrada já estava declarada sem a marca, ` +
-    'e o init não reescreve linha já escrita; marcá-la é o que liga a checagem de texto externo para ela'
+    `audience: external for ${what}, in ${file} — the entry was already declared without the mark, ` +
+    'and init does not rewrite a line already written; marking it is what turns on the external-text check for it'
   )
 }

@@ -1,9 +1,9 @@
 ---
-description: Cria ou atualiza a moldura de documentação viva do repositório
-argument-hint: '[dono padrão, ex.: @team-platform]'
+description: Creates or updates the living-documentation frame of the repository
+argument-hint: '[default owner, e.g. @team-platform]'
 ---
 
-Use a skill `living-docs-bootstrap` (CLI: `living-docs init`) para montar a
-moldura de documentação viva deste repositório, com dono padrão: $ARGUMENTS
+Use the `living-docs-bootstrap` skill (CLI: `living-docs init`) to assemble the
+living-documentation frame of this repository, with default owner: $ARGUMENTS
 
-Inventarie antes de criar: adote o que já existe sob outro nome; nunca crie um paralelo.
+Take inventory before creating: adopt what already exists under another name; never create a parallel one.

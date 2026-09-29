@@ -1,14 +1,14 @@
 /**
- * A única fonte de data do toolkit (`ADR-0007`, `RNF-0004`).
+ * The toolkit's only source of date (`ADR-0007`, `RNF-0004`).
  *
- * Nenhum check e nenhum hook lê o relógio por dentro: quem lê é a borda — o CLI,
- * o hook, ou o teste — e a data entra por valor. Sem isso, o resultado de `living-docs/staleness`
- * mudaria sozinho com o passar do tempo, e o único teste possível seria o que
- * passa hoje e reprova em seis meses.
+ * No check and no hook reads the clock internally: whoever reads it is the edge — the CLI,
+ * the hook, or the test — and the date comes in by value. Without that, the result of `living-docs/staleness`
+ * would change on its own as time passes, and the only possible test would be one that
+ * passes today and fails in six months.
  */
 export type Clock = () => Date
 
-/** Hoje, em ISO (`YYYY-MM-DD`), em UTC. */
+/** Today, as ISO (`YYYY-MM-DD`), in UTC. */
 export function todayIso(clock: Clock = () => new Date()): string {
   return clock().toISOString().slice(0, 10)
 }
@@ -16,12 +16,12 @@ export function todayIso(clock: Clock = () => new Date()): string {
 const ISO = /^(\d{4})-(\d{2})-(\d{2})$/
 
 /**
- * O valor como data ISO, ou `null` quando não é data.
+ * The value as an ISO date, or `null` when it is not a date.
  *
- * `Date` entra porque o YAML de alguns projetos declara timestamp de verdade e o
- * parser o materializa. `null` significa "não sei", e quem não sabe se cala:
- * `living-docs/frontmatter` já cobra o formato de `last-reviewed`, e dois checks reclamando do mesmo
- * campo é ruído.
+ * `Date` comes in because some projects' YAML declares a real timestamp and the
+ * parser materializes it. `null` means "I don't know", and whoever doesn't know stays quiet:
+ * `living-docs/frontmatter` already enforces the format of `last-reviewed`, and two checks complaining about the same
+ * field is noise.
  */
 export function asIsoDate(value: unknown): string | null {
   if (value instanceof Date) {
@@ -36,11 +36,11 @@ export function asIsoDate(value: unknown): string | null {
 }
 
 /**
- * Meses de calendário de `from` até `to`; negativo quando `from` está no futuro,
- * `null` quando alguma das duas não é ISO.
+ * Calendar months from `from` to `to`; negative when `from` is in the future,
+ * `null` when either is not ISO.
  *
- * Meses, não dias, de propósito: `stale-after-months` é o campo que o projeto
- * declara, e precisão de dia não muda nenhuma decisão que o aviso provoca.
+ * Months, not days, on purpose: `stale-after-months` is the field the project
+ * declares, and day precision changes no decision the warning triggers.
  */
 export function monthsBetween(from: string, to: string): number | null {
   const start = ISO.exec(from.trim())

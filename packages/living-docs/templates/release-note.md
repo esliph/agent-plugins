@@ -4,22 +4,23 @@ title: v0.0.0
 status: draft
 owner: "{{OWNER}}"
 trigger: >
-  Nunca. Congelada depois de publicada; uma versão nova nasce ao lado.
+  Never. Frozen once published; a new version is born beside it.
 last-reviewed: {{TODAY}}
 relates-to: []
 ---
 
-# v0.0.0 — <data>
+# v0.0.0 — <date>
 
-Derivada do `CHANGELOG.md`, não escrita de novo. O que muda aqui é a moldura:
-o destaque da versão, o que exige atenção de quem atualiza, e os links.
+Derived from `CHANGELOG.md`, not written anew. What changes here is the frame:
+the version's highlight, what needs the attention of whoever upgrades, and the
+links.
 
-## Destaques
+## Highlights
 
-## Atenção ao atualizar
+## Attention when upgrading
 
-## Depreciações anunciadas nesta versão
+## Deprecations announced in this version
 
-## Entradas
+## Entries
 
-<!-- Copiadas da seção da versão em CHANGELOG.md. -->
+<!-- Copied from the version's section in CHANGELOG.md. -->

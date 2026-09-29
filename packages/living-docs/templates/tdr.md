@@ -4,13 +4,13 @@ title: {{TITLE}}
 status: open
 owner: "{{OWNER}}"
 trigger: >
-  Quando o gatilho de pagamento abaixo se cumprir.
+  When the payment trigger below is met.
 last-reviewed: {{TODAY}}
 relates-to: []
-# Gatilho de pagamento em forma de máquina. Descomente e
-# preencha: `pattern` é regex (aspas simples, para o `\` não ser escape do YAML)
-# e `paths` diz onde procurá-lo. living-docs/staleness reprova enquanto ele não existir, e é essa
-# reprovação que força a conversa sobre qual é o gatilho de verdade.
+# The payment trigger in machine form. Uncomment and fill in: `pattern` is a
+# regex (single quotes, so the `\` is not a YAML escape) and `paths` says where
+# to look for it. living-docs/staleness fails while it does not exist, and it is
+# that failure that forces the conversation about what the real trigger is.
 #
 # pay-when:
 #   pattern: '^- \*\*status:\*\* revoked'
@@ -19,15 +19,15 @@ relates-to: []
 
 # {{ID}} — {{TITLE}}
 
-## O atalho
+## The shortcut
 
-<!-- O que foi feito, deliberadamente, abaixo do padrão. -->
+<!-- What was done, deliberately, below the standard. -->
 
-## Por que foi aceito
+## Why it was accepted
 
-## Gatilho de pagamento
+## Payment trigger
 
-<!-- Precisa ser observável: "quando o volume passar de X", "no primeiro PR
-     que tocar este módulo". "Quando der tempo" não é gatilho. -->
+<!-- It must be observable: "when volume passes X", "on the first PR that
+     touches this module". "When there is time" is not a trigger. -->
 
-## Custo de continuar devendo
+## Cost of continuing to owe

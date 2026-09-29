@@ -1,18 +1,18 @@
 ---
-title: Catálogo de erros
+title: Error catalog
 owner: "{{OWNER}}"
 trigger: >
-  Código de erro novo; código que muda de status; mudança no que um código
-  significa para quem consome a interface pública.
+  A new error code; a code that changes status; a change in what a code means
+  to whoever consumes the public interface.
 last-reviewed: {{TODAY}}
 ---
 
-# Catálogo de erros
+# Error catalog
 
-Um código, uma vez publicado, nunca muda de significado: quando sai de uso,
-ganha `deprecated` e um substituto. O código é o contrato; a mensagem exibível
-não é parte dele.
+A code, once published, never changes meaning: when it goes out of use, it
+gets `deprecated` and a replacement. The code is the contract; the displayable
+message is not part of it.
 
-| Código | Significado | Quando ocorre | Transporte | Público | Status |
+| Code | Meaning | When it occurs | Transport | Public | Status |
 | --- | --- | --- | --- | --- | --- |
-| CODIGO-EXEMPLO | Substitua pelo significado estável, não pela mensagem exibível | A condição observável que o dispara | HTTP 400 / exit 2 / evento | sim | active |
+| EXAMPLE-CODE | Replace with the stable meaning, not the displayable message | The observable condition that triggers it | HTTP 400 / exit 2 / event | yes | active |

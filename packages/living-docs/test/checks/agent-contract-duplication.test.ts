@@ -12,38 +12,38 @@ version: 2
 plugins: [living-docs]
 owned:
   - path: docs/decisions/adr/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs: { id-prefix: ADR }
   - path: .ownership.yml
-    owner: "@time"
+    owner: "@team"
     skill: living-docs-bootstrap
     living-docs: {}
   - path: docs/requirements/rules.md
-    owner: "@time"
+    owner: "@team"
     skill: requirements-keeper
     living-docs: {}
   - path: CLAUDE.md
-    owner: "@time"
+    owner: "@team"
     skill: working-agreements-keeper
     living-docs: { role: agent-contract }
   - path: docs/definition-of-done.md
-    owner: "@time"
+    owner: "@team"
     skill: working-agreements-keeper
     living-docs: { role: definition-of-done }
 `
 
-const DOD = ['# Definition of Done', '', '- [ ] Os testes passam — verificação: `living-docs/frontmatter`.', ''].join('\n')
-const CONTRATO = ['# Contrato do agente', '', 'Índice e política: a verdade mora no artefato dono.', ''].join('\n')
-const REGRAS = ['# Regras', '', '## RN-0001 — Uma regra', '', '- **status:** draft', ''].join('\n')
+const DOD = ['# Definition of Done', '', '- [ ] Tests pass — verification: `living-docs/frontmatter`.', ''].join('\n')
+const CONTRACT = ['# Agent contract', '', 'Index and policy: the truth lives in the owning artifact.', ''].join('\n')
+const RULES = ['# Rules', '', '## RN-0001 — A rule', '', '- **status:** draft', ''].join('\n')
 
-const ARVORE = {
+const TREE = {
   [OWNERSHIP_FILE]: OWNERSHIP,
   'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
-  'docs/requirements/rules.md': REGRAS,
+  'docs/requirements/rules.md': RULES,
   'docs/definition-of-done.md': DOD,
-  'CLAUDE.md': CONTRATO,
+  'CLAUDE.md': CONTRACT,
 }
 
 function contextFor(root: string) {
@@ -58,8 +58,8 @@ function contextFor(root: string) {
   }
 }
 
-test('repositório sem nenhuma das três classes passa', () => {
-  withTempRepo(ARVORE, root => {
+test('a repository with none of the three classes passes', () => {
+  withTempRepo(TREE, root => {
     const context = contextFor(root)
 
     for (const check of [livingDocsAgentContractDuplication, livingDocsDoneVerifiable, livingDocsOpenDecisionClaim()]) {
@@ -68,35 +68,35 @@ test('repositório sem nenhuma das três classes passa', () => {
   })
 })
 
-test('RN-0020: frase longa do contrato repetida num artefato dono reprova', () => {
-  const frase = 'Toda regra de negócio deste projeto nasce com identificador estável antes de qualquer linha de código.'
+test('RN-0020: a long contract sentence repeated in an owning artifact fails', () => {
+  const sentence = 'Every business rule of this project is born with a stable identifier before any line of code.'
 
   withTempRepo(
     {
-      ...ARVORE,
-      'CLAUDE.md': `# Contrato do agente\n\n${frase}\n`,
-      'docs/requirements/rules.md': `${REGRAS}\n${frase}\n`,
+      ...TREE,
+      'CLAUDE.md': `# Agent contract\n\n${sentence}\n`,
+      'docs/requirements/rules.md': `${RULES}\n${sentence}\n`,
     },
     root => {
       const findings = livingDocsAgentContractDuplication.run(contextFor(root))
-      const achado = findings.find(finding => finding.file === 'CLAUDE.md')
+      const found = findings.find(finding => finding.file === 'CLAUDE.md')
 
-      assert.ok(achado, 'living-docs/agent-contract-duplication deveria acusar a duplicata')
-      assert.equal(achado.ruleId, 'living-docs/agent-contract-duplication')
-      assert.match(achado.message, /docs\/requirements\/rules\.md/)
-      assert.match(achado.fix, /ponteiro|apague/i)
+      assert.ok(found, 'living-docs/agent-contract-duplication should flag the duplicate')
+      assert.equal(found.ruleId, 'living-docs/agent-contract-duplication')
+      assert.match(found.message, /docs\/requirements\/rules\.md/)
+      assert.match(found.fix, /pointer|delete/i)
     },
   )
 })
 
-test('ADR-0009: frase curta é vocabulário compartilhado, não duplicata', () => {
-  const curta = 'O teste vem antes da implementação.'
+test('ADR-0009: a short sentence is shared vocabulary, not a duplicate', () => {
+  const short = 'The test comes before the implementation.'
 
   withTempRepo(
     {
-      ...ARVORE,
-      'CLAUDE.md': `# Contrato do agente\n\n${curta}\n`,
-      'docs/requirements/rules.md': `${REGRAS}\n${curta}\n`,
+      ...TREE,
+      'CLAUDE.md': `# Agent contract\n\n${short}\n`,
+      'docs/requirements/rules.md': `${RULES}\n${short}\n`,
     },
     root => {
       assert.deepEqual(livingDocsAgentContractDuplication.run(contextFor(root)), [])
@@ -104,12 +104,12 @@ test('ADR-0009: frase curta é vocabulário compartilhado, não duplicata', () =
   )
 })
 
-test('duplicatedSentences ignora código e compara normalizado', () => {
-  const frase = 'Uma frase suficientemente longa para passar do piso de doze palavras sem esforço nenhum'
-  const contrato = `# Contrato\n\n**${frase}.**\n\n\`\`\`md\n${'outra frase longa '.repeat(4)}\n\`\`\`\n`
-  const corpus = [{ file: 'docs/x.md', source: `prosa antes. ${frase.toLowerCase()}. prosa depois.` }]
+test('duplicatedSentences ignores code and compares normalized', () => {
+  const sentence = 'A sentence long enough to clear the twelve word floor without any effort at all'
+  const contract = `# Contrato\n\n**${sentence}.**\n\n\`\`\`md\n${'another long sentence '.repeat(4)}\n\`\`\`\n`
+  const corpus = [{ file: 'docs/x.md', source: `prose before. ${sentence.toLowerCase()}. prose after.` }]
 
-  const found = duplicatedSentences(contrato, corpus)
+  const found = duplicatedSentences(contract, corpus)
 
   assert.equal(found.length, 1)
   assert.equal(found[0]?.source, 'docs/x.md')

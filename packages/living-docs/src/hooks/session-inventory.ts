@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * SessionStart: injeta o inventário da documentação viva no contexto.
+ * SessionStart: injects the living-documentation inventory into the context.
  *
- * Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 e `RN-0022` — "resolve 'se
- * ninguém lê, não está vivo' na origem". A saída é `additionalContext`, e este
- * arquivo não conhece `deny` nem `ask`.
+ * Rule of origin: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §7 and `RN-0022` — "resolves 'if
+ * nobody reads it, it is not alive' at the source". The output is `additionalContext`, and this
+ * file knows neither `deny` nor `ask`.
  *
- * Não reimplementa `living-docs/staleness`: chama `staleDocs` e `duePayments`. Um inventário que
- * discordasse do check faria dois números diferentes sobre a mesma pergunta, e
- * ninguém saberia qual acreditar.
+ * It does not reimplement `living-docs/staleness`: it calls `staleDocs` and `duePayments`. An inventory that
+ * disagreed with the check would give two different numbers for the same question, and
+ * nobody would know which to believe.
  */
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -26,12 +26,12 @@ export type SessionInventoryDecision = { action: 'silent' } | { action: 'inform'
 const SILENT: SessionInventoryDecision = { action: 'silent' }
 
 /**
- * Quantos itens de cada lista entram no contexto. O inventário é lido em toda
- * sessão: lista longa custa contexto sempre e ensina a pular o bloco inteiro.
+ * How many items of each list go into the context. The inventory is read in every
+ * session: a long list costs context every time and teaches people to skip the whole block.
  */
 const MAX_ITEMS = 5
 
-/** O estado que identifica família de decisão aberta (spec §4: `open → resolved`). */
+/** The state that identifies an open-decision family (spec §4: `open → resolved`). */
 const DECISION_STATE = 'resolved'
 
 function shorten(items: readonly string[]): string {
@@ -40,7 +40,7 @@ function shorten(items: readonly string[]): string {
   return items.length > MAX_ITEMS ? `${shown}; … (+${items.length - MAX_ITEMS})` : shown
 }
 
-/** Decisões abertas: itens `open` de família cuja máquina de estados tem `resolved`. */
+/** Open decisions: `open` items of a family whose state machine has `resolved`. */
 function openDecisions(docs: readonly ArtifactDoc[]): string[] {
   const found: string[] = []
 
@@ -72,8 +72,8 @@ export function decideSessionInventory(env: HookEnv, today: string): SessionInve
   let inventory: { lines: string[] }
 
   try {
-    // Mesma política do `validate`: a varredura é memoizada por raiz dentro do
-    // processo, e uma decisão nova começa com a árvore de agora.
+    // Same policy as `validate`: the scan is memoized per root within the
+    // process, and a new decision starts with the tree as it is now.
     forgetTree(env.root)
 
     const config = loadLivingDocsConfig(env.root)
@@ -91,47 +91,47 @@ export function decideSessionInventory(env: HookEnv, today: string): SessionInve
     const velhos = staleDocs(context)
 
     const lines = [
-      `living-docs/session-inventory: inventário da documentação viva (fonte: \`${config.rootFile}\`).`,
-      `Declarados: ${config.artifacts.length} artefato(s) e ${config.documents.length} documento(s).`,
+      `living-docs/session-inventory: inventory of the living documentation (source: \`${config.rootFile}\`).`,
+      `Declared: ${config.artifacts.length} artifact(s) and ${config.documents.length} document(s).`,
     ]
 
     if (ausentes.length > 0) {
-      lines.push(`Declarado e ausente (${ausentes.length}): ${shorten(ausentes)}.`)
+      lines.push(`Declared and missing (${ausentes.length}): ${shorten(ausentes)}.`)
     }
     if (abertas.length > 0) {
       lines.push(
-        `Decisão aberta (${abertas.length}): ${shorten(abertas)}. Enquanto está aberta, a regra não existe e a ` + 'implementação para (`/open-decision`).',
+        `Open decision (${abertas.length}): ${shorten(abertas)}. While it is open, the rule does not exist and the ` + 'implementation stops (`/open-decision`).',
       )
     }
     if (vencidas.length > 0) {
       lines.push(
-        // Regra de origem: spec §12, critério 7.
-        `Dívida com gatilho de pagamento cumprido (${vencidas.length}): ${shorten(
+        // Rule of origin: spec §12, criterion 7.
+        `Debt with its payment trigger met (${vencidas.length}): ${shorten(
           vencidas.map(payment => `${payment.id} — ${payment.evidence}`),
-        )}. \`living-docs validate\` reprova até pagar ou reclassificar.`,
+        )}. \`living-docs validate\` fails until it is paid or reclassified.`,
       )
     }
     if (velhos.length > 0) {
       lines.push(
-        `Documento vencido (${velhos.length}): ${shorten(
-          velhos.map(stale => `${stale.file} (${stale.months} meses)`),
-        )}. É aviso: releia antes de tocar em \`last-reviewed\`.`,
+        `Expired document (${velhos.length}): ${shorten(
+          velhos.map(stale => `${stale.file} (${stale.months} months)`),
+        )}. This is a warning: re-read before touching \`last-reviewed\`.`,
       )
     }
 
-    lines.push('Nada aqui bloqueia — é contexto. O enforcement é `living-docs validate` e os hooks living-docs/append-only a ownership/commit-guard e living-docs/shortcut-debt.')
+    lines.push('Nothing here blocks — it is context. Enforcement is `living-docs validate` and the hooks living-docs/append-only to ownership/commit-guard and living-docs/shortcut-debt.')
 
     inventory = { lines }
   } catch {
-    return SILENT // falha aberta (RNF-0001)
+    return SILENT // fails open (RNF-0001)
   }
 
   return { action: 'inform', context: inventory.lines.join('\n') }
 }
 
 async function main(): Promise<void> {
-  // O payload de SessionStart não traz `tool_input`; lê-lo é só o contrato do
-  // stdin, e um payload ilegível cala o hook como qualquer outro erro.
+  // The SessionStart payload carries no `tool_input`; reading it is only the stdin
+  // contract, and an unreadable payload silences the hook like any other error.
   const payload = await readPayload()
 
   if (!payload) {
@@ -144,5 +144,5 @@ async function main(): Promise<void> {
 }
 
 if (process.argv[1]?.endsWith('session-inventory.ts')) {
-  main().catch(() => process.exit(0)) // falha aberta, sempre
+  main().catch(() => process.exit(0)) // fails open, always
 }

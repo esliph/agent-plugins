@@ -10,7 +10,7 @@ export interface ValidateResult {
   errors: number
   warnings: number
   exitCode: number
-  /** `false` quando não há arquivo de ownership — repositório sem o toolkit. */
+  /** `false` when there is no ownership file — a repository without the toolkit. */
   installed: boolean
 }
 

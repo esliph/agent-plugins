@@ -1,35 +1,36 @@
 ---
-title: Política de versionamento
+title: Versioning policy
 owner: "{{OWNER}}"
 trigger: >
-  Mudança de interface pública; decisão de depreciar algo publicado; mudança
-  na própria política.
+  A public interface change; a decision to deprecate something published; a
+  change to the policy itself.
 last-reviewed: {{TODAY}}
 ---
 
-# Política de versionamento
+# Versioning policy
 
-Esta é a política **em volta** do contrato público, não o contrato: o que é
-gerado mora no artefato gerado.
+This is the policy **around** the public contract, not the contract: what is
+generated lives in the generated artifact.
 
-## O que é público
+## What is public
 
-Liste aqui, explicitamente, o que os consumidores podem depender: caminhos,
-códigos de erro, formatos, IDs estáveis. O que não estiver nesta lista pode
-mudar sem aviso — e é isso que impede o alargamento silencioso do contrato.
+List here, explicitly, what consumers can depend on: paths, error codes,
+formats, stable IDs. What is not on this list can change without notice — and
+that is what prevents the silent widening of the contract.
 
-## O que nunca muda de significado
+## What never changes meaning
 
-Um identificador publicado (código de erro, ID de regra, nome de campo) não é
-reaproveitado nem redefinido. Corrigir o significado de um código publicado
-quebra quem já tratava dele em silêncio.
+A published identifier (error code, rule ID, field name) is neither reused nor
+redefined. Correcting the meaning of a published code silently breaks whoever
+was already handling it.
 
-## Como se deprecia
+## How to deprecate
 
-Depreciação exige quatro coisas: data do anúncio, versão ou data de remoção,
-substituto, e o guia de migração. Faltando qualquer uma, não é depreciação.
+A deprecation requires four things: the announcement date, the removal version
+or date, a replacement, and the migration guide. If any is missing, it is not a
+deprecation.
 
-## Quem decide
+## Who decides
 
-Mudança quebra-compatibilidade passa por um ADR — a decisão e o que se aceita
-perder ficam registrados, não na cabeça de quem estava na sala.
+A compatibility-breaking change goes through an ADR — the decision and what we
+accept to lose are recorded, not left in the head of whoever was in the room.

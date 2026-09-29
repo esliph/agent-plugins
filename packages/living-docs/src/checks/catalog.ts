@@ -1,23 +1,23 @@
 export interface CatalogEntry {
   id: string
   name: string
-  /** O comando do CLI que roda este check. */
+  /** The CLI command that runs this check. */
   command: string
-  /** A condição de falha — a coluna "Falha quando" da spec §9. */
+  /** The failure condition — the 'Fails when' column of spec §9. */
   failsWhen: string
 }
 
 /**
- * O contrato público dos checks: é isto que um projeto consumidor cita na
- * Definition of Done dele, e é a fonte anotada de `docs/contracts/checks.gen.md`
- * (`ownership/generated-drift` a compara com a saída do gerador). Para mudar o
- * contrato, mude aqui e regere — nunca o contrário. O catálogo do núcleo mora em
+ * The public contract of the checks: this is what a consuming project cites in
+ * its Definition of Done, and it is the annotated source of `docs/contracts/checks.gen.md`
+ * (`ownership/generated-drift` compares it with the generator output). To change the
+ * contract, change it here and regenerate — never the other way around. The core catalog lives in
  * `@esliph/ownership` (`CORE_CHECK_CATALOG`).
  *
- * Este arquivo não importa nada (nem `yaml`, `picomatch`, `node:child_process`,
- * nem os checks living-docs/frontmatter/2/3): é só tipos e dados, de propósito — `src/tools/gen-checks.ts`
- * importa daqui, e não de `registry.ts`, para não puxar transitivamente
- * dependências que um gerador não precisa.
+ * This file imports nothing (neither `yaml`, `picomatch`, `node:child_process`,
+ * nor the living-docs/frontmatter/2/3 checks): it is only types and data, on purpose — `src/tools/gen-checks.ts`
+ * imports from here, and not from `registry.ts`, so as not to transitively pull in
+ * dependencies a generator does not need.
  */
 export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
   {
@@ -25,72 +25,72 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     name: 'structure lint',
     command: 'living-docs validate',
     failsWhen:
-      'Frontmatter ausente ou inválido; campo obrigatório vazio; `id` fora do formato ou do território do artefato; `status` num artefato sem `states` declarado; item de coleção sem `status`; `trigger` ausente ou descrevendo cadência; `last-reviewed` fora do formato ISO.',
+      'Frontmatter missing or invalid; empty required field; `id` outside the format or the territory of the artifact; `status` in an artifact with no declared `states`; collection item without `status`; `trigger` missing or empty; `last-reviewed` outside the ISO format.',
   },
   {
     id: 'living-docs/id-integrity',
     name: 'ID lint',
     command: 'living-docs validate',
-    failsWhen: 'ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente.',
+    failsWhen: 'Duplicate ID, out of sequence, or reused from `docs/ids-retired.txt`; citation that does not resolve to an existing item.',
   },
   {
     id: 'living-docs/citation-coverage',
     name: 'traceability',
     command: 'living-docs validate',
     failsWhen:
-      'Par bidirecional aberto; requisito `active` sem citação nos caminhos de `cited-by`; ADR `accepted` sem `relates-to`; decisão aberta `resolved` sem o ADR que a fechou.',
+      'Open bidirectional pair; `active` requirement with no citation in the `cited-by` paths; `accepted` ADR without `relates-to`; `resolved` open decision without the ADR that closed it.',
   },
   {
     id: 'living-docs/staleness',
     name: 'staleness',
     command: 'living-docs validate',
     failsWhen:
-      'Uma dívida `open` não declara `pay-when` verificável, ou o gatilho declarado já aconteceu no repositório. `last-reviewed` além de `stale-after-months` produz aviso, não falha — e item em estado congelado não vence.',
+      'An `open` debt does not declare a verifiable `pay-when`, or the declared trigger has already happened in the repository. `last-reviewed` beyond `stale-after-months` produces a warning, not a failure — and an item in a frozen state does not expire.',
   },
   {
     id: 'living-docs/agent-contract-duplication',
     name: 'agent contract duplication',
     command: 'living-docs validate',
-    failsWhen: 'O contrato do agente repete, palavra por palavra, uma frase de artefato ou documento com skill dona, acima do piso de palavras do toolkit.',
+    failsWhen: 'The agent contract repeats, word for word, a sentence from an artifact or document with an owning skill, above the toolkit word floor.',
   },
   {
     id: 'living-docs/done-verifiable',
     name: 'done verifiable',
     command: 'living-docs validate',
-    failsWhen: 'Item da Definition of Done não nomeia o que o verifica — um identificador de check ou de hook, ou a marca de verificação humana.',
+    failsWhen: 'A Definition of Done item does not name what verifies it — the identifier of a check or hook, or the fixed marker `human`.',
   },
   {
     id: 'living-docs/open-decision-claim',
     name: 'open decision claim',
     command: 'living-docs validate --base <ref>',
-    failsWhen: 'O diff entre a base e `HEAD` toca caminho reivindicado por uma decisão aberta, sem `Docs: none — <razão>` em alguma mensagem de commit.',
+    failsWhen: 'The diff between the base and `HEAD` touches a path claimed by an open decision, with no `Docs: none — <reason>` in any commit message.',
   },
   {
     id: 'living-docs/links',
     name: 'links',
     command: 'living-docs validate',
     failsWhen:
-      'Link interno relativo que não resolve para arquivo ou diretório existente; `[[wikilink]]` sem destino no corpus; arquivo em formato binário na documentação. Link dentro de bloco de código ou de marcação inline não conta.',
+      'Relative internal link that does not resolve to an existing file or directory; `[[wikilink]]` with no target in the corpus; binary-format file in the documentation. A link inside a code block or inline markup does not count.',
   },
   {
     id: 'living-docs/commit-discipline',
     name: 'commit discipline',
     command: 'living-docs validate',
     failsWhen:
-      'Com `--base <ref>`: o diff altera apenas a data de revisão de `last-reviewed-bump-limit` documentos ou mais, sem outra mudança no corpo de nenhum deles; ou altera um arquivo de artefato e nenhuma mensagem de commit do diff cita um dos IDs declarados nele.',
+      'With `--base <ref>`: the diff changes only the review date of `last-reviewed-bump-limit` documents or more, with no other change in the body of any of them; or it changes an artifact file and no commit message in the diff cites one of the IDs declared in it.',
   },
   {
     id: 'living-docs/trigger-routing',
     name: 'trigger routing',
     command: 'living-docs validate',
     failsWhen:
-      'O `trigger` de um documento e a `description` da skill declarada como dona dele compartilham menos raízes de palavra do que o piso declarado. Skill dona ausente da raiz do toolkit produz aviso, não falha; e o `trigger` de um item de coleção não é comparado.',
+      'Never fails. Warns when a document with a `trigger` declares an owning skill that the toolkit root does not have; the `trigger` of a collection item is not examined.',
   },
   {
     id: 'living-docs/external-audience',
     name: 'external audience',
     command: 'living-docs validate',
     failsWhen:
-      'Documento ou artefato declarado `audience: external` cita, fora do frontmatter e de bloco de código cercado, um ID cujo prefixo tem família declarada (`id-prefix`) — em prosa, entre crases ou no caminho de um link.',
+      'A document or artifact declared `audience: external` cites, outside the frontmatter and fenced code blocks, an ID whose prefix has a declared family (`id-prefix`) — in prose, in backticks or in a link path.',
   },
 ])

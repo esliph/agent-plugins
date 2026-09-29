@@ -1,123 +1,125 @@
 # Changelog
 
-Este arquivo é voltado a quem **consome** o `living-docs`. Teste único: se a
-entrada só faz sentido para quem escreveu o código, ela não pertence aqui.
-Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
+This file is aimed at whoever **consumes** `living-docs`. Single test: if an
+entry only makes sense to whoever wrote the code, it does not belong here.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-A entrada nasce no PR que causa a mudança, não na véspera da release.
+An entry is born in the PR that causes the change, not on the eve of the release.
 
 ## [Unreleased]
 
 ### Added
 
-- Plugin `ownership` no marketplace: dono, ciclo de vida, artefato gerado e
-  vínculo código→doc, com os próprios hooks.
-- `living-docs init --invoke-ownership <comando>`: como o CLI do núcleo é
-  chamado no workflow instalado (padrão `npx ownership`, que só funciona
-  depois da publicação do núcleo no npm).
-- O arquivo de ownership raiz aceita, no topo, um bloco de configuração por
-  plugin listado em `plugins:`; num arquivo incluído, é erro.
-- O `owner` do frontmatter sem `@` passa a ser achado de `ownership validate`.
-- `validate`, `drift` e `changelog` passam a relatar quanto o conjunto de checks
-  levou e qual é o teto declarado. A medida não altera o código de saída.
-- `CI-9` (`living-docs validate --base <ref>`): reprova o diff que só altera a
-  data de revisão de vários documentos, e o que altera um arquivo de artefato sem
-  que nenhuma mensagem de commit cite um ID declarado nele.
-- `CI-10` (`living-docs validate`): o `trigger` de um documento e a
-  `description` da skill declarada como dona dele precisam falar do mesmo
-  evento. Skill dona que não existe na raiz do toolkit produz aviso, não falha.
-- `last-reviewed-bump-limit` em `docs/.ownership.yml`: quantos documentos com
-  bump de data seco reprovam. Padrão 3, piso 2.
-- `id-format` em `docs/.ownership.yml`: um projeto declara como seus IDs se
-  escrevem (`separator`, `padding`). Ausente, a forma continua sendo
-  `<PREFIXO>-<4 dígitos>`.
-- `living-docs init --id-separator <s> --id-padding <n>`: declara a forma escrita
-  dos IDs do projeto. `--dry-run` relata a forma que o repositório já usa, sem
-  alterar arquivo nenhum.
-- `living-docs init` passa a instalar o workflow de CI do estágio em
-  `.github/workflows/living-docs.yml`, com o comando de invocação vindo de
-  `--invoke` (padrão `npx living-docs`). O workflow instalado não menciona
-  Docker, e um workflow que já exista é mantido.
-- `.claude-plugin/marketplace.json`: o plugin `living-docs` passa a ter caminho
-  de instalação.
-- `living-docs init --marketplace <owner/repo>` registra o plugin em
-  `.claude/settings.json` do repositório, por mesclagem — hooks e plugins que já
-  estavam lá são preservados. Sem a opção, o registro não é escrito e o `init`
-  diz o que faltou.
-- `living-docs init --stage multi-team`: o estágio de múltiplos times passa a
-  existir e instala a Fase 7 — o passo de `validate --base <ref>` no workflow,
-  além de tudo que `production` instala.
-- `HK-8`: editar um caminho reivindicado por uma decisão aberta passa a
-  perguntar, nomeando a decisão, a lacuna e a skill dona. O campo é opcional — a
-  coluna `Bloqueia` (canônico `blocks`) na lista de decisões abertas.
-- `HK-6`: no início da sessão, o inventário chega ao contexto — artefatos e
-  documentos declarados e ausentes, decisões abertas, dívidas com gatilho
-  cumprido e documentos vencidos. É injeção de contexto, nunca bloqueio.
-- `AG-1` `docs-divergence-auditor` e o comando `/docs-audit`: auditoria de
-  divergência código→documentação num escopo dado, em contexto isolado, sem
-  `Edit` nem `Write`.
-- `documents:` no `docs/.ownership.yml`: declara documento com dono e sem família
-  de IDs (`CONTRIBUTING.md`, a Definition of Done, o contrato do agente,
-  `CHANGELOG.md`) com `path`, `owner`, `skill` opcional e `role` opcional
-  (`agent-contract`, `definition-of-done`). A chave é opcional: configuração
-  escrita nas versões anteriores continua válida.
-- Subcomando `living-docs changelog --base <ref>`: falha quando o diff da
-  branch toca um caminho declarado em `consumer-visible-paths` e a entrada de
-  `## [Unreleased]` não viaja junto (`CI-6`).
-- Rótulo de exceção `Changelog: none — <razão>` na mensagem de commit, para a
-  mudança que de fato não é visível a quem consome. Sem razão, não conta.
-- Hook `HK-7`: marcador de atalho novo (`TODO`, `FIXME`, supressão de tipo ou
-  de lint, teste ignorado) sem `TDR-nnnn` por perto gera lembrete. Nunca
-  bloqueio.
-- `living-docs init --stage production` passa a instalar `CHANGELOG.md`,
-  `docs/deprecations.md`, `docs/releases/` e `docs/migrations/`, e a declarar o
-  artefato `REL` no `docs/.ownership.yml`.
-- Prefixo de ID `REL` para release note, com os estados `draft` e `published`.
-  Publicada, ela é congelada por `HK-1`.
-- Skill `release-historian` e comando `/release [versão]`, donos do
-  `CHANGELOG.md`, das release notes, das depreciações e dos guias de migração.
-- Código de erro `BASE-UNRESOLVED`: `changelog` sem `--base`, com base que não
-  resolve, ou em clone raso.
-- `living-docs init` declara em `documents:` todo documento que instala, com
-  dono, skill dona e — para o contrato do agente e a Definition of Done — o
-  `role` que `CI-7` usa para achá-los. Repositório que sobe de estágio recebe só
-  as entradas que faltam; sem âncora no arquivo, o comando diz o que falta em vez
-  de reescrever.
-- O template de TDR traz o gatilho de pagamento de máquina (`pay-when`) como
-  exemplo comentado.
-- `CI-4` (staleness), `CI-7` (ownership coverage) e `CI-8` (links) passam a rodar
-  em `living-docs validate`. `CI-4` é o único que produz aviso: aviso é
-  reportado e não muda o código de saída.
-- `living-docs validate --base <ref>` liga a metade de `CI-7` que lê o diff da
-  branch: caminho vigiado alterado sem o doc dono reprova, e a saída escrita é
-  `Docs: none — <razão>` numa mensagem de commit do intervalo.
-- `bin/dev`: ponto de entrada opcional que roda qualquer comando de manutenção
-  dentro do container do repositório, subindo-o e instalando as dependências
-  quando preciso — `bin/dev npm test`, `bin/dev node src/cli/index.ts validate`,
-  ou `bin/dev` sozinho para um shell. Exige o daemon do Docker; o caminho de
-  registro continua sendo o Node do host, e os ganchos nunca entram no container.
+- `ownership` plugin in the marketplace: owner, lifecycle, generated artifact and
+  the code→doc link, with hooks of its own.
+- `living-docs init --invoke-ownership <command>`: how the core's CLI is called
+  in the installed workflow (default `npx ownership`, which only works after the
+  core is published on npm).
+- The root ownership file accepts, at the top, a configuration block per plugin
+  listed in `plugins:`; in an included file, it is an error.
+- A frontmatter `owner` without `@` becomes a finding of `ownership validate`.
+- `validate`, `drift` and `changelog` now report how long the set of checks took
+  and what the declared ceiling is. The measurement does not change the exit code.
+- `CI-9` (`living-docs validate --base <ref>`): fails the diff that only changes
+  the review date of several documents, and the one that changes an artifact file
+  without any commit message citing an ID declared in it.
+- `CI-10` (`living-docs validate`): the `trigger` of a document and the
+  `description` of the skill declared as its owner must speak of the same event.
+  An owning skill that does not exist in the toolkit root produces a warning, not
+  a failure.
+- `last-reviewed-bump-limit` in `docs/.ownership.yml`: how many documents with a
+  bare date bump fail. Default 3, floor 2.
+- `id-format` in `docs/.ownership.yml`: a project declares how its IDs are written
+  (`separator`, `padding`). When absent, the form remains
+  `<PREFIX>-<4 digits>`.
+- `living-docs init --id-separator <s> --id-padding <n>`: declares the written
+  form of the project's IDs. `--dry-run` reports the form the repository already
+  uses, without changing any file.
+- `living-docs init` now installs the stage's CI workflow at
+  `.github/workflows/living-docs.yml`, with the invocation command coming from
+  `--invoke` (default `npx living-docs`). The installed workflow does not mention
+  Docker, and a workflow that already exists is kept.
+- `.claude-plugin/marketplace.json`: the `living-docs` plugin now has an
+  installation path.
+- `living-docs init --marketplace <owner/repo>` registers the plugin in the
+  repository's `.claude/settings.json`, by merge — hooks and plugins that were
+  already there are preserved. Without the option, the registration is not written
+  and `init` says what was missing.
+- `living-docs init --stage multi-team`: the multiple-teams stage now exists and
+  installs Phase 7 — the `validate --base <ref>` step in the workflow, in addition
+  to everything `production` installs.
+- `HK-8`: editing a path claimed by an open decision now asks, naming the
+  decision, the gap and the owning skill. The field is optional — the `Blocks`
+  column (canonical `blocks`) in the list of open decisions.
+- `HK-6`: at the start of the session, the inventory reaches the context —
+  declared and absent artifacts and documents, open decisions, debts with their
+  trigger met and expired documents. It is context injection, never a block.
+- `AG-1` `docs-divergence-auditor` and the `/docs-audit` command: audit of
+  code→documentation divergence in a given scope, in an isolated context, with
+  neither `Edit` nor `Write`.
+- `documents:` in `docs/.ownership.yml`: declares a document with an owner and no
+  ID family (`CONTRIBUTING.md`, the Definition of Done, the agent contract,
+  `CHANGELOG.md`) with `path`, `owner`, an optional `skill` and an optional `role`
+  (`agent-contract`, `definition-of-done`). The key is optional: configuration
+  written in earlier versions remains valid.
+- `living-docs changelog --base <ref>` subcommand: fails when the branch diff
+  touches a path declared in `consumer-visible-paths` and the entry under
+  `## [Unreleased]` does not travel with it (`CI-6`).
+- Exception label `Changelog: none — <reason>` in the commit message, for a change
+  that is really not visible to whoever consumes. Without a reason, it does not
+  count.
+- `HK-7` hook: a new shortcut marker (`TODO`, `FIXME`, type or lint suppression,
+  ignored test) without a `TDR-nnnn` nearby generates a reminder. Never a block.
+- `living-docs init --stage production` now installs `CHANGELOG.md`,
+  `docs/deprecations.md`, `docs/releases/` and `docs/migrations/`, and declares
+  the `REL` artifact in `docs/.ownership.yml`.
+- ID prefix `REL` for a release note, with the states `draft` and `published`.
+  Once published, it is frozen by `HK-1`.
+- `release-historian` skill and `/release [version]` command, owners of
+  `CHANGELOG.md`, of release notes, of deprecations and of migration guides.
+- Error code `BASE-UNRESOLVED`: `changelog` without `--base`, with a base that
+  does not resolve, or in a shallow clone.
+- `living-docs init` declares in `documents:` every document it installs, with an
+  owner, an owning skill and — for the agent contract and the Definition of Done —
+  the `role` that `CI-7` uses to find them. A repository that moves up a stage
+  receives only the entries that are missing; without an anchor in the file, the
+  command says what is missing instead of rewriting.
+- The TDR template carries the machine payment trigger (`pay-when`) as a
+  commented example.
+- `CI-4` (staleness), `CI-7` (ownership coverage) and `CI-8` (links) now run in
+  `living-docs validate`. `CI-4` is the only one that produces a warning: a
+  warning is reported and does not change the exit code.
+- `living-docs validate --base <ref>` turns on the half of `CI-7` that reads the
+  branch diff: a watched path changed without the owning doc fails, and the
+  written way out is `Docs: none — <reason>` in a commit message of the range.
+- `bin/dev`: an optional entry point that runs any maintenance command inside the
+  repository's container, bringing it up and installing the dependencies when
+  needed — `bin/dev npm test`, `bin/dev node src/cli/index.ts validate`, or
+  `bin/dev` alone for a shell. It requires the Docker daemon; the path of record
+  remains the host's Node, and the hooks never enter the container.
 
-- `audience` em `documents:` e em `artifacts:` do `docs/.ownership.yml`:
-  declara quem lê o documento. Aceita `internal` e `external`; ausente, vale
-  `internal`, e nenhum `.ownership.yml` já escrito muda de significado.
-- `CI-11` (`living-docs validate`): documento ou artefato declarado
-  `audience: external` não pode citar ID de artefato — em prosa, entre crases ou
-  no caminho de um link. O frontmatter e os blocos de código cercados ficam de
-  fora, e os identificadores da interface pública (`CI-n`, `HK-n`, `SK-n`,
-  `CM-n`, `EXIT-n`) continuam citáveis. Não há rótulo de exceção: o conserto é
-  reescrever em texto corrido.
-- `living-docs init --stage production` passa a declarar `CHANGELOG.md`,
-  `docs/deprecations.md`, `docs/migrations/` e as release notes com
-  `audience: external`. Num repositório que já declara essas entradas sem a
-  marca, o `init` não reescreve a linha: avisa, entre o que não instalou, que
-  marcá-la é o que liga `CI-11` para ela.
+- `audience` in `documents:` and in `artifacts:` of `docs/.ownership.yml`:
+  declares who reads the document. It accepts `internal` and `external`; when
+  absent, `internal` holds, and no `.ownership.yml` already written changes
+  meaning.
+- `CI-11` (`living-docs validate`): a document or artifact declared
+  `audience: external` cannot cite an artifact ID — in prose, between backticks or
+  in the path of a link. The frontmatter and fenced code blocks are left out, and
+  the identifiers of the public interface (`CI-n`, `HK-n`, `SK-n`, `CM-n`,
+  `EXIT-n`) remain citable. There is no exception label: the fix is to rewrite in
+  running text.
+- `living-docs init --stage production` now declares `CHANGELOG.md`,
+  `docs/deprecations.md`, `docs/migrations/` and the release notes with
+  `audience: external`. In a repository that already declares those entries
+  without the mark, `init` does not rewrite the line: it warns, among what it did
+  not install, that marking it is what turns `CI-11` on for it.
 
 ### Changed
 
-- Renomeação dos identificadores de checks e hooks: o número dá lugar ao nome, e
-  o prefixo diz de quem é a regra. O mapa completo:
+- Renaming of the identifiers of checks and hooks: the number gives way to the
+  name, and the prefix says whose rule it is. The complete map:
 
-  | Antigo                       | Novo                                     |
+  | Old                          | New                                      |
   | ---------------------------- | ---------------------------------------- |
   | `CI-1`                       | `living-docs/frontmatter`                |
   | `CI-2`                       | `living-docs/id-integrity`               |
@@ -125,9 +127,9 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   | `CI-4`                       | `living-docs/staleness`                  |
   | `CI-5`                       | `ownership/generated-drift`              |
   | `CI-6`                       | `ownership/consumer-change-logged`       |
-  | `CI-7` (contrato do agente)  | `living-docs/agent-contract-duplication` |
+  | `CI-7` (agent contract)      | `living-docs/agent-contract-duplication` |
   | `CI-7` (Definition of Done)  | `living-docs/done-verifiable`            |
-  | `CI-7` (decisão aberta)      | `living-docs/open-decision-claim`        |
+  | `CI-7` (open decision)       | `living-docs/open-decision-claim`        |
   | `CI-8`                       | `living-docs/links`                      |
   | `CI-9`                       | `living-docs/commit-discipline`          |
   | `CI-10`                      | `living-docs/trigger-routing`            |
@@ -141,143 +143,158 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
   | `HK-7`                       | `living-docs/shortcut-debt`              |
   | `HK-8`                       | `living-docs/open-decision-guard`        |
 
-  Quem cita um destes identificadores na própria Definition of Done precisa
-  trocá-lo pelo nome novo — o número não é mais reconhecido como verificação.
-- Os checks e hooks do `living-docs` passam a ser identificados por nome
-  (`living-docs/frontmatter`, …) em vez de número; o mapa completo está na
-  entrada de renomeação desta versão. O antigo `CI-7` vira três checks:
-  `living-docs/agent-contract-duplication`, `living-docs/done-verifiable` e
+  Whoever cites one of these identifiers in their own Definition of Done needs to
+  swap it for the new name — the number is no longer recognized as a verification.
+- The checks and hooks of `living-docs` are now identified by name
+  (`living-docs/frontmatter`, …) instead of by number; the complete map is in the
+  renaming entry of this version. The old `CI-7` becomes three checks:
+  `living-docs/agent-contract-duplication`, `living-docs/done-verifiable` and
   `living-docs/open-decision-claim`.
-- O plugin `living-docs` passa a depender do plugin `ownership`, e deixa de
-  registrar os hooks de artefato gerado, de lembrete de caminho vigiado e de
-  guarda de commit — eles moram no `ownership`.
-- O workflow instalado roda `ownership validate` e `living-docs validate`, e,
-  em PR, os dois com `--base`.
-- `living-docs init --marketplace` habilita os dois plugins.
-- A invocação da CLI no checkout passa a ser
-  `node --conditions=development packages/living-docs/src/cli/index.ts`, porque o
-  toolkit agora depende do núcleo de ownership pelo código-fonte.
-- Instalado pelo marketplace, o plugin `living-docs` não instala as dependências
-  até o núcleo ser publicado no npm; os hooks falham abertos e não respondem.
-- O erro de esquema v1 do `ownership` diz que o arquivo precisa ser reescrito na
-  v2.
-- Bloco de plugin que não é mapa passa a ser erro de carga.
-- O toolkit passa a morar em `packages/living-docs/`, e esse diretório é ao mesmo
-  tempo o pacote e o plugin do Claude Code. Quem invoca o CLI de um clone passa a
-  chamá-lo por `node packages/living-docs/src/cli/index.ts`, sempre da raiz do
-  checkout. O plugin passa a trazer, no próprio diretório, o código e as
-  dependências que os ganchos executam. Arquivos já semeados por `init` não
-  mudam, porque o comando do workflow instalado vem de `--invoke`.
-- O toolkit passa a rodar no Node do host: os ganchos do plugin invocam `node`
-  direto, e o workflow de CI deste repositório instala Node e npm em vez de
-  construir uma imagem. Quem clona precisa de Node 24 ou maior e de um `npm ci`
-  antes do primeiro comando; em troca, os ganchos param de calar quando o
-  container não está de pé. `compose.yaml`, `Dockerfile` e `./bin/living-docs`
-  continuam no repositório, agora como o caminho de execução opcional descrito
-  acima.
-- O nome do pacote passa a ser `@esliph/living-docs` e o container Docker do
-  repositório passa a se chamar `esliph-living-docs` (era `living-docs-toolkit`
-  nos dois). Quem sobe o ambiente com `docker compose` ou invoca `./bin/living-docs`
-  sem `LIVING_DOCS_CONTAINER` definido passa a falar com o container pelo nome
-  novo; o comando `living-docs` em si não muda.
-- `CI-7` ganha uma sexta classe de achado: com `--base <ref>`, o diff que toca
-  caminho reivindicado por uma decisão aberta reprova. A saída continua sendo
-  `Docs: none — <razão>`.
-- `living-docs validate` passa a exigir que todo documento sob a raiz da
-  documentação tenha entrada no `docs/.ownership.yml` e linha no CODEOWNERS
-  (`CI-7`). Repositório instalado por uma versão anterior precisa rodar
-  `living-docs init` de novo, ou declarar os documentos à mão, para continuar
-  passando.
-- `living-docs validate` passa a exigir que toda dívida `open` declare um
-  gatilho de pagamento verificável — `pay-when` com `pattern` e `paths`
-  (`CI-4`). Repositório instalado por uma versão anterior tem de declarar o
-  `pay-when` das dívidas que já estão abertas, ou reclassificá-las, para
-  continuar passando.
-- `living-docs validate` passa a exigir que todo link entre documentos resolva —
-  relativo ou wikilink — e que não haja anexo binário sob a raiz da
-  documentação (`CI-8`).
-  Repositório instalado por uma versão anterior precisa corrigir os links
-  quebrados e tirar os binários de dentro de `docs/` para continuar passando.
-- `living-docs validate` passa a apontar `living-docs changelog` quando o
-  repositório declara `consumer-visible-paths` — ponteiro, não achado: o código
-  de saída não muda.
-- A lista de "não instalado" de `--stage production` fica vazia: o estágio
-  passa a cobrir as Fases 5 e 6 da spec por completo.
-- O workflow do repositório passa a rodar `CI-6` em pull request, e o
-  `actions/checkout` passa a exigir `fetch-depth: 0` — um clone raso não
-  contém a base do diff.
-- `CODEOWNERS` escrito pelo `init` passa a cobrir `docs/ids-retired.txt`.
-- `docs/contracts/checks.gen.md` passa a listar oito checks, ordenados por ID.
-- `bin/living-docs` deixa de exigir que o container já esteja de pé e deixa de
-  sair com código 2 quando ele não está: agora delega a `bin/dev`, que sobe o
-  container antes de executar. O que se invoca não mudou; o que acontece com o
-  ambiente parado, sim.
+- The `living-docs` plugin now depends on the `ownership` plugin, and stops
+  registering the hooks for generated artifact, watched-path reminder and commit
+  guard — they live in `ownership`.
+- The installed workflow runs `ownership validate` and `living-docs validate`, and,
+  on a PR, both with `--base`.
+- `living-docs init --marketplace` enables both plugins.
+- The invocation of the CLI in the checkout is now
+  `node --conditions=development packages/living-docs/src/cli/index.ts`, because
+  the toolkit now depends on the ownership core through the source code.
+- Installed through the marketplace, the `living-docs` plugin does not install its
+  dependencies until the core is published on npm; the hooks fail open and do not
+  answer.
+- The v1 schema error of `ownership` says the file needs to be rewritten as v2.
+- A plugin block that is not a map is now a load error.
+- The toolkit now lives in `packages/living-docs/`, and that directory is at the
+  same time the package and the Claude Code plugin. Whoever invokes the CLI from a
+  clone now calls it through `node packages/living-docs/src/cli/index.ts`, always
+  from the root of the checkout. The plugin now carries, in its own directory, the
+  code and the dependencies the hooks run. Files already seeded by `init` do not
+  change, because the command of the installed workflow comes from `--invoke`.
+- The toolkit now runs on the host's Node: the plugin's hooks invoke `node`
+  directly, and this repository's CI workflow installs Node and npm instead of
+  building an image. Whoever clones needs Node 24 or greater and an `npm ci`
+  before the first command; in exchange, the hooks stop going quiet when the
+  container is not up. `compose.yaml`, `Dockerfile` and `./bin/living-docs`
+  remain in the repository, now as the optional execution path described above.
+- The package name is now `@esliph/living-docs` and the repository's Docker
+  container is now called `esliph-living-docs` (it was `living-docs-toolkit` in
+  both). Whoever brings the environment up with `docker compose` or invokes
+  `./bin/living-docs` without `LIVING_DOCS_CONTAINER` defined now talks to the
+  container by the new name; the `living-docs` command itself does not change.
+- `CI-7` gains a sixth class of finding: with `--base <ref>`, a diff that touches
+  a path claimed by an open decision fails. The way out remains
+  `Docs: none — <reason>`.
+- `living-docs validate` now requires that every document under the documentation
+  root have an entry in `docs/.ownership.yml` and a line in CODEOWNERS (`CI-7`). A
+  repository installed by an earlier version needs to run `living-docs init` again,
+  or declare the documents by hand, to keep passing.
+- `living-docs validate` now requires that every `open` debt declare a verifiable
+  payment trigger — `pay-when` with `pattern` and `paths` (`CI-4`). A repository
+  installed by an earlier version has to declare the `pay-when` of the debts that
+  are already open, or reclassify them, to keep passing.
+- `living-docs validate` now requires that every link between documents resolve —
+  relative or wikilink — and that there be no binary attachment under the
+  documentation root (`CI-8`).
+  A repository installed by an earlier version needs to fix its broken links and
+  take the binaries out of `docs/` to keep passing.
+- `living-docs validate` now points to `living-docs changelog` when the repository
+  declares `consumer-visible-paths` — a pointer, not a finding: the exit code does
+  not change.
+- The "not installed" list of `--stage production` is now empty: the stage now
+  covers Phases 5 and 6 of the spec in full.
+- The repository's workflow now runs `CI-6` on a pull request, and
+  `actions/checkout` now requires `fetch-depth: 0` — a shallow clone does not
+  contain the diff base.
+- The `CODEOWNERS` written by `init` now covers `docs/ids-retired.txt`.
+- `docs/contracts/checks.gen.md` now lists eight checks, ordered by ID.
+- `bin/living-docs` no longer requires the container to be up already and no
+  longer exits with code 2 when it is not: it now delegates to `bin/dev`, which
+  brings the container up before running. What is invoked did not change; what
+  happens with a stopped environment did.
 
-- A skill `release-historian` e o template de guia de migração deixam de pedir
-  que o guia aponte a decisão pelo ID: o guia diz, em texto corrido, por que a
-  quebra foi decidida, e o commit que o cria cita a decisão. O contrato do agente
-  semeado pelo `init` ganha a mesma política.
+- The `release-historian` skill and the migration guide template no longer ask
+  the guide to point to the decision by its ID: the guide says, in running text,
+  why the break was decided, and the commit that creates it cites the decision. The
+  agent contract seeded by `init` gains the same policy.
 
-- As sementes que `living-docs init` escreve e os comentários do
-  `docs/.ownership.yml` e do workflow instalados deixam de citar decisões
-  internas do toolkit e de trazer instrução de preenchimento; o que ajudava a
-  ler o documento virou prosa, e a orientação de quem escreve passou para as
-  skills. As mensagens dos checks, dos hooks e do CLI e o texto das skills
-  deixam de citar regras internas do toolkit. Repositório já instalado mantém o
-  texto antigo.
-- O arquivo de ownership passa a morar na raiz (`.ownership.yml`) e a ser lido
-  no esquema v2: uma lista `owned`, com o bloco `living-docs:` em cada entrada
-  da documentação viva e no topo para a configuração global. O esquema v1 não
-  é lido, e não há comando de migração — reescreva o arquivo seguindo o
+- The seeds `living-docs init` writes and the comments of the installed
+  `docs/.ownership.yml` and workflow no longer cite internal decisions of the
+  toolkit or carry filling-in instructions; what helped to read the document became
+  prose, and the guidance for whoever writes moved to the skills. The messages of
+  the checks, of the hooks and of the CLI and the text of the skills no longer cite
+  internal rules of the toolkit. A repository already installed keeps the old text.
+- The ownership file now lives at the root (`.ownership.yml`) and is read in the v2
+  schema: an `owned` list, with the `living-docs:` block in each living-documentation
+  entry and at the top for global configuration. The v1 schema is not read, and
+  there is no migration command — rewrite the file following
   `templates/ownership.yml`.
-- `living-docs init` semeia a v2 na raiz, e não escreve um arquivo novo quando
-  já existe um.
-- `living-docs validate` deixa de verificar o dono de cada documento, o
-  CODEOWNERS, o vínculo de `watches`, o `owner` do frontmatter e o `status`
-  fora dos estados declarados — tudo isso é de `ownership validate`.
+- `living-docs init` seeds v2 at the root, and does not write a new file when one
+  already exists.
+- `living-docs validate` no longer verifies the owner of each document, CODEOWNERS,
+  the `watches` link, the frontmatter `owner` and the `status` outside the declared
+  states — all of that belongs to `ownership validate`.
+- Every message of the CLI, the hooks and the checks, and every seed written by
+  `living-docs init`, is now in English. The content of your documents stays in
+  whatever language you write it in: no check reads headings or prose, and the
+  toolkit has no language setting.
+- `living-docs/done-verifiable` accepts only the fixed marker `human` for a
+  Definition of Done item verified by a person.
+- The seeded open-decisions table uses the canonical column names
+  (`Resolved-by`, `Blocks`, `Gap`), so a new ownership file needs no
+  `field-map`. A table without a canonical column now says so and points to
+  `field-map`. An existing open-decisions table whose columns are named in
+  another language must keep or declare its `field-map`, including `blocks`:
+  the `Blocks` column is optional, so a missing one is not reported and the
+  paths it lists stop being guarded.
 
 ### Removed
 
-- `living-docs drift` e `living-docs changelog`: a deriva de artefato gerado e
-  a entrada de CHANGELOG passam a ser verificadas por `ownership validate`
-  (`--base <ref>` para o diff).
-- `consumer-visible-paths`: a marca `consumer-visible: true` nas regras de
-  `watches` é a lista.
+- `living-docs drift` and `living-docs changelog`: generated-artifact drift and
+  the CHANGELOG entry are now verified by `ownership validate` (`--base <ref>` for
+  the diff).
+- `consumer-visible-paths`: the `consumer-visible: true` mark on the `watches`
+  rules is the list.
+- `living-docs/frontmatter` no longer rejects a `trigger` worded as a calendar
+  cadence; it only requires `trigger` to be present and non-empty.
+- `living-docs/trigger-routing` no longer compares the words of a `trigger`
+  with the owning skill's description; it only warns when the owning skill
+  does not exist.
+- Table cells reading `nenhum` or `nenhuma` are no longer treated as empty;
+  use `—`, `-` or `n/a`.
 
 ### Fixed
 
-- `bin/dev` volta a funcionar pelo Git Bash no Windows: o shell reescrevia o
-  diretório de trabalho do container como caminho do host, e o `docker exec`
-  falhava sem rodar o comando. Dentro do container, o `git` passa a aceitar o
-  checkout montado — antes, tudo que o consultava (testes inclusive) falhava com
-  "dubious ownership". A imagem precisa ser reconstruída uma vez
+- `bin/dev` works again through Git Bash on Windows: the shell was rewriting the
+  container's working directory as a host path, and `docker exec` failed without
+  running the command. Inside the container, `git` now accepts the mounted
+  checkout — before, everything that queried it (tests included) failed with
+  "dubious ownership". The image needs to be rebuilt once
   (`docker compose up -d --build`).
-- Os templates que `living-docs init` semeia voltam a trazer os placeholders
-  `{{ID}}`, `{{TITLE}}` e `{{TODAY}}` na forma que o `init` substitui. Um
-  formatador de código os havia reescrito como `{ { ID } }` — o YAML os lê como
-  mapa, e o repositório recém-instalado nascia com `last-reviewed` inválido,
-  reprovando no próprio `CI-1` na primeira execução. `templates/` e o contrato
-  gerado passam a ficar fora do formatador.
-- `living-docs --help` passa a listar `multi-team` entre os estágios de
-  `--stage`; o CLI já o aceitava.
-- `living-docs init` passa a reconhecer `docs/decisoes-em-aberto.md` entre os
-  caminhos que adota para a família `DA` quando já existem.
-- `living-docs init` num repositório que já tem `AGENTS.md` passa a escrever a
-  linha de CODEOWNERS do contrato adotado, e não a de um `CLAUDE.md` que não
-  existe ali. Antes, o repositório recém-instalado reprovava no próprio `CI-7`
-  na primeira execução: o contrato ficava sem quem o revise.
-- `CI-7` deixa de acusar item de Definition of Done sem verificação quando o
-  item é um **exemplo do formato** dentro de um bloco de código cercado. A
-  documentação que ensina o próprio formato não reprova por ensiná-lo.
-- As mensagens de `CI-7` sobre um vínculo de `watches` quebrado passam a apontar
-  a regra que de fato governa o vínculo código→doc: caminho vigiado e documento
-  dono viajam no mesmo commit.
-- `living-docs validate` e o inventário de início de sessão (`HK-6`) passam a
-  varrer a árvore do repositório uma vez por execução, e não uma vez por
-  pergunta. Repositório grande com muitas dívidas `open` sentia isso no teto de
-  5 segundos do hook.
-- `living-docs init` num repositório que sobe de estágio passa a acrescentar ao
-  `CODEOWNERS` que já existe as linhas do estágio novo. Antes ele o deixava
-  congelado na forma do estágio anterior, e os documentos recém-instalados
-  nasciam sem quem os revise — o que `CI-7` agora reprova. Linha que já está lá
-  não é reescrita.
+- The templates that `living-docs init` seeds again carry the placeholders
+  `{{ID}}`, `{{TITLE}}` and `{{TODAY}}` in the form `init` substitutes. A code
+  formatter had rewritten them as `{ { ID } }` — YAML reads them as a map, and the
+  freshly installed repository was born with an invalid `last-reviewed`, failing
+  its own `CI-1` on the first run. `templates/` and the generated contract now stay
+  out of the formatter.
+- `living-docs --help` now lists `multi-team` among the stages of `--stage`; the
+  CLI already accepted it.
+- `living-docs init` now recognizes `docs/decisoes-em-aberto.md` among the paths it
+  adopts for the `DA` family when they already exist.
+- `living-docs init` in a repository that already has `AGENTS.md` now writes the
+  CODEOWNERS line of the adopted contract, and not that of a `CLAUDE.md` that does
+  not exist there. Before, the freshly installed repository failed its own `CI-7`
+  on the first run: the contract was left without anyone to review it.
+- `CI-7` no longer flags a Definition of Done item with no verification when the
+  item is an **example of the format** inside a fenced code block. Documentation
+  that teaches its own format does not fail for teaching it.
+- The `CI-7` messages about a broken `watches` link now point to the rule that
+  actually governs the code→doc link: a watched path and its owning document travel
+  in the same commit.
+- `living-docs validate` and the session-start inventory (`HK-6`) now scan the
+  repository tree once per run, and not once per question. A large repository with
+  many `open` debts felt this at the hook's 5-second ceiling.
+- `living-docs init` in a repository that moves up a stage now appends to the
+  existing `CODEOWNERS` the lines of the new stage. Before, it left it frozen in
+  the form of the previous stage, and the freshly installed documents were born
+  with nobody to review them — which `CI-7` now fails. A line that is already there
+  is not rewritten.

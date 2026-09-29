@@ -1,7 +1,7 @@
 import { findOwnedRule } from './hierarchy.ts'
 import type { ResolvedConfig } from './hierarchy.ts'
 
-/** O arquivo de base mais profunda que contém o caminho — onde a entrada que falta deveria ser escrita. */
+/** The file with the deepest base that contains the path — where the missing entry should be written. */
 function fileResponsibleFor(config: ResolvedConfig, repoPath: string): string | null {
   let best: { file: string; base: string } | null = null
 
@@ -23,14 +23,14 @@ export function explainPath(config: ResolvedConfig, repoPath: string): string {
     const responsible = fileResponsibleFor(config, repoPath)
 
     return responsible === null
-      ? `${repoPath}: nenhuma regra de ownership cobre este caminho, e nenhum arquivo de ownership tem base que o contenha.`
-      : `${repoPath}: nenhuma regra de ownership cobre este caminho. A entrada caberia em ${responsible}.`
+      ? `${repoPath}: no ownership rule covers this path, and no ownership file has a base that contains it.`
+      : `${repoPath}: no ownership rule covers this path. The entry would belong in ${responsible}.`
   }
 
   const lines = [
     `${repoPath}`,
-    `  declarado em: ${rule.origin}`,
-    `  regra: ${rule.path}`,
+    `  declared in: ${rule.origin}`,
+    `  rule: ${rule.path}`,
     `  owner: ${rule.owner}`,
     `  skill: ${rule.skill ?? '—'}`,
     `  states: ${rule.states ? rule.states.join(', ') : '—'}`,
@@ -39,7 +39,7 @@ export function explainPath(config: ResolvedConfig, repoPath: string): string {
   ]
 
   for (const name of Object.keys(rule.pluginBlocks)) {
-    lines.push(`  plugin ${name}: declarado`)
+    lines.push(`  plugin ${name}: declared`)
   }
 
   return lines.join('\n')

@@ -1,10 +1,10 @@
 /**
- * Rótulo de exceção numa mensagem de commit: `<Label>: none — <razão>`.
+ * Exception label in a commit message: `<Label>: none — <reason>`.
  *
- * `Changelog` por `ADR-0006`, `Docs` por `ADR-0010`. O separador é obrigatório e
- * a razão também: rótulo sem razão é caixinha marcada, e caixinha marcada
- * desliga o mecanismo fingindo cumpri-lo. Dois rótulos já são o começo de uma
- * família — o terceiro precisa de ADR próprio.
+ * `Changelog` by `ADR-0006`, `Docs` by `ADR-0010`. The separator is mandatory and
+ * so is the reason: a label without a reason is a ticked box, and a ticked box
+ * switches the mechanism off while pretending to comply with it. Two labels are already the start of a
+ * family — the third needs its own ADR.
  */
 export function exceptionReasonFor(label: string, messages: readonly string[]): string | null {
   const pattern = new RegExp(`^[ \\t]*${label}:[ \\t]*none[ \\t]*[—–:-][ \\t]*(\\S.*)$`, 'im')

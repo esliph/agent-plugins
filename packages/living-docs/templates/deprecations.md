@@ -1,13 +1,13 @@
 ---
-title: Depreciações
+title: Deprecations
 owner: "{{OWNER}}"
 trigger: >
-  Quando algo publicado é anunciado para remoção, e quando uma depreciação
-  anunciada é de fato removida.
+  When something published is announced for removal, and when an announced
+  deprecation is actually removed.
 last-reviewed: {{TODAY}}
 ---
 
-# Depreciações
+# Deprecations
 
-| O que | Anunciado em | Removido em | Substituto | Guia de migração | Status |
+| What | Announced on | Removed in | Replacement | Migration guide | Status |
 | --- | --- | --- | --- | --- | --- |

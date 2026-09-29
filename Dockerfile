@@ -2,14 +2,14 @@ FROM node:24-alpine
 
 RUN apk add --no-cache git bash
 
-# O checkout chega por bind mount com dono diferente do usuário node, e o git
-# recusa repositório alheio ("dubious ownership"). O código de produção já passa
-# `-c safe.directory=*` em cada chamada; isto cobre o resto — testes e quem usa
-# o git à mão dentro do container.
+# The checkout arrives by bind mount owned by someone other than the node user, and git
+# refuses a foreign repository ("dubious ownership"). Production code already passes
+# `-c safe.directory=*` on each call; this covers the rest — tests and whoever uses
+# git by hand inside the container.
 RUN git config --system --add safe.directory '*'
 
-# A fonte do toolkit mora aqui. O repositório validado é montado em /workspace —
-# são coisas distintas por ADR-0003, mesmo quando apontam para o mesmo checkout.
+# The toolkit source lives here. The validated repository is mounted at /workspace —
+# they are distinct things per ADR-0003, even when they point to the same checkout.
 WORKDIR /opt/living-docs
 RUN mkdir -p /opt/living-docs/node_modules /workspace \
  && chown -R node:node /opt/living-docs /workspace

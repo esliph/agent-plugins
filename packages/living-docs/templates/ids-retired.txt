@@ -1,2 +1,2 @@
-# IDs retirados. Nunca são reciclados.
-# Um ID por linha.
+# Retired IDs. They are never recycled.
+# One ID per line.

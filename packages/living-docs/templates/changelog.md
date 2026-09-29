@@ -1,7 +1,7 @@
 # Changelog
 
-O que muda para quem usa este projeto, versão a versão. O formato segue
-[Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
+What changes for whoever uses this project, version by version. The format
+follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 

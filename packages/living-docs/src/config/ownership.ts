@@ -6,24 +6,24 @@ import type { IdFormat } from '../docs/schema.ts'
 export { OwnershipError }
 
 /**
- * O nome do bloco deste plugin no arquivo de ownership. Um caminho é do
- * living-docs se, e somente se, a entrada de `owned` que o cobre traz este
- * bloco (ADR-0020); com `id-prefix` é artefato, sem ele é documento (ADR-0029).
+ * The name of this plugin's block in the ownership file. A path belongs to
+ * living-docs if, and only if, the `owned` entry that covers it carries this
+ * block (ADR-0020); with `id-prefix` it is an artifact, without it a document (ADR-0029).
  */
 export const PLUGIN = 'living-docs'
 
 export type Collection = 'per-file' | 'table' | 'sections'
 
 /**
- * Quem lê um documento ou artefato (`ADR-0017`). Ausente, vale `internal`.
+ * Who reads a document or artifact (`ADR-0017`). When absent, `internal` applies.
  */
 export const AUDIENCES = ['internal', 'external'] as const
 export type Audience = (typeof AUDIENCES)[number]
 
 /**
- * Papéis que o toolkit reconhece num documento (`ADR-0008`). Vocabulário
- * fechado: é o que permite achar o contrato do agente e a Definition of Done
- * sem conhecer caminho nenhum.
+ * Roles the toolkit recognizes on a document (`ADR-0008`). Closed
+ * vocabulary: it is what allows finding the agent contract and the Definition of Done
+ * without knowing any path.
  */
 export const DOCUMENT_ROLES = ['agent-contract', 'definition-of-done'] as const
 export type DocumentRole = (typeof DOCUMENT_ROLES)[number]
@@ -37,20 +37,20 @@ export interface ArtifactRule {
   mutableFields: string[]
   citedBy: string[]
   collection: Collection
-  /** Canônico -> nome real do campo neste projeto. Ex.: { 'resolved-by': 'resolvida por' }. */
+  /** Canonical -> real field name in this project. E.g.: { 'resolved-by': 'fixed by' }. */
   fieldMap: Record<string, string>
-  /** `states` da entrada, que é do núcleo; `null` quando a entrada não declara. */
+  /** The entry's `states`, which belongs to the core; `null` when the entry does not declare it. */
   states: string[] | null
   audience: Audience
-  /** A entrada resolvida pelo núcleo — é o que `findTransitions` recebe. */
+  /** The entry as resolved by the core — it is what `findTransitions` receives. */
   core: ResolvedOwnedRule
 }
 
-/** Documento com dono e sem família de IDs (`ADR-0008`). */
+/** Document with an owner and no ID family (`ADR-0008`). */
 export interface DocumentRule {
   path: string
   owner: string
-  /** Skill dona, quando existe uma. `null` é informação, não erro. */
+  /** Owning skill, when there is one. `null` is information, not an error. */
   skill: string | null
   role: DocumentRole | null
   audience: Audience
@@ -70,18 +70,18 @@ export interface WatchRule {
 }
 
 export interface LivingDocsConfig {
-  /** O arquivo de ownership raiz, relativo ao repositório (ex.: `.ownership.yml`). */
+  /** The root ownership file, relative to the repository (e.g. `.ownership.yml`). */
   rootFile: string
   staleAfterMonths: number
-  /** Quantos documentos com bump de data seco reprovam (`ADR-0013`, `RN-0027`). */
+  /** How many documents with a bare date bump fail (`ADR-0013`, `RN-0027`). */
   lastReviewedBumpLimit: number
-  /** A forma escrita dos IDs deste projeto (`ADR-0011`). Nunca a identidade. */
+  /** The written form of this project's IDs (`ADR-0011`). Never the identity. */
   idFormat: IdFormat
   artifacts: ArtifactRule[]
   documents: DocumentRule[]
   generated: GeneratedRule[]
   watches: WatchRule[]
-  /** A configuração inteira, como o núcleo a resolveu. */
+  /** The whole configuration, as the core resolved it. */
   core: ResolvedConfig
 }
 
@@ -92,8 +92,8 @@ const DOCUMENT_KEYS: ReadonlySet<string> = new Set(['role', 'audience'])
 const DEFAULT_STALE_AFTER_MONTHS = 6
 
 /**
- * O limiar de bump em massa (`ADR-0013`). Piso 2, e não 1: um documento revisado
- * de verdade atualiza a data, e limiar 1 reprovaria o mecanismo funcionando.
+ * The mass-bump threshold (`ADR-0013`). Floor 2, not 1: a document that was genuinely reviewed
+ * updates its date, and threshold 1 would fail the mechanism working.
  */
 export const DEFAULT_BUMP_LIMIT = 3
 
@@ -103,7 +103,7 @@ function fail(where: string, message: string): never {
 
 function asRecord(value: unknown, where: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    fail(where, 'precisa ser um mapa.')
+    fail(where, 'must be a map.')
   }
 
   return value as Record<string, unknown>
@@ -114,7 +114,7 @@ function asStringList(value: unknown, where: string): string[] {
     return []
   }
   if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
-    fail(where, 'precisa ser uma lista de strings.')
+    fail(where, 'must be a list of strings.')
   }
 
   return value as string[]
@@ -123,7 +123,7 @@ function asStringList(value: unknown, where: string): string[] {
 function assertKnown(block: Record<string, unknown>, allowed: ReadonlySet<string>, where: string, hint = ''): void {
   for (const key of Object.keys(block)) {
     if (!allowed.has(key)) {
-      fail(where, `chave "${key}" desconhecida.${hint}`)
+      fail(where, `unknown key "${key}".${hint}`)
     }
   }
 }
@@ -136,15 +136,15 @@ function parseIdFormat(raw: unknown, where: string): IdFormat {
   const separator = item.separator ?? DEFAULT_ID_FORMAT.separator
 
   if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
-    // Regra de origem: ADR-0011.
-    fail(where, `id-format.separator "${String(separator)}" não é aceito. Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`)
+    // Rule of origin: ADR-0011.
+    fail(where, `id-format.separator "${String(separator)}" is not accepted. Valid: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`)
   }
 
   const padding = item.padding ?? DEFAULT_ID_FORMAT.padding
 
   if (typeof padding !== 'number' || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
-    // Regra de origem: ADR-0011.
-    fail(where, `id-format.padding "${String(padding)}" precisa ser inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max}.`)
+    // Rule of origin: ADR-0011.
+    fail(where, `id-format.padding "${String(padding)}" must be an integer between ${PADDING_RANGE.min} and ${PADDING_RANGE.max}.`)
   }
 
   return { separator, padding }
@@ -155,8 +155,8 @@ function parseBumpLimit(raw: unknown, where: string): number {
     return DEFAULT_BUMP_LIMIT
   }
   if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
-    // Regra de origem: ADR-0013.
-    fail(where, `last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 (limiar 1 reprovaria a revisão legítima de um documento só).`)
+    // Rule of origin: ADR-0013.
+    fail(where, `last-reviewed-bump-limit "${String(raw)}" must be an integer greater than or equal to 2 (a threshold of 1 would fail the legitimate review of a single document).`)
   }
 
   return raw
@@ -167,14 +167,14 @@ function parseAudience(raw: unknown, where: string): Audience {
     return 'internal'
   }
   if (!AUDIENCES.includes(raw as Audience)) {
-    fail(where, `audience "${String(raw)}" desconhecido. Válidos: ${AUDIENCES.join(', ')}.`)
+    fail(where, `unknown audience "${String(raw)}". Valid: ${AUDIENCES.join(', ')}.`)
   }
 
   return raw as Audience
 }
 
 function whereOf(rule: ResolvedOwnedRule): string {
-  return `${rule.origin}: entrada "${rule.path}", bloco ${PLUGIN}`
+  return `${rule.origin}: entry "${rule.path}", block ${PLUGIN}`
 }
 
 function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): ArtifactRule {
@@ -185,10 +185,10 @@ function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): Ar
   const idPrefix = block['id-prefix']
 
   if (typeof idPrefix !== 'string' || !ID_PREFIX.test(idPrefix)) {
-    fail(where, `id-prefix "${String(idPrefix)}" precisa ser 2 a 4 letras maiúsculas (ex.: ADR, DA, TDR).`)
+    fail(where, `id-prefix "${String(idPrefix)}" must be 2 to 4 uppercase letters (e.g. ADR, DA, TDR).`)
   }
   if (rule.skill === null) {
-    fail(where, 'artefato precisa de `skill` na entrada — é a skill dona que escreve os itens dele.')
+    fail(where, 'an artifact needs a `skill` in its entry — the owning skill is the one that writes its items.')
   }
 
   const fieldMap: Record<string, string> = {}
@@ -197,7 +197,7 @@ function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): Ar
   if (fieldMapRaw !== undefined && fieldMapRaw !== null) {
     for (const [canonical, real] of Object.entries(asRecord(fieldMapRaw, `${where}.field-map`))) {
       if (typeof real !== 'string' || real.trim() === '') {
-        fail(where, `field-map.${canonical} precisa ser uma string não vazia.`)
+        fail(where, `field-map.${canonical} must be a non-empty string.`)
       }
       fieldMap[normalizeFieldKey(canonical)] = normalizeFieldKey(real)
     }
@@ -222,12 +222,12 @@ function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): Ar
 function toDocument(rule: ResolvedOwnedRule, block: Record<string, unknown>): DocumentRule {
   const where = whereOf(rule)
 
-  assertKnown(block, DOCUMENT_KEYS, where, ' Chaves de artefato só valem com `id-prefix`.')
+  assertKnown(block, DOCUMENT_KEYS, where, ' Artifact keys only apply with `id-prefix`.')
 
   const role = block.role
 
   if (role !== undefined && !DOCUMENT_ROLES.includes(role as DocumentRole)) {
-    fail(where, `role "${String(role)}" desconhecido. Válidos: ${DOCUMENT_ROLES.join(', ')}.`)
+    fail(where, `unknown role "${String(role)}". Valid: ${DOCUMENT_ROLES.join(', ')}.`)
   }
 
   return {
@@ -240,7 +240,7 @@ function toDocument(rule: ResolvedOwnedRule, block: Record<string, unknown>): Do
   }
 }
 
-/** A configuração do living-docs sobre a que o núcleo resolveu. Função pura. */
+/** The living-docs configuration on top of what the core resolved. Pure function. */
 export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
   const top = core.pluginBlocks[PLUGIN] ?? {}
   const topWhere = `${core.rootFile}.${PLUGIN}`
@@ -266,8 +266,8 @@ export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
   if (artifacts.length === 0) {
     fail(
       core.rootFile,
-      `nenhuma entrada de \`owned\` traz \`${PLUGIN}.id-prefix\` — sem artefato declarado nada é enforceável. ` +
-        `Declare \`plugins: [${PLUGIN}]\` na raiz e o bloco \`${PLUGIN}:\` nas entradas.`,
+      `no \`owned\` entry carries \`${PLUGIN}.id-prefix\` — with no declared artifact nothing is enforceable. ` +
+        `Declare \`plugins: [${PLUGIN}]\` at the root and the \`${PLUGIN}:\` block in the entries.`,
     )
   }
 
@@ -275,7 +275,7 @@ export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
 
   for (const artifact of artifacts) {
     if (prefixes.has(artifact.idPrefix)) {
-      fail(core.rootFile, `id-prefix "${artifact.idPrefix}" declarado duas vezes. Um artefato, um dono.`)
+      fail(core.rootFile, `id-prefix "${artifact.idPrefix}" declared twice. One artifact, one owner.`)
     }
     prefixes.add(artifact.idPrefix)
   }
@@ -287,7 +287,7 @@ export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
       continue
     }
     if (roles.has(document.role)) {
-      fail(core.rootFile, `papel "${document.role}" declarado em dois documentos. Um papel, um documento.`)
+      fail(core.rootFile, `role "${document.role}" declared in two documents. One role, one document.`)
     }
     roles.add(document.role)
   }
@@ -308,23 +308,23 @@ export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
 }
 
 /**
- * Acha o arquivo de ownership pela ordem de candidatos do núcleo, valida o
- * esquema, a disjunção e as bases (o núcleo), e depois o bloco `living-docs:`
- * com o rigor de sempre: chave desconhecida é erro. `OwnershipError` sobe como está.
+ * Finds the ownership file by the core's candidate order, validates the
+ * schema, the disjunction and the bases (the core), and then the `living-docs:` block
+ * with the usual rigor: an unknown key is an error. `OwnershipError` bubbles up as is.
  */
 export function loadLivingDocsConfig(root: string): LivingDocsConfig {
   const core = resolveOwnership(root)
 
   if (core === null) {
-    throw new OwnershipError(`nenhum arquivo de ownership encontrado em ${root}. Rode \`living-docs init\` (skill dona: living-docs-bootstrap).`)
+    throw new OwnershipError(`no ownership file found in ${root}. Run \`living-docs init\` (owning skill: living-docs-bootstrap).`)
   }
 
   return adaptConfig(core)
 }
 
 /**
- * Valor de um campo canônico do item, respeitando o `field-map` do artefato.
- * Devolve null para célula vazia — ausente e vazio são a mesma coisa aqui.
+ * Value of a canonical field of the item, honouring the artifact's `field-map`.
+ * Returns null for an empty cell — absent and empty are the same thing here.
  */
 export function fieldOf(rule: ArtifactRule, item: DocItem, canonical: string): string | null {
   const key = rule.fieldMap[normalizeFieldKey(canonical)] ?? normalizeFieldKey(canonical)
@@ -337,32 +337,43 @@ export function fieldOf(rule: ArtifactRule, item: DocItem, canonical: string): s
   return value.trim()
 }
 
+/**
+ * Whether the item carries a canonical field at all — a column or a bullet,
+ * even an empty one — honouring the artifact's `field-map`. Tells "the table
+ * has no such column" apart from "the cell is empty" (RN-0039).
+ */
+export function hasField(rule: ArtifactRule, item: DocItem, canonical: string): boolean {
+  const key = rule.fieldMap[normalizeFieldKey(canonical)] ?? normalizeFieldKey(canonical)
+
+  return item.fields[key] !== undefined
+}
+
 function normalizePath(repoPath: string): string {
   return repoPath.split('\\').join('/').replace(/^\.\//, '')
 }
 
-/** O caminho declarado cobre este caminho? Diretório por prefixo, arquivo por igualdade. */
+/** Does the declared path cover this path? Directory by prefix, file by equality. */
 function covers(declared: string, repoPath: string): boolean {
   const target = declared.split('\\').join('/')
 
   return target.endsWith('/') ? repoPath.startsWith(target) : repoPath === target
 }
 
-/** Regra de artefato dona de um caminho relativo à raiz do repositório, ou null. */
+/** Artifact rule that owns a path relative to the repository root, or null. */
 export function findArtifactRule(config: LivingDocsConfig, repoPath: string): ArtifactRule | null {
   const normalized = normalizePath(repoPath)
 
   return config.artifacts.find(artifact => covers(artifact.path, normalized)) ?? null
 }
 
-/** Documento dono de um caminho relativo, ou null. Mesma semântica de `findArtifactRule`. */
+/** Document that owns a relative path, or null. Same semantics as `findArtifactRule`. */
 export function findDocumentRule(config: LivingDocsConfig, repoPath: string): DocumentRule | null {
   const normalized = normalizePath(repoPath)
 
   return config.documents.find(document => covers(document.path, normalized)) ?? null
 }
 
-/** O documento que o projeto declarou com este papel, ou null. */
+/** The document the project declared with this role, or null. */
 export function documentWithRole(config: LivingDocsConfig, role: DocumentRole): DocumentRule | null {
   return config.documents.find(document => document.role === role) ?? null
 }

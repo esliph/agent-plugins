@@ -1,15 +1,15 @@
 import YAML from 'yaml'
 
 export interface Frontmatter {
-  /** Chaves de topo do bloco YAML, já parseadas. */
+  /** Top-level keys of the YAML block, already parsed. */
   data: Record<string, unknown>
-  /** Chave de topo → linha 1-indexed no arquivo inteiro. */
+  /** Top-level key → 1-indexed line in the whole file. */
   lines: Record<string, number>
-  /** Linha 1-indexed do `---` que fecha o bloco. */
+  /** 1-indexed line of the `---` that closes the block. */
   endLine: number
-  /** Tudo depois do bloco, sem o separador. */
+  /** Everything after the block, without the separator. */
   body: string
-  /** Linha 1-indexed onde o corpo começa. */
+  /** 1-indexed line where the body starts. */
   bodyStartLine: number
 }
 
@@ -56,8 +56,8 @@ export function parseFrontmatter(source: string): Frontmatter | null {
     const at = err instanceof YAML.YAMLParseError ? (err.linePos?.[0]?.line ?? 1) : 1
 
     throw new FrontmatterSyntaxError(
-      err instanceof Error ? err.message : 'YAML inválido',
-      at + 1, // +1 porque o bloco começa na linha 2 do arquivo
+      err instanceof Error ? err.message : 'invalid YAML',
+      at + 1, // +1 because the block starts on line 2 of the file
     )
   }
 

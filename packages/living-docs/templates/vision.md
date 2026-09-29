@@ -2,18 +2,17 @@
 title: Product Vision
 owner: "{{OWNER}}"
 trigger: >
-  Mudança de estratégia de produto — nunca como efeito colateral de outra
-  tarefa.
+  A change of product strategy — never as a side effect of another task.
 last-reviewed: {{TODAY}}
 ---
 
 # Product Vision
 
-Três perguntas, e só elas: que problema este produto resolve, para quem, e como
-se sabe que ele foi resolvido.
+Three questions, and only them: what problem this product solves, for whom, and
+how we know it has been solved.
 
-**Que problema:** substitua pelo problema real que este produto resolve.
+**What problem:** replace with the real problem this product solves.
 
-**Para quem:** substitua por quem sente esse problema.
+**For whom:** replace with who feels this problem.
 
-**Métrica de sucesso:** substitua pela métrica que prova que o problema foi resolvido.
+**Success metric:** replace with the metric that proves the problem was solved.

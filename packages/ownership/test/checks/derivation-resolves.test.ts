@@ -5,12 +5,12 @@ import { forgetTree } from '../../src/core/files.ts'
 import { buildConfig } from '../helpers/config.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-test('campo ausente, fora da fonte e alvo inexistente viram achados distintos', () => {
+test('missing field, outside the source and nonexistent target become distinct findings', () => {
   withTempRepo(
     {
-      'docs/plans/a.md': '---\ntitle: sem spec\n---\n',
-      'docs/plans/b.md': '---\nspec: docs/outro/x.md\n---\n',
-      'docs/plans/c.md': '---\nspec: docs/specs/nao-existe.md\n---\n',
+      'docs/plans/a.md': '---\ntitle: no spec\n---\n',
+      'docs/plans/b.md': '---\nspec: docs/other/x.md\n---\n',
+      'docs/plans/c.md': '---\nspec: docs/specs/does-not-exist.md\n---\n',
     },
     root => {
       forgetTree(root)
@@ -24,7 +24,7 @@ test('campo ausente, fora da fonte e alvo inexistente viram achados distintos', 
   )
 })
 
-test('derivação que resolve não gera achado', () => {
+test('derivation that resolves yields no finding', () => {
   withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n', 'docs/specs/s1.md': '# s1\n' }, root => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/plans/', owner: '@a', derivesFrom: { source: 'docs/specs/', field: 'spec' } }] })
@@ -33,7 +33,7 @@ test('derivação que resolve não gera achado', () => {
   })
 })
 
-test('caminho sem derives-from não é examinado', () => {
+test('path without derives-from is not examined', () => {
   withTempRepo({ 'docs/plans/a.md': '---\ntitle: x\n---\n' }, root => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/plans/', owner: '@a' }] })

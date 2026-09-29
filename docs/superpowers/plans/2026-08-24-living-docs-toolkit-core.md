@@ -1,89 +1,89 @@
-# Living Documentation Toolkit — Núcleo (Fases 0–1) — Implementation Plan
+# Living Documentation Toolkit — Core (Phases 0–1) — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Construir o núcleo do toolkit de documentação viva — o contrato de máquina (frontmatter + `.ownership.yml`), os checks `CI-1`/`CI-2`, o bootstrap `SK-0`, a skill `SK-3` com seus comandos, e os hooks `HK-1`/`HK-3` — como um pacote Node.js que é simultaneamente CLI e plugin do Claude Code, desenvolvido e executado inteiramente dentro de um container Docker.
+**Goal:** Build the core of the living documentation toolkit — the machine contract (frontmatter + `.ownership.yml`), the `CI-1`/`CI-2` checks, the `SK-0` bootstrap, the `SK-3` skill with its commands, and the `HK-1`/`HK-3` hooks — as a Node.js package that is both a CLI and a Claude Code plugin, developed and run entirely inside a Docker container.
 
-**Architecture:** Um único pacote Node 24 em TypeScript **sem build step** — o Node 24 apaga os tipos nativamente, então `src/**/*.ts` executa direto, o que dá aos hooks um startup de ~150 ms. Uma engine de validação compartilhada (`src/config`, `src/frontmatter`, `src/docs`, `src/ids`) é consumida por dois front-ends: o CLI (`src/cli/`, usado no CI, onde não há agente) e os hooks (`src/hooks/`, usados pelo agente). Nenhuma regra é escrita duas vezes — é o corolário 4 da spec ("todo check de CI espelha uma regra escrita numa skill") aplicado ao próprio código. O host não executa Node: um container long-running (`living-docs-toolkit`) mantém o repositório montado em `/app`, e wrappers `bash` finos fazem `docker exec` para dentro dele.
+**Architecture:** A single Node 24 package in TypeScript **with no build step** — Node 24 strips types natively, so `src/**/*.ts` runs directly, which gives the hooks a startup of ~150 ms. A shared validation engine (`src/config`, `src/frontmatter`, `src/docs`, `src/ids`) is consumed by two front-ends: the CLI (`src/cli/`, used in CI, where there is no agent) and the hooks (`src/hooks/`, used by the agent). No rule is written twice — it is corollary 4 of the spec ("every CI check mirrors a rule written in a skill") applied to the code itself. The host does not run Node: a long-running container (`living-docs-toolkit`) keeps the repository mounted at `/app`, and thin `bash` wrappers do `docker exec` into it.
 
-**Tech Stack:** Node 24 (type-stripping nativo, `node:test`, `node:assert/strict`), TypeScript 5.9 em modo `erasableSyntaxOnly` apenas como type-checker, `yaml` (parse de frontmatter e config), `picomatch` (globs de `watches`/`cited-by`), Docker + Docker Compose (único runtime; nada de `node`/`npm`/`npx` no host).
+**Tech Stack:** Node 24 (native type-stripping, `node:test`, `node:assert/strict`), TypeScript 5.9 in `erasableSyntaxOnly` mode only as a type-checker, `yaml` (frontmatter and config parsing), `picomatch` (globs for `watches`/`cited-by`), Docker + Docker Compose (the only runtime; no `node`/`npm`/`npx` on the host).
 
-**Spec:** `LIVING-DOCUMENTATION-TOOLKIT.md` (contexto conceitual em `LIVING-DOCUMENTATION.md`)
+**Spec:** `LIVING-DOCUMENTATION-TOOLKIT.md` (conceptual context in `LIVING-DOCUMENTATION.md`)
 
 ## Global Constraints
 
-Estas valem para **toda** task; os requisitos de cada task as incluem implicitamente.
+These apply to **every** task; each task's requirements include them implicitly.
 
-- **Nenhum comando `node`, `npm`, `npx` ou binário de toolchain roda no host.** Todo comando deste plano é `docker compose ...`. Se um passo parece exigir Node no host, ele está errado — o caminho é `docker compose exec toolkit <comando>`.
-- **Sem build step.** Nada de `dist/`, nada de `tsc` emitindo. `tsc --noEmit` é type-checker apenas. TypeScript restrito a sintaxe apagável (`erasableSyntaxOnly`): **sem `enum`, sem `namespace`, sem decorators, sem `parameter properties`**. Use `const` objects + union types no lugar de `enum`.
-- **Imports carregam a extensão `.ts`** (`import { x } from './y.ts'`) — exigência do loader do Node.
-- **Requisitos não funcionais dos hooks** (spec §7): timeout ≤ 5 s, **falha aberta** (qualquer erro → sai 0 e deixa passar), **zero rede**, e toda mensagem de bloqueio nomeia _a regra de origem, o artefato dono e o caminho válido_ para fazer o que se queria.
-- **Hook nunca julga** (spec §1, corolário 1). Se um hook precisaria decidir algo semântico, ele vira `additionalContext`, nunca `deny`.
-- **Idioma** (spec §11): identificadores, nomes de arquivo, chaves de YAML/JSON e IDs em inglês/neutro; prosa dos documentos e mensagens ao usuário em **pt-BR**, com acentuação correta.
-- **Mensagem de commit que altera artefato cita o ID afetado.**
-- **IDs nunca são reciclados** (spec §2). IDs retirados vão para `docs/ids-retired.txt`.
-- **Um artefato, um dono** (spec §1, corolário 3).
-- **Escopo travado nas Fases 0–1** (spec §10): `docs/.ownership.yml`, frontmatter padrão, `CI-1`, `CI-2`, CODEOWNERS, `SK-0`, `SK-3`, `HK-1`, `HK-3`, `CM-1`–`CM-3`, `CM-6`. **Fora deste plano:** `SK-1`, `SK-2`, `SK-4`–`SK-7`, `AG-1`, `AG-2`, `HK-2`, `HK-4`–`HK-7`, `CI-3`–`CI-8`, `CM-4`, `CM-5`, `CM-7`. Não implemente nada dessa segunda lista, nem "só o esqueleto".
+- **No `node`, `npm`, `npx` or toolchain binary command runs on the host.** Every command in this plan is `docker compose ...`. If a step seems to require Node on the host, it is wrong — the path is `docker compose exec toolkit <command>`.
+- **No build step.** No `dist/`, no `tsc` emitting. `tsc --noEmit` is a type-checker only. TypeScript restricted to erasable syntax (`erasableSyntaxOnly`): **no `enum`, no `namespace`, no decorators, no `parameter properties`**. Use `const` objects + union types in place of `enum`.
+- **Imports carry the `.ts` extension** (`import { x } from './y.ts'`) — a requirement of the Node loader.
+- **Non-functional requirements of the hooks** (spec §7): timeout ≤ 5 s, **fail open** (any error → exit 0 and let it through), **zero network**, and every blocking message names _the source rule, the owning artifact and the valid path_ to do what was intended.
+- **A hook never judges** (spec §1, corollary 1). If a hook would need to decide something semantic, it becomes `additionalContext`, never `deny`.
+- **Language** (spec §11): identifiers, file names, YAML/JSON keys and IDs in English/neutral; document prose and user-facing messages in **pt-BR**, with correct accents.
+- **A commit message that changes an artifact cites the affected ID.**
+- **IDs are never recycled** (spec §2). Retired IDs go to `docs/ids-retired.txt`.
+- **One artifact, one owner** (spec §1, corollary 3).
+- **Scope locked to Phases 0–1** (spec §10): `docs/.ownership.yml`, standard frontmatter, `CI-1`, `CI-2`, CODEOWNERS, `SK-0`, `SK-3`, `HK-1`, `HK-3`, `CM-1`–`CM-3`, `CM-6`. **Outside this plan:** `SK-1`, `SK-2`, `SK-4`–`SK-7`, `AG-1`, `AG-2`, `HK-2`, `HK-4`–`HK-7`, `CI-3`–`CI-8`, `CM-4`, `CM-5`, `CM-7`. Do not implement anything from that second list, not even "just the skeleton".
 
 ---
 
-## Estrutura de arquivos
+## File structure
 
-Cada arquivo tem uma responsabilidade. A divisão segue a fronteira "regra semântica vs. mecânica": `src/docs/` e `src/checks/` sabem o que um artefato **é**; `src/cli/` e `src/hooks/` só traduzem entre isso e um front-end.
+Each file has one responsibility. The split follows the "semantic vs. mechanical rule" boundary: `src/docs/` and `src/checks/` know what an artifact **is**; `src/cli/` and `src/hooks/` only translate between that and a front-end.
 
 ```
-Dockerfile                          # imagem única de dev/test/CI (Task 1)
-compose.yaml                        # serviço long-running `toolkit` (Task 1)
+Dockerfile                          # single dev/test/CI image (Task 1)
+compose.yaml                        # long-running `toolkit` service (Task 1)
 package.json  tsconfig.json         # Task 1
 .dockerignore  .gitignore           # Task 1
 
-bin/living-docs                     # wrapper bash: host → docker exec → CLI (Task 7)
+bin/living-docs                     # bash wrapper: host → docker exec → CLI (Task 7)
 
 src/core/types.ts                   # Finding, Severity, Check, CheckContext (Task 5)
-src/frontmatter/parse.ts            # bloco YAML → { data, lines, endLine, body } (Task 2)
-src/config/ownership.ts             # .ownership.yml → OwnershipConfig tipado (Task 3)
-src/docs/schema.ts                  # máquina de estados, campos obrigatórios, cadência (Task 4)
-src/docs/table.ts                   # itens de artefato em tabela (Open Decisions) (Task 4)
+src/frontmatter/parse.ts            # YAML block → { data, lines, endLine, body } (Task 2)
+src/config/ownership.ts             # .ownership.yml → typed OwnershipConfig (Task 3)
+src/docs/schema.ts                  # state machine, required fields, cadence (Task 4)
+src/docs/table.ts                   # artifact items in a table (Open Decisions) (Task 4)
 src/docs/collect.ts                 # config + FS → ArtifactDoc[] (Task 4)
 src/checks/ci1-structure.ts         # CI-1 structure lint (Task 5)
 src/checks/ci2-ids.ts               # CI-2 ID lint (Task 6)
-src/checks/registry.ts              # lista ordenada de checks (Task 6)
-src/ids/citations.ts                # regex de citação, IDs retirados (Task 6)
-src/cli/index.ts                    # dispatch de subcomando (Task 7)
-src/cli/validate.ts                 # roda checks, formata, define exit code (Task 7)
-src/cli/init.ts                     # SK-0: bootstrap idempotente (Task 8)
-src/cli/report.ts                   # formatação de Finding → texto (Task 7)
-src/hooks/lib/io.ts                 # stdin/stdout do protocolo de hook, fail-open (Task 9)
-src/hooks/lib/paths.ts              # caminho do host → caminho no repo (Task 9)
-src/hooks/lib/edit.ts               # projeta tool_input sobre o arquivo; diffa campos (Task 9)
+src/checks/registry.ts              # ordered list of checks (Task 6)
+src/ids/citations.ts                # citation regex, retired IDs (Task 6)
+src/cli/index.ts                    # subcommand dispatch (Task 7)
+src/cli/validate.ts                 # runs checks, formats, sets exit code (Task 7)
+src/cli/init.ts                     # SK-0: idempotent bootstrap (Task 8)
+src/cli/report.ts                   # Finding → text formatting (Task 7)
+src/hooks/lib/io.ts                 # hook protocol stdin/stdout, fail-open (Task 9)
+src/hooks/lib/paths.ts              # host path → repo path (Task 9)
+src/hooks/lib/edit.ts               # projects tool_input onto the file; diffs fields (Task 9)
 src/hooks/hk1-append-only.ts        # HK-1 (Task 10)
 src/hooks/hk3-state-promotion.ts    # HK-3 (Task 11)
 
-templates/ownership.yml             # semente do .ownership.yml (Task 8)
+templates/ownership.yml             # seed of .ownership.yml (Task 8)
 templates/adr.md  templates/tdr.md  # (Task 8)
 templates/open-decisions.md         # (Task 8)
 templates/CODEOWNERS                # (Task 8)
 
-plugin/.claude-plugin/plugin.json   # manifesto do plugin (Task 12)
-plugin/hooks/hooks.json             # registro de HK-1/HK-3 (Task 12)
-plugin/hooks/run-hook.sh            # wrapper bash fail-open (Task 12)
+plugin/.claude-plugin/plugin.json   # plugin manifest (Task 12)
+plugin/hooks/hooks.json             # HK-1/HK-3 registration (Task 12)
+plugin/hooks/run-hook.sh            # fail-open bash wrapper (Task 12)
 plugin/skills/decision-recorder/SKILL.md   # SK-3 (Task 13)
 plugin/commands/adr.md              # CM-1 (Task 13)
 plugin/commands/open-decision.md    # CM-2 (Task 13)
 plugin/commands/debt.md             # CM-3 (Task 13)
 plugin/commands/docs-setup.md       # CM-6 (Task 13)
 
-test/helpers/tmp.ts                 # repositório temporário para testes (Task 3)
-test/**/**.test.ts                  # espelha src/
-.github/workflows/living-docs.yml   # CI rodando na mesma imagem (Task 14)
-docs/.ownership.yml  CODEOWNERS     # dogfooding: o toolkit obedece a si mesmo (Task 14)
+test/helpers/tmp.ts                 # temporary repository for tests (Task 3)
+test/**/**.test.ts                  # mirrors src/
+.github/workflows/living-docs.yml   # CI running on the same image (Task 14)
+docs/.ownership.yml  CODEOWNERS     # dogfooding: the toolkit obeys itself (Task 14)
 ```
 
 ---
 
-### Task 1: Ambiente Docker e esqueleto do pacote
+### Task 1: Docker environment and package skeleton
 
-Nada roda sem isto, e o resto do plano assume que `docker compose exec toolkit npm test` funciona. O container é **long-running** (`sleep infinity`) de propósito: os hooks das Tasks 10–12 dependem de `docker exec`, que responde em ~160 ms, enquanto `docker compose run` pagaria o custo de criar um container a cada invocação.
+Nothing runs without this, and the rest of the plan assumes that `docker compose exec toolkit npm test` works. The container is **long-running** (`sleep infinity`) on purpose: the hooks of Tasks 10–12 depend on `docker exec`, which responds in ~160 ms, whereas `docker compose run` would pay the cost of creating a container on every invocation.
 
 **Files:**
 
@@ -97,12 +97,12 @@ Nada roda sem isto, e o resto do plano assume que `docker compose exec toolkit n
 
 **Interfaces:**
 
-- Consumes: nada.
-- Produces: o comando `docker compose exec toolkit npm test` (usado por toda task seguinte) e `docker compose exec toolkit npm run typecheck`. Container chamado `living-docs-toolkit`, repositório montado em `/app`, `node_modules` em volume nomeado.
+- Consumes: nothing.
+- Produces: the command `docker compose exec toolkit npm test` (used by every following task) and `docker compose exec toolkit npm run typecheck`. Container named `living-docs-toolkit`, repository mounted at `/app`, `node_modules` in a named volume.
 
-- [ ] **Step 1: Criar o Dockerfile**
+- [ ] **Step 1: Create the Dockerfile**
 
-`node_modules` fica num volume nomeado (o host não tem Node e não deve ver essa pasta). O `mkdir`+`chown` antes do `USER node` é o que faz o volume nomeado nascer com o dono certo — sem isso, o `npm install` do Step 4 falha com `EACCES`.
+`node_modules` lives in a named volume (the host has no Node and should not see that folder). The `mkdir`+`chown` before `USER node` is what makes the named volume come up with the right owner — without it, the `npm install` of Step 4 fails with `EACCES`.
 
 ```dockerfile
 FROM node:24-alpine
@@ -117,7 +117,7 @@ ENV LIVING_DOCS_ROOT=/app
 CMD ["sleep", "infinity"]
 ```
 
-- [ ] **Step 2: Criar o compose.yaml**
+- [ ] **Step 2: Create compose.yaml**
 
 ```yaml
 services:
@@ -138,9 +138,9 @@ volumes:
   node_modules:
 ```
 
-- [ ] **Step 3: Criar package.json, tsconfig.json e os ignores**
+- [ ] **Step 3: Create package.json, tsconfig.json and the ignores**
 
-`"type": "module"` e as extensões `.ts` nos imports são obrigatórios para o loader do Node 24. `erasableSyntaxOnly` é o que garante em tempo de type-check que não escapou um `enum` (que o Node se recusaria a executar).
+`"type": "module"` and the `.ts` extensions in imports are required by the Node 24 loader. `erasableSyntaxOnly` is what guarantees at type-check time that no `enum` slipped through (which Node would refuse to run).
 
 `package.json`:
 
@@ -203,18 +203,18 @@ node_modules
 node_modules/
 ```
 
-- [ ] **Step 4: Subir o container e instalar as dependências**
+- [ ] **Step 4: Bring up the container and install the dependencies**
 
 ```bash
 docker compose up -d --build
 docker compose exec toolkit npm install
 ```
 
-Esperado: container `living-docs-toolkit` em estado `running` (confirme com `docker compose ps`) e `package-lock.json` criado na raiz do repositório.
+Expected: container `living-docs-toolkit` in `running` state (confirm with `docker compose ps`) and `package-lock.json` created at the repository root.
 
-- [ ] **Step 5: Escrever o teste smoke**
+- [ ] **Step 5: Write the smoke test**
 
-Ele existe para provar que o pipeline `docker compose exec → node --test → arquivo .ts com tipos` fecha ponta a ponta. É o único teste do plano que não testa uma regra da spec.
+It exists to prove that the pipeline `docker compose exec → node --test → .ts file with types` closes end to end. It is the only test in the plan that does not test a spec rule.
 
 `test/smoke.test.ts`:
 
@@ -222,37 +222,37 @@ Ele existe para provar que o pipeline `docker compose exec → node --test → a
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-test('o runtime executa TypeScript sem build step', () => {
+test('the runtime executes TypeScript without a build step', () => {
   const value: { ok: boolean } = { ok: true }
   assert.equal(value.ok, true)
 })
 
-test('o repositório está montado em /app', () => {
+test('the repository is mounted at /app', () => {
   assert.equal(process.env.LIVING_DOCS_ROOT, '/app')
 })
 ```
 
-- [ ] **Step 6: Rodar os testes e o type-check**
+- [ ] **Step 6: Run the tests and the type-check**
 
 ```bash
 docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: `pass 2`, `fail 0`; type-check sem saída (sucesso).
+Expected: `pass 2`, `fail 0`; type-check with no output (success).
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add Dockerfile compose.yaml package.json package-lock.json tsconfig.json .dockerignore .gitignore test/smoke.test.ts
-git commit -m "chore: ambiente Docker e esqueleto do pacote Node sem build step"
+git commit -m "chore: Docker environment and Node package skeleton without a build step"
 ```
 
 ---
 
-### Task 2: Parser de frontmatter
+### Task 2: Frontmatter parser
 
-É a peça central da spec §2: sem ela, todo hook e todo check viraria um parser ad hoc. Precisa devolver **o número de linha de cada campo**, porque a spec §9 exige que a saída dos checks nomeie arquivo e linha.
+It is the central piece of spec §2: without it, every hook and every check would become an ad hoc parser. It needs to return **the line number of each field**, because spec §9 requires the output of the checks to name file and line.
 
 **Files:**
 
@@ -261,14 +261,14 @@ git commit -m "chore: ambiente Docker e esqueleto do pacote Node sem build step"
 
 **Interfaces:**
 
-- Consumes: nada além de `yaml`.
+- Consumes: nothing besides `yaml`.
 - Produces:
   - `interface Frontmatter { data: Record<string, unknown>; lines: Record<string, number>; endLine: number; body: string; bodyStartLine: number; }`
-  - `function parseFrontmatter(source: string): Frontmatter | null` — `null` quando não há bloco de frontmatter válido.
-  - `class FrontmatterSyntaxError extends Error { readonly line: number }` — lançada quando o bloco existe mas o YAML é inválido.
-  - `lines` mapeia **chave de topo → linha 1-indexed** no arquivo inteiro (não no bloco).
+  - `function parseFrontmatter(source: string): Frontmatter | null` — `null` when there is no valid frontmatter block.
+  - `class FrontmatterSyntaxError extends Error { readonly line: number }` — thrown when the block exists but the YAML is invalid.
+  - `lines` maps **top-level key → 1-indexed line** in the whole file (not in the block).
 
-- [ ] **Step 1: Escrever o teste falhando**
+- [ ] **Step 1: Write the failing test**
 
 `test/frontmatter/parse.test.ts`:
 
@@ -277,11 +277,11 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseFrontmatter, FrontmatterSyntaxError } from '../../src/frontmatter/parse.ts'
 
-const DOC = ['---', 'id: ADR-0042', 'title: Fila de eventos', 'status: accepted', 'relates-to: [RN-014, DA-0007]', '---', '', '## Contexto', 'texto', ''].join(
+const DOC = ['---', 'id: ADR-0042', 'title: Event queue', 'status: accepted', 'relates-to: [RN-014, DA-0007]', '---', '', '## Context', 'text', ''].join(
   '\n',
 )
 
-test('extrai os dados do bloco YAML', () => {
+test('extracts the data from the YAML block', () => {
   const fm = parseFrontmatter(DOC)
   assert.ok(fm)
   assert.equal(fm.data.id, 'ADR-0042')
@@ -289,7 +289,7 @@ test('extrai os dados do bloco YAML', () => {
   assert.deepEqual(fm.data['relates-to'], ['RN-014', 'DA-0007'])
 })
 
-test('mapeia cada chave de topo para sua linha 1-indexed no arquivo', () => {
+test('maps each top-level key to its 1-indexed line in the file', () => {
   const fm = parseFrontmatter(DOC)
   assert.ok(fm)
   assert.equal(fm.lines.id, 2)
@@ -297,55 +297,55 @@ test('mapeia cada chave de topo para sua linha 1-indexed no arquivo', () => {
   assert.equal(fm.lines['relates-to'], 5)
 })
 
-test('marca o fim do bloco e devolve o corpo separado', () => {
+test('marks the end of the block and returns the body separately', () => {
   const fm = parseFrontmatter(DOC)
   assert.ok(fm)
   assert.equal(fm.endLine, 6)
   assert.equal(fm.bodyStartLine, 7)
-  assert.match(fm.body, /## Contexto/)
+  assert.match(fm.body, /## Context/)
   assert.doesNotMatch(fm.body, /ADR-0042/)
 })
 
-test('devolve null quando o arquivo não abre com ---', () => {
-  assert.equal(parseFrontmatter('# Só um título\n'), null)
+test('returns null when the file does not open with ---', () => {
+  assert.equal(parseFrontmatter('# Just a title\n'), null)
 })
 
-test('devolve null quando o bloco nunca fecha', () => {
-  assert.equal(parseFrontmatter('---\nid: ADR-1\nsem fechamento\n'), null)
+test('returns null when the block never closes', () => {
+  assert.equal(parseFrontmatter('---\nid: ADR-1\nno closing\n'), null)
 })
 
-test('aceita CRLF e BOM', () => {
-  const fm = parseFrontmatter('﻿---\r\nid: ADR-1\r\n---\r\ncorpo\r\n')
+test('accepts CRLF and BOM', () => {
+  const fm = parseFrontmatter('﻿---\r\nid: ADR-1\r\n---\r\nbody\r\n')
   assert.ok(fm)
   assert.equal(fm.data.id, 'ADR-1')
   assert.equal(fm.lines.id, 2)
 })
 
-test('lança FrontmatterSyntaxError com a linha quando o YAML é inválido', () => {
-  const bad = '---\nid: ADR-1\n  : inválido\n---\ncorpo\n'
+test('throws FrontmatterSyntaxError with the line when the YAML is invalid', () => {
+  const bad = '---\nid: ADR-1\n  : invalid\n---\nbody\n'
   assert.throws(
     () => parseFrontmatter(bad),
     (err: unknown) => err instanceof FrontmatterSyntaxError && err.line >= 1,
   )
 })
 
-test('bloco vazio produz data vazio, não erro', () => {
-  const fm = parseFrontmatter('---\n---\ncorpo\n')
+test('an empty block produces empty data, not an error', () => {
+  const fm = parseFrontmatter('---\n---\nbody\n')
   assert.ok(fm)
   assert.deepEqual(fm.data, {})
   assert.equal(fm.endLine, 2)
 })
 ```
 
-- [ ] **Step 2: Rodar o teste para ver falhar**
+- [ ] **Step 2: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `Cannot find module '/app/src/frontmatter/parse.ts'`.
+Expected: FAIL — `Cannot find module '/app/src/frontmatter/parse.ts'`.
 
-- [ ] **Step 3: Implementar**
+- [ ] **Step 3: Implement**
 
 `src/frontmatter/parse.ts`:
 
@@ -353,15 +353,15 @@ Esperado: FAIL — `Cannot find module '/app/src/frontmatter/parse.ts'`.
 import YAML from 'yaml'
 
 export interface Frontmatter {
-  /** Chaves de topo do bloco YAML, já parseadas. */
+  /** Top-level keys of the YAML block, already parsed. */
   data: Record<string, unknown>
-  /** Chave de topo → linha 1-indexed no arquivo inteiro. */
+  /** Top-level key → 1-indexed line in the whole file. */
   lines: Record<string, number>
-  /** Linha 1-indexed do `---` que fecha o bloco. */
+  /** 1-indexed line of the `---` that closes the block. */
   endLine: number
-  /** Tudo depois do bloco, sem o separador. */
+  /** Everything after the block, without the separator. */
   body: string
-  /** Linha 1-indexed onde o corpo começa. */
+  /** 1-indexed line where the body starts. */
   bodyStartLine: number
 }
 
@@ -401,8 +401,8 @@ export function parseFrontmatter(source: string): Frontmatter | null {
   } catch (err) {
     const at = err instanceof YAML.YAMLParseError ? (err.linePos?.[0]?.line ?? 1) : 1
     throw new FrontmatterSyntaxError(
-      err instanceof Error ? err.message : 'YAML inválido',
-      at + 1, // +1 porque o bloco começa na linha 2 do arquivo
+      err instanceof Error ? err.message : 'Invalid YAML',
+      at + 1, // +1 because the block starts on line 2 of the file
     )
   }
 
@@ -424,28 +424,28 @@ export function parseFrontmatter(source: string): Frontmatter | null {
 }
 ```
 
-- [ ] **Step 4: Rodar o teste para ver passar**
+- [ ] **Step 4: Run the test to see it pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: `pass 10`, `fail 0`; type-check limpo.
+Expected: `pass 10`, `fail 0`; type-check clean.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add src/frontmatter/parse.ts test/frontmatter/parse.test.ts
-git commit -m "feat: parser de frontmatter com rastreio de linha por campo"
+git commit -m "feat: frontmatter parser with per-field line tracking"
 ```
 
 ---
 
-### Task 3: Loader do `docs/.ownership.yml`
+### Task 3: Loader for `docs/.ownership.yml`
 
-É "o ponto de extensão único" da spec §3: hooks e checks não conhecem caminho nenhum, leem daqui. O loader normaliza as chaves kebab-case do YAML para camelCase do TypeScript e **valida na entrada** — um `.ownership.yml` inválido deve produzir um erro que nomeia o campo, não um `undefined` que estoura três módulos adiante.
+It is the "single extension point" of spec §3: hooks and checks know no path at all, they read from here. The loader normalizes the kebab-case keys of the YAML to the camelCase of TypeScript and **validates on entry** — an invalid `.ownership.yml` must produce an error that names the field, not an `undefined` that blows up three modules later.
 
-O campo `states:` é uma extensão deliberada sobre o exemplo da spec: ele permite que um projeto declare a máquina de estados de um prefixo que o toolkit ainda não conhece (as fases 2+ adicionam `RN`, `RF`, `RNF`) sem alterar código.
+The `states:` field is a deliberate extension over the spec's example: it lets a project declare the state machine of a prefix the toolkit does not know yet (phases 2+ add `RN`, `RF`, `RNF`) without changing code.
 
 **Files:**
 
@@ -455,7 +455,7 @@ O campo `states:` é uma extensão deliberada sobre o exemplo da spec: ele permi
 
 **Interfaces:**
 
-- Consumes: nada dos módulos anteriores.
+- Consumes: nothing from the previous modules.
 - Produces:
   - `type Collection = 'per-file' | 'table'`
   - `interface ArtifactRule { idPrefix: string; path: string; owner: string; skill: string; appendOnly: boolean; mutableFields: string[]; citedBy: string[]; collection: Collection; states: string[] | null }`
@@ -464,14 +464,14 @@ O campo `states:` é uma extensão deliberada sobre o exemplo da spec: ele permi
   - `interface OwnershipConfig { version: number; staleAfterMonths: number; artifacts: ArtifactRule[]; generated: GeneratedRule[]; watches: WatchRule[]; consumerVisiblePaths: string[] }`
   - `function parseOwnership(source: string): OwnershipConfig`
   - `function loadOwnership(root: string): OwnershipConfig`
-  - `function findArtifactRule(config: OwnershipConfig, repoPath: string): ArtifactRule | null` — casa um caminho relativo ao repo com a regra dona; usado por `HK-1`/`HK-3`.
+  - `function findArtifactRule(config: OwnershipConfig, repoPath: string): ArtifactRule | null` — matches a repo-relative path to the owning rule; used by `HK-1`/`HK-3`.
   - `class OwnershipError extends Error`
   - `const OWNERSHIP_PATH = 'docs/.ownership.yml'`
-- Produces também: `withTempRepo(files, fn)` em `test/helpers/tmp.ts`, usado por todas as tasks seguintes que tocam o filesystem.
+- Also produces: `withTempRepo(files, fn)` in `test/helpers/tmp.ts`, used by every following task that touches the filesystem.
 
-- [ ] **Step 1: Escrever o helper de repositório temporário**
+- [ ] **Step 1: Write the temporary repository helper**
 
-Não é código de produção e por isso não tem teste próprio; as tasks seguintes o exercitam.
+It is not production code and so has no test of its own; the following tasks exercise it.
 
 `test/helpers/tmp.ts`:
 
@@ -480,7 +480,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 
-/** Cria um repositório descartável com os arquivos dados e o remove ao final. */
+/** Creates a disposable repository with the given files and removes it at the end. */
 export function withTempRepo(files: Record<string, string>, fn: (root: string) => void): void {
   const root = mkdtempSync(join(tmpdir(), 'living-docs-'))
   try {
@@ -496,7 +496,7 @@ export function withTempRepo(files: Record<string, string>, fn: (root: string) =
 }
 ```
 
-- [ ] **Step 2: Escrever o teste falhando**
+- [ ] **Step 2: Write the failing test**
 
 `test/config/ownership.test.ts`:
 
@@ -530,7 +530,7 @@ generated:
 watches:
   - code: "src/domain/**"
     doc: "docs/requirements/"
-    reason: "comportamento novo exige regra com ID antes do código"
+    reason: "new behavior requires a rule with an ID before the code"
   - code: "src/**"
     doc: "CHANGELOG.md"
     consumer-visible: true
@@ -538,7 +538,7 @@ watches:
 consumer-visible-paths: ["src/api/**"]
 `
 
-test('normaliza kebab-case do YAML para camelCase tipado', () => {
+test('normalizes YAML kebab-case into typed camelCase', () => {
   const config = parseOwnership(VALID)
   assert.equal(config.version, 1)
   assert.equal(config.staleAfterMonths, 6)
@@ -555,7 +555,7 @@ test('normaliza kebab-case do YAML para camelCase tipado', () => {
   assert.equal(adr.states, null)
 })
 
-test('aplica os defaults de collection, append-only e cited-by', () => {
+test('applies the defaults of collection, append-only and cited-by', () => {
   const config = parseOwnership(VALID)
   const da = config.artifacts[1]
   assert.ok(da)
@@ -565,31 +565,31 @@ test('aplica os defaults de collection, append-only e cited-by', () => {
   assert.deepEqual(da.citedBy, [])
 })
 
-test('lê watches e consumer-visible-paths', () => {
+test('reads watches and consumer-visible-paths', () => {
   const config = parseOwnership(VALID)
   assert.equal(config.watches.length, 2)
-  assert.equal(config.watches[0]?.reason, 'comportamento novo exige regra com ID antes do código')
+  assert.equal(config.watches[0]?.reason, 'new behavior requires a rule with an ID before the code')
   assert.equal(config.watches[0]?.consumerVisible, false)
   assert.equal(config.watches[1]?.consumerVisible, true)
   assert.deepEqual(config.consumerVisiblePaths, ['src/api/**'])
   assert.equal(config.generated[0]?.command, 'npm run gen:openapi')
 })
 
-test('rejeita version diferente de 1 nomeando o campo', () => {
+test('rejects a version other than 1, naming the field', () => {
   assert.throws(
     () => parseOwnership('version: 2\nartifacts: []\n'),
     (err: unknown) => err instanceof OwnershipError && /version/.test(err.message),
   )
 })
 
-test('rejeita artifacts vazio', () => {
+test('rejects empty artifacts', () => {
   assert.throws(
     () => parseOwnership('version: 1\nartifacts: []\n'),
     (err: unknown) => err instanceof OwnershipError && /artifacts/.test(err.message),
   )
 })
 
-test('rejeita id-prefix fora do formato', () => {
+test('rejects an id-prefix outside the format', () => {
   const bad = 'version: 1\nartifacts:\n  - id-prefix: adr\n    path: docs/a/\n    owner: "@x"\n    skill: s\n'
   assert.throws(
     () => parseOwnership(bad),
@@ -597,7 +597,7 @@ test('rejeita id-prefix fora do formato', () => {
   )
 })
 
-test('rejeita id-prefix duplicado — um artefato, um dono', () => {
+test('rejects a duplicated id-prefix — one artifact, one owner', () => {
   const dup = `
 version: 1
 artifacts:
@@ -616,7 +616,7 @@ artifacts:
   )
 })
 
-test('rejeita owner que não começa com @', () => {
+test('rejects an owner that does not start with @', () => {
   const bad = 'version: 1\nartifacts:\n  - id-prefix: ADR\n    path: docs/a/\n    owner: platform\n    skill: s\n'
   assert.throws(
     () => parseOwnership(bad),
@@ -624,13 +624,13 @@ test('rejeita owner que não começa com @', () => {
   )
 })
 
-test('aceita states declarado pelo projeto', () => {
+test('accepts states declared by the project', () => {
   const src =
     'version: 1\nartifacts:\n  - id-prefix: RN\n    path: docs/requirements/\n    owner: "@product"\n    skill: requirements-keeper\n    states: [draft, active, revoked]\n'
   assert.deepEqual(parseOwnership(src).artifacts[0]?.states, ['draft', 'active', 'revoked'])
 })
 
-test('loadOwnership lê do disco e erra com caminho quando ausente', () => {
+test('loadOwnership reads from disk and errors with the path when absent', () => {
   withTempRepo({ [OWNERSHIP_PATH]: VALID }, root => {
     assert.equal(loadOwnership(root).artifacts.length, 2)
   })
@@ -642,7 +642,7 @@ test('loadOwnership lê do disco e erra com caminho quando ausente', () => {
   })
 })
 
-test('findArtifactRule casa arquivo dentro de diretório e arquivo exato', () => {
+test('findArtifactRule matches a file inside a directory and an exact file', () => {
   const config = parseOwnership(VALID)
   assert.equal(findArtifactRule(config, 'docs/decisions/adr/ADR-0001-x.md')?.idPrefix, 'ADR')
   assert.equal(findArtifactRule(config, 'docs/open-decisions.md')?.idPrefix, 'DA')
@@ -650,15 +650,15 @@ test('findArtifactRule casa arquivo dentro de diretório e arquivo exato', () =>
 })
 ```
 
-- [ ] **Step 3: Rodar o teste para ver falhar**
+- [ ] **Step 3: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `Cannot find module '/app/src/config/ownership.ts'`.
+Expected: FAIL — `Cannot find module '/app/src/config/ownership.ts'`.
 
-- [ ] **Step 4: Implementar**
+- [ ] **Step 4: Implement**
 
 `src/config/ownership.ts`:
 
@@ -680,7 +680,7 @@ export interface ArtifactRule {
   mutableFields: string[]
   citedBy: string[]
   collection: Collection
-  /** Máquina de estados declarada pelo projeto; null usa a embutida em src/docs/schema.ts. */
+  /** State machine declared by the project; null uses the one built into src/docs/schema.ts. */
   states: string[] | null
 }
 
@@ -716,7 +716,7 @@ const ID_PREFIX = /^[A-Z]{2,4}$/
 
 function asRecord(value: unknown, where: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} precisa ser um mapa.`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} must be a map.`)
   }
   return value as Record<string, unknown>
 }
@@ -724,7 +724,7 @@ function asRecord(value: unknown, where: string): Record<string, unknown> {
 function asStringList(value: unknown, where: string): string[] {
   if (value === undefined || value === null) return []
   if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} precisa ser uma lista de strings.`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} must be a list of strings.`)
   }
   return value as string[]
 }
@@ -732,7 +732,7 @@ function asStringList(value: unknown, where: string): string[] {
 function requireString(source: Record<string, unknown>, key: string, where: string): string {
   const value = source[key]
   if (typeof value !== 'string' || value.trim() === '') {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} precisa do campo \`${key}\` não vazio.`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where} needs the non-empty field \`${key}\`.`)
   }
   return value
 }
@@ -743,17 +743,17 @@ function parseArtifact(raw: unknown, index: number): ArtifactRule {
 
   const idPrefix = requireString(item, 'id-prefix', where)
   if (!ID_PREFIX.test(idPrefix)) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.id-prefix "${idPrefix}" precisa ser 2 a 4 letras maiúsculas (ex.: ADR, DA, TDR).`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.id-prefix "${idPrefix}" must be 2 to 4 uppercase letters (e.g. ADR, DA, TDR).`)
   }
 
   const owner = requireString(item, 'owner', where)
   if (!owner.startsWith('@')) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.owner "${owner}" precisa começar com @ e espelhar o CODEOWNERS.`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.owner "${owner}" must start with @ and mirror CODEOWNERS.`)
   }
 
   const collectionRaw = item.collection ?? 'per-file'
   if (collectionRaw !== 'per-file' && collectionRaw !== 'table') {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.collection precisa ser "per-file" ou "table".`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: ${where}.collection must be "per-file" or "table".`)
   }
 
   const states = item.states === undefined ? null : asStringList(item.states, `${where}.states`)
@@ -776,18 +776,18 @@ export function parseOwnership(source: string): OwnershipConfig {
   try {
     raw = YAML.parse(source)
   } catch (err) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: YAML inválido — ${err instanceof Error ? err.message : String(err)}`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: invalid YAML — ${err instanceof Error ? err.message : String(err)}`)
   }
 
-  const root = asRecord(raw, 'raiz')
+  const root = asRecord(raw, 'root')
 
   if (root.version !== 1) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: campo \`version\` precisa ser 1 (recebido: ${String(root.version)}).`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: field \`version\` must be 1 (received: ${String(root.version)}).`)
   }
 
   const artifactsRaw = root.artifacts
   if (!Array.isArray(artifactsRaw) || artifactsRaw.length === 0) {
-    throw new OwnershipError(`${OWNERSHIP_PATH}: \`artifacts\` precisa listar ao menos um artefato — sem dono declarado nada é enforceável.`)
+    throw new OwnershipError(`${OWNERSHIP_PATH}: \`artifacts\` must list at least one artifact — with no declared owner nothing is enforceable.`)
   }
 
   const artifacts = artifactsRaw.map(parseArtifact)
@@ -795,7 +795,7 @@ export function parseOwnership(source: string): OwnershipConfig {
   const seen = new Set<string>()
   for (const artifact of artifacts) {
     if (seen.has(artifact.idPrefix)) {
-      throw new OwnershipError(`${OWNERSHIP_PATH}: id-prefix "${artifact.idPrefix}" declarado duas vezes. Um artefato, um dono.`)
+      throw new OwnershipError(`${OWNERSHIP_PATH}: id-prefix "${artifact.idPrefix}" declared twice. One artifact, one owner.`)
     }
     seen.add(artifact.idPrefix)
   }
@@ -839,12 +839,12 @@ export function loadOwnership(root: string): OwnershipConfig {
   try {
     source = readFileSync(file, 'utf8')
   } catch {
-    throw new OwnershipError(`${OWNERSHIP_PATH} não encontrado em ${root}. Rode \`living-docs init\` (skill dona: living-docs-bootstrap).`)
+    throw new OwnershipError(`${OWNERSHIP_PATH} not found in ${root}. Run \`living-docs init\` (owning skill: living-docs-bootstrap).`)
   }
   return parseOwnership(source)
 }
 
-/** Regra dona de um caminho relativo à raiz do repositório, ou null. */
+/** Owning rule of a path relative to the repository root, or null. */
 export function findArtifactRule(config: OwnershipConfig, repoPath: string): ArtifactRule | null {
   const normalized = repoPath.replace(/\\/g, '/').replace(/^\.\//, '')
   for (const artifact of config.artifacts) {
@@ -857,26 +857,26 @@ export function findArtifactRule(config: OwnershipConfig, repoPath: string): Art
 }
 ```
 
-- [ ] **Step 5: Rodar o teste para ver passar**
+- [ ] **Step 5: Run the test to see it pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: todos os testes passando; type-check limpo.
+Expected: all tests passing; type-check clean.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add src/config/ownership.ts test/config/ownership.test.ts test/helpers/tmp.ts
-git commit -m "feat: loader validado de docs/.ownership.yml"
+git commit -m "feat: validated loader for docs/.ownership.yml"
 ```
 
 ---
 
-### Task 4: Schema de artefato, tabelas de item e coletor
+### Task 4: Artifact schema, item tables and collector
 
-Três arquivos, uma responsabilidade: **o que um artefato de documentação viva é**. `schema.ts` guarda as constantes que a spec fixa (§2 e §4); `table.ts` resolve o caso do artefato "arquivo único com tabela" (§3 — Open Decisions), onde os IDs moram em linhas e não em frontmatter; `collect.ts` transforma config + filesystem na lista que os checks consomem. Ficam juntos porque mudam juntos: adicionar um artefato à spec toca os três.
+Three files, one responsibility: **what a living documentation artifact is**. `schema.ts` holds the constants that the spec fixes (§2 and §4); `table.ts` handles the case of the "single file with a table" artifact (§3 — Open Decisions), where the IDs live in rows and not in frontmatter; `collect.ts` turns config + filesystem into the list the checks consume. They stay together because they change together: adding an artifact to the spec touches all three.
 
 **Files:**
 
@@ -892,7 +892,7 @@ Três arquivos, uma responsabilidade: **o que um artefato de documentação viva
 - Consumes: `parseFrontmatter`, `Frontmatter`, `FrontmatterSyntaxError` (Task 2); `OwnershipConfig`, `ArtifactRule` (Task 3).
 - Produces:
   - `const REQUIRED_FIELDS: readonly string[]` — `['id','title','status','owner','trigger','last-reviewed']`
-  - `const CONTAINER_REQUIRED_FIELDS: readonly string[]` — para `collection: 'table'`: `['title','owner','trigger','last-reviewed']`
+  - `const CONTAINER_REQUIRED_FIELDS: readonly string[]` — for `collection: 'table'`: `['title','owner','trigger','last-reviewed']`
   - `const MUTABLE_FIELDS_DEFAULT: readonly string[]` — `['status','superseded-by','last-reviewed']`
   - `const STATUS_MACHINE: Readonly<Record<string, readonly string[]>>`
   - `const FROZEN_STATUSES: ReadonlySet<string>`
@@ -906,7 +906,7 @@ Três arquivos, uma responsabilidade: **o que um artefato de documentação viva
   - `interface ArtifactDoc { file: string; rule: ArtifactRule; source: string; frontmatter: Frontmatter | null; syntaxError: FrontmatterSyntaxError | null; items: TableItem[] }`
   - `function collectArtifacts(root: string, config: OwnershipConfig): ArtifactDoc[]`
 
-- [ ] **Step 1: Escrever os testes falhando**
+- [ ] **Step 1: Write the failing tests**
 
 `test/docs/schema.test.ts`:
 
@@ -931,67 +931,67 @@ function rule(overrides: Partial<ArtifactRule> = {}): ArtifactRule {
   }
 }
 
-test('a máquina de estados da spec §4 está codificada', () => {
+test('the state machine of spec §4 is encoded', () => {
   assert.deepEqual(STATUS_MACHINE.ADR, ['draft', 'accepted', 'superseded'])
   assert.deepEqual(STATUS_MACHINE.DA, ['open', 'resolved', 'dropped'])
   assert.deepEqual(STATUS_MACHINE.TDR, ['open', 'paid', 'accepted-permanently'])
 })
 
-test('os estados congelados incluem os cinco do esqueleto da spec §7', () => {
+test('the frozen states include the five of the spec §7 skeleton', () => {
   for (const status of ['accepted', 'superseded', 'deprecated', 'published', 'paid']) {
-    assert.ok(FROZEN_STATUSES.has(status), `${status} deveria ser congelado`)
+    assert.ok(FROZEN_STATUSES.has(status), `${status} should be frozen`)
   }
   assert.equal(FROZEN_STATUSES.has('draft'), false)
   assert.equal(FROZEN_STATUSES.has('open'), false)
 })
 
-test('as promoções que exigem ato humano são exatamente draft→accepted e open→resolved', () => {
+test('the promotions that require a human act are exactly draft→accepted and open→resolved', () => {
   assert.deepEqual(HUMAN_PROMOTIONS, [
     { from: 'draft', to: 'accepted' },
     { from: 'open', to: 'resolved' },
   ])
 })
 
-test('REQUIRED_FIELDS reflete o frontmatter da spec §2', () => {
+test('REQUIRED_FIELDS reflects the frontmatter of spec §2', () => {
   assert.deepEqual(REQUIRED_FIELDS, ['id', 'title', 'status', 'owner', 'trigger', 'last-reviewed'])
 })
 
-test('statesFor prefere o states declarado no .ownership.yml', () => {
+test('statesFor prefers the states declared in .ownership.yml', () => {
   assert.deepEqual(statesFor(rule()), ['draft', 'accepted', 'superseded'])
   assert.deepEqual(statesFor(rule({ states: ['a', 'b'] })), ['a', 'b'])
   assert.equal(statesFor(rule({ idPrefix: 'XX', states: null })), null)
 })
 
-test('findCadence reprova o vocabulário de cadência da spec §2', () => {
-  const rejeitados = [
-    'revisar trimestralmente',
-    'Mensal',
-    'anualmente',
-    'periodicamente',
-    'revisar a cada release',
+test('findCadence rejects the cadence vocabulary of spec §2', () => {
+  const rejected = [
+    'review quarterly',
+    'Monthly',
+    'annually',
+    'periodically',
+    'review on every release',
     'quarterly review',
-    'toda sprint',
-    'a cada 3 meses',
+    'every sprint',
+    'every 3 months',
     'every 2 weeks',
   ]
-  for (const trigger of rejeitados) {
-    assert.ok(findCadence(trigger) !== null, `deveria reprovar: ${trigger}`)
+  for (const trigger of rejected) {
+    assert.ok(findCadence(trigger) !== null, `should reject: ${trigger}`)
   }
 })
 
-test('findCadence aprova gatilhos que nomeiam um evento observável', () => {
-  const aceitos = [
-    'no mesmo PR que altera `src/domain/billing`',
-    'quando um código de erro novo é adicionado',
-    'quando um agente errar por falta de contexto',
-    'Nunca. Imutável após aceito; uma decisão nova o supersede.',
+test('findCadence accepts triggers that name an observable event', () => {
+  const accepted = [
+    'in the same PR that changes `src/domain/billing`',
+    'when a new error code is added',
+    'when an agent errs for lack of context',
+    'Never. Immutable once accepted; a new decision supersedes it.',
   ]
-  for (const trigger of aceitos) {
-    assert.equal(findCadence(trigger), null, `não deveria reprovar: ${trigger}`)
+  for (const trigger of accepted) {
+    assert.equal(findCadence(trigger), null, `should not reject: ${trigger}`)
   }
 })
 
-test('isIsoDate aceita string ISO e Date, rejeita o resto', () => {
+test('isIsoDate accepts an ISO string and a Date, rejects the rest', () => {
   assert.equal(isIsoDate('2026-08-21'), true)
   assert.equal(isIsoDate(new Date('2026-08-21')), true)
   assert.equal(isIsoDate('21/08/2026'), false)
@@ -999,7 +999,7 @@ test('isIsoDate aceita string ISO e Date, rejeita o resto', () => {
   assert.equal(isIsoDate(undefined), false)
 })
 
-test('parseId separa prefixo e número', () => {
+test('parseId splits prefix and number', () => {
   assert.deepEqual(parseId('ADR-0042'), { prefix: 'ADR', number: 42 })
   assert.deepEqual(parseId('DA-007'), { prefix: 'DA', number: 7 })
   assert.equal(parseId('adr-1'), null)
@@ -1017,34 +1017,34 @@ import { parseItemTable } from '../../src/docs/table.ts'
 const BODY = [
   '# Open Decisions',
   '',
-  'Lacunas conhecidas que bloqueiam implementação.',
+  'Known gaps that block implementation.',
   '',
-  '| ID | Lacuna | Status | Resolvida por |',
+  '| ID | Gap | Status | Resolved by |',
   '| --- | --- | --- | --- |',
-  '| DA-0001 | Como cobrar reembolso parcial | open | — |',
-  '| DA-0002 | Fuso do fechamento mensal | resolved | ADR-0007 |',
+  '| DA-0001 | How to charge a partial refund | open | — |',
+  '| DA-0002 | Time zone of the monthly closing | resolved | ADR-0007 |',
   '',
-  'Outro parágrafo.',
+  'Another paragraph.',
 ].join('\n')
 
-test('extrai id, status e linha de cada item', () => {
+test('extracts id, status and line of each item', () => {
   const items = parseItemTable(BODY, 10)
   assert.equal(items.length, 2)
   assert.deepEqual(items[0], { id: 'DA-0001', status: 'open', line: 16 })
   assert.deepEqual(items[1], { id: 'DA-0002', status: 'resolved', line: 17 })
 })
 
-test('para de ler ao fim da tabela', () => {
+test('stops reading at the end of the table', () => {
   const items = parseItemTable(BODY, 1)
   assert.equal(items.length, 2)
 })
 
-test('devolve lista vazia quando não há tabela com colunas ID e Status', () => {
-  assert.deepEqual(parseItemTable('| Termo | Definição |\n| --- | --- |\n| x | y |\n', 1), [])
-  assert.deepEqual(parseItemTable('sem tabela nenhuma', 1), [])
+test('returns an empty list when there is no table with ID and Status columns', () => {
+  assert.deepEqual(parseItemTable('| Term | Definition |\n| --- | --- |\n| x | y |\n', 1), [])
+  assert.deepEqual(parseItemTable('no table at all', 1), [])
 })
 
-test('ignora linhas cuja primeira célula não é um ID', () => {
+test('ignores rows whose first cell is not an ID', () => {
   const source = '| ID | Status |\n| --- | --- |\n| DA-0001 | open |\n| total | 1 |\n'
   const items = parseItemTable(source, 1)
   assert.equal(items.length, 1)
@@ -1079,41 +1079,41 @@ artifacts:
 const ADR = [
   '---',
   'id: ADR-0001',
-  'title: Primeira decisão',
+  'title: First decision',
   'status: accepted',
   'owner: "@team"',
-  'trigger: Nunca. Imutável após aceito.',
+  'trigger: Never. Immutable once accepted.',
   'last-reviewed: 2026-08-21',
   '---',
   '',
-  '## Contexto',
+  '## Context',
 ].join('\n')
 
 const OPEN_DECISIONS = [
   '---',
   'title: Open Decisions',
   'owner: "@product"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'trigger: Whenever someone ran into a gap.',
   'last-reviewed: 2026-08-21',
   '---',
   '',
-  '| ID | Lacuna | Status | Resolvida por |',
+  '| ID | Gap | Status | Resolved by |',
   '| --- | --- | --- | --- |',
-  '| DA-0001 | Reembolso parcial | open | — |',
+  '| DA-0001 | Partial refund | open | — |',
 ].join('\n')
 
-test('coleta artefatos por diretório e por arquivo único', () => {
+test('collects artifacts by directory and by single file', () => {
   withTempRepo(
     {
       [OWNERSHIP_PATH]: CONFIG,
-      'docs/decisions/adr/ADR-0001-primeira.md': ADR,
+      'docs/decisions/adr/ADR-0001-first.md': ADR,
       'docs/open-decisions.md': OPEN_DECISIONS,
-      'README.md': '# fora do escopo',
+      'README.md': '# out of scope',
     },
     root => {
       const docs = collectArtifacts(root, parseOwnership(CONFIG))
       const files = docs.map(doc => doc.file).sort()
-      assert.deepEqual(files, ['docs/decisions/adr/ADR-0001-primeira.md', 'docs/open-decisions.md'])
+      assert.deepEqual(files, ['docs/decisions/adr/ADR-0001-first.md', 'docs/open-decisions.md'])
 
       const adr = docs.find(doc => doc.rule.idPrefix === 'ADR')
       assert.equal(adr?.frontmatter?.data.id, 'ADR-0001')
@@ -1127,34 +1127,34 @@ test('coleta artefatos por diretório e por arquivo único', () => {
   )
 })
 
-test('ignora artefatos gerados e arquivos não-markdown', () => {
+test('ignores generated artifacts and non-markdown files', () => {
   withTempRepo(
     {
       [OWNERSHIP_PATH]: CONFIG,
       'docs/decisions/adr/ADR-0001-x.md': ADR,
-      'docs/decisions/adr/index.gen.md': '# gerado',
-      'docs/decisions/adr/nota.txt': 'nada',
+      'docs/decisions/adr/index.gen.md': '# generated',
+      'docs/decisions/adr/note.txt': 'nothing',
       'docs/open-decisions.md': OPEN_DECISIONS,
     },
     root => {
       const files = collectArtifacts(root, parseOwnership(CONFIG)).map(doc => doc.file)
       assert.equal(files.includes('docs/decisions/adr/index.gen.md'), false)
-      assert.equal(files.includes('docs/decisions/adr/nota.txt'), false)
+      assert.equal(files.includes('docs/decisions/adr/note.txt'), false)
     },
   )
 })
 
-test('caminho declarado mas ausente no disco não quebra a coleta', () => {
+test('a path declared but absent on disk does not break the collection', () => {
   withTempRepo({ [OWNERSHIP_PATH]: CONFIG }, root => {
     assert.deepEqual(collectArtifacts(root, parseOwnership(CONFIG)), [])
   })
 })
 
-test('frontmatter inválido vira syntaxError, não exceção', () => {
+test('invalid frontmatter becomes syntaxError, not an exception', () => {
   withTempRepo(
     {
       [OWNERSHIP_PATH]: CONFIG,
-      'docs/decisions/adr/ADR-0002-quebrado.md': '---\nid: ADR-0002\n  : ruim\n---\ncorpo\n',
+      'docs/decisions/adr/ADR-0002-broken.md': '---\nid: ADR-0002\n  : bad\n---\nbody\n',
     },
     root => {
       const docs = collectArtifacts(root, parseOwnership(CONFIG))
@@ -1166,39 +1166,39 @@ test('frontmatter inválido vira syntaxError, não exceção', () => {
 })
 ```
 
-- [ ] **Step 2: Rodar os testes para ver falhar**
+- [ ] **Step 2: Run the tests to see them fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — módulos `src/docs/*.ts` inexistentes.
+Expected: FAIL — `src/docs/*.ts` modules do not exist.
 
-- [ ] **Step 3: Implementar `src/docs/schema.ts`**
+- [ ] **Step 3: Implement `src/docs/schema.ts`**
 
 ```typescript
 import type { ArtifactRule } from '../config/ownership.ts'
 
-/** Campos obrigatórios de um artefato individual (spec §2). */
+/** Required fields of an individual artifact (spec §2). */
 export const REQUIRED_FIELDS: readonly string[] = ['id', 'title', 'status', 'owner', 'trigger', 'last-reviewed']
 
-/** Campos obrigatórios do arquivo-container de uma coleção em tabela. */
+/** Required fields of the container file of a table collection. */
 export const CONTAINER_REQUIRED_FIELDS: readonly string[] = ['title', 'owner', 'trigger', 'last-reviewed']
 
-/** Allowlist padrão de mutação de item congelado (spec §2 e §7). */
+/** Default allowlist of frozen-item mutation (spec §2 and §7). */
 export const MUTABLE_FIELDS_DEFAULT: readonly string[] = ['status', 'superseded-by', 'last-reviewed']
 
-/** Máquina de estados por prefixo (spec §4). Prefixos das fases 2+ vêm de `states` no .ownership.yml. */
+/** State machine per prefix (spec §4). Prefixes from phases 2+ come from `states` in .ownership.yml. */
 export const STATUS_MACHINE: Readonly<Record<string, readonly string[]>> = Object.freeze({
   ADR: ['draft', 'accepted', 'superseded'],
   DA: ['open', 'resolved', 'dropped'],
   TDR: ['open', 'paid', 'accepted-permanently'],
 })
 
-/** "Nenhum estado terminal permite edição do corpo" (spec §4). */
+/** "No terminal state allows editing the body" (spec §4). */
 export const FROZEN_STATUSES: ReadonlySet<string> = new Set(['accepted', 'superseded', 'deprecated', 'published', 'paid'])
 
-/** "Nenhum agente promove estado sozinho" (spec §4); é o gatilho de HK-3. */
+/** "No agent promotes state on its own" (spec §4); it is the trigger of HK-3. */
 export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.freeze([
   { from: 'draft', to: 'accepted' },
   { from: 'open', to: 'resolved' },
@@ -1210,18 +1210,18 @@ export function statesFor(rule: ArtifactRule): readonly string[] | null {
 }
 
 /**
- * Vocabulário de cadência proibido em `trigger` (spec §2 e anti-requisito §13).
- * Um gatilho válido nomeia um evento observável, não uma data de calendário.
+ * Cadence vocabulary forbidden in `trigger` (spec §2 and anti-requirement §13).
+ * A valid trigger names an observable event, not a calendar date.
  */
 const CADENCE_PATTERNS: readonly RegExp[] = [
-  /\b(?:tri|bi|se)?mestral(?:mente)?\b/i,
-  /\bmensal(?:mente)?\b/i,
-  /\bsemanal(?:mente)?\b/i,
-  /\bdiariamente\b/i,
-  /\banual(?:mente)?\b/i,
-  /\bperi[oó]dic[ao](?:mente)?\b/i,
-  /\bcad[êe]ncia\b/i,
-  /\ba cada\b/i,
+  /\b(?:bi|semi)?(?:monthly|quarterly)\b/i,
+  /\bon a monthly basis\b/i,
+  /\bon a weekly basis\b/i,
+  /\bon a daily basis\b/i,
+  /\bannual(?:ly)?\b/i,
+  /\bperiodic(?:ally)?\b/i,
+  /\bcadence\b/i,
+  /\bon a recurring basis\b/i,
   /\bquarterly\b/i,
   /\bmonthly\b/i,
   /\bweekly\b/i,
@@ -1230,10 +1230,10 @@ const CADENCE_PATTERNS: readonly RegExp[] = [
   /\bperiodically\b/i,
   /\bevery\s+\w+/i,
   /\bsprint\b/i,
-  /\btod[oa]\s+(?:m[êe]s|ano|semana|sprint)\b/i,
+  /\bevery\s+(?:month|year|week|sprint)\b/i,
 ]
 
-/** Devolve o trecho que caracteriza cadência, ou null. */
+/** Returns the excerpt that characterizes cadence, or null. */
 export function findCadence(trigger: string): string | null {
   for (const pattern of CADENCE_PATTERNS) {
     const match = pattern.exec(trigger)
@@ -1261,7 +1261,7 @@ export function parseId(value: unknown): { prefix: string; number: number } | nu
 }
 ```
 
-- [ ] **Step 4: Implementar `src/docs/table.ts`**
+- [ ] **Step 4: Implement `src/docs/table.ts`**
 
 ```typescript
 const ID_CELL = /^[A-Z]{2,4}-\d{3,4}$/
@@ -1269,7 +1269,7 @@ const ID_CELL = /^[A-Z]{2,4}-\d{3,4}$/
 export interface TableItem {
   id: string
   status: string
-  /** Linha 1-indexed no arquivo inteiro. */
+  /** 1-indexed line in the whole file. */
   line: number
 }
 
@@ -1289,8 +1289,8 @@ function isSeparator(row: string): boolean {
 }
 
 /**
- * Itens de um artefato mantido como tabela (spec §3 — Open Decisions).
- * `startLine` é a linha 1-indexed onde `source` começa no arquivo.
+ * Items of an artifact kept as a table (spec §3 — Open Decisions).
+ * `startLine` is the 1-indexed line where `source` starts in the file.
  */
 export function parseItemTable(source: string, startLine: number): TableItem[] {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
@@ -1321,7 +1321,7 @@ export function parseItemTable(source: string, startLine: number): TableItem[] {
 }
 ```
 
-- [ ] **Step 5: Implementar `src/docs/collect.ts`**
+- [ ] **Step 5: Implement `src/docs/collect.ts`**
 
 ```typescript
 import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -1333,13 +1333,13 @@ import { parseItemTable } from './table.ts'
 import type { TableItem } from './table.ts'
 
 export interface ArtifactDoc {
-  /** Caminho relativo à raiz do repositório, sempre com `/`. */
+  /** Path relative to the repository root, always with `/`. */
   file: string
   rule: ArtifactRule
   source: string
   frontmatter: Frontmatter | null
   syntaxError: FrontmatterSyntaxError | null
-  /** Itens da tabela quando `rule.collection === 'table'`; vazio caso contrário. */
+  /** Table items when `rule.collection === 'table'`; empty otherwise. */
   items: TableItem[]
 }
 
@@ -1407,28 +1407,28 @@ export function collectArtifacts(root: string, config: OwnershipConfig): Artifac
 }
 ```
 
-- [ ] **Step 6: Rodar os testes para ver passar**
+- [ ] **Step 6: Run the tests to see them pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: todos passando; type-check limpo.
+Expected: all passing; type-check clean.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add src/docs test/docs
-git commit -m "feat: schema de artefato, parser de tabela de itens e coletor"
+git commit -m "feat: artifact schema, item table parser and collector"
 ```
 
 ---
 
 ### Task 5: `CI-1` — structure lint
 
-O primeiro check da Fase 0: "sem contrato de máquina, nada mais é enforceável" (spec §10). Falha quando o frontmatter está ausente/inválido, `status` sai da máquina de estados, `owner` está vazio, ou `trigger` está ausente **ou descreve cadência**.
+The first check of Phase 0: "without a machine contract, nothing else is enforceable" (spec §10). It fails when the frontmatter is missing/invalid, `status` falls outside the state machine, `owner` is empty, or `trigger` is missing **or describes cadence**.
 
-Toda finding nomeia arquivo, linha e a correção — exigência da spec §9 ("a saída nomeia o arquivo, a linha e a correção").
+Every finding names file, line and the fix — a requirement of spec §9 ("the output names the file, the line and the fix").
 
 **Files:**
 
@@ -1438,7 +1438,7 @@ Toda finding nomeia arquivo, linha e a correção — exigência da spec §9 ("a
 
 **Interfaces:**
 
-- Consumes: `ArtifactDoc`, `collectArtifacts` (Task 4); `schema.ts` inteiro (Task 4); `OwnershipConfig` (Task 3).
+- Consumes: `ArtifactDoc`, `collectArtifacts` (Task 4); all of `schema.ts` (Task 4); `OwnershipConfig` (Task 3).
 - Produces:
   - `type Severity = 'error' | 'warning'`
   - `interface Finding { ruleId: string; file: string; line: number; severity: Severity; message: string; fix: string }`
@@ -1446,7 +1446,7 @@ Toda finding nomeia arquivo, linha e a correção — exigência da spec §9 ("a
   - `interface Check { id: string; name: string; run(context: CheckContext): Finding[] }`
   - `const ci1Structure: Check` (`id: 'CI-1'`)
 
-- [ ] **Step 1: Escrever o teste falhando**
+- [ ] **Step 1: Write the failing test**
 
 `test/checks/ci1-structure.test.ts`:
 
@@ -1474,17 +1474,17 @@ artifacts:
     collection: table
 `
 
-function adr(fields: Record<string, string>, body = '\n## Contexto\n'): string {
+function adr(fields: Record<string, string>, body = '\n## Context\n'): string {
   const lines = Object.entries(fields).map(([key, value]) => `${key}: ${value}`)
   return ['---', ...lines, '---', body].join('\n')
 }
 
 const GOOD_ADR = adr({
   id: 'ADR-0001',
-  title: 'Fila de eventos',
+  title: 'Event queue',
   status: 'accepted',
   owner: '"@team"',
-  trigger: 'Nunca. Imutável após aceito; uma decisão nova o supersede.',
+  trigger: 'Never. Immutable once accepted; a new decision supersedes it.',
   'last-reviewed': '2026-08-21',
 })
 
@@ -1492,13 +1492,13 @@ const GOOD_DA = [
   '---',
   'title: Open Decisions',
   'owner: "@product"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'trigger: Whenever someone ran into a gap.',
   'last-reviewed: 2026-08-21',
   '---',
   '',
-  '| ID | Lacuna | Status |',
+  '| ID | Gap | Status |',
   '| --- | --- | --- |',
-  '| DA-0001 | Reembolso parcial | open |',
+  '| DA-0001 | Partial refund | open |',
 ].join('\n')
 
 function run(files: Record<string, string>): Finding[] {
@@ -1514,19 +1514,19 @@ function run(files: Record<string, string>): Finding[] {
   return findings
 }
 
-test('artefatos bem formados não produzem finding', () => {
+test('well-formed artifacts produce no finding', () => {
   assert.deepEqual(
     run({
-      'docs/decisions/adr/ADR-0001-fila.md': GOOD_ADR,
+      'docs/decisions/adr/ADR-0001-queue.md': GOOD_ADR,
       'docs/open-decisions.md': GOOD_DA,
     }),
     [],
   )
 })
 
-test('frontmatter ausente falha na linha 1', () => {
+test('missing frontmatter fails on line 1', () => {
   const findings = run({
-    'docs/decisions/adr/ADR-0001-x.md': '# Sem frontmatter\n',
+    'docs/decisions/adr/ADR-0001-x.md': '# No frontmatter\n',
   })
   assert.equal(findings.length, 1)
   assert.equal(findings[0]?.ruleId, 'CI-1')
@@ -1535,38 +1535,38 @@ test('frontmatter ausente falha na linha 1', () => {
   assert.match(findings[0]?.message ?? '', /frontmatter/i)
 })
 
-test('YAML inválido no bloco falha sem derrubar o check', () => {
+test('invalid YAML in the block fails without bringing the check down', () => {
   const findings = run({
-    'docs/decisions/adr/ADR-0001-x.md': '---\nid: ADR-0001\n  : ruim\n---\n',
+    'docs/decisions/adr/ADR-0001-x.md': '---\nid: ADR-0001\n  : bad\n---\n',
   })
   assert.equal(findings.length, 1)
-  assert.match(findings[0]?.message ?? '', /YAML|inválid/i)
+  assert.match(findings[0]?.message ?? '', /YAML|invalid/i)
 })
 
-test('cada campo obrigatório ausente vira uma finding', () => {
+test('each missing required field becomes a finding', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
       id: 'ADR-0001',
       status: 'draft',
     }),
   })
-  const faltando = findings.filter(f => /obrigatório/i.test(f.message)).map(f => f.message)
+  const missing = findings.filter(f => /required/i.test(f.message)).map(f => f.message)
   for (const field of ['title', 'owner', 'trigger', 'last-reviewed']) {
     assert.ok(
-      faltando.some(m => m.includes(field)),
-      `deveria acusar ${field}`,
+      missing.some(m => m.includes(field)),
+      `should report ${field}`,
     )
   }
 })
 
-test('status fora da máquina de estados falha na linha do campo', () => {
+test('status outside the state machine fails on the field line', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
       id: 'ADR-0001',
       title: 'x',
-      status: 'aprovado',
+      status: 'approved',
       owner: '"@team"',
-      trigger: 'Nunca.',
+      trigger: 'Never.',
       'last-reviewed': '2026-08-21',
     }),
   })
@@ -1576,31 +1576,31 @@ test('status fora da máquina de estados falha na linha do campo', () => {
   assert.match(findings[0]?.fix ?? '', /draft.*accepted.*superseded/)
 })
 
-test('trigger com cadência falha nomeando o campo e o termo — critério de aceite 3', () => {
+test('trigger with cadence fails naming the field and the term — acceptance criterion 3', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
       id: 'ADR-0001',
       title: 'x',
       status: 'draft',
       owner: '"@team"',
-      trigger: 'revisar trimestralmente',
+      trigger: 'review quarterly',
       'last-reviewed': '2026-08-21',
     }),
   })
   assert.equal(findings.length, 1)
   assert.match(findings[0]?.message ?? '', /trigger/)
-  assert.match(findings[0]?.message ?? '', /trimestral/i)
+  assert.match(findings[0]?.message ?? '', /quarterly/i)
   assert.equal(findings[0]?.line, 6)
 })
 
-test('owner sem @ e last-reviewed fora do ISO falham', () => {
+test('owner without @ and last-reviewed outside ISO fail', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
       id: 'ADR-0001',
       title: 'x',
       status: 'draft',
       owner: 'team',
-      trigger: 'Nunca.',
+      trigger: 'Never.',
       'last-reviewed': '21/08/2026',
     }),
   })
@@ -1609,14 +1609,14 @@ test('owner sem @ e last-reviewed fora do ISO falham', () => {
   assert.ok(findings.some(f => /last-reviewed/.test(f.message)))
 })
 
-test('id que não bate com o prefixo do artefato falha', () => {
+test('an id that does not match the artifact prefix fails', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({
       id: 'TDR-0001',
       title: 'x',
       status: 'draft',
       owner: '"@team"',
-      trigger: 'Nunca.',
+      trigger: 'Never.',
       'last-reviewed': '2026-08-21',
     }),
   })
@@ -1624,8 +1624,8 @@ test('id que não bate com o prefixo do artefato falha', () => {
   assert.match(findings[0]?.message ?? '', /ADR/)
 })
 
-test('coleção em tabela: container não exige id, mas cada item exige status válido', () => {
-  const bad = GOOD_DA.replace('| DA-0001 | Reembolso parcial | open |', '| DA-0001 | Reembolso parcial | pendente |')
+test('table collection: the container does not require an id, but each item requires a valid status', () => {
+  const bad = GOOD_DA.replace('| DA-0001 | Partial refund | open |', '| DA-0001 | Partial refund | pending |')
   const findings = run({ 'docs/open-decisions.md': bad })
   assert.equal(findings.length, 1)
   assert.equal(findings[0]?.line, 10)
@@ -1633,7 +1633,7 @@ test('coleção em tabela: container não exige id, mas cada item exige status v
   assert.match(findings[0]?.fix ?? '', /open.*resolved.*dropped/)
 })
 
-test('prefixo sem máquina de estados declarada falha pedindo `states`', () => {
+test('a prefix without a declared state machine fails asking for `states`', () => {
   const config = `
 version: 1
 artifacts:
@@ -1651,7 +1651,7 @@ artifacts:
         title: 'x',
         status: 'draft',
         owner: '"@team"',
-        trigger: 'Nunca.',
+        trigger: 'Never.',
         'last-reviewed': '2026-08-21',
       }),
     },
@@ -1669,15 +1669,15 @@ artifacts:
 })
 ```
 
-- [ ] **Step 2: Rodar o teste para ver falhar**
+- [ ] **Step 2: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `Cannot find module '/app/src/checks/ci1-structure.ts'`.
+Expected: FAIL — `Cannot find module '/app/src/checks/ci1-structure.ts'`.
 
-- [ ] **Step 3: Implementar `src/core/types.ts`**
+- [ ] **Step 3: Implement `src/core/types.ts`**
 
 ```typescript
 import type { OwnershipConfig } from '../config/ownership.ts'
@@ -1686,16 +1686,16 @@ import type { ArtifactDoc } from '../docs/collect.ts'
 export type Severity = 'error' | 'warning'
 
 export interface Finding {
-  /** ID do check que produziu a finding, ex.: 'CI-1'. */
+  /** ID of the check that produced the finding, e.g. 'CI-1'. */
   ruleId: string
-  /** Caminho relativo à raiz do repositório. */
+  /** Path relative to the repository root. */
   file: string
-  /** Linha 1-indexed; 0 quando a finding não tem linha. */
+  /** 1-indexed line; 0 when the finding has no line. */
   line: number
   severity: Severity
-  /** O que está errado. */
+  /** What is wrong. */
   message: string
-  /** O caminho válido para corrigir. */
+  /** The valid path to fix it. */
   fix: string
 }
 
@@ -1712,7 +1712,7 @@ export interface Check {
 }
 ```
 
-- [ ] **Step 4: Implementar `src/checks/ci1-structure.ts`**
+- [ ] **Step 4: Implement `src/checks/ci1-structure.ts`**
 
 ```typescript
 import type { Check, CheckContext, Finding } from '../core/types.ts'
@@ -1739,8 +1739,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
       error(
         doc.file,
         doc.syntaxError.line,
-        `Frontmatter com YAML inválido: ${doc.syntaxError.message}`,
-        'Corrija o bloco YAML entre os `---` no topo do arquivo.',
+        `Frontmatter with invalid YAML: ${doc.syntaxError.message}`,
+        'Fix the YAML block between the `---` at the top of the file.',
       ),
     ]
   }
@@ -1751,8 +1751,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
       error(
         doc.file,
         1,
-        'Frontmatter ausente — todo artefato de documentação viva abre com o bloco YAML padrão.',
-        'Adicione `id`, `title`, `status`, `owner`, `trigger` e `last-reviewed` entre `---` no topo (spec §2).',
+        'Frontmatter missing — every living documentation artifact opens with the standard YAML block.',
+        'Add `id`, `title`, `status`, `owner`, `trigger` and `last-reviewed` between `---` at the top (spec §2).',
       ),
     ]
   }
@@ -1768,8 +1768,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
         error(
           doc.file,
           frontmatter.endLine,
-          `Campo obrigatório \`${field}\` ausente ou vazio.`,
-          `Preencha \`${field}\` no frontmatter (skill dona: ${doc.rule.skill}).`,
+          `Required field \`${field}\` missing or empty.`,
+          `Fill in \`${field}\` in the frontmatter (owning skill: ${doc.rule.skill}).`,
         ),
       )
     }
@@ -1779,15 +1779,15 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
     const parsed = parseId(data.id)
     if (!parsed) {
       findings.push(
-        error(doc.file, lineOf('id'), `\`id\` "${String(data.id)}" fora do formato <PREFIXO>-<número>.`, `Use ${doc.rule.idPrefix}-0001 (spec §8).`),
+        error(doc.file, lineOf('id'), `\`id\` "${String(data.id)}" outside the format <PREFIX>-<number>.`, `Use ${doc.rule.idPrefix}-0001 (spec §8).`),
       )
     } else if (parsed.prefix !== doc.rule.idPrefix) {
       findings.push(
         error(
           doc.file,
           lineOf('id'),
-          `\`id\` usa o prefixo ${parsed.prefix}, mas ${doc.rule.path} é território de ${doc.rule.idPrefix}.`,
-          `Renomeie para ${doc.rule.idPrefix}-... ou mova o arquivo para o artefato dono.`,
+          `\`id\` uses the prefix ${parsed.prefix}, but ${doc.rule.path} is the territory of ${doc.rule.idPrefix}.`,
+          `Rename to ${doc.rule.idPrefix}-... or move the file to the owning artifact.`,
         ),
       )
     }
@@ -1800,8 +1800,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
         error(
           doc.file,
           lineOf('status'),
-          `Prefixo ${doc.rule.idPrefix} não tem máquina de estados declarada.`,
-          `Declare \`states:\` para esse artefato em docs/.ownership.yml.`,
+          `Prefix ${doc.rule.idPrefix} has no declared state machine.`,
+          `Declare \`states:\` for this artifact in docs/.ownership.yml.`,
         ),
       )
     } else if (!states.includes(String(data.status))) {
@@ -1809,8 +1809,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
         error(
           doc.file,
           lineOf('status'),
-          `\`status\` "${String(data.status)}" fora da máquina de estados de ${doc.rule.idPrefix}.`,
-          `Estados válidos: ${states.join(' → ')} (spec §4).`,
+          `\`status\` "${String(data.status)}" outside the state machine of ${doc.rule.idPrefix}.`,
+          `Valid states: ${states.join(' → ')} (spec §4).`,
         ),
       )
     }
@@ -1821,8 +1821,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
       error(
         doc.file,
         lineOf('owner'),
-        `\`owner\` "${String(data.owner)}" precisa começar com @ e espelhar o CODEOWNERS.`,
-        'Use o handle de pessoa ou time, ex.: "@team-platform".',
+        `\`owner\` "${String(data.owner)}" must start with @ and mirror CODEOWNERS.`,
+        'Use the handle of a person or team, e.g. "@team-platform".',
       ),
     )
   }
@@ -1834,8 +1834,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
         error(
           doc.file,
           lineOf('trigger'),
-          `\`trigger\` descreve cadência ("${cadence}") em vez de um evento observável.`,
-          'Nomeie o evento: "no mesmo PR que altera src/domain/billing", "quando um código de erro novo é adicionado" (spec §2, mecanismo 2).',
+          `\`trigger\` describes cadence ("${cadence}") instead of an observable event.`,
+          'Name the event: "in the same PR that changes src/domain/billing", "when a new error code is added" (spec §2, mechanism 2).',
         ),
       )
     }
@@ -1846,8 +1846,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
       error(
         doc.file,
         lineOf('last-reviewed'),
-        `\`last-reviewed\` "${String(data['last-reviewed'])}" não é uma data ISO.`,
-        'Use YYYY-MM-DD, e só toque neste campo se você realmente reviu o documento (spec §2).',
+        `\`last-reviewed\` "${String(data['last-reviewed'])}" is not an ISO date.`,
+        'Use YYYY-MM-DD, and only touch this field if you actually reviewed the document (spec §2).',
       ),
     )
   }
@@ -1859,8 +1859,8 @@ function checkDoc(doc: ArtifactDoc): Finding[] {
           error(
             doc.file,
             item.line,
-            `Item ${item.id} com status "${item.status}" fora da máquina de estados de ${doc.rule.idPrefix}.`,
-            `Estados válidos: ${states.join(' → ')} (spec §4).`,
+            `Item ${item.id} with status "${item.status}" outside the state machine of ${doc.rule.idPrefix}.`,
+            `Valid states: ${states.join(' → ')} (spec §4).`,
           ),
         )
       }
@@ -1879,28 +1879,28 @@ export const ci1Structure: Check = {
 }
 ```
 
-- [ ] **Step 5: Rodar o teste para ver passar**
+- [ ] **Step 5: Run the test to see it pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: todos passando; type-check limpo.
+Expected: all passing; type-check clean.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add src/core/types.ts src/checks/ci1-structure.ts test/checks/ci1-structure.test.ts
-git commit -m "feat: CI-1 structure lint com rejeição de trigger por cadência"
+git commit -m "feat: CI-1 structure lint with rejection of cadence triggers"
 ```
 
 ---
 
-### Task 6: `CI-2` — ID lint, citações e registry de checks
+### Task 6: `CI-2` — ID lint, citations and check registry
 
-Materializa o mecanismo 3 (rastreabilidade por ID) na parte que é puramente sintática: ID duplicado, ID fora de sequência, ID reciclado de `docs/ids-retired.txt`, e citação que não resolve.
+Materializes mechanism 3 (ID traceability) in the part that is purely syntactic: duplicate ID, out-of-sequence ID, ID recycled from `docs/ids-retired.txt`, and a citation that does not resolve.
 
-Decisão de escopo importante: `CI-2` **só valida citações de prefixos declarados em `.ownership.yml`**. Uma citação a `RN-014` num repositório que ainda não instalou a Fase 2 é ignorada, não é erro — é o que permite instalar o toolkit por fases sem falso positivo.
+Important scope decision: `CI-2` **only validates citations of prefixes declared in `.ownership.yml`**. A citation to `RN-014` in a repository that has not yet installed Phase 2 is ignored, not an error — this is what allows installing the toolkit in phases without false positives.
 
 **Files:**
 
@@ -1919,9 +1919,9 @@ Decisão de escopo importante: `CI-2` **só valida citações de prefixos declar
   - `function findCitations(source: string): Citation[]`
   - `function loadRetiredIds(root: string): Set<string>`
   - `const ci2Ids: Check` (`id: 'CI-2'`)
-  - `const CHECKS: readonly Check[]` em `registry.ts` — a lista ordenada que o CLI roda.
+  - `const CHECKS: readonly Check[]` in `registry.ts` — the ordered list the CLI runs.
 
-- [ ] **Step 1: Escrever os testes falhando**
+- [ ] **Step 1: Write the failing tests**
 
 `test/ids/citations.test.ts`:
 
@@ -1931,8 +1931,8 @@ import assert from 'node:assert/strict'
 import { findCitations, loadRetiredIds, RETIRED_IDS_PATH } from '../../src/ids/citations.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-test('encontra citações com linha 1-indexed', () => {
-  const source = ['# Título', '', 'Supersede ADR-0031 e fecha DA-0007.', 'Cita TDR-003 também.'].join('\n')
+test('finds citations with a 1-indexed line', () => {
+  const source = ['# Title', '', 'Supersedes ADR-0031 and closes DA-0007.', 'Cites TDR-003 as well.'].join('\n')
   assert.deepEqual(findCitations(source), [
     { id: 'ADR-0031', line: 3 },
     { id: 'DA-0007', line: 3 },
@@ -1940,12 +1940,12 @@ test('encontra citações com linha 1-indexed', () => {
   ])
 })
 
-test('ignora o que não é sintaxe de citação', () => {
-  assert.deepEqual(findCitations('UTF-8 e ISO-8601 e adr-0001 e ADR-12'), [])
+test('ignores what is not citation syntax', () => {
+  assert.deepEqual(findCitations('UTF-8 and ISO-8601 and adr-0001 and ADR-12'), [])
 })
 
-test('loadRetiredIds lê o registro ignorando comentários e vazios', () => {
-  withTempRepo({ [RETIRED_IDS_PATH]: '# retirados\nADR-0002\n\nDA-0005\n' }, root => {
+test('loadRetiredIds reads the registry ignoring comments and blank lines', () => {
+  withTempRepo({ [RETIRED_IDS_PATH]: '# retired\nADR-0002\n\nDA-0005\n' }, root => {
     const retired = loadRetiredIds(root)
     assert.equal(retired.has('ADR-0002'), true)
     assert.equal(retired.has('DA-0005'), true)
@@ -1953,7 +1953,7 @@ test('loadRetiredIds lê o registro ignorando comentários e vazios', () => {
   })
 })
 
-test('ausência do registro devolve conjunto vazio', () => {
+test('absence of the registry returns an empty set', () => {
   withTempRepo({ 'README.md': '' }, root => {
     assert.equal(loadRetiredIds(root).size, 0)
   })
@@ -1989,7 +1989,7 @@ artifacts:
 `
 
 function adr(id: string, body = ''): string {
-  return ['---', `id: ${id}`, 'title: Decisão', 'status: draft', 'owner: "@team"', 'trigger: Nunca.', 'last-reviewed: 2026-08-21', '---', '', body].join('\n')
+  return ['---', `id: ${id}`, 'title: Decision', 'status: draft', 'owner: "@team"', 'trigger: Never.', 'last-reviewed: 2026-08-21', '---', '', body].join('\n')
 }
 
 function openDecisions(rows: string[]): string {
@@ -1997,11 +1997,11 @@ function openDecisions(rows: string[]): string {
     '---',
     'title: Open Decisions',
     'owner: "@product"',
-    'trigger: Toda vez que alguém trombou numa lacuna.',
+    'trigger: Whenever someone ran into a gap.',
     'last-reviewed: 2026-08-21',
     '---',
     '',
-    '| ID | Lacuna | Status | Resolvida por |',
+    '| ID | Gap | Status | Resolved by |',
     '| --- | --- | --- | --- |',
     ...rows,
   ].join('\n')
@@ -2020,18 +2020,18 @@ function run(files: Record<string, string>): Finding[] {
   return findings
 }
 
-test('sequência íntegra e citações que resolvem não produzem finding', () => {
+test('an intact sequence and citations that resolve produce no finding', () => {
   assert.deepEqual(
     run({
-      'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Fecha DA-0001.'),
+      'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Closes DA-0001.'),
       'docs/decisions/adr/ADR-0002-b.md': adr('ADR-0002'),
-      'docs/open-decisions.md': openDecisions(['| DA-0001 | Lacuna | resolved | ADR-0001 |']),
+      'docs/open-decisions.md': openDecisions(['| DA-0001 | Gap | resolved | ADR-0001 |']),
     }),
     [],
   )
 })
 
-test('ID duplicado falha nomeando os dois arquivos', () => {
+test('duplicate ID fails naming both files', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-0001-b.md': adr('ADR-0001'),
@@ -2043,17 +2043,17 @@ test('ID duplicado falha nomeando os dois arquivos', () => {
   assert.match(findings[0]?.message ?? '', /ADR-0001-a\.md/)
 })
 
-test('ID presente em ids-retired.txt reaparecendo falha', () => {
+test('an ID present in ids-retired.txt reappearing fails', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/open-decisions.md': openDecisions([]),
     [RETIRED_IDS_PATH]: 'ADR-0001\n',
   })
   assert.equal(findings.length, 1)
-  assert.match(findings[0]?.message ?? '', /reciclado|retirado/i)
+  assert.match(findings[0]?.message ?? '', /recycled|retired/i)
 })
 
-test('buraco na sequência falha apontando o registro de retirados', () => {
+test('a gap in the sequence fails pointing at the retired registry', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-0003-c.md': adr('ADR-0003'),
@@ -2064,7 +2064,7 @@ test('buraco na sequência falha apontando o registro de retirados', () => {
   assert.equal(findings[0]?.file, RETIRED_IDS_PATH)
 })
 
-test('buraco explicado por ids-retired.txt não falha', () => {
+test('a gap explained by ids-retired.txt does not fail', () => {
   assert.deepEqual(
     run({
       'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
@@ -2076,9 +2076,9 @@ test('buraco explicado por ids-retired.txt não falha', () => {
   )
 })
 
-test('citação que não resolve falha na linha da citação', () => {
+test('a citation that does not resolve fails on the citation line', () => {
   const findings = run({
-    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Supersede ADR-0099.'),
+    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Supersedes ADR-0099.'),
     'docs/open-decisions.md': openDecisions([]),
   })
   assert.equal(findings.length, 1)
@@ -2086,28 +2086,28 @@ test('citação que não resolve falha na linha da citação', () => {
   assert.equal(findings[0]?.file, 'docs/decisions/adr/ADR-0001-a.md')
 })
 
-test('citação para um ID retirado falha', () => {
+test('a citation to a retired ID fails', () => {
   const findings = run({
-    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Ver DA-0001.'),
+    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'See DA-0001.'),
     'docs/open-decisions.md': openDecisions([]),
     [RETIRED_IDS_PATH]: 'DA-0001\n',
   })
   assert.equal(findings.length, 1)
   assert.match(findings[0]?.message ?? '', /DA-0001/)
-  assert.match(findings[0]?.message ?? '', /retirado/i)
+  assert.match(findings[0]?.message ?? '', /retired/i)
 })
 
-test('citação de prefixo não declarado é ignorada — instalação por fases', () => {
+test('a citation of an undeclared prefix is ignored — installation in phases', () => {
   assert.deepEqual(
     run({
-      'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Implementa RN-014 e RF-002.'),
+      'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Implements RN-014 and RF-002.'),
       'docs/open-decisions.md': openDecisions([]),
     }),
     [],
   )
 })
 
-test('o registry expõe CI-1 e CI-2 nessa ordem', () => {
+test('the registry exposes CI-1 and CI-2 in that order', () => {
   assert.deepEqual(
     CHECKS.map(check => check.id),
     ['CI-1', 'CI-2'],
@@ -2115,15 +2115,15 @@ test('o registry expõe CI-1 e CI-2 nessa ordem', () => {
 })
 ```
 
-- [ ] **Step 2: Rodar os testes para ver falhar**
+- [ ] **Step 2: Run the tests to see them fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — módulos `src/ids/citations.ts` e `src/checks/ci2-ids.ts` inexistentes.
+Expected: FAIL — modules `src/ids/citations.ts` and `src/checks/ci2-ids.ts` do not exist.
 
-- [ ] **Step 3: Implementar `src/ids/citations.ts`**
+- [ ] **Step 3: Implement `src/ids/citations.ts`**
 
 ```typescript
 import { readFileSync } from 'node:fs'
@@ -2131,12 +2131,12 @@ import { join } from 'node:path'
 
 export const RETIRED_IDS_PATH = 'docs/ids-retired.txt'
 
-/** Sintaxe única de citação (spec §8): <PREFIXO>-<número>. */
+/** Single citation syntax (spec §8): <PREFIX>-<number>. */
 const CITATION = /\b([A-Z]{2,4})-(\d{3,4})\b/g
 
 export interface Citation {
   id: string
-  /** Linha 1-indexed dentro de `source`. */
+  /** 1-indexed line within `source`. */
   line: number
 }
 
@@ -2154,7 +2154,7 @@ export function findCitations(source: string): Citation[] {
   return citations
 }
 
-/** IDs retirados — nunca podem reaparecer (spec §2). */
+/** Retired IDs — they can never reappear (spec §2). */
 export function loadRetiredIds(root: string): Set<string> {
   let source: string
   try {
@@ -2173,7 +2173,7 @@ export function loadRetiredIds(root: string): Set<string> {
 }
 ```
 
-- [ ] **Step 4: Implementar `src/checks/ci2-ids.ts`**
+- [ ] **Step 4: Implement `src/checks/ci2-ids.ts`**
 
 ```typescript
 import type { Check, CheckContext, Finding } from '../core/types.ts'
@@ -2235,8 +2235,8 @@ export const ci2Ids: Check = {
           error(
             declaration.file,
             declaration.line,
-            `ID ${declaration.id} duplicado — já declarado em ${previous.file}:${previous.line}.`,
-            'Um ID identifica um único item. Escolha o próximo número livre da sequência.',
+            `ID ${declaration.id} duplicated — already declared in ${previous.file}:${previous.line}.`,
+            'An ID identifies a single item. Pick the next free number in the sequence.',
           ),
         )
         continue
@@ -2248,14 +2248,14 @@ export const ci2Ids: Check = {
           error(
             declaration.file,
             declaration.line,
-            `ID ${declaration.id} está em ${RETIRED_IDS_PATH} e não pode ser reciclado.`,
-            'Use o próximo número livre; IDs retirados nunca voltam (spec §2).',
+            `ID ${declaration.id} is in ${RETIRED_IDS_PATH} and cannot be recycled.`,
+            'Use the next free number; retired IDs never come back (spec §2).',
           ),
         )
       }
     }
 
-    // Sequência contígua por prefixo, contando os retirados.
+    // Contiguous sequence per prefix, counting the retired ones.
     const known = new Set(context.config.artifacts.map(artifact => artifact.idPrefix))
     const numbersByPrefix = new Map<string, Set<number>>()
     for (const id of [...byId.keys(), ...retired]) {
@@ -2275,14 +2275,14 @@ export const ci2Ids: Check = {
           error(
             RETIRED_IDS_PATH,
             0,
-            `Sequência de ${prefix} tem buraco: ${missing} não existe nem está retirado.`,
-            `Se o item foi removido, registre \`${missing}\` em ${RETIRED_IDS_PATH}; senão, renumere sem pular.`,
+            `The ${prefix} sequence has a gap: ${missing} neither exists nor is retired.`,
+            `If the item was removed, record \`${missing}\` in ${RETIRED_IDS_PATH}; otherwise, renumber without skipping.`,
           ),
         )
       }
     }
 
-    // Citações precisam resolver para um ID existente e não retirado.
+    // Citations must resolve to an existing, non-retired ID.
     for (const doc of context.docs) {
       const declaredHere = new Set(declarations.filter(declaration => declaration.file === doc.file).map(d => d.id))
       for (const citation of findCitations(doc.source)) {
@@ -2296,9 +2296,9 @@ export const ci2Ids: Check = {
             doc.file,
             citation.line,
             retired.has(citation.id)
-              ? `Citação a ${citation.id}, que está retirado.`
-              : `Citação a ${citation.id}, que não resolve para nenhum artefato existente.`,
-            `Cite um ID existente ou crie o artefato (skill dona: ${doc.rule.skill}).`,
+              ? `Citation of ${citation.id}, which is retired.`
+              : `Citation of ${citation.id}, which does not resolve to any existing artifact.`,
+            `Cite an existing ID or create the artifact (owning skill: ${doc.rule.skill}).`,
           ),
         )
       }
@@ -2309,37 +2309,37 @@ export const ci2Ids: Check = {
 }
 ```
 
-- [ ] **Step 5: Implementar `src/checks/registry.ts`**
+- [ ] **Step 5: Implement `src/checks/registry.ts`**
 
 ```typescript
 import type { Check } from '../core/types.ts'
 import { ci1Structure } from './ci1-structure.ts'
 import { ci2Ids } from './ci2-ids.ts'
 
-/** Checks das Fases 0–1, na ordem em que o CLI os roda. */
+/** Checks of Phases 0–1, in the order the CLI runs them. */
 export const CHECKS: readonly Check[] = [ci1Structure, ci2Ids]
 ```
 
-- [ ] **Step 6: Rodar os testes para ver passar**
+- [ ] **Step 6: Run the tests to see them pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: todos passando; type-check limpo.
+Expected: all passing; type-check clean.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add src/ids src/checks/ci2-ids.ts src/checks/registry.ts test/ids test/checks/ci2-ids.test.ts
-git commit -m "feat: CI-2 ID lint com sequência, retirados e citações"
+git commit -m "feat: CI-2 ID lint with sequence, retired IDs and citations"
 ```
 
 ---
 
-### Task 7: CLI `living-docs validate` e o wrapper do host
+### Task 7: CLI `living-docs validate` and the host wrapper
 
-É o enforcement que "sobrevive a alguém editando pelo navegador" (spec §1): roda no CI, sem agente presente. O wrapper `bin/living-docs` existe porque o host não tem Node — ele apenas repassa argumentos e stdin para dentro do container já em execução.
+It is the enforcement that "survives someone editing through the browser" (spec §1): it runs in CI, with no agent present. The `bin/living-docs` wrapper exists because the host has no Node — it only forwards arguments and stdin into the already-running container.
 
 **Files:**
 
@@ -2356,10 +2356,10 @@ git commit -m "feat: CI-2 ID lint com sequência, retirados e citações"
 - Produces:
   - `function formatFindings(findings: readonly Finding[]): string`
   - `interface ValidateResult { findings: Finding[]; errors: number; warnings: number; exitCode: number }`
-  - `function runValidate(root: string): ValidateResult` — `exitCode` 0 sem erros, 1 com ao menos um `severity: 'error'`.
-  - Executável `src/cli/index.ts` com os subcomandos `validate` (esta task) e `init` (Task 8); exit 2 para uso inválido ou `.ownership.yml` ausente.
+  - `function runValidate(root: string): ValidateResult` — `exitCode` 0 with no errors, 1 with at least one `severity: 'error'`.
+  - Executable `src/cli/index.ts` with the subcommands `validate` (this task) and `init` (Task 8); exit 2 for invalid usage or missing `.ownership.yml`.
 
-- [ ] **Step 1: Escrever os testes falhando**
+- [ ] **Step 1: Write the failing tests**
 
 `test/cli/report.test.ts`:
 
@@ -2374,33 +2374,33 @@ const FINDING: Finding = {
   file: 'docs/decisions/adr/ADR-0001-x.md',
   line: 6,
   severity: 'error',
-  message: '`trigger` descreve cadência ("trimestral").',
-  fix: 'Nomeie o evento observável.',
+  message: '`trigger` describes cadence ("quarterly").',
+  fix: 'Name the observable event.',
 }
 
-test('nomeia arquivo, linha, regra e correção', () => {
+test('names file, line, rule and fix', () => {
   const output = formatFindings([FINDING])
   assert.match(output, /docs\/decisions\/adr\/ADR-0001-x\.md:6/)
   assert.match(output, /CI-1/)
   assert.match(output, /error/)
-  assert.match(output, /trimestral/)
-  assert.match(output, /Nomeie o evento observável\./)
+  assert.match(output, /quarterly/)
+  assert.match(output, /Name the observable event\./)
 })
 
-test('omite a linha quando ela é 0', () => {
+test('omits the line when it is 0', () => {
   const output = formatFindings([{ ...FINDING, line: 0 }])
   assert.match(output, /ADR-0001-x\.md\s/)
   assert.doesNotMatch(output, /ADR-0001-x\.md:0/)
 })
 
-test('resume a contagem por severidade', () => {
+test('summarizes the count by severity', () => {
   const output = formatFindings([FINDING, { ...FINDING, severity: 'warning' }])
-  assert.match(output, /1 erro/)
-  assert.match(output, /1 aviso/)
+  assert.match(output, /1 error/)
+  assert.match(output, /1 warning/)
 })
 
-test('sem findings, informa que está tudo certo', () => {
-  assert.match(formatFindings([]), /nenhuma/i)
+test('with no findings, reports that everything is fine', () => {
+  assert.match(formatFindings([]), /no violations/i)
 })
 ```
 
@@ -2426,17 +2426,17 @@ artifacts:
 const GOOD = [
   '---',
   'id: ADR-0001',
-  'title: Fila de eventos',
+  'title: Event queue',
   'status: draft',
   'owner: "@team"',
-  'trigger: Nunca. Imutável após aceito.',
+  'trigger: Never. Immutable once accepted.',
   'last-reviewed: 2026-08-21',
   '---',
   '',
-  '## Contexto',
+  '## Context',
 ].join('\n')
 
-test('repositório conforme sai com 0', () => {
+test('a conforming repository exits with 0', () => {
   withTempRepo({ [OWNERSHIP_PATH]: CONFIG, 'docs/decisions/adr/ADR-0001-a.md': GOOD }, root => {
     const result = runValidate(root)
     assert.deepEqual(result.findings, [])
@@ -2444,11 +2444,11 @@ test('repositório conforme sai com 0', () => {
   })
 })
 
-test('erro de qualquer check leva a exit 1', () => {
+test('an error from any check leads to exit 1', () => {
   withTempRepo(
     {
       [OWNERSHIP_PATH]: CONFIG,
-      'docs/decisions/adr/ADR-0001-a.md': GOOD.replace('status: draft', 'status: aprovado'),
+      'docs/decisions/adr/ADR-0001-a.md': GOOD.replace('status: draft', 'status: approved'),
     },
     root => {
       const result = runValidate(root)
@@ -2459,7 +2459,7 @@ test('erro de qualquer check leva a exit 1', () => {
   )
 })
 
-test('roda todos os checks do registry, não só o primeiro', () => {
+test('runs all the checks in the registry, not just the first', () => {
   withTempRepo(
     {
       [OWNERSHIP_PATH]: CONFIG,
@@ -2473,22 +2473,22 @@ test('roda todos os checks do registry, não só o primeiro', () => {
   )
 })
 
-test('.ownership.yml ausente propaga OwnershipError', () => {
+test('a missing .ownership.yml propagates OwnershipError', () => {
   withTempRepo({ 'README.md': '' }, root => {
     assert.throws(() => runValidate(root), OwnershipError)
   })
 })
 ```
 
-- [ ] **Step 2: Rodar os testes para ver falhar**
+- [ ] **Step 2: Run the tests to see them fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `Cannot find module '/app/src/cli/report.ts'`.
+Expected: FAIL — `Cannot find module '/app/src/cli/report.ts'`.
 
-- [ ] **Step 3: Implementar `src/cli/report.ts`**
+- [ ] **Step 3: Implement `src/cli/report.ts`**
 
 ```typescript
 import type { Finding } from '../core/types.ts'
@@ -2499,7 +2499,7 @@ function plural(count: number, singular: string, pluralForm: string): string {
 
 export function formatFindings(findings: readonly Finding[]): string {
   if (findings.length === 0) {
-    return 'living-docs: nenhuma violação encontrada.'
+    return 'living-docs: no violations found.'
   }
 
   const lines: string[] = []
@@ -2512,13 +2512,13 @@ export function formatFindings(findings: readonly Finding[]): string {
   const errors = findings.filter(finding => finding.severity === 'error').length
   const warnings = findings.length - errors
   lines.push('')
-  lines.push(`living-docs: ${plural(errors, 'erro', 'erros')}, ${plural(warnings, 'aviso', 'avisos')}.`)
+  lines.push(`living-docs: ${plural(errors, 'error', 'errors')}, ${plural(warnings, 'warning', 'warnings')}.`)
 
   return lines.join('\n')
 }
 ```
 
-- [ ] **Step 4: Implementar `src/cli/validate.ts`**
+- [ ] **Step 4: Implement `src/cli/validate.ts`**
 
 ```typescript
 import { loadOwnership } from '../config/ownership.ts'
@@ -2550,9 +2550,9 @@ export function runValidate(root: string): ValidateResult {
 }
 ```
 
-- [ ] **Step 5: Implementar `src/cli/index.ts`**
+- [ ] **Step 5: Implement `src/cli/index.ts`**
 
-O subcomando `init` é implementado na Task 8; até lá ele já está roteado e responde com erro de "não implementado", o que mantém este arquivo estável entre as duas tasks.
+The `init` subcommand is implemented in Task 8; until then it is already routed and answers with a "not implemented" error, which keeps this file stable between the two tasks.
 
 ```typescript
 #!/usr/bin/env node
@@ -2560,14 +2560,14 @@ import { runValidate } from './validate.ts'
 import { formatFindings } from './report.ts'
 import { OwnershipError } from '../config/ownership.ts'
 
-const USAGE = `living-docs <comando>
+const USAGE = `living-docs <command>
 
-  validate    Roda os checks de documentação viva (CI-1, CI-2)
-  init        Cria a moldura de documentação viva (skill dona: living-docs-bootstrap)
+  validate    Runs the living documentation checks (CI-1, CI-2)
+  init        Creates the living documentation frame (owning skill: living-docs-bootstrap)
 
-Opções de init:
-  --owner <@handle>   Dono padrão dos artefatos criados
-  --dry-run           Mostra o que faria, sem escrever
+Options of init:
+  --owner <@handle>   Default owner of the created artifacts
+  --dry-run           Shows what it would do, without writing
 `
 
 function main(argv: readonly string[]): number {
@@ -2587,7 +2587,7 @@ function main(argv: readonly string[]): number {
     }
 
     if (command === 'init') {
-      process.stderr.write('living-docs: `init` ainda não implementado.\n')
+      process.stderr.write('living-docs: `init` not implemented yet.\n')
       return 2
     }
   } catch (err) {
@@ -2598,40 +2598,40 @@ function main(argv: readonly string[]): number {
     throw err
   }
 
-  process.stderr.write(`living-docs: comando desconhecido "${command}".\n\n${USAGE}`)
+  process.stderr.write(`living-docs: unknown command "${command}".\n\n${USAGE}`)
   return 2
 }
 
 process.exitCode = main(process.argv.slice(2))
 ```
 
-- [ ] **Step 6: Escrever o wrapper `bin/living-docs`**
+- [ ] **Step 6: Write the `bin/living-docs` wrapper**
 
-Sai com 2 (e não 0) quando o container está fora do ar: o CLI é enforcement, e enforcement que falha silenciosamente é pior que enforcement nenhum. Os **hooks** é que falham abertos (Task 12) — a assimetria é deliberada.
+It exits with 2 (and not 0) when the container is down: the CLI is enforcement, and enforcement that fails silently is worse than no enforcement. It is the **hooks** that fail open (Task 12) — the asymmetry is deliberate.
 
 ```bash
 #!/usr/bin/env bash
-# Ponte host → container. O host não executa Node: todo trabalho acontece
-# dentro de `living-docs-toolkit`, com o repositório montado em /app.
+# Host → container bridge. The host does not run Node: all the work happens
+# inside `living-docs-toolkit`, with the repository mounted at /app.
 set -euo pipefail
 
 CONTAINER="${LIVING_DOCS_CONTAINER:-living-docs-toolkit}"
 
 if ! docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -q true; then
-  echo "living-docs: o container '$CONTAINER' não está rodando. Suba com: docker compose up -d" >&2
+  echo "living-docs: the container '$CONTAINER' is not running. Bring it up with: docker compose up -d" >&2
   exit 2
 fi
 
 exec docker exec -i -e LIVING_DOCS_ROOT=/app "$CONTAINER" node /app/src/cli/index.ts "$@"
 ```
 
-Torne executável:
+Make it executable:
 
 ```bash
 chmod +x bin/living-docs
 ```
 
-- [ ] **Step 7: Rodar os testes e exercitar o CLI de ponta a ponta**
+- [ ] **Step 7: Run the tests and exercise the CLI end to end**
 
 ```bash
 docker compose exec toolkit npm test
@@ -2640,22 +2640,22 @@ docker compose exec toolkit npm run typecheck
 ./bin/living-docs validate; echo "exit=$?"
 ```
 
-Esperado: testes passando; `--help` imprimindo o uso; `validate` saindo com `exit=2` e a mensagem de `docs/.ownership.yml` não encontrado (o repositório ainda não foi inicializado — é a Task 8).
+Expected: tests passing; `--help` printing the usage; `validate` exiting with `exit=2` and the message that `docs/.ownership.yml` was not found (the repository has not been initialized yet — that is Task 8).
 
 - [ ] **Step 8: Commit**
 
 ```bash
 git add src/cli bin/living-docs test/cli
-git commit -m "feat: CLI living-docs validate e ponte bash para o container"
+git commit -m "feat: CLI living-docs validate and bash bridge to the container"
 ```
 
 ---
 
-### Task 8: `SK-0` — templates e `living-docs init`
+### Task 8: `SK-0` — templates and `living-docs init`
 
-O bootstrap da spec §5. A regra que define esta task é a primeira do procedimento de `SK-0`: **inventariar antes de criar** — se já existe `docs/adr/` ou `adr/`, o toolkit adota esse caminho no `.ownership.yml` em vez de criar um paralelo. "Duplicata é o anti-padrão mais caro da lista."
+The bootstrap of spec §5. The rule that defines this task is the first of the `SK-0` procedure: **take inventory before creating** — if `docs/adr/` or `adr/` already exists, the toolkit adopts that path in `.ownership.yml` instead of creating a parallel one. "Duplication is the most expensive anti-pattern on the list."
 
-Idempotência é requisito da spec: rodar duas vezes não duplica arquivo, não reescreve conteúdo existente, não renumera ID.
+Idempotence is a requirement of the spec: running twice does not duplicate a file, does not rewrite existing content, does not renumber an ID.
 
 **Files:**
 
@@ -2666,7 +2666,7 @@ Idempotência é requisito da spec: rodar duas vezes não duplica arquivo, não 
 - Create: `templates/tdr.md`
 - Create: `templates/CODEOWNERS`
 - Create: `src/cli/init.ts`
-- Modify: `src/cli/index.ts` (rota do subcomando `init`)
+- Modify: `src/cli/index.ts` (route of the `init` subcommand)
 - Test: `test/cli/init.test.ts`
 
 **Interfaces:**
@@ -2678,13 +2678,13 @@ Idempotência é requisito da spec: rodar duas vezes não duplica arquivo, não 
   - `function runInit(root: string, options: InitOptions): InitResult`
   - `const DEFAULT_PATHS: Readonly<Record<'ADR' | 'DA' | 'TDR', string>>`
 
-- [ ] **Step 1: Escrever os templates**
+- [ ] **Step 1: Write the templates**
 
-`templates/ownership.yml` (os `{{...}}` são substituídos por `runInit`):
+`templates/ownership.yml` (the `{{...}}` are replaced by `runInit`):
 
 ```yaml
-# O único arquivo específico deste projeto. Hooks e checks não conhecem
-# caminho nenhum — leem daqui. Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §3.
+# The only file specific to this project. Hooks and checks know no
+# path at all — they read from here. Source rule: LIVING-DOCUMENTATION-TOOLKIT.md §3.
 version: 1
 stale-after-months: 6
 
@@ -2711,7 +2711,7 @@ artifacts:
 
 generated: []
 
-# Fases 3+ preenchem `watches` (código → doc dono). Vazio nas Fases 0–1.
+# Phases 3+ fill in `watches` (code → owning doc). Empty in Phases 0–1.
 watches: []
 
 consumer-visible-paths: []
@@ -2724,24 +2724,24 @@ consumer-visible-paths: []
 title: Open Decisions
 owner: '{{OWNER}}'
 trigger: >
-  Toda vez que alguém trombou numa lacuna — comportamento sem regra escrita.
+  Whenever someone ran into a gap — behavior with no written rule.
 last-reviewed: { { TODAY } }
 ---
 
 # Open Decisions
 
-O que ainda **não** foi decidido. Enquanto um item está aqui, ele não tem regra
-e **não deve ser implementado** — a saída é o ID, não o código.
+What has **not** been decided yet. While an item is here, it has no rule
+and **must not be implemented** — the output is the ID, not the code.
 
-| ID  | Lacuna | Status | Resolvida por | Aberta em |
-| --- | ------ | ------ | ------------- | --------- |
+| ID  | Gap | Status | Resolved by | Opened on |
+| --- | --- | ------ | ----------- | --------- |
 ```
 
 `templates/ids-retired.txt`:
 
 ```
-# IDs retirados. Nunca são reciclados (LIVING-DOCUMENTATION-TOOLKIT.md §2).
-# Um ID por linha.
+# Retired IDs. They are never recycled (LIVING-DOCUMENTATION-TOOLKIT.md §2).
+# One ID per line.
 ```
 
 `templates/adr.md`:
@@ -2753,7 +2753,7 @@ title: { { TITLE } }
 status: draft
 owner: '{{OWNER}}'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Never. Immutable once accepted; a new decision supersedes it.
 last-reviewed: { { TODAY } }
 relates-to: []
 supersedes: null
@@ -2762,25 +2762,25 @@ superseded-by: null
 
 # {{ID}} — {{TITLE}}
 
-## Contexto
+## Context
 
-<!-- Que força criou a necessidade da decisão. Sem narrar o código. -->
+<!-- What force created the need for the decision. Without narrating the code. -->
 
-## Alternativas consideradas
+## Alternatives considered
 
-<!-- Ao menos duas, com o motivo real do descarte de cada uma. -->
+<!-- At least two, with the real reason each one was discarded. -->
 
-## Decisão
+## Decision
 
-<!-- O que se decidiu, em uma frase afirmativa. -->
+<!-- What was decided, in one affirmative sentence. -->
 
-## Consequências
+## Consequences
 
-### O que se ganha
+### What is gained
 
-### O que se aceita perder
+### What we accept losing
 
-<!-- Obrigatório. ADR sem consequência negativa declarada é propaganda. -->
+<!-- Mandatory. An ADR with no declared negative consequence is propaganda. -->
 ```
 
 `templates/tdr.md`:
@@ -2792,38 +2792,38 @@ title: { { TITLE } }
 status: open
 owner: '{{OWNER}}'
 trigger: >
-  Quando o gatilho de pagamento abaixo se cumprir.
+  When the payment trigger below is met.
 last-reviewed: { { TODAY } }
 relates-to: []
 ---
 
 # {{ID}} — {{TITLE}}
 
-## O atalho
+## The shortcut
 
-<!-- O que foi feito, deliberadamente, abaixo do padrão. -->
+<!-- What was done, deliberately, below the standard. -->
 
-## Por que foi aceito
+## Why it was accepted
 
-## Gatilho de pagamento
+## Payment trigger
 
-<!-- Precisa ser observável: "quando o volume passar de X", "no primeiro PR
-     que tocar este módulo". "Quando der tempo" não é gatilho. -->
+<!-- It must be observable: "when the volume passes X", "in the first PR
+     that touches this module". "When there is time" is not a trigger. -->
 
-## Custo de continuar devendo
+## Cost of continuing to owe
 ```
 
 `templates/CODEOWNERS`:
 
 ```
-# Espelha o campo `owner` de docs/.ownership.yml. Um artefato, um dono.
+# Mirrors the `owner` field of docs/.ownership.yml. One artifact, one owner.
 {{ADR_PATH}}    {{OWNER}}
 {{DA_PATH}}    {{OWNER}}
 {{TDR_PATH}}    {{OWNER}}
 docs/.ownership.yml    {{OWNER}}
 ```
 
-- [ ] **Step 2: Escrever o teste falhando**
+- [ ] **Step 2: Write the failing test**
 
 `test/cli/init.test.ts`:
 
@@ -2840,12 +2840,12 @@ import { withTempRepo } from '../helpers/tmp.ts'
 
 const OPTIONS = { owner: '@team-platform', dryRun: false }
 
-test('cria a moldura das fases 0–1 num repositório vazio — critério de aceite 1', () => {
-  withTempRepo({ 'README.md': '# projeto\n' }, root => {
+test('creates the frame of phases 0–1 in an empty repository — acceptance criterion 1', () => {
+  withTempRepo({ 'README.md': '# project\n' }, root => {
     const result = runInit(root, OPTIONS)
 
     for (const path of [OWNERSHIP_PATH, RETIRED_IDS_PATH, 'docs/open-decisions.md', 'CODEOWNERS']) {
-      assert.ok(existsSync(join(root, path)), `${path} deveria existir`)
+      assert.ok(existsSync(join(root, path)), `${path} should exist`)
       assert.ok(result.created.includes(path))
     }
     assert.ok(existsSync(join(root, 'docs/decisions/adr')))
@@ -2857,7 +2857,7 @@ test('cria a moldura das fases 0–1 num repositório vazio — critério de ace
   })
 })
 
-test('o repositório recém-inicializado passa no próprio validate', () => {
+test('the freshly initialized repository passes its own validate', () => {
   withTempRepo({ 'README.md': '' }, root => {
     runInit(root, OPTIONS)
     const result = runValidate(root)
@@ -2866,21 +2866,21 @@ test('o repositório recém-inicializado passa no próprio validate', () => {
   })
 })
 
-test('é idempotente: a segunda execução não recria nem reescreve nada', () => {
+test('is idempotent: the second run neither recreates nor rewrites anything', () => {
   withTempRepo({ 'README.md': '' }, root => {
     runInit(root, OPTIONS)
-    writeFileSync(join(root, 'docs/open-decisions.md'), 'CONTEÚDO DO USUÁRIO\n', 'utf8')
+    writeFileSync(join(root, 'docs/open-decisions.md'), 'USER CONTENT\n', 'utf8')
 
     const second = runInit(root, OPTIONS)
     assert.deepEqual(second.created, [])
-    assert.deepEqual(second.adopted, [], 'a segunda execução lê os caminhos do .ownership.yml, não readota')
+    assert.deepEqual(second.adopted, [], 'the second run reads the paths from .ownership.yml, it does not re-adopt')
     assert.ok(second.skipped.includes('docs/open-decisions.md'))
-    assert.equal(readFileSync(join(root, 'docs/open-decisions.md'), 'utf8'), 'CONTEÚDO DO USUÁRIO\n')
+    assert.equal(readFileSync(join(root, 'docs/open-decisions.md'), 'utf8'), 'USER CONTENT\n')
   })
 })
 
-test('adota diretório de ADR preexistente em vez de criar um paralelo', () => {
-  withTempRepo({ 'docs/adr/0001-antigo.md': '# antigo\n' }, root => {
+test('adopts a preexisting ADR directory instead of creating a parallel one', () => {
+  withTempRepo({ 'docs/adr/0001-old.md': '# old\n' }, root => {
     const result = runInit(root, OPTIONS)
 
     assert.ok(result.adopted.some(entry => entry.idPrefix === 'ADR' && entry.path === 'docs/adr/'))
@@ -2889,14 +2889,14 @@ test('adota diretório de ADR preexistente em vez de criar um paralelo', () => {
   })
 })
 
-test('adota arquivo de open decisions preexistente sob outro nome', () => {
-  withTempRepo({ 'docs/decisoes-abertas.md': '# abertas\n', 'README.md': '' }, root => {
+test('adopts a preexisting open decisions file under another name', () => {
+  withTempRepo({ 'docs/pending-decisions.md': '# open\n', 'README.md': '' }, root => {
     const result = runInit(root, OPTIONS)
-    assert.ok(result.adopted.some(entry => entry.path === 'docs/decisoes-abertas.md'))
+    assert.ok(result.adopted.some(entry => entry.path === 'docs/pending-decisions.md'))
   })
 })
 
-test('dry-run não escreve nada mas relata o que faria', () => {
+test('dry-run writes nothing but reports what it would do', () => {
   withTempRepo({ 'README.md': '' }, root => {
     const result = runInit(root, { owner: '@team', dryRun: true })
     assert.ok(result.created.includes(OWNERSHIP_PATH))
@@ -2905,15 +2905,15 @@ test('dry-run não escreve nada mas relata o que faria', () => {
 })
 ```
 
-- [ ] **Step 3: Rodar o teste para ver falhar**
+- [ ] **Step 3: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `Cannot find module '/app/src/cli/init.ts'`.
+Expected: FAIL — `Cannot find module '/app/src/cli/init.ts'`.
 
-- [ ] **Step 4: Implementar `src/cli/init.ts`**
+- [ ] **Step 4: Implement `src/cli/init.ts`**
 
 ```typescript
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -2931,13 +2931,13 @@ export const DEFAULT_PATHS: Readonly<Record<'ADR' | 'DA' | 'TDR', string>> = Obj
 })
 
 /**
- * Caminhos onde um artefato equivalente pode já existir sob outro nome.
- * Adotar o que existe; nunca criar um paralelo (spec §5, SK-0 passo 1).
+ * Paths where an equivalent artifact may already exist under another name.
+ * Adopt what exists; never create a parallel one (spec §5, SK-0 step 1).
  */
 const ADOPTION_CANDIDATES: Readonly<Record<'ADR' | 'DA' | 'TDR', readonly string[]>> = Object.freeze({
   ADR: ['docs/adr/', 'adr/', 'doc/adr/', 'docs/architecture/decisions/'],
-  DA: ['docs/decisoes-abertas.md', 'docs/open-questions.md', 'docs/decision-backlog.md'],
-  TDR: ['docs/debt/', 'docs/tech-debt/', 'docs/divida/'],
+  DA: ['docs/pending-decisions.md', 'docs/open-questions.md', 'docs/decision-backlog.md'],
+  TDR: ['docs/debt/', 'docs/tech-debt/', 'docs/debts/'],
 })
 
 export interface InitOptions {
@@ -2964,8 +2964,8 @@ function template(name: string, values: Record<string, string>): string {
 }
 
 /**
- * Idempotência (spec §5): se já existe `.ownership.yml`, os caminhos vêm dele —
- * uma segunda execução não pode reinterpretar a estrutura que a primeira criou.
+ * Idempotence (spec §5): if `.ownership.yml` already exists, the paths come from it —
+ * a second run must not reinterpret the structure that the first one created.
  */
 function resolvePath(root: string, kind: 'ADR' | 'DA' | 'TDR', existing: OwnershipConfig | null, result: InitResult): string {
   const declared = existing?.artifacts.find(artifact => artifact.idPrefix === kind)
@@ -3012,7 +3012,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
   try {
     existing = loadOwnership(root)
   } catch {
-    existing = null // primeira execução, ou configuração ilegível
+    existing = null // first run, or unreadable configuration
   }
 
   const adrPath = resolvePath(root, 'ADR', existing, result)
@@ -3038,9 +3038,9 @@ export function runInit(root: string, options: InitOptions): InitResult {
 }
 ```
 
-- [ ] **Step 5: Ligar o subcomando `init` no CLI**
+- [ ] **Step 5: Wire the `init` subcommand into the CLI**
 
-Em `src/cli/index.ts`, adicione o import e substitua o bloco `if (command === 'init')` por:
+In `src/cli/index.ts`, add the import and replace the `if (command === 'init')` block with:
 
 ```typescript
 if (command === 'init') {
@@ -3049,22 +3049,22 @@ if (command === 'init') {
   const result = runInit(root, { owner, dryRun: argv.includes('--dry-run') })
 
   for (const entry of result.adopted) {
-    process.stdout.write(`adotado   ${entry.path}  (${entry.idPrefix} — já existia; nenhum paralelo criado)\n`)
+    process.stdout.write(`adopted   ${entry.path}  (${entry.idPrefix} — already existed; no parallel created)\n`)
   }
-  for (const path of result.created) process.stdout.write(`criado    ${path}\n`)
-  for (const path of result.skipped) process.stdout.write(`mantido   ${path}\n`)
-  if (result.created.length === 0) process.stdout.write('living-docs: nada a criar; a moldura já existe.\n')
+  for (const path of result.created) process.stdout.write(`created   ${path}\n`)
+  for (const path of result.skipped) process.stdout.write(`kept      ${path}\n`)
+  if (result.created.length === 0) process.stdout.write('living-docs: nothing to create; the frame already exists.\n')
   return 0
 }
 ```
 
-E o import no topo:
+And the import at the top:
 
 ```typescript
 import { runInit } from './init.ts'
 ```
 
-- [ ] **Step 6: Rodar os testes e exercitar `init` de ponta a ponta**
+- [ ] **Step 6: Run the tests and exercise `init` end to end**
 
 ```bash
 docker compose exec toolkit npm test
@@ -3072,22 +3072,22 @@ docker compose exec toolkit npm run typecheck
 ./bin/living-docs init --dry-run --owner "@esliph/engineering"
 ```
 
-Esperado: testes passando; `--dry-run` listando os arquivos que criaria, sem escrever nenhum.
+Expected: tests passing; `--dry-run` listing the files it would create, without writing any.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add templates src/cli/init.ts src/cli/index.ts test/cli/init.test.ts
-git commit -m "feat: SK-0 living-docs init idempotente com adoção de artefatos existentes"
+git commit -m "feat: SK-0 idempotent living-docs init with adoption of existing artifacts"
 ```
 
 ---
 
-### Task 9: Biblioteca dos hooks — protocolo, caminhos e projeção de edição
+### Task 9: Hooks library — protocol, paths and edit projection
 
-Três utilitários que `HK-1` e `HK-3` compartilham. O mais sutil é `applyToolInput`: em vez de tentar adivinhar a intenção de um `Edit` a partir de `old_string`/`new_string`, ele **projeta a edição sobre o conteúdo atual em memória** e compara os dois documentos. Isso mantém os hooks estritamente mecânicos — eles comparam frontmatter, não interpretam intenção (spec §1, corolário 1).
+Three utilities that `HK-1` and `HK-3` share. The subtlest is `applyToolInput`: instead of trying to guess the intent of an `Edit` from `old_string`/`new_string`, it **projects the edit onto the current content in memory** and compares the two documents. This keeps the hooks strictly mechanical — they compare frontmatter, they do not interpret intent (spec §1, corollary 1).
 
-`toRepoPath` existe porque o agente roda no host e envia caminhos do host (`/mnt/c/.../repo/docs/...`), enquanto o hook roda no container e enxerga `/app/docs/...`.
+`toRepoPath` exists because the agent runs on the host and sends host paths (`/mnt/c/.../repo/docs/...`), while the hook runs in the container and sees `/app/docs/...`.
 
 **Files:**
 
@@ -3103,7 +3103,7 @@ Três utilitários que `HK-1` e `HK-3` compartilham. O mais sutil é `applyToolI
 - Produces:
   - `function toRepoPath(filePath: string, roots: readonly string[]): string | null`
   - `interface HookEnv { root: string; hostRoots: readonly string[] }`
-  - `function hookEnv(): HookEnv` — lê `LIVING_DOCS_ROOT` e `LIVING_DOCS_HOST_ROOT`
+  - `function hookEnv(): HookEnv` — reads `LIVING_DOCS_ROOT` and `LIVING_DOCS_HOST_ROOT`
   - `interface HookPayload { tool_name?: string; tool_input?: Record<string, unknown> }`
   - `function readPayload(): Promise<HookPayload | null>`
   - `function denyOutput(reason: string): string`
@@ -3113,7 +3113,7 @@ Três utilitários que `HK-1` e `HK-3` compartilham. O mais sutil é `applyToolI
   - `interface DocumentDiff { changedFields: string[]; bodyChanged: boolean }`
   - `function diffDocument(before: string, after: string): DocumentDiff`
 
-- [ ] **Step 1: Escrever os testes falhando**
+- [ ] **Step 1: Write the failing tests**
 
 `test/hooks/lib/paths.test.ts`:
 
@@ -3124,28 +3124,28 @@ import { toRepoPath } from '../../../src/hooks/lib/paths.ts'
 
 const ROOTS = ['/app', '/mnt/c/Users/dev/repo']
 
-test('converte caminho do host em caminho do repositório', () => {
+test('converts a host path into a repository path', () => {
   assert.equal(toRepoPath('/mnt/c/Users/dev/repo/docs/a.md', ROOTS), 'docs/a.md')
 })
 
-test('converte caminho do container', () => {
+test('converts a container path', () => {
   assert.equal(toRepoPath('/app/docs/a.md', ROOTS), 'docs/a.md')
 })
 
-test('normaliza separadores do Windows e ./', () => {
+test('normalizes Windows separators and ./', () => {
   assert.equal(toRepoPath('C:\\Users\\dev\\repo\\docs\\a.md', ['C:/Users/dev/repo']), 'docs/a.md')
   assert.equal(toRepoPath('./docs/a.md', ROOTS), 'docs/a.md')
 })
 
-test('caminho relativo passa direto', () => {
+test('a relative path passes straight through', () => {
   assert.equal(toRepoPath('docs/a.md', ROOTS), 'docs/a.md')
 })
 
-test('caminho absoluto fora de qualquer raiz devolve null', () => {
+test('an absolute path outside any root returns null', () => {
   assert.equal(toRepoPath('/etc/passwd', ROOTS), null)
 })
 
-test('a própria raiz não é um arquivo dentro dela', () => {
+test('the root itself is not a file inside it', () => {
   assert.equal(toRepoPath('/app', ROOTS), null)
 })
 ```
@@ -3157,22 +3157,22 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { applyToolInput, diffDocument } from '../../../src/hooks/lib/edit.ts'
 
-const DOC = ['---', 'id: ADR-0001', 'status: accepted', 'superseded-by: null', '---', '', '## Contexto', 'texto original'].join('\n')
+const DOC = ['---', 'id: ADR-0001', 'status: accepted', 'superseded-by: null', '---', '', '## Context', 'original text'].join('\n')
 
-test('Write devolve o conteúdo inteiro', () => {
-  assert.equal(applyToolInput(DOC, { content: 'novo' }), 'novo')
+test('Write returns the whole content', () => {
+  assert.equal(applyToolInput(DOC, { content: 'new' }), 'new')
 })
 
-test('Edit projeta a substituição sobre o conteúdo atual', () => {
+test('Edit projects the replacement onto the current content', () => {
   const result = applyToolInput(DOC, {
-    old_string: 'texto original',
-    new_string: 'texto novo',
+    old_string: 'original text',
+    new_string: 'new text',
   })
-  assert.match(result ?? '', /texto novo/)
-  assert.doesNotMatch(result ?? '', /texto original/)
+  assert.match(result ?? '', /new text/)
+  assert.doesNotMatch(result ?? '', /original text/)
 })
 
-test('Edit com replace_all substitui todas as ocorrências', () => {
+test('Edit with replace_all replaces every occurrence', () => {
   const result = applyToolInput('a a a', {
     old_string: 'a',
     new_string: 'b',
@@ -3181,15 +3181,15 @@ test('Edit com replace_all substitui todas as ocorrências', () => {
   assert.equal(result, 'b b b')
 })
 
-test('Edit cujo old_string não existe devolve null — não dá para prever', () => {
-  assert.equal(applyToolInput(DOC, { old_string: 'inexistente', new_string: 'x' }), null)
+test('Edit whose old_string does not exist returns null — it cannot be predicted', () => {
+  assert.equal(applyToolInput(DOC, { old_string: 'nonexistent', new_string: 'x' }), null)
 })
 
-test('tool_input sem content nem old_string devolve null', () => {
+test('tool_input with neither content nor old_string returns null', () => {
   assert.equal(applyToolInput(DOC, {}), null)
 })
 
-test('diffDocument isola campos alterados do corpo alterado', () => {
+test('diffDocument isolates changed fields from a changed body', () => {
   const after = DOC.replace('status: accepted', 'status: superseded').replace('superseded-by: null', 'superseded-by: ADR-0002')
   assert.deepEqual(diffDocument(DOC, after), {
     changedFields: ['status', 'superseded-by'],
@@ -3197,38 +3197,38 @@ test('diffDocument isola campos alterados do corpo alterado', () => {
   })
 })
 
-test('diffDocument detecta alteração de corpo', () => {
-  const after = DOC.replace('texto original', 'texto adulterado')
+test('diffDocument detects a body change', () => {
+  const after = DOC.replace('original text', 'tampered text')
   const diff = diffDocument(DOC, after)
   assert.deepEqual(diff.changedFields, [])
   assert.equal(diff.bodyChanged, true)
 })
 
-test('campo adicionado ou removido conta como campo alterado', () => {
+test('an added or removed field counts as a changed field', () => {
   const added = DOC.replace('status: accepted', 'status: accepted\nlast-reviewed: 2026-08-24')
   assert.deepEqual(diffDocument(DOC, added).changedFields, ['last-reviewed'])
   const removed = DOC.replace('superseded-by: null\n', '')
   assert.deepEqual(diffDocument(DOC, removed).changedFields, ['superseded-by'])
 })
 
-test('diferença só de espaço em branco no fim do corpo não conta', () => {
+test('a whitespace-only difference at the end of the body does not count', () => {
   assert.equal(diffDocument(DOC, `${DOC}\n\n`).bodyChanged, false)
 })
 
-test('perder o frontmatter conta como corpo alterado', () => {
-  assert.equal(diffDocument(DOC, '# sem frontmatter').bodyChanged, true)
+test('losing the frontmatter counts as a changed body', () => {
+  assert.equal(diffDocument(DOC, '# no frontmatter').bodyChanged, true)
 })
 ```
 
-- [ ] **Step 2: Rodar os testes para ver falhar**
+- [ ] **Step 2: Run the tests to see them fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — módulos `src/hooks/lib/*.ts` inexistentes.
+Expected: FAIL — modules `src/hooks/lib/*.ts` do not exist.
 
-- [ ] **Step 3: Implementar `src/hooks/lib/paths.ts`**
+- [ ] **Step 3: Implement `src/hooks/lib/paths.ts`**
 
 ```typescript
 function normalize(path: string): string {
@@ -3236,8 +3236,8 @@ function normalize(path: string): string {
 }
 
 /**
- * Caminho relativo à raiz do repositório, ou null se o arquivo está fora dele.
- * `roots` traz a raiz do container e a raiz do host, nessa ordem de preferência.
+ * Path relative to the repository root, or null if the file is outside it.
+ * `roots` carries the container root and the host root, in that order of preference.
  */
 export function toRepoPath(filePath: string, roots: readonly string[]): string | null {
   const normalized = normalize(filePath)
@@ -3258,13 +3258,13 @@ export function toRepoPath(filePath: string, roots: readonly string[]): string |
 }
 ```
 
-- [ ] **Step 4: Implementar `src/hooks/lib/io.ts`**
+- [ ] **Step 4: Implement `src/hooks/lib/io.ts`**
 
 ```typescript
 export interface HookEnv {
-  /** Raiz do repositório dentro do container. */
+  /** Repository root inside the container. */
   root: string
-  /** Raízes reconhecidas em `file_path`: a do container e a do host. */
+  /** Roots recognized in `file_path`: the container's and the host's. */
   hostRoots: readonly string[]
 }
 
@@ -3310,18 +3310,18 @@ export function askOutput(reason: string): string {
   return output('ask', reason)
 }
 
-/** Emite a decisão; `null` significa "deixe passar em silêncio". */
+/** Emits the decision; `null` means "let it through silently". */
 export function emit(value: string | null): void {
   if (value !== null) process.stdout.write(`${value}\n`)
 }
 ```
 
-- [ ] **Step 5: Implementar `src/hooks/lib/edit.ts`**
+- [ ] **Step 5: Implement `src/hooks/lib/edit.ts`**
 
 ```typescript
 import { parseFrontmatter } from '../../frontmatter/parse.ts'
 
-/** Conteúdo que o arquivo teria depois deste `tool_input`, ou null se não dá para prever. */
+/** Content the file would have after this `tool_input`, or null if it cannot be predicted. */
 export function applyToolInput(current: string, toolInput: Record<string, unknown>): string | null {
   const content = toolInput.content
   if (typeof content === 'string') return content
@@ -3335,7 +3335,7 @@ export function applyToolInput(current: string, toolInput: Record<string, unknow
 }
 
 export interface DocumentDiff {
-  /** Chaves de frontmatter adicionadas, removidas ou com valor diferente, em ordem alfabética. */
+  /** Frontmatter keys added, removed or with a different value, in alphabetical order. */
   changedFields: string[]
   bodyChanged: boolean
 }
@@ -3370,28 +3370,28 @@ export function diffDocument(before: string, after: string): DocumentDiff {
 }
 ```
 
-- [ ] **Step 6: Rodar os testes para ver passar**
+- [ ] **Step 6: Run the tests to see them pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: todos passando; type-check limpo.
+Expected: all passing; type-check clean.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add src/hooks/lib test/hooks/lib
-git commit -m "feat: biblioteca de hooks — protocolo, mapa de caminhos e projeção de edição"
+git commit -m "feat: hooks library — protocol, path mapping and edit projection"
 ```
 
 ---
 
-### Task 10: `HK-1` — bloqueio de edição de item append-only congelado
+### Task 10: `HK-1` — blocking edits of a frozen append-only item
 
-O hook mais importante do toolkit, e o critério de aceite 2 da spec: um ADR `accepted` não se corrige — ganha `superseded`. A allowlist de `mutable-fields` é o que permite supersedir **sem** violar a imutabilidade.
+The most important hook of the toolkit, and acceptance criterion 2 of the spec: an `accepted` ADR is not corrected — it gets `superseded`. The `mutable-fields` allowlist is what allows superseding **without** violating immutability.
 
-Toda saída é `deny` com uma mensagem que nomeia a regra de origem, o artefato dono e o caminho válido. Falha aberta em qualquer imprevisto: config ilegível, arquivo inexistente, edição não projetável — tudo devolve `allow`.
+Every output is a `deny` with a message that names the source rule, the owning artifact and the valid path. Fail open on anything unexpected: unreadable config, nonexistent file, non-projectable edit — everything returns `allow`.
 
 **Files:**
 
@@ -3405,7 +3405,7 @@ Toda saída é `deny` com uma mensagem que nomeia a regra de origem, o artefato 
   - `type HookDecision = { action: 'allow' } | { action: 'deny'; reason: string }`
   - `function decideHk1(payload: HookPayload, env: HookEnv): HookDecision`
 
-- [ ] **Step 1: Escrever o teste falhando**
+- [ ] **Step 1: Write the failing test**
 
 `test/hooks/hk1-append-only.test.ts`:
 
@@ -3418,7 +3418,7 @@ import { withTempRepo } from '../helpers/tmp.ts'
 import type { HookEnv } from '../../src/hooks/lib/io.ts'
 import type { HookDecision } from '../../src/hooks/hk1-append-only.ts'
 
-/** Narrowing tipado: sem isto, `decision.reason` não existe para o TypeScript. */
+/** Typed narrowing: without this, `decision.reason` does not exist for TypeScript. */
 function assertDeny(decision: HookDecision): asserts decision is { action: 'deny'; reason: string } {
   assert.equal(decision.action, 'deny')
 }
@@ -3443,20 +3443,20 @@ function adr(status: string): string {
   return [
     '---',
     'id: ADR-0001',
-    'title: Fila de eventos',
+    'title: Event queue',
     `status: ${status}`,
     'owner: "@team"',
-    'trigger: Nunca.',
+    'trigger: Never.',
     'last-reviewed: 2026-08-21',
     'superseded-by: null',
     '---',
     '',
-    '## Contexto',
-    'texto original',
+    '## Context',
+    'original text',
   ].join('\n')
 }
 
-const FILE = 'docs/decisions/adr/ADR-0001-fila.md'
+const FILE = 'docs/decisions/adr/ADR-0001-queue.md'
 
 function decide(files: Record<string, string>, toolInput: Record<string, unknown>): HookDecision {
   let decision: HookDecision = { action: 'allow' }
@@ -3467,71 +3467,71 @@ function decide(files: Record<string, string>, toolInput: Record<string, unknown
   return decision
 }
 
-test('nega alterar o corpo de um ADR accepted — critério de aceite 2', () => {
+test('denies changing the body of an accepted ADR — acceptance criterion 2', () => {
   const decision = decide(
     { [FILE]: adr('accepted') },
     {
       file_path: FILE,
-      old_string: 'texto original',
-      new_string: 'texto corrigido',
+      old_string: 'original text',
+      new_string: 'corrected text',
     },
   )
   assertDeny(decision)
   assert.match(decision.reason, /superseded|supersed/i)
   assert.match(decision.reason, /decision-recorder/)
-  assert.match(decision.reason, /ADR-0001-fila\.md/)
+  assert.match(decision.reason, /ADR-0001-queue\.md/)
 })
 
-test('permite alterar só status + superseded-by — é assim que se supersede', () => {
+test('allows changing only status + superseded-by — this is how one supersedes', () => {
   const after = adr('superseded').replace('superseded-by: null', 'superseded-by: ADR-0002')
   const decision = decide({ [FILE]: adr('accepted') }, { file_path: FILE, content: after })
   assert.equal(decision.action, 'allow')
 })
 
-test('nega mudar um campo fora da allowlist mesmo sem tocar no corpo', () => {
-  const after = adr('accepted').replace('title: Fila de eventos', 'title: Outro título')
+test('denies changing a field outside the allowlist even without touching the body', () => {
+  const after = adr('accepted').replace('title: Event queue', 'title: Another title')
   const decision = decide({ [FILE]: adr('accepted') }, { file_path: FILE, content: after })
   assertDeny(decision)
   assert.match(decision.reason, /title/)
 })
 
-test('permite editar ADR em draft — draft não é estado congelado', () => {
+test('allows editing an ADR in draft — draft is not a frozen state', () => {
   const decision = decide(
     { [FILE]: adr('draft') },
     {
       file_path: FILE,
-      old_string: 'texto original',
-      new_string: 'texto novo',
+      old_string: 'original text',
+      new_string: 'new text',
     },
   )
   assert.equal(decision.action, 'allow')
 })
 
-test('permite criar item novo — arquivo inexistente sempre passa', () => {
+test('allows creating a new item — a nonexistent file always passes', () => {
   const decision = decide(
     {},
     {
-      file_path: 'docs/decisions/adr/ADR-0002-nova.md',
+      file_path: 'docs/decisions/adr/ADR-0002-new.md',
       content: adr('draft'),
     },
   )
   assert.equal(decision.action, 'allow')
 })
 
-test('ignora caminho fora de qualquer artefato append-only', () => {
+test('ignores a path outside any append-only artifact', () => {
   assert.equal(decide({ 'src/index.ts': 'x' }, { file_path: 'src/index.ts', content: 'y' }).action, 'allow')
   assert.equal(decide({ 'docs/open-decisions.md': 'x' }, { file_path: 'docs/open-decisions.md', content: 'y' }).action, 'allow')
 })
 
-test('falha aberta: .ownership.yml ausente permite', () => {
-  let decision: HookDecision = { action: 'deny', reason: 'não deveria' }
+test('fail open: a missing .ownership.yml allows', () => {
+  let decision: HookDecision = { action: 'deny', reason: 'should not' }
   withTempRepo({ [FILE]: adr('accepted') }, root => {
     decision = decideHk1(
       {
         tool_name: 'Edit',
         tool_input: {
           file_path: FILE,
-          old_string: 'texto original',
+          old_string: 'original text',
           new_string: 'x',
         },
       },
@@ -3541,23 +3541,23 @@ test('falha aberta: .ownership.yml ausente permite', () => {
   assert.equal(decision.action, 'allow')
 })
 
-test('falha aberta: edição não projetável permite', () => {
+test('fail open: a non-projectable edit allows', () => {
   const decision = decide(
     { [FILE]: adr('accepted') },
     {
       file_path: FILE,
-      old_string: 'trecho que não existe',
+      old_string: 'excerpt that does not exist',
       new_string: 'x',
     },
   )
   assert.equal(decision.action, 'allow')
 })
 
-test('payload sem file_path permite', () => {
+test('a payload without file_path allows', () => {
   assert.equal(decide({ [FILE]: adr('accepted') }, { content: 'x' }).action, 'allow')
 })
 
-test('aceita file_path absoluto do host', () => {
+test('accepts an absolute host file_path', () => {
   let decision: HookDecision = { action: 'allow' }
   withTempRepo({ [OWNERSHIP_PATH]: CONFIG, [FILE]: adr('accepted') }, root => {
     decision = decideHk1(
@@ -3565,7 +3565,7 @@ test('aceita file_path absoluto do host', () => {
         tool_name: 'Edit',
         tool_input: {
           file_path: `${root}/${FILE}`,
-          old_string: 'texto original',
+          old_string: 'original text',
           new_string: 'x',
         },
       },
@@ -3576,25 +3576,25 @@ test('aceita file_path absoluto do host', () => {
 })
 ```
 
-- [ ] **Step 2: Rodar o teste para ver falhar**
+- [ ] **Step 2: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `Cannot find module '/app/src/hooks/hk1-append-only.ts'`.
+Expected: FAIL — `Cannot find module '/app/src/hooks/hk1-append-only.ts'`.
 
-- [ ] **Step 3: Implementar**
+- [ ] **Step 3: Implement**
 
 `src/hooks/hk1-append-only.ts`:
 
 ```typescript
 #!/usr/bin/env node
 /**
- * PreToolUse (Edit|Write): nega alteração de item append-only congelado.
+ * PreToolUse (Edit|Write): denies changes to a frozen append-only item.
  *
- * Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §4 — "nenhum estado terminal
- * permite edição do corpo". A allowlist de campos vem de docs/.ownership.yml.
+ * Source rule: LIVING-DOCUMENTATION-TOOLKIT.md §4 — "no terminal state
+ * allows editing the body". The field allowlist comes from docs/.ownership.yml.
  */
 import { readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
@@ -3624,7 +3624,7 @@ export function decideHk1(payload: HookPayload, env: HookEnv): HookDecision {
   try {
     rule = findArtifactRule(loadOwnership(env.root), repoPath)
   } catch {
-    return ALLOW // falha aberta: sem configuração legível, não trave o trabalho
+    return ALLOW // fail open: without a readable configuration, do not block the work
   }
   if (!rule || !rule.appendOnly) return ALLOW
 
@@ -3632,7 +3632,7 @@ export function decideHk1(payload: HookPayload, env: HookEnv): HookDecision {
   try {
     current = readFileSync(join(env.root, repoPath), 'utf8')
   } catch {
-    return ALLOW // criar item novo é sempre permitido
+    return ALLOW // creating a new item is always allowed
   }
 
   let status: unknown
@@ -3644,7 +3644,7 @@ export function decideHk1(payload: HookPayload, env: HookEnv): HookDecision {
   if (typeof status !== 'string' || !FROZEN_STATUSES.has(status)) return ALLOW
 
   const next = applyToolInput(current, toolInput)
-  if (next === null) return ALLOW // não dá para prever o resultado
+  if (next === null) return ALLOW // the result cannot be predicted
 
   const mutable = rule.mutableFields.length > 0 ? rule.mutableFields : MUTABLE_FIELDS_DEFAULT
   const diff = diffDocument(current, next)
@@ -3652,60 +3652,60 @@ export function decideHk1(payload: HookPayload, env: HookEnv): HookDecision {
 
   if (!diff.bodyChanged && forbidden.length === 0) return ALLOW
 
-  const what = diff.bodyChanged ? 'o corpo do documento' : `o campo ${forbidden.map(field => `\`${field}\``).join(', ')}`
+  const what = diff.bodyChanged ? 'the body of the document' : `the field ${forbidden.map(field => `\`${field}\``).join(', ')}`
 
   return {
     action: 'deny',
     reason:
-      `HK-1 bloqueou: \`${basename(repoPath)}\` está em estado congelado (\`${status}\`) e você tentou alterar ${what}. ` +
-      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §4 — nenhum estado terminal permite edição do corpo; ' +
-      'um item aceito que se revelou errado não é corrigido, a história das decisões é o ativo. ' +
-      `Caminho válido: crie um item novo com \`supersedes: ${String(parseFrontmatter(current)?.data.id ?? '')}\` e ` +
-      `marque este como \`status: superseded\` + \`superseded-by:\` (campos liberados aqui: ${mutable.join(', ')}). ` +
-      `Artefato dono: ${rule.path} (${rule.owner}); skill dona: ${rule.skill}.`,
+      `HK-1 blocked: \`${basename(repoPath)}\` is in a frozen state (\`${status}\`) and you tried to change ${what}. ` +
+      'Source rule: LIVING-DOCUMENTATION-TOOLKIT.md §4 — no terminal state allows editing the body; ' +
+      'an accepted item that turned out to be wrong is not corrected, the history of decisions is the asset. ' +
+      `Valid path: create a new item with \`supersedes: ${String(parseFrontmatter(current)?.data.id ?? '')}\` and ` +
+      `mark this one as \`status: superseded\` + \`superseded-by:\` (fields released here: ${mutable.join(', ')}). ` +
+      `Owning artifact: ${rule.path} (${rule.owner}); owning skill: ${rule.skill}.`,
   }
 }
 
 async function main(): Promise<void> {
   const payload = await readPayload()
-  if (!payload) return // falha aberta
+  if (!payload) return // fail open
   const decision = decideHk1(payload, hookEnv())
   emit(decision.action === 'deny' ? denyOutput(decision.reason) : null)
 }
 
 if (process.argv[1]?.endsWith('hk1-append-only.ts')) {
-  main().catch(() => process.exit(0)) // falha aberta, sempre
+  main().catch(() => process.exit(0)) // fail open, always
 }
 ```
 
-- [ ] **Step 4: Rodar o teste para ver passar**
+- [ ] **Step 4: Run the test to see it pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: todos passando; type-check limpo.
+Expected: all passing; type-check clean.
 
-- [ ] **Step 5: Verificar o comportamento real do executável via stdin**
+- [ ] **Step 5: Verify the real behavior of the executable via stdin**
 
 ```bash
-docker compose exec -T toolkit sh -c 'echo "{\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/app/inexistente.md\",\"content\":\"x\"}}" | node /app/src/hooks/hk1-append-only.ts; echo "exit=$?"'
+docker compose exec -T toolkit sh -c 'echo "{\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/app/nonexistent.md\",\"content\":\"x\"}}" | node /app/src/hooks/hk1-append-only.ts; echo "exit=$?"'
 ```
 
-Esperado: nenhuma saída (allow) e `exit=0`.
+Expected: no output (allow) and `exit=0`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add src/hooks/hk1-append-only.ts test/hooks/hk1-append-only.test.ts
-git commit -m "feat: HK-1 bloqueia edição de item append-only congelado"
+git commit -m "feat: HK-1 blocks edits of a frozen append-only item"
 ```
 
 ---
 
-### Task 11: `HK-3` — promoção de estado exige ato humano
+### Task 11: `HK-3` — state promotion requires a human act
 
-"Nenhum agente promove estado sozinho" (spec §4). O hook devolve `ask`, não `deny`: promover é legítimo, só não é ato de agente. Cobre os dois casos da spec — `draft → accepted` no frontmatter de um item por arquivo, e `open → resolved` numa linha de tabela.
+"No agent promotes state on its own" (spec §4). The hook returns `ask`, not `deny`: promoting is legitimate, it just is not an agent's act. It covers the two cases of the spec — `draft → accepted` in the frontmatter of a one-item-per-file artifact, and `open → resolved` in a table row.
 
 **Files:**
 
@@ -3714,12 +3714,12 @@ git commit -m "feat: HK-1 bloqueia edição de item append-only congelado"
 
 **Interfaces:**
 
-- Consumes: mesmos módulos de `HK-1`; adicionalmente `HUMAN_PROMOTIONS` e `parseItemTable` (Task 4).
+- Consumes: same modules as `HK-1`; additionally `HUMAN_PROMOTIONS` and `parseItemTable` (Task 4).
 - Produces:
   - `type Hk3Decision = { action: 'allow' } | { action: 'ask'; reason: string }`
   - `function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision`
 
-- [ ] **Step 1: Escrever o teste falhando**
+- [ ] **Step 1: Write the failing test**
 
 `test/hooks/hk3-state-promotion.test.ts`:
 
@@ -3750,20 +3750,20 @@ artifacts:
     collection: table
 `
 
-const ADR_FILE = 'docs/decisions/adr/ADR-0001-fila.md'
+const ADR_FILE = 'docs/decisions/adr/ADR-0001-queue.md'
 
 function adr(status: string): string {
   return [
     '---',
     'id: ADR-0001',
-    'title: Fila de eventos',
+    'title: Event queue',
     `status: ${status}`,
     'owner: "@team"',
-    'trigger: Nunca.',
+    'trigger: Never.',
     'last-reviewed: 2026-08-21',
     '---',
     '',
-    '## Contexto',
+    '## Context',
   ].join('\n')
 }
 
@@ -3772,13 +3772,13 @@ function openDecisions(status: string, resolvedBy: string): string {
     '---',
     'title: Open Decisions',
     'owner: "@product"',
-    'trigger: Toda vez que alguém trombou numa lacuna.',
+    'trigger: Whenever someone ran into a gap.',
     'last-reviewed: 2026-08-21',
     '---',
     '',
-    '| ID | Lacuna | Status | Resolvida por |',
+    '| ID | Gap | Status | Resolved by |',
     '| --- | --- | --- | --- |',
-    `| DA-0001 | Reembolso parcial | ${status} | ${resolvedBy} |`,
+    `| DA-0001 | Partial refund | ${status} | ${resolvedBy} |`,
   ].join('\n')
 }
 
@@ -3790,7 +3790,7 @@ function decide(files: Record<string, string>, toolInput: Record<string, unknown
   return decision
 }
 
-test('pergunta ao promover ADR de draft para accepted', () => {
+test('asks when promoting an ADR from draft to accepted', () => {
   const decision = decide(
     { [ADR_FILE]: adr('draft') },
     {
@@ -3801,11 +3801,11 @@ test('pergunta ao promover ADR de draft para accepted', () => {
   )
   assertAsk(decision)
   assert.match(decision.reason, /ADR-0001/)
-  assert.match(decision.reason, /humano/i)
+  assert.match(decision.reason, /human/i)
   assert.match(decision.reason, /decision-recorder/)
 })
 
-test('pergunta ao resolver uma DA na tabela', () => {
+test('asks when resolving a DA in the table', () => {
   const decision = decide(
     { 'docs/open-decisions.md': openDecisions('open', '—') },
     {
@@ -3817,12 +3817,12 @@ test('pergunta ao resolver uma DA na tabela', () => {
   assert.match(decision.reason, /DA-0001/)
 })
 
-test('permite escrever draft — é o máximo que uma skill escreve', () => {
+test('allows writing draft — it is the most a skill writes', () => {
   const decision = decide({}, { file_path: ADR_FILE, content: adr('draft') })
   assert.equal(decision.action, 'allow')
 })
 
-test('permite alterações que não são promoção humana', () => {
+test('allows changes that are not a human promotion', () => {
   const decision = decide(
     { [ADR_FILE]: adr('accepted') },
     {
@@ -3834,14 +3834,14 @@ test('permite alterações que não são promoção humana', () => {
   assert.equal(decision.action, 'allow')
 })
 
-test('permite adicionar linha nova em open na tabela', () => {
+test('allows adding a new open row to the table', () => {
   const before = openDecisions('open', '—')
-  const after = `${before}\n| DA-0002 | Outra lacuna | open | — |`
+  const after = `${before}\n| DA-0002 | Another gap | open | — |`
   assert.equal(decide({ 'docs/open-decisions.md': before }, { file_path: 'docs/open-decisions.md', content: after }).action, 'allow')
 })
 
-test('falha aberta: sem configuração, permite', () => {
-  let decision: Hk3Decision = { action: 'ask', reason: 'não deveria' }
+test('fail open: without configuration, allows', () => {
+  let decision: Hk3Decision = { action: 'ask', reason: 'should not' }
   withTempRepo({ [ADR_FILE]: adr('draft') }, root => {
     decision = decideHk3(
       {
@@ -3859,26 +3859,26 @@ test('falha aberta: sem configuração, permite', () => {
 })
 ```
 
-- [ ] **Step 2: Rodar o teste para ver falhar**
+- [ ] **Step 2: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `Cannot find module '/app/src/hooks/hk3-state-promotion.ts'`.
+Expected: FAIL — `Cannot find module '/app/src/hooks/hk3-state-promotion.ts'`.
 
-- [ ] **Step 3: Implementar**
+- [ ] **Step 3: Implement**
 
 `src/hooks/hk3-state-promotion.ts`:
 
 ```typescript
 #!/usr/bin/env node
 /**
- * PreToolUse (Edit|Write): intercepta promoção de estado que exige ato humano.
+ * PreToolUse (Edit|Write): intercepts a state promotion that requires a human act.
  *
- * Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §4 — "nenhum agente promove
- * estado sozinho". Devolve `ask`, nunca `deny`: promover é legítimo, só não é
- * ato de agente.
+ * Source rule: LIVING-DOCUMENTATION-TOOLKIT.md §4 — "no agent promotes
+ * state on its own". Returns `ask`, never `deny`: promoting is legitimate, it just is not
+ * an agent's act.
  */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -3950,7 +3950,7 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
   try {
     rule = findArtifactRule(loadOwnership(env.root), repoPath)
   } catch {
-    return ALLOW // falha aberta
+    return ALLOW // fail open
   }
   if (!rule) return ALLOW
 
@@ -3958,7 +3958,7 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
   try {
     current = readFileSync(join(env.root, repoPath), 'utf8')
   } catch {
-    return ALLOW // arquivo novo nasce em draft/open; nada a promover
+    return ALLOW // a new file is born in draft/open; nothing to promote
   }
 
   const next = applyToolInput(current, toolInput)
@@ -3970,11 +3970,11 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
   return {
     action: 'ask',
     reason:
-      `HK-3: esta edição promove ${promotion.id} de \`${promotion.from}\` para \`${promotion.to}\`. ` +
-      'Regra de origem: LIVING-DOCUMENTATION-TOOLKIT.md §4 — nenhum agente promove estado sozinho; ' +
-      'o máximo que uma skill escreve é `draft`/`open`, e a aceitação é ato humano. ' +
-      `Confirme se a decisão foi realmente tomada por uma pessoa. Artefato dono: ${rule.path} (${rule.owner}); ` +
-      `skill dona: ${rule.skill}.`,
+      `HK-3: this edit promotes ${promotion.id} from \`${promotion.from}\` to \`${promotion.to}\`. ` +
+      'Source rule: LIVING-DOCUMENTATION-TOOLKIT.md §4 — no agent promotes state on its own; ' +
+      'the most a skill writes is `draft`/`open`, and acceptance is a human act. ' +
+      `Confirm whether the decision was really made by a person. Owning artifact: ${rule.path} (${rule.owner}); ` +
+      `owning skill: ${rule.skill}.`,
   }
 }
 
@@ -3990,28 +3990,28 @@ if (process.argv[1]?.endsWith('hk3-state-promotion.ts')) {
 }
 ```
 
-- [ ] **Step 4: Rodar o teste para ver passar**
+- [ ] **Step 4: Run the test to see it pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: todos passando; type-check limpo.
+Expected: all passing; type-check clean.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add src/hooks/hk3-state-promotion.ts test/hooks/hk3-state-promotion.test.ts
-git commit -m "feat: HK-3 intercepta promoção de estado que exige ato humano"
+git commit -m "feat: HK-3 intercepts state promotion that requires a human act"
 ```
 
 ---
 
-### Task 12: Plugin do Claude Code — manifesto, registro de hooks e ponte fail-open
+### Task 12: Claude Code plugin — manifest, hook registration and fail-open bridge
 
-Empacota `HK-1` e `HK-3` como plugin. O `run-hook.sh` é o ponto onde o requisito "falha aberta" da spec §7 vira código: **qualquer** falha — container fora do ar, timeout, erro de execução — resulta em saída vazia e exit 0, deixando a ferramenta passar. Um hook quebrado não pode travar o trabalho.
+Packages `HK-1` and `HK-3` as a plugin. `run-hook.sh` is the point where the "fail open" requirement of spec §7 becomes code: **any** failure — container down, timeout, execution error — results in empty output and exit 0, letting the tool through. A broken hook cannot block the work.
 
-`timeout 5` no wrapper honra o teto de 5 s da spec, com folga enorme: `docker exec` neste container responde em ~160 ms.
+`timeout 5` in the wrapper honors the 5 s ceiling of the spec, with a huge margin: `docker exec` on this container responds in ~160 ms.
 
 **Files:**
 
@@ -4022,10 +4022,10 @@ Empacota `HK-1` e `HK-3` como plugin. O `run-hook.sh` é o ponto onde o requisit
 
 **Interfaces:**
 
-- Consumes: os executáveis `src/hooks/hk1-append-only.ts` e `src/hooks/hk3-state-promotion.ts` (Tasks 10–11).
-- Produces: um diretório de plugin instalável; `run-hook.sh <nome-do-hook>` como única porta de entrada do host para os hooks.
+- Consumes: the executables `src/hooks/hk1-append-only.ts` and `src/hooks/hk3-state-promotion.ts` (Tasks 10–11).
+- Produces: an installable plugin directory; `run-hook.sh <hook-name>` as the only entry point from the host to the hooks.
 
-- [ ] **Step 1: Escrever o teste falhando**
+- [ ] **Step 1: Write the failing test**
 
 `test/plugin/manifest.test.ts`:
 
@@ -4041,14 +4041,14 @@ function readJson(relative: string): Record<string, unknown> {
   return JSON.parse(readFileSync(join(ROOT, relative), 'utf8')) as Record<string, unknown>
 }
 
-test('o manifesto do plugin declara nome, versão e descrição', () => {
+test('the plugin manifest declares name, version and description', () => {
   const manifest = readJson('plugin/.claude-plugin/plugin.json')
   assert.equal(manifest.name, 'living-docs')
   assert.equal(typeof manifest.version, 'string')
   assert.equal(typeof manifest.description, 'string')
 })
 
-test('hooks.json registra HK-1 e HK-3 em PreToolUse com matcher Edit|Write', () => {
+test('hooks.json registers HK-1 and HK-3 in PreToolUse with matcher Edit|Write', () => {
   const config = readJson('plugin/hooks/hooks.json')
   const hooks = config.hooks as Record<string, unknown[]>
   const preToolUse = hooks.PreToolUse as {
@@ -4064,42 +4064,42 @@ test('hooks.json registra HK-1 e HK-3 em PreToolUse com matcher Edit|Write', () 
   assert.ok(commands.some(command => command.includes('hk1-append-only')))
   assert.ok(commands.some(command => command.includes('hk3-state-promotion')))
   for (const command of commands) {
-    assert.ok(command.includes('${CLAUDE_PLUGIN_ROOT}'), 'o comando precisa ser relocável')
+    assert.ok(command.includes('${CLAUDE_PLUGIN_ROOT}'), 'the command must be relocatable')
   }
 })
 
-test('o wrapper existe, é executável e falha aberta', () => {
+test('the wrapper exists, is executable and fails open', () => {
   const wrapper = join(ROOT, 'plugin/hooks/run-hook.sh')
   assert.ok(existsSync(wrapper))
-  assert.ok((statSync(wrapper).mode & 0o111) !== 0, 'run-hook.sh precisa ser executável')
+  assert.ok((statSync(wrapper).mode & 0o111) !== 0, 'run-hook.sh must be executable')
 
   const source = readFileSync(wrapper, 'utf8')
-  assert.match(source, /timeout 5/, 'precisa respeitar o teto de 5s da spec §7')
-  assert.match(source, /exit 0/, 'precisa falhar aberta')
-  assert.doesNotMatch(source, /set -e\b/, 'set -e mataria a falha aberta')
+  assert.match(source, /timeout 5/, 'it must respect the 5s ceiling of spec §7')
+  assert.match(source, /exit 0/, 'it must fail open')
+  assert.doesNotMatch(source, /set -e\b/, 'set -e would kill the fail-open')
 })
 
-test('todo hook referenciado existe no repositório', () => {
+test('every referenced hook exists in the repository', () => {
   const config = readJson('plugin/hooks/hooks.json')
   const hooks = config.hooks as Record<string, { hooks: { command: string }[] }[]>
   for (const group of hooks.PreToolUse ?? []) {
     for (const hook of group.hooks) {
       const name = hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? ''
-      assert.ok(existsSync(join(ROOT, 'src/hooks', `${name}.ts`)), `src/hooks/${name}.ts deveria existir`)
+      assert.ok(existsSync(join(ROOT, 'src/hooks', `${name}.ts`)), `src/hooks/${name}.ts should exist`)
     }
   }
 })
 ```
 
-- [ ] **Step 2: Rodar o teste para ver falhar**
+- [ ] **Step 2: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `ENOENT` em `plugin/.claude-plugin/plugin.json`.
+Expected: FAIL — `ENOENT` at `plugin/.claude-plugin/plugin.json`.
 
-- [ ] **Step 3: Escrever o manifesto**
+- [ ] **Step 3: Write the manifest**
 
 `plugin/.claude-plugin/plugin.json`:
 
@@ -4107,12 +4107,12 @@ Esperado: FAIL — `ENOENT` em `plugin/.claude-plugin/plugin.json`.
 {
   "name": "living-docs",
   "version": "0.1.0",
-  "description": "Documentação viva: ADR, Open Decisions e Debt Register com dono, gatilho e enforcement. Fases 0–1.",
+  "description": "Living documentation: ADR, Open Decisions and Debt Register with owner, trigger and enforcement. Phases 0–1.",
   "keywords": ["adr", "documentation", "decisions", "living-docs"]
 }
 ```
 
-- [ ] **Step 4: Escrever o registro de hooks**
+- [ ] **Step 4: Write the hook registration**
 
 `plugin/hooks/hooks.json`:
 
@@ -4142,19 +4142,19 @@ Esperado: FAIL — `ENOENT` em `plugin/.claude-plugin/plugin.json`.
 }
 ```
 
-- [ ] **Step 5: Escrever o wrapper fail-open**
+- [ ] **Step 5: Write the fail-open wrapper**
 
-Note a ausência de `set -e`: aqui ele seria um bug, não uma boa prática — abortaria antes do `exit 0` e o Claude Code interpretaria a saída como falha do hook.
+Note the absence of `set -e`: here it would be a bug, not a good practice — it would abort before the `exit 0` and Claude Code would interpret the output as a hook failure.
 
 `plugin/hooks/run-hook.sh`:
 
 ```bash
 #!/usr/bin/env bash
-# Ponte host → container para os hooks de documentação viva.
+# Host → container bridge for the living documentation hooks.
 #
-# Falha aberta por contrato (LIVING-DOCUMENTATION-TOOLKIT.md §7): container fora
-# do ar, timeout ou erro de execução resultam em saída vazia e exit 0. Um hook
-# quebrado não pode travar o trabalho.
+# Fail open by contract (LIVING-DOCUMENTATION-TOOLKIT.md §7): container down,
+# timeout or execution error result in empty output and exit 0. A broken hook
+# cannot block the work.
 
 HOOK="${1:-}"
 CONTAINER="${LIVING_DOCS_CONTAINER:-living-docs-toolkit}"
@@ -4176,65 +4176,65 @@ fi
 exit 0
 ```
 
-Torne executável:
+Make it executable:
 
 ```bash
 chmod +x plugin/hooks/run-hook.sh
 ```
 
-- [ ] **Step 6: Rodar os testes e exercitar o wrapper de verdade**
+- [ ] **Step 6: Run the tests and exercise the wrapper for real**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Depois, no host, prove os dois caminhos — o de bloqueio e o de falha aberta:
+Then, on the host, prove both paths — the blocking one and the fail-open one:
 
 ```bash
-# 1. Cria um ADR congelado para o teste
+# 1. Create a frozen ADR for the test
 mkdir -p docs/decisions/adr
-cat > docs/decisions/adr/ADR-9999-teste.md <<'EOF'
+cat > docs/decisions/adr/ADR-9999-test.md <<'EOF'
 ---
 id: ADR-9999
-title: Teste temporário
+title: Temporary test
 status: accepted
 owner: "@team"
-trigger: Nunca.
+trigger: Never.
 last-reviewed: 2026-08-24
 ---
 
-corpo original
+original body
 EOF
 
-# 2. HK-1 deve bloquear (exige docs/.ownership.yml presente — se a Task 8 ainda
-#    não foi rodada neste repositório, rode `./bin/living-docs init` antes)
+# 2. HK-1 must block (requires docs/.ownership.yml present — if Task 8 has not
+#    been run in this repository yet, run `./bin/living-docs init` first)
 export CLAUDE_PROJECT_DIR="$PWD"
-echo '{"tool_name":"Edit","tool_input":{"file_path":"'"$PWD"'/docs/decisions/adr/ADR-9999-teste.md","old_string":"corpo original","new_string":"corpo alterado"}}' \
+echo '{"tool_name":"Edit","tool_input":{"file_path":"'"$PWD"'/docs/decisions/adr/ADR-9999-test.md","old_string":"original body","new_string":"changed body"}}' \
   | ./plugin/hooks/run-hook.sh hk1-append-only
 
-# 3. Falha aberta: container inexistente devolve vazio e exit 0
-echo '{}' | LIVING_DOCS_CONTAINER=nao-existe ./plugin/hooks/run-hook.sh hk1-append-only; echo "exit=$?"
+# 3. Fail open: a nonexistent container returns empty and exit 0
+echo '{}' | LIVING_DOCS_CONTAINER=does-not-exist ./plugin/hooks/run-hook.sh hk1-append-only; echo "exit=$?"
 
-# 4. Limpa
-rm docs/decisions/adr/ADR-9999-teste.md
+# 4. Clean up
+rm docs/decisions/adr/ADR-9999-test.md
 ```
 
-Esperado: passo 2 imprime o JSON com `"permissionDecision":"deny"`; passo 3 imprime nada e `exit=0`.
+Expected: step 2 prints the JSON with `"permissionDecision":"deny"`; step 3 prints nothing and `exit=0`.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add plugin test/plugin/manifest.test.ts
-git commit -m "feat: plugin do Claude Code com HK-1 e HK-3 via ponte fail-open"
+git commit -m "feat: Claude Code plugin with HK-1 and HK-3 via a fail-open bridge"
 ```
 
 ---
 
-### Task 13: `SK-3` `decision-recorder` e os comandos `CM-1`–`CM-3`, `CM-6`
+### Task 13: `SK-3` `decision-recorder` and the commands `CM-1`–`CM-3`, `CM-6`
 
-A skill mais importante do toolkit (spec §5): ADR e Open Decisions capturam a única informação que **não** é reconstruível a partir do código. Segue as convenções de autoria da spec §11 — seções na ordem fixa, `description` escrita em linguagem de sintoma (é ela que faz o roteamento acontecer), e checklist final onde cada item corresponde a uma invariante verificada por `CI-*` ou explicitamente marcada como verificação humana.
+The most important skill of the toolkit (spec §5): ADR and Open Decisions capture the only information that is **not** reconstructible from the code. It follows the authoring conventions of spec §11 — sections in fixed order, `description` written in symptom language (it is what makes routing happen), and a final checklist where each item corresponds to an invariant verified by `CI-*` or explicitly marked as human verification.
 
-Os comandos são atalhos finos: **não contêm lógica própria** (spec §1), apenas invocam a skill.
+The commands are thin shortcuts: they **contain no logic of their own** (spec §1), they only invoke the skill.
 
 **Files:**
 
@@ -4247,12 +4247,12 @@ Os comandos são atalhos finos: **não contêm lógica própria** (spec §1), ap
 
 **Interfaces:**
 
-- Consumes: `templates/adr.md`, `templates/tdr.md` (Task 8); o CLI `living-docs init` (Task 8).
-- Produces: a skill `decision-recorder` e quatro comandos; nenhuma API de código.
+- Consumes: `templates/adr.md`, `templates/tdr.md` (Task 8); the CLI `living-docs init` (Task 8).
+- Produces: the skill `decision-recorder` and four commands; no code API.
 
-- [ ] **Step 1: Escrever o teste falhando**
+- [ ] **Step 1: Write the failing test**
 
-O teste é o enforcement das convenções de autoria — sem ele, "§11" é promessa.
+The test is the enforcement of the authoring conventions — without it, "§11" is a promise.
 
 `test/plugin/authoring.test.ts`:
 
@@ -4266,72 +4266,72 @@ import { parseFrontmatter } from '../../src/frontmatter/parse.ts'
 const ROOT = process.env.LIVING_DOCS_ROOT ?? '/app'
 const SKILL = readFileSync(join(ROOT, 'plugin/skills/decision-recorder/SKILL.md'), 'utf8')
 
-test('a skill tem frontmatter com name e description', () => {
+test('the skill has frontmatter with name and description', () => {
   const frontmatter = parseFrontmatter(SKILL)
   assert.ok(frontmatter)
   assert.equal(frontmatter.data.name, 'decision-recorder')
   assert.equal(typeof frontmatter.data.description, 'string')
 })
 
-test('a description é escrita em linguagem de sintoma, não de categoria', () => {
+test('the description is written in symptom language, not category language', () => {
   const description = String(parseFrontmatter(SKILL)?.data.description ?? '')
-  assert.ok(description.length > 120, 'description curta demais para ser encontrada quando importa')
-  assert.match(description, /Use quando/i)
-  for (const sintoma of ['por que', 'lacuna', 'dívida']) {
-    assert.ok(description.toLowerCase().includes(sintoma), `a description deveria conter o sintoma "${sintoma}"`)
+  assert.ok(description.length > 120, 'description too short to be found when it matters')
+  assert.match(description, /Use when/i)
+  for (const symptom of ['why', 'gap', 'debt']) {
+    assert.ok(description.toLowerCase().includes(symptom), `the description should contain the symptom "${symptom}"`)
   }
 })
 
-test('as seções da spec §11 estão presentes e na ordem', () => {
-  const secoes = ['## Overview', '## Do que você é dono', '## Quando usar / quando não', '## Procedimento', '## Fronteiras', '## Checklist']
+test('the sections of spec §11 are present and in order', () => {
+  const sections = ['## Overview', '## What you own', '## When to use / when not', '## Procedure', '## Boundaries', '## Checklist']
   let cursor = -1
-  for (const secao of secoes) {
-    const at = SKILL.indexOf(secao)
-    assert.ok(at !== -1, `seção ausente: ${secao}`)
-    assert.ok(at > cursor, `seção fora de ordem: ${secao}`)
+  for (const section of sections) {
+    const at = SKILL.indexOf(section)
+    assert.ok(at !== -1, `missing section: ${section}`)
+    assert.ok(at > cursor, `section out of order: ${section}`)
     cursor = at
   }
 })
 
-test('o checklist tem caixas marcáveis e cada uma nomeia sua verificação', () => {
+test('the checklist has tickable boxes and each one names its verification', () => {
   const checklist = SKILL.slice(SKILL.indexOf('## Checklist'))
-  const itens = checklist.split('\n').filter(line => line.trim().startsWith('- [ ]'))
-  assert.ok(itens.length >= 6, `checklist com apenas ${itens.length} itens`)
-  for (const item of itens) {
-    assert.match(item, /CI-\d|HK-\d|humano/i, `item sem verificação nomeada: ${item}`)
+  const items = checklist.split('\n').filter(line => line.trim().startsWith('- [ ]'))
+  assert.ok(items.length >= 6, `checklist with only ${items.length} items`)
+  for (const item of items) {
+    assert.match(item, /CI-\d|HK-\d|human/i, `item without a named verification: ${item}`)
   }
 })
 
-test('a skill não duplica o conteúdo dos artefatos que governa', () => {
-  assert.doesNotMatch(SKILL, /^## Contexto$/m, 'a skill não deve conter o template do ADR')
-  assert.match(SKILL, /templates\/adr\.md/, 'ela deve apontar para o template, não copiá-lo')
+test('the skill does not duplicate the content of the artifacts it governs', () => {
+  assert.doesNotMatch(SKILL, /^## Context$/m, 'the skill must not contain the ADR template')
+  assert.match(SKILL, /templates\/adr\.md/, 'it must point to the template, not copy it')
 })
 
-test('os quatro comandos existem, têm description e não contêm lógica própria', () => {
-  const esperados = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md']
-  const encontrados = readdirSync(join(ROOT, 'plugin/commands')).sort()
-  assert.deepEqual(encontrados, esperados.sort())
+test('the four commands exist, have a description and contain no logic of their own', () => {
+  const expected = ['adr.md', 'open-decision.md', 'debt.md', 'docs-setup.md']
+  const found = readdirSync(join(ROOT, 'plugin/commands')).sort()
+  assert.deepEqual(found, expected.sort())
 
-  for (const nome of esperados) {
-    const source = readFileSync(join(ROOT, 'plugin/commands', nome), 'utf8')
+  for (const name of expected) {
+    const source = readFileSync(join(ROOT, 'plugin/commands', name), 'utf8')
     const frontmatter = parseFrontmatter(source)
-    assert.ok(frontmatter, `${nome} sem frontmatter`)
+    assert.ok(frontmatter, `${name} without frontmatter`)
     assert.equal(typeof frontmatter.data.description, 'string')
-    assert.ok(source.split('\n').length < 25, `${nome} é longo demais para um atalho fino`)
-    assert.match(source, /decision-recorder|living-docs-bootstrap/, `${nome} deve apontar a skill que aciona`)
+    assert.ok(source.split('\n').length < 25, `${name} is too long for a thin shortcut`)
+    assert.match(source, /decision-recorder|living-docs-bootstrap/, `${name} must point to the skill it triggers`)
   }
 })
 ```
 
-- [ ] **Step 2: Rodar o teste para ver falhar**
+- [ ] **Step 2: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `ENOENT` em `plugin/skills/decision-recorder/SKILL.md`.
+Expected: FAIL — `ENOENT` at `plugin/skills/decision-recorder/SKILL.md`.
 
-- [ ] **Step 3: Escrever a skill**
+- [ ] **Step 3: Write the skill**
 
 `plugin/skills/decision-recorder/SKILL.md`:
 
@@ -4339,204 +4339,204 @@ Esperado: FAIL — `ENOENT` em `plugin/skills/decision-recorder/SKILL.md`.
 ---
 name: decision-recorder
 description: >
-  Use quando alguém perguntar "por que isso foi feito assim?", quando você for
-  tomar uma decisão custosa de reverter (escolher biblioteca, formato de dado,
-  fronteira de módulo, protocolo), quando trombar numa lacuna — comportamento
-  sem regra escrita, "não sei o que fazer nesse caso", "isso está documentado?",
-  "qual é a regra de X?" — ou quando aceitar de propósito um atalho, gambiarra,
-  TODO ou dívida técnica que alguém vai pagar depois. Também para supersedir uma
-  decisão antiga que se revelou errada.
+  Use when someone asks "why was this done this way?", when you are about to
+  make a decision that is costly to reverse (choosing a library, data format,
+  module boundary, protocol), when you run into a gap — behavior
+  with no written rule, "I don't know what to do in this case", "is this documented?",
+  "what is the rule for X?" — or when you deliberately accept a shortcut, hack,
+  TODO or technical debt that someone will pay later. Also for superseding an old
+  decision that turned out to be wrong.
 ---
 
-# decision-recorder — dono de ADR, Open Decisions e Debt Register
+# decision-recorder — owner of ADR, Open Decisions and Debt Register
 
 ## Overview
 
-Três artefatos, uma máquina de estados única:
+Three artifacts, a single state machine:
 ```
 
-lacuna encontrada ──> DA-nnn (open)
+gap found ──> DA-nnn (open)
 │
-└─ decidido ──> ADR-nnn (draft ──ato humano──> accepted)
+└─ decided ──> ADR-nnn (draft ──human act──> accepted)
 │
-└─ aceita perda deliberada ──> TDR-nnn
+└─ accepts deliberate loss ──> TDR-nnn
 
 ```
 
-Esta skill decide **onde um pedaço de conhecimento mora** e **qual ID ele
-recebe**. Ela não decide o mérito: levanta as alternativas e o trade-off,
-escreve `draft`/`open`, e para.
+This skill decides **where a piece of knowledge lives** and **which ID it
+gets**. It does not decide the merit: it raises the alternatives and the trade-off,
+writes `draft`/`open`, and stops.
 
-Os caminhos, donos e prefixos vêm de `docs/.ownership.yml` — leia-o primeiro,
-nunca assuma caminho.
+The paths, owners and prefixes come from `docs/.ownership.yml` — read it first,
+never assume a path.
 
-## Do que você é dono
+## What you own
 
-| Artefato | O que é | Forma |
+| Artifact | What it is | Form |
 | --- | --- | --- |
-| ADR | Por que isto e não aquilo, e o que se aceita perder | Um arquivo por decisão, numerado, append-only |
-| Open Decisions (DA) | O que ainda **não** foi decidido | Arquivo único, tabela, mutável |
-| TDR | Dívida assumida de propósito, com gatilho de pagamento | Um arquivo por dívida |
+| ADR | Why this and not that, and what is accepted as lost | One file per decision, numbered, append-only |
+| Open Decisions (DA) | What has **not** been decided yet | Single file, table, mutable |
+| TDR | Debt taken on deliberately, with a payment trigger | One file per debt |
 
-Templates: `templates/adr.md` e `templates/tdr.md`. Não reescreva o formato aqui.
+Templates: `templates/adr.md` and `templates/tdr.md`. Do not rewrite the format here.
 
-## Quando usar / quando não
+## When to use / when not
 
-**Use** para: decisão custosa de reverter; lacuna que bloqueia implementação;
-atalho deliberado.
+**Use** for: a decision that is costly to reverse; a gap that blocks implementation;
+a deliberate shortcut.
 
-**Não use** para: decisão trivial e barata de reverter (o custo de um ADR é
-real — ele entra na leitura de todo mundo para sempre); registrar o que o código
-já diz; narrar uma implementação. Um ADR por escolha de nome de variável é
-exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação.
+**Do not use** for: a trivial decision that is cheap to reverse (the cost of an ADR is
+real — it goes into everyone's reading forever); recording what the code
+already says; narrating an implementation. One ADR per variable-name choice is
+exactly the "twenty documents of four hundred lines" that kills documentation.
 
-**Nunca** use para tomar a decisão. Isso não é seu.
+**Never** use it to make the decision. That is not yours.
 
-## Procedimento
+## Procedure
 
-1. **Leia `docs/.ownership.yml`** e descubra o caminho, o dono e o prefixo de
-   cada artefato. Se o arquivo não existir, pare e rode `/docs-setup`.
-2. **Classifique** o que está na sua frente:
-   - já se sabe o que fazer e é caro reverter → **ADR**;
-   - não se sabe → **DA** e **pare a implementação**;
-   - sabe-se, escolheu-se o pior de propósito → **TDR**.
-3. **Procure antes de criar.** Um `grep` pelo tema nos artefatos existentes. Se
-   já existe ADR sobre isso, o caminho é supersedir, não escrever um segundo.
-4. **Tome o próximo ID livre** do prefixo, conferindo também `docs/ids-retired.txt`.
-   Nunca recicle. Nunca pule.
-5. **Escreva a partir do template.** No ADR, exija de si mesmo as **alternativas
-   consideradas** com o motivo real do descarte, e a seção **o que se aceita
-   perder** — ADR sem consequência negativa declarada é propaganda.
-6. **No TDR, exija um gatilho de pagamento observável.** "Quando o volume passar
-   de 10k eventos/dia" ou "no primeiro PR que tocar este módulo" passam. "Quando
-   der tempo" não é gatilho: recuse e peça a condição.
-7. **Feche os dois lados da referência.** DA resolvida aponta o ADR que a fechou;
-   o ADR aponta de volta em `relates-to`. Superseder preenche `supersedes` no
-   novo e `superseded-by` no antigo.
-8. **Pare em `draft`/`open`.** Diga qual decisão falta e a quem ela cabe. Se
-   você tentar promover, `HK-3` vai perguntar — e a resposta não é sua.
-9. **Rode `living-docs validate`** antes de encerrar.
-10. **Cite o ID na mensagem de commit.**
+1. **Read `docs/.ownership.yml`** and find out the path, the owner and the prefix of
+   each artifact. If the file does not exist, stop and run `/docs-setup`.
+2. **Classify** what is in front of you:
+   - it is known what to do and it is costly to reverse → **ADR**;
+   - it is not known → **DA** and **stop the implementation**;
+   - it is known, the worse option was chosen on purpose → **TDR**.
+3. **Search before creating.** A `grep` for the topic in the existing artifacts. If
+   an ADR on it already exists, the path is to supersede, not to write a second one.
+4. **Take the next free ID** of the prefix, also checking `docs/ids-retired.txt`.
+   Never recycle. Never skip.
+5. **Write from the template.** In the ADR, demand of yourself the **alternatives
+   considered** with the real reason for each discard, and the section **what we
+   accept losing** — an ADR with no declared negative consequence is propaganda.
+6. **In the TDR, demand an observable payment trigger.** "When the volume passes
+   10k events/day" or "in the first PR that touches this module" pass. "When there
+   is time" is not a trigger: refuse and ask for the condition.
+7. **Close both sides of the reference.** A resolved DA points to the ADR that closed it;
+   the ADR points back in `relates-to`. Superseding fills in `supersedes` on the
+   new one and `superseded-by` on the old one.
+8. **Stop at `draft`/`open`.** Say which decision is missing and whose it is. If
+   you try to promote, `HK-3` will ask — and the answer is not yours.
+9. **Run `living-docs validate`** before finishing.
+10. **Cite the ID in the commit message.**
 
-## Fronteiras
+## Boundaries
 
-| É seu | Não é seu |
+| It is yours | It is not yours |
 | --- | --- |
-| Registrar por que isto e não aquilo, e o que se perde | Tomar a decisão |
-| Transformar lacuna em item bloqueante com ID | Implementar a regra que falta |
-| Registrar a dívida com gatilho de pagamento | Pagar a dívida |
-| Propor supersedir um ADR errado | Editar um ADR aceito |
-| Apontar o formato do template | Duplicar o conteúdo do artefato aqui |
+| Recording why this and not that, and what is lost | Making the decision |
+| Turning a gap into a blocking item with an ID | Implementing the missing rule |
+| Recording the debt with a payment trigger | Paying the debt |
+| Proposing to supersede a wrong ADR | Editing an accepted ADR |
+| Pointing to the template format | Duplicating the artifact content here |
 
 ## Checklist
 
-- [ ] O artefato certo para a natureza do item (ADR / DA / TDR) — verificação humana
-- [ ] Frontmatter completo, com `trigger` nomeando um evento e não uma cadência — `CI-1`
-- [ ] ID sequencial, não reciclado, conferido contra `docs/ids-retired.txt` — `CI-2`
-- [ ] Toda citação a outro ID resolve — `CI-2`
-- [ ] `status` é `draft` ou `open`; promoção deixada para uma pessoa — `HK-3`
-- [ ] Nenhum ADR aceito foi editado; o caminho usado foi supersedir — `HK-1`
-- [ ] ADR declara alternativas consideradas e o que se aceita perder — verificação humana
-- [ ] TDR tem gatilho de pagamento observável, não uma data vaga — verificação humana
-- [ ] A implementação **não** avançou enquanto havia DA aberta sobre ela — verificação humana
+- [ ] The right artifact for the nature of the item (ADR / DA / TDR) — human verification
+- [ ] Complete frontmatter, with `trigger` naming an event and not a cadence — `CI-1`
+- [ ] Sequential ID, not recycled, checked against `docs/ids-retired.txt` — `CI-2`
+- [ ] Every citation of another ID resolves — `CI-2`
+- [ ] `status` is `draft` or `open`; promotion left to a person — `HK-3`
+- [ ] No accepted ADR was edited; the path used was to supersede — `HK-1`
+- [ ] ADR declares alternatives considered and what we accept losing — human verification
+- [ ] TDR has an observable payment trigger, not a vague date — human verification
+- [ ] The implementation did **not** move forward while there was an open DA about it — human verification
 ```
 
-- [ ] **Step 4: Escrever os comandos**
+- [ ] **Step 4: Write the commands**
 
 `plugin/commands/adr.md`:
 
 ```markdown
 ---
-description: Registra uma decisão arquitetural (ADR) em draft, ou supersede uma existente
-argument-hint: '[assunto da decisão]'
+description: Records an architectural decision (ADR) as draft, or supersedes an existing one
+argument-hint: '[subject of the decision]'
 ---
 
-Use a skill `decision-recorder` para registrar um ADR sobre: $ARGUMENTS
+Use the skill `decision-recorder` to record an ADR about: $ARGUMENTS
 
-Se já existir um ADR sobre esse assunto, o caminho é supersedir — nunca editar o aceito.
-Pare em `status: draft`; a aceitação é ato humano.
+If an ADR on that subject already exists, the path is to supersede — never edit the accepted one.
+Stop at `status: draft`; acceptance is a human act.
 ```
 
 `plugin/commands/open-decision.md`:
 
 ```markdown
 ---
-description: Registra uma lacuna (Open Decision) e para a implementação até ela ser decidida
-argument-hint: '[a lacuna encontrada]'
+description: Records a gap (Open Decision) and stops the implementation until it is decided
+argument-hint: '[the gap found]'
 ---
 
-Use a skill `decision-recorder` para registrar uma Open Decision sobre: $ARGUMENTS
+Use the skill `decision-recorder` to record an Open Decision about: $ARGUMENTS
 
-A saída é o ID, não o código. Enquanto o item estiver aberto, ele não tem regra
-e **não deve ser implementado** — não invente a regra em silêncio.
+The output is the ID, not the code. While the item is open, it has no rule
+and **must not be implemented** — do not invent the rule silently.
 ```
 
 `plugin/commands/debt.md`:
 
 ```markdown
 ---
-description: Registra uma dívida técnica assumida de propósito, com gatilho de pagamento
-argument-hint: '[o atalho assumido]'
+description: Records a technical debt taken on deliberately, with a payment trigger
+argument-hint: '[the shortcut taken]'
 ---
 
-Use a skill `decision-recorder` para registrar um TDR sobre: $ARGUMENTS
+Use the skill `decision-recorder` to record a TDR about: $ARGUMENTS
 
-Exija um gatilho de pagamento observável. "Quando der tempo" não é gatilho.
+Demand an observable payment trigger. "When there is time" is not a trigger.
 ```
 
 `plugin/commands/docs-setup.md`:
 
 ```markdown
 ---
-description: Cria ou atualiza a moldura de documentação viva do repositório
-argument-hint: '[dono padrão, ex.: @team-platform]'
+description: Creates or updates the living documentation frame of the repository
+argument-hint: '[default owner, e.g. @team-platform]'
 ---
 
-Use a skill `living-docs-bootstrap` (CLI: `living-docs init`) para montar a
-moldura de documentação viva deste repositório, com dono padrão: $ARGUMENTS
+Use the skill `living-docs-bootstrap` (CLI: `living-docs init`) to set up the
+living documentation frame of this repository, with default owner: $ARGUMENTS
 
-Inventarie antes de criar: adote o que já existe sob outro nome; nunca crie um paralelo.
+Take inventory before creating: adopt what already exists under another name; never create a parallel one.
 ```
 
-- [ ] **Step 5: Rodar os testes para ver passar**
+- [ ] **Step 5: Run the tests to see them pass**
 
 ```bash
 docker compose exec toolkit npm test && docker compose exec toolkit npm run typecheck
 ```
 
-Esperado: todos passando; type-check limpo.
+Expected: all passing; type-check clean.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add plugin/skills plugin/commands test/plugin/authoring.test.ts
-git commit -m "feat: SK-3 decision-recorder e comandos CM-1..CM-3, CM-6"
+git commit -m "feat: SK-3 decision-recorder and commands CM-1..CM-3, CM-6"
 ```
 
 ---
 
-### Task 14: Dogfooding — o toolkit obedece a própria regra que impõe
+### Task 14: Dogfooding — the toolkit obeys the very rule it imposes
 
-"O toolkit obedece a própria regra que impõe" (spec §5). Esta task fecha o ciclo: inicializa a documentação viva **deste** repositório, registra em ADR as decisões de arquitetura que o plano tomou, liga o CI, e verifica os critérios de aceite da spec §12 de ponta a ponta.
+"The toolkit obeys the very rule it imposes" (spec §5). This task closes the loop: it initializes the living documentation of **this** repository, records in ADRs the architecture decisions the plan took, turns on CI, and verifies the acceptance criteria of spec §12 end to end.
 
 **Files:**
 
 - Create: `docs/.ownership.yml` (via `living-docs init`)
 - Create: `docs/open-decisions.md`, `docs/ids-retired.txt`, `CODEOWNERS` (via `init`)
-- Create: `docs/decisions/adr/ADR-0001-runtime-em-container-sem-build.md`
-- Create: `docs/decisions/adr/ADR-0002-engine-unica-para-cli-e-hooks.md`
+- Create: `docs/decisions/adr/ADR-0001-runtime-in-a-container-without-build.md`
+- Create: `docs/decisions/adr/ADR-0002-single-engine-for-cli-and-hooks.md`
 - Create: `.github/workflows/living-docs.yml`
 - Create: `README.md`
 - Test: `test/acceptance/spec-criteria.test.ts`
 
 **Interfaces:**
 
-- Consumes: tudo das Tasks 1–13.
-- Produces: um repositório auto-validado; nenhuma API nova.
+- Consumes: everything from Tasks 1–13.
+- Produces: a self-validated repository; no new API.
 
-- [ ] **Step 1: Escrever o teste de critérios de aceite falhando**
+- [ ] **Step 1: Write the failing acceptance criteria test**
 
-Cobre os critérios 1, 2, 3, 4 e 6 da spec §12 que caem dentro das Fases 0–1. Os critérios 5, 7, 8, 9 dependem de `HK-5`, `CI-4`, `HK-6` e `SK-6` — todos fora deste plano.
+It covers criteria 1, 2, 3, 4 and 6 of spec §12 that fall within Phases 0–1. Criteria 5, 7, 8, 9 depend on `HK-5`, `CI-4`, `HK-6` and `SK-6` — all outside this plan.
 
 `test/acceptance/spec-criteria.test.ts`:
 
@@ -4556,86 +4556,86 @@ const ROOT = process.env.LIVING_DOCS_ROOT ?? '/app'
 const OPTIONS = { owner: '@team', dryRun: false }
 
 function seedAdr(root: string, status: string): string {
-  const file = 'docs/decisions/adr/ADR-0001-teste.md'
+  const file = 'docs/decisions/adr/ADR-0001-test.md'
   const content = [
     '---',
     'id: ADR-0001',
-    'title: Decisão de teste',
+    'title: Test decision',
     `status: ${status}`,
     'owner: "@team"',
-    'trigger: Nunca. Imutável após aceito.',
+    'trigger: Never. Immutable once accepted.',
     'last-reviewed: 2026-08-24',
     '---',
     '',
-    'corpo original',
+    'original body',
   ].join('\n')
   mkdirSync(join(root, 'docs/decisions/adr'), { recursive: true })
   writeFileSync(join(root, file), content, 'utf8')
   return file
 }
 
-test('critério 1: SK-0 num repositório sem documentação viva não duplica nada', () => {
-  withTempRepo({ 'docs/adr/0001-preexistente.md': '# antigo\n' }, root => {
+test('criterion 1: SK-0 in a repository without living documentation duplicates nothing', () => {
+  withTempRepo({ 'docs/adr/0001-preexisting.md': '# old\n' }, root => {
     const result = runInit(root, OPTIONS)
     assert.ok(result.adopted.some(entry => entry.path === 'docs/adr/'))
     assert.equal(existsSync(join(root, 'docs/decisions/adr')), false)
-    assert.equal(readFileSync(join(root, 'docs/adr/0001-preexistente.md'), 'utf8'), '# antigo\n')
+    assert.equal(readFileSync(join(root, 'docs/adr/0001-preexisting.md'), 'utf8'), '# old\n')
   })
 })
 
-test('critério 2: HK-1 nega alterar o corpo de um ADR accepted e permite supersedir', () => {
+test('criterion 2: HK-1 denies changing the body of an accepted ADR and allows superseding', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'accepted')
     const env = { root, hostRoots: [root] }
 
-    const negado = decideHk1(
+    const denied = decideHk1(
       {
         tool_name: 'Edit',
         tool_input: {
           file_path: file,
-          old_string: 'corpo original',
-          new_string: 'corpo novo',
+          old_string: 'original body',
+          new_string: 'new body',
         },
       },
       env,
     )
-    assert.equal(negado.action, 'deny')
+    assert.equal(denied.action, 'deny')
 
-    const atual = readFileSync(join(root, file), 'utf8')
-    const supersedido = atual
+    const current = readFileSync(join(root, file), 'utf8')
+    const superseded = current
       .replace('status: accepted', 'status: superseded')
       .replace('last-reviewed: 2026-08-24', 'last-reviewed: 2026-08-24\nsuperseded-by: ADR-0002')
-    const permitido = decideHk1(
+    const allowed = decideHk1(
       {
         tool_name: 'Write',
-        tool_input: { file_path: file, content: supersedido },
+        tool_input: { file_path: file, content: superseded },
       },
       env,
     )
-    assert.equal(permitido.action, 'allow')
+    assert.equal(allowed.action, 'allow')
   })
 })
 
-test('critério 3: trigger com cadência falha no CI nomeando o campo', () => {
+test('criterion 3: a trigger with cadence fails in CI naming the field', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'draft')
     writeFileSync(
       join(root, file),
-      readFileSync(join(root, file), 'utf8').replace('trigger: Nunca. Imutável após aceito.', 'trigger: revisar trimestralmente'),
+      readFileSync(join(root, file), 'utf8').replace('trigger: Never. Immutable once accepted.', 'trigger: review quarterly'),
       'utf8',
     )
 
     const result = runValidate(root)
     assert.equal(result.exitCode, 1)
     const finding = result.findings.find(f => f.ruleId === 'CI-1' && /trigger/.test(f.message))
-    assert.ok(finding, 'CI-1 deveria acusar o campo trigger')
-    assert.match(finding.message, /trimestral/i)
+    assert.ok(finding, 'CI-1 should report the trigger field')
+    assert.match(finding.message, /quarterly/i)
   })
 })
 
-test('critério 4: promover uma decisão exige ato humano — HK-3 pergunta', () => {
+test('criterion 4: promoting a decision requires a human act — HK-3 asks', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'draft')
@@ -4654,156 +4654,156 @@ test('critério 4: promover uma decisão exige ato humano — HK-3 pergunta', ()
   })
 })
 
-test('este repositório passa nos próprios checks', () => {
-  assert.ok(existsSync(join(ROOT, OWNERSHIP_PATH)), 'rode `living-docs init` antes')
+test('this repository passes its own checks', () => {
+  assert.ok(existsSync(join(ROOT, OWNERSHIP_PATH)), 'run `living-docs init` first')
   const result = runValidate(ROOT)
   assert.deepEqual(result.findings, [], JSON.stringify(result.findings, null, 2))
   assert.equal(result.exitCode, 0)
 })
 ```
 
-- [ ] **Step 2: Rodar o teste para ver falhar**
+- [ ] **Step 2: Run the test to see it fail**
 
 ```bash
 docker compose exec toolkit npm test
 ```
 
-Esperado: FAIL — `docs/.ownership.yml` ainda não existe neste repositório.
+Expected: FAIL — `docs/.ownership.yml` does not exist yet in this repository.
 
-- [ ] **Step 3: Inicializar a documentação viva deste repositório**
+- [ ] **Step 3: Initialize the living documentation of this repository**
 
 ```bash
 ./bin/living-docs init --owner "@esliph/engineering"
 ./bin/living-docs validate
 ```
 
-Esperado: `init` criando `docs/.ownership.yml`, `docs/ids-retired.txt`, `docs/open-decisions.md`, `CODEOWNERS`, `docs/decisions/adr/` e `docs/decisions/debt/`; `validate` sem violações.
+Expected: `init` creating `docs/.ownership.yml`, `docs/ids-retired.txt`, `docs/open-decisions.md`, `CODEOWNERS`, `docs/decisions/adr/` and `docs/decisions/debt/`; `validate` with no violations.
 
-- [ ] **Step 4: Registrar as duas decisões de arquitetura em ADR**
+- [ ] **Step 4: Record the two architecture decisions as ADRs**
 
-O plano tomou duas decisões caras de reverter. Elas precisam existir como ADR — se o toolkit não registra as próprias, ele é propaganda.
+The plan took two decisions that are costly to reverse. They need to exist as ADRs — if the toolkit does not record its own, it is propaganda.
 
-`docs/decisions/adr/ADR-0001-runtime-em-container-sem-build.md`:
+`docs/decisions/adr/ADR-0001-runtime-in-a-container-without-build.md`:
 
 ```markdown
 ---
 id: ADR-0001
-title: Runtime em container Docker, TypeScript sem build step
+title: Runtime in a Docker container, TypeScript without a build step
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Never. Immutable once accepted; a new decision supersedes it.
 last-reviewed: 2026-08-24
 relates-to: []
 supersedes: null
 superseded-by: null
 ---
 
-# ADR-0001 — Runtime em container Docker, TypeScript sem build step
+# ADR-0001 — Runtime in a Docker container, TypeScript without a build step
 
-## Contexto
+## Context
 
-O host de desenvolvimento não tem Node instalado e não deve passar a ter: a
-premissa do projeto é que nada além de Docker seja exigido de quem clona o
-repositório. Ao mesmo tempo, os hooks rodam a cada `Edit`/`Write` do agente e
-têm teto de 5 s (LIVING-DOCUMENTATION-TOOLKIT.md §7), o que descarta qualquer
-solução que crie um container por invocação.
+The development host does not have Node installed and should not start having it: the
+premise of the project is that nothing beyond Docker is required of whoever clones the
+repository. At the same time, the hooks run on every `Edit`/`Write` of the agent and
+have a ceiling of 5 s (LIVING-DOCUMENTATION-TOOLKIT.md §7), which rules out any
+solution that creates a container per invocation.
 
-## Alternativas consideradas
+## Alternatives considered
 
-- **`docker compose run --rm` por invocação** — descartada: paga a criação de um
-  container a cada hook, e o custo cresce com o tamanho da imagem.
-- **TypeScript compilado para `dist/`** — descartada: exige build antes de
-  qualquer execução, e um `dist/` desatualizado faz o hook rodar código velho
-  silenciosamente. O erro seria invisível justamente no componente que não pode
-  falhar de forma invisível.
-- **JavaScript puro com JSDoc** — descartada: as interfaces entre os módulos
-  (`Finding`, `ArtifactRule`, `HookDecision`) são o contrato que mantém CLI e
-  hooks sincronizados; verificá-lo por comentário é mais frágil.
+- **`docker compose run --rm` per invocation** — discarded: it pays the creation of a
+  container on every hook, and the cost grows with the size of the image.
+- **TypeScript compiled to `dist/`** — discarded: it requires a build before any
+  execution, and a stale `dist/` makes the hook silently run old code. The error
+  would be invisible precisely in the component that cannot fail
+  invisibly.
+- **Plain JavaScript with JSDoc** — discarded: the interfaces between the modules
+  (`Finding`, `ArtifactRule`, `HookDecision`) are the contract that keeps CLI and
+  hooks in sync; verifying it by comment is more fragile.
 
-## Decisão
+## Decision
 
-Um container long-running (`living-docs-toolkit`) com o repositório montado em
-`/app`; wrappers bash finos (`bin/living-docs`, `plugin/hooks/run-hook.sh`)
-fazem `docker exec` para dentro dele. O código é TypeScript executado
-diretamente pelo type-stripping nativo do Node 24, com `tsc --noEmit` como
-type-checker. Medido: `docker exec` responde em ~160 ms.
+A long-running container (`living-docs-toolkit`) with the repository mounted at
+`/app`; thin bash wrappers (`bin/living-docs`, `plugin/hooks/run-hook.sh`)
+do `docker exec` into it. The code is TypeScript executed
+directly by the native type-stripping of Node 24, with `tsc --noEmit` as the
+type-checker. Measured: `docker exec` responds in ~160 ms.
 
-## Consequências
+## Consequences
 
-### O que se ganha
+### What is gained
 
-Zero toolchain no host; nenhum passo de build entre editar e executar; nenhuma
-possibilidade de artefato compilado divergir da fonte.
+Zero toolchain on the host; no build step between editing and running; no
+possibility of a compiled artifact diverging from the source.
 
-### O que se aceita perder
+### What we accept losing
 
-O container precisa estar de pé — quando não está, o CLI sai com código 2 e os
-hooks falham abertos, o que significa que **o enforcement do agente desaparece
-silenciosamente enquanto o container estiver parado**. É uma perda real, mitigada
-apenas pelo CI, que roda o mesmo código sem depender do estado da máquina de
-ninguém. Além disso, ficamos restritos à sintaxe TypeScript apagável: sem `enum`,
-sem `namespace`, sem decorators.
+The container has to be up — when it is not, the CLI exits with code 2 and the
+hooks fail open, which means that **the agent's enforcement silently disappears
+while the container is stopped**. It is a real loss, mitigated
+only by CI, which runs the same code without depending on the state of anyone's
+machine. In addition, we are restricted to erasable TypeScript syntax: no `enum`,
+no `namespace`, no decorators.
 ```
 
-`docs/decisions/adr/ADR-0002-engine-unica-para-cli-e-hooks.md`:
+`docs/decisions/adr/ADR-0002-single-engine-for-cli-and-hooks.md`:
 
 ```markdown
 ---
 id: ADR-0002
-title: Uma engine de validação para CLI e hooks
+title: A single validation engine for CLI and hooks
 status: draft
 owner: '@esliph/engineering'
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Never. Immutable once accepted; a new decision supersedes it.
 last-reviewed: 2026-08-24
 relates-to: [ADR-0001]
 supersedes: null
 superseded-by: null
 ---
 
-# ADR-0002 — Uma engine de validação para CLI e hooks
+# ADR-0002 — A single validation engine for CLI and hooks
 
-## Contexto
+## Context
 
-O toolkit precisa valer em dois contextos com exigências opostas: no CI, sem
-agente presente, onde o enforcement precisa falhar fechado; e durante a edição
-pelo agente, onde ele precisa falhar aberto e responder em milissegundos. A
-tentação natural é escrever duas implementações.
+The toolkit needs to hold in two contexts with opposite demands: in CI, with no
+agent present, where enforcement needs to fail closed; and during editing
+by the agent, where it needs to fail open and respond in milliseconds. The
+natural temptation is to write two implementations.
 
-## Alternativas consideradas
+## Alternatives considered
 
-- **Duas implementações independentes** — descartada: viola o corolário 4 da
-  spec ("todo check de CI espelha uma regra escrita numa skill") pela raiz. Duas
-  implementações da mesma regra divergem, e a divergência aparece exatamente
-  quando alguém confia numa delas.
-- **Hooks chamando o CLI como subprocesso** — descartada: acrescenta um processo
-  por hook e obriga a serializar decisão em texto para reinterpretá-la.
+- **Two independent implementations** — discarded: it violates corollary 4 of the
+  spec ("every CI check mirrors a rule written in a skill") at the root. Two
+  implementations of the same rule diverge, and the divergence shows up exactly
+  when someone trusts one of them.
+- **Hooks calling the CLI as a subprocess** — discarded: it adds a process
+  per hook and forces serializing the decision into text to reinterpret it.
 
-## Decisão
+## Decision
 
-`src/config`, `src/frontmatter`, `src/docs` e `src/ids` formam uma engine única.
-`src/cli/` e `src/hooks/` são front-ends finos sobre ela: nenhuma regra é escrita
-duas vezes. A assimetria entre os contextos fica isolada em duas linhas — o CLI
-sai com 1 em erro, o wrapper de hook sempre sai com 0.
+`src/config`, `src/frontmatter`, `src/docs` and `src/ids` form a single engine.
+`src/cli/` and `src/hooks/` are thin front-ends over it: no rule is written
+twice. The asymmetry between the contexts is isolated in two lines — the CLI
+exits with 1 on error, the hook wrapper always exits with 0.
 
-## Consequências
+## Consequences
 
-### O que se ganha
+### What is gained
 
-Uma regra, um lugar. Um check novo é um arquivo em `src/checks/` mais uma linha
-no registry, e ele passa a valer nos dois contextos.
+One rule, one place. A new check is a file in `src/checks/` plus a line
+in the registry, and it starts to hold in both contexts.
 
-### O que se aceita perder
+### What we accept losing
 
-Os hooks carregam mais código do que precisariam (`loadOwnership` parseia o
-`.ownership.yml` inteiro para responder sobre um arquivo), e mudanças na engine
-afetam simultaneamente CI e hooks — não há como evoluir um sem revalidar o outro.
+The hooks carry more code than they would need to (`loadOwnership` parses the
+whole `.ownership.yml` to answer about one file), and changes in the engine
+affect CI and hooks simultaneously — there is no way to evolve one without revalidating the other.
 ```
 
-- [ ] **Step 5: Ligar o CI**
+- [ ] **Step 5: Turn on CI**
 
-Roda na **mesma imagem** que o desenvolvimento — é o que garante que "passou aqui" signifique "passa lá".
+It runs on the **same image** as development — this is what guarantees that "it passed here" means "it passes there".
 
 `.github/workflows/living-docs.yml`:
 
@@ -4820,66 +4820,66 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Construir a imagem
+      - name: Build the image
         run: docker compose build
 
-      - name: Instalar dependências
+      - name: Install dependencies
         run: docker compose run --rm toolkit npm ci
 
-      - name: Testes
+      - name: Tests
         run: docker compose run --rm toolkit npm test
 
       - name: Type-check
         run: docker compose run --rm toolkit npm run typecheck
 
-      - name: CI-1 e CI-2 — documentação viva
+      - name: CI-1 and CI-2 — living documentation
         run: docker compose run --rm toolkit node /app/src/cli/index.ts validate
 ```
 
-- [ ] **Step 6: Escrever o README**
+- [ ] **Step 6: Write the README**
 
 `README.md`:
 
 ````markdown
 # living-docs-toolkit
 
-Documentação viva com dono, gatilho e enforcement — Fases 0–1 da spec
-`LIVING-DOCUMENTATION-TOOLKIT.md`: ADR, Open Decisions e Debt Register, os
-checks `CI-1`/`CI-2`, e os hooks `HK-1`/`HK-3`.
+Living documentation with owner, trigger and enforcement — Phases 0–1 of the spec
+`LIVING-DOCUMENTATION-TOOLKIT.md`: ADR, Open Decisions and Debt Register, the
+checks `CI-1`/`CI-2`, and the hooks `HK-1`/`HK-3`.
 
-**Nada roda no host além de Docker.**
+**Nothing runs on the host besides Docker.**
 
-## Uso
+## Usage
 
 ```bash
-docker compose up -d          # sobe o container de trabalho
-./bin/living-docs init        # cria a moldura (SK-0)
-./bin/living-docs validate    # roda CI-1 e CI-2
+docker compose up -d          # brings up the working container
+./bin/living-docs init        # creates the frame (SK-0)
+./bin/living-docs validate    # runs CI-1 and CI-2
 ```
 ````
 
-Desenvolvimento:
+Development:
 
 ```bash
 docker compose exec toolkit npm test
 docker compose exec toolkit npm run typecheck
 ```
 
-## Plugin do Claude Code
+## Claude Code plugin
 
-`plugin/` traz a skill `decision-recorder` (`/adr`, `/open-decision`, `/debt`,
-`/docs-setup`) e os hooks `HK-1` (bloqueia editar item congelado) e `HK-3`
-(promoção de estado exige ato humano). Os hooks falham abertos: com o container
-parado, eles não bloqueiam nada — o enforcement que sobrevive a isso é o CI.
+`plugin/` brings the skill `decision-recorder` (`/adr`, `/open-decision`, `/debt`,
+`/docs-setup`) and the hooks `HK-1` (blocks editing a frozen item) and `HK-3`
+(state promotion requires a human act). The hooks fail open: with the container
+stopped, they block nothing — the enforcement that survives this is CI.
 
-## O que está fora
+## What is out
 
 `SK-1`, `SK-2`, `SK-4`–`SK-7`, `AG-1`, `AG-2`, `HK-2`, `HK-4`–`HK-7`,
-`CI-3`–`CI-8`, `CM-4`, `CM-5`, `CM-7` — Fases 2 a 7 da spec.
+`CI-3`–`CI-8`, `CM-4`, `CM-5`, `CM-7` — Phases 2 to 7 of the spec.
 
 ````
 
-- [ ] **Step 7: Rodar tudo e conferir os critérios**
+- [ ] **Step 7: Run everything and check the criteria**
 
 ```bash
 docker compose exec toolkit npm test
@@ -4887,45 +4887,45 @@ docker compose exec toolkit npm run typecheck
 ./bin/living-docs validate; echo "exit=$?"
 ````
 
-Esperado: todos os testes passando, incluindo os cinco critérios de aceite; `validate` com `exit=0`.
+Expected: all tests passing, including the five acceptance criteria; `validate` with `exit=0`.
 
 - [ ] **Step 8: Commit**
 
 ```bash
 git add docs CODEOWNERS .github README.md test/acceptance
-git commit -m "feat: dogfooding do toolkit no próprio repositório (ADR-0001, ADR-0002)"
+git commit -m "feat: toolkit dogfooding in its own repository (ADR-0001, ADR-0002)"
 ```
 
 ---
 
-## Cobertura da spec e o que ficou fora
+## Spec coverage and what was left out
 
-| Peça da spec                               | Onde                                      | Situação                                                                                                                                                                  |
+| Spec piece                                 | Where                                     | Status                                                                                                                                                                    |
 | ------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| §2 Frontmatter padronizado                 | Tasks 2, 4, 5                             | Implementado                                                                                                                                                              |
-| §3 Layout, granularidade, `.ownership.yml` | Tasks 3, 4, 8                             | Implementado                                                                                                                                                              |
-| §4 Ciclo de vida (ADR/DA/TDR)              | Task 4 (`STATUS_MACHINE`), 10, 11         | Implementado                                                                                                                                                              |
-| §5 `SK-0` living-docs-bootstrap            | Task 8 (`init`) + Task 13 (`/docs-setup`) | Implementado                                                                                                                                                              |
-| §5 `SK-3` decision-recorder                | Task 13                                   | Implementado                                                                                                                                                              |
-| §7 `HK-1`, `HK-3`                          | Tasks 10, 11, 12                          | Implementado                                                                                                                                                              |
-| §8 Rastreabilidade por ID (citações)       | Task 6                                    | Coberta — `CI-2` (citação resolve) aqui; pares bidirecionais e cobertura de `RN` fechados por `CI-3` em `docs/superpowers/plans/2026-08-24-living-docs-toolkit-fase-2.md` |
-| §9 `CI-1`, `CI-2`                          | Tasks 5, 6                                | Implementado                                                                                                                                                              |
-| §10 `CM-1`, `CM-2`, `CM-3`, `CM-6`         | Task 13                                   | Implementado                                                                                                                                                              |
-| §11 Convenções de autoria                  | Task 13 (com teste de enforcement)        | Implementado                                                                                                                                                              |
-| §12 Critérios de aceite 1, 2, 3            | Task 14                                   | Verificados por teste                                                                                                                                                     |
+| §2 Standardized frontmatter                | Tasks 2, 4, 5                             | Implemented                                                                                                                                                               |
+| §3 Layout, granularity, `.ownership.yml`   | Tasks 3, 4, 8                             | Implemented                                                                                                                                                               |
+| §4 Lifecycle (ADR/DA/TDR)                  | Task 4 (`STATUS_MACHINE`), 10, 11         | Implemented                                                                                                                                                               |
+| §5 `SK-0` living-docs-bootstrap            | Task 8 (`init`) + Task 13 (`/docs-setup`) | Implemented                                                                                                                                                               |
+| §5 `SK-3` decision-recorder                | Task 13                                   | Implemented                                                                                                                                                               |
+| §7 `HK-1`, `HK-3`                          | Tasks 10, 11, 12                          | Implemented                                                                                                                                                               |
+| §8 Traceability by ID (citations)          | Task 6                                    | Covered — `CI-2` (citation resolves) here; bidirectional pairs and `RN` coverage closed by `CI-3` in `docs/superpowers/plans/2026-08-24-living-docs-toolkit-phase-2.md`   |
+| §9 `CI-1`, `CI-2`                          | Tasks 5, 6                                | Implemented                                                                                                                                                               |
+| §10 `CM-1`, `CM-2`, `CM-3`, `CM-6`         | Task 13                                   | Implemented                                                                                                                                                               |
+| §11 Authoring conventions                  | Task 13 (with enforcement test)           | Implemented                                                                                                                                                               |
+| §12 Acceptance criteria 1, 2, 3            | Task 14                                   | Verified by test                                                                                                                                                          |
 
-**Deliberadamente fora deste plano** (Fases 2–7 da spec §10, a serem cobertas por
-planos próprios): `SK-1` charter-keeper, `SK-2` glossary-keeper, `SK-4`
+**Deliberately outside this plan** (Phases 2–7 of spec §10, to be covered by their
+own plans): `SK-1` charter-keeper, `SK-2` glossary-keeper, `SK-4`
 requirements-keeper, `SK-5` contract-keeper, `SK-6` working-agreements-keeper,
 `SK-7` release-historian, `AG-1` docs-divergence-auditor, `AG-2`
-decision-adversary, `HK-2` (artefato gerado), `HK-4`–`HK-7`, `CI-3`
+decision-adversary, `HK-2` (generated artifact), `HK-4`–`HK-7`, `CI-3`
 (traceability), `CI-4` (staleness), `CI-5` (contract drift), `CI-6` (changelog),
 `CI-7` (ownership coverage), `CI-8` (links), `CM-4` `/term`, `CM-5`
 `/docs-audit`, `CM-7` `/release`.
 
-Critérios de aceite §12 que **não** são verificáveis nas Fases 0–1, por
-dependerem de peças fora do escopo ou de julgamento que teste unitário não
-alcança: 4 (resultado de procedimento de agente — `SK-3` abre `DA-nnn` e para; a
-skill declara a invariante, o teste unitário não a afirma), 5 (`HK-5`), 6
-(`HK-2`/`CI-5`), 7 (`CI-4`), 8 (`HK-6`), 9 (`SK-6`), 10 (julgamento humano
-contínuo).
+Acceptance criteria §12 that are **not** verifiable in Phases 0–1, because they
+depend on pieces outside the scope or on judgment that a unit test cannot
+reach: 4 (result of an agent procedure — `SK-3` opens `DA-nnn` and stops; the
+skill declares the invariant, the unit test does not assert it), 5 (`HK-5`), 6
+(`HK-2`/`CI-5`), 7 (`CI-4`), 8 (`HK-6`), 9 (`SK-6`), 10 (continuous human
+judgment).

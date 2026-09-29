@@ -1,59 +1,59 @@
-# Contrato do agente — @esliph/living-docs
+# Agent contract — @esliph/living-docs
 
-Índice e política. **Nenhuma afirmação factual mora aqui**: cada uma vive no
-artefato dono e é lida de lá (`RN-0010`).
+Index and policy. **No factual claim lives here**: each one lives in the owning
+artifact and is read from there (`RN-0010`).
 
-## Antes de mexer em qualquer coisa
+## Before touching anything
 
-- A spec do toolkit é `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md`. Ela manda.
-- O mapa de propriedade é `.ownership.yml`. Nenhum caminho de documento se
-  adivinha: lê-se de lá.
-- Como se trabalha aqui: `CONTRIBUTING.md`. Quando algo está pronto:
+- The toolkit's spec is `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md`. It rules.
+- The ownership map is `.ownership.yml`. No document path is guessed: it is
+  read from there.
+- How we work here: `CONTRIBUTING.md`. When something is done:
   `docs/definition-of-done.md`.
-- Vocabulário do domínio: `docs/glossary.md`. Princípios invioláveis e visão
-  de produto: `docs/charter/`.
+- Domain vocabulary: `docs/glossary.md`. Inviolable principles and product
+  vision: `docs/charter/`.
 
-## Política
+## Policy
 
-- **O toolkit roda no `node` do host.** `npm ci` antes de tudo; depois
-  `npm test`, `npm run typecheck` e
-  `node --conditions=development packages/living-docs/src/cli/index.ts …`. A regra vigente é `RNF-0002`.
-- **A regra vem antes do código.** O que o sistema deve fazer está em
-  `docs/requirements/`; se a regra não existe, abra uma `DA` (`/open-decision`)
-  e pare. Não invente a regra que falta.
-- **Você não aceita decisão.** Skill escreve `draft`/`open`; promover é ato
-  humano — `living-docs/state-promotion` pergunta, e a resposta não é sua.
-- **Você não corrige item congelado.** ADR aceito ganha `superseded` e um ADR
-  novo — `living-docs/append-only` bloqueia o resto.
-- **Você não edita artefato gerado.** O que está em `generated[]` (ou traz o
-  marcador) muda pela fonte e pelo gerador — `ownership/generated-guard` nega e `ownership/generated-drift` cobra.
-- **Documento e código viajam juntos.** Caminho vigiado em `watches` tem doc
-  dono; `ownership/watch-reminder` lembra depois da edição e `ownership/commit-guard` pergunta antes do commit.
-- **Atalho consciente vira `TDR`** (`/debt`) com gatilho de pagamento
-  observável — não vira `TODO` órfão.
-- **Mudança visível a quem consome viaja com a entrada de `CHANGELOG.md`** —
-  ou com a razão escrita no commit. `ownership/consumer-change-logged` cobra; o formato do rótulo está no
-  contrato.
-- **Texto para quem lê de fora não carrega ID de artefato.** O que está marcado
-  `audience: external` explica em texto corrido; o vínculo fica no artefato ou
-  no commit — `living-docs/external-audience` cobra.
-- **O que o toolkit entrega não aponta para dentro dele.** Semente, skill e
-  mensagem de CLI ou hook ficam sem o ID e sem a seção da spec daqui; o porquê
-  vai para o comentário de código — o teste de distribuição cobra.
-- **Todo documento tem dono declarado.** `.ownership.yml` diz qual skill
-  responde; o CODEOWNERS, quem revisa — `ownership/owner-coverage` cobra os dois.
+- **The toolkit runs on the host's `node`.** `npm ci` before anything; then
+  `npm test`, `npm run typecheck` and
+  `node --conditions=development packages/living-docs/src/cli/index.ts …`. The governing rule is `RNF-0002`.
+- **The rule comes before the code.** What the system must do is in
+  `docs/requirements/`; if the rule does not exist, open a `DA` (`/open-decision`)
+  and stop. Do not invent the rule that is missing.
+- **You do not accept decisions.** A skill writes `draft`/`open`; promoting is a
+  human act — `living-docs/state-promotion` asks, and the answer is not yours.
+- **You do not fix a frozen item.** An accepted ADR gets `superseded` and a new
+  ADR — `living-docs/append-only` blocks the rest.
+- **You do not edit a generated artifact.** What is in `generated[]` (or carries
+  the marker) changes through the source and the generator — `ownership/generated-guard` denies and `ownership/generated-drift` enforces.
+- **Document and code travel together.** A path watched in `watches` has an owning
+  doc; `ownership/watch-reminder` reminds after the edit and `ownership/commit-guard` asks before the commit.
+- **A conscious shortcut becomes a `TDR`** (`/debt`) with an observable payment
+  trigger — it does not become an orphan `TODO`.
+- **A change visible to whoever consumes travels with an entry in `CHANGELOG.md`** —
+  or with the reason written in the commit. `ownership/consumer-change-logged` enforces it; the format of the label is in the
+  contract.
+- **Text for readers on the outside carries no artifact ID.** What is marked
+  `audience: external` explains in running text; the link stays in the artifact or
+  in the commit — `living-docs/external-audience` enforces it.
+- **What the toolkit ships does not point inside itself.** A seed, a skill and a
+  CLI or hook message stay free of the ID and of the spec section from here; the
+  why goes into the code comment — the distribution test enforces it.
+- **Every document has a declared owner.** `.ownership.yml` says which skill
+  answers; CODEOWNERS, who reviews — `ownership/owner-coverage` enforces both.
 
-## Comandos
+## Commands
 
 `/adr`, `/open-decision`, `/debt`, `/docs-setup`, `/term`, `/release`,
-`/docs-audit`. As skills `decision-recorder`, `requirements-keeper`,
+`/docs-audit`. The skills `decision-recorder`, `requirements-keeper`,
 `working-agreements-keeper`, `glossary-keeper`, `charter-keeper`,
-`contract-keeper` e `release-historian` são selecionadas pela `description`; não
-é preciso invocá-las pelo nome.
+`contract-keeper` and `release-historian` are selected by their `description`; there
+is no need to invoke them by name.
 
-## O que nunca fazer
+## What to never do
 
-- Escrever documento que narra o código.
-- Criar artefato de documentação fora de `docs/` ou fora do controle de versão.
-- Bumpar `last-reviewed` em massa.
-- Copiar para cá o conteúdo de qualquer artefato acima.
+- Write a document that narrates the code.
+- Create a documentation artifact outside `docs/` or outside version control.
+- Bump `last-reviewed` in bulk.
+- Copy the content of any artifact above into here.

@@ -12,37 +12,37 @@ version: 2
 plugins: [living-docs]
 owned:
   - path: docs/open-decisions.md
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [open, resolved, dropped]
     format: { collection: table, key: ID, state-field: Status }
     living-docs:
       id-prefix: DA
       field-map:
-        blocks: "Bloqueia"
-        gap: "Lacuna"
+        blocks: "Blocks"
+        gap: "Gap"
 `
 
-const TABELA = [
+const TABLE = [
   '---',
   'title: Open Decisions',
-  'owner: "@time"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'owner: "@team"',
+  'trigger: Every time someone bumped into a gap.',
   'last-reviewed: 2026-08-28',
   '---',
   '',
-  '| ID | Lacuna | Status | Bloqueia | Aberta em |',
+  '| ID | Gap | Status | Blocks | Opened on |',
   '| --- | --- | --- | --- | --- |',
-  '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-28 |',
+  '| DA-0001 | How to round cents | open | `src/billing/**` | 2026-08-28 |',
   '',
 ].join('\n')
 
-const ARVORE = { [OWNERSHIP_FILE]: CONFIG, 'docs/open-decisions.md': TABELA }
+const TREE = { [OWNERSHIP_FILE]: CONFIG, 'docs/open-decisions.md': TABLE }
 
-test('RN-0026: editar caminho reivindicado pergunta, nomeando a decisão e a skill dona', () => {
-  withTempRepo(ARVORE, root => {
+test('RN-0026: editing a claimed path asks, naming the decision and the owning skill', () => {
+  withTempRepo(TREE, root => {
     const decision = decideOpenDecisionGuard(
-      { tool_name: 'Edit', tool_input: { file_path: 'src/cobranca/taxa.ts', old_string: 'a', new_string: 'b' } },
+      { tool_name: 'Edit', tool_input: { file_path: 'src/billing/fee.ts', old_string: 'a', new_string: 'b' } },
       { root, hostRoots: [root] },
     )
 
@@ -50,22 +50,22 @@ test('RN-0026: editar caminho reivindicado pergunta, nomeando a decisão e a ski
     const reason = decision.action === 'ask' ? decision.reason : ''
 
     assert.match(reason, /DA-0001/)
-    assert.match(reason, /centavos/, 'a lacuna precisa ser nomeada')
+    assert.match(reason, /cents/, 'the gap must be named')
     assert.match(reason, /decision-recorder/)
     assert.match(reason, /docs\/open-decisions\.md/)
   })
 })
 
-test('RN-0026: caminho não reivindicado passa em silêncio', () => {
-  withTempRepo(ARVORE, root => {
-    const decision = decideOpenDecisionGuard({ tool_name: 'Write', tool_input: { file_path: 'src/relatorio/pdf.ts', content: 'x' } }, { root, hostRoots: [root] })
+test('RN-0026: an unclaimed path passes silently', () => {
+  withTempRepo(TREE, root => {
+    const decision = decideOpenDecisionGuard({ tool_name: 'Write', tool_input: { file_path: 'src/report/pdf.ts', content: 'x' } }, { root, hostRoots: [root] })
 
     assert.equal(decision.action, 'allow')
   })
 })
 
-test('RN-0026: escrever na própria decisão nunca é bloqueado', () => {
-  withTempRepo(ARVORE, root => {
+test('RN-0026: writing to the decision itself is never blocked', () => {
+  withTempRepo(TREE, root => {
     const decision = decideOpenDecisionGuard(
       {
         tool_name: 'Edit',
@@ -78,7 +78,7 @@ test('RN-0026: escrever na própria decisão nunca é bloqueado', () => {
   })
 })
 
-test('RNF-0001: sem configuração legível, living-docs/open-decision-guard falha aberta', () => {
+test('RNF-0001: without a readable configuration, living-docs/open-decision-guard fails open', () => {
   withTempRepo({}, root => {
     const decision = decideOpenDecisionGuard({ tool_name: 'Edit', tool_input: { file_path: 'src/x.ts' } }, { root, hostRoots: [root] })
 
@@ -86,8 +86,8 @@ test('RNF-0001: sem configuração legível, living-docs/open-decision-guard fal
   })
 })
 
-test('RN-0026: living-docs/open-decision-guard pergunta e não conhece a palavra deny', () => {
+test('RN-0026: living-docs/open-decision-guard asks and does not know the word deny', () => {
   const source = readFileSync(join(toolkitRoot(), 'src/hooks/open-decision-guard.ts'), 'utf8')
 
-  assert.doesNotMatch(source, /\bdenyOutput\b/, 'hook que julga está no lugar errado (spec §1)')
+  assert.doesNotMatch(source, /\bdenyOutput\b/, 'a hook that judges is in the wrong place (spec §1)')
 })

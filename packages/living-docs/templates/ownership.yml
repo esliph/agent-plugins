@@ -1,22 +1,22 @@
-# Dono, ciclo de vida e gatilho de cada caminho deste repositório. Hooks e
-# checks não conhecem caminho nenhum — leem daqui. O núcleo de ownership lê o
-# esquema; o bloco `living-docs:` é da documentação viva.
+# Owner, lifecycle and trigger of each path in this repository. Hooks and
+# checks know no path — they read from here. The ownership core reads the
+# schema; the `living-docs:` block belongs to living documentation.
 version: 2
 plugins: [living-docs]
 
 living-docs:
   stale-after-months: 6
-  # A forma escrita de um ID neste projeto. A identidade NÃO depende dela: o
-  # mesmo prefixo com o mesmo número é o mesmo item, com ou sem separador e com
-  # qualquer quantidade de zeros à esquerda. Mude isto para adotar um
-  # repositório cujos IDs já se escrevem de outro jeito — nunca renumere o
-  # repositório para caber no padrão.
+  # The written form of an ID in this project. Identity does NOT depend on it:
+  # the same prefix with the same number is the same item, with or without a
+  # separator and with any number of leading zeros. Change this to adopt a
+  # repository whose IDs are already written another way — never renumber the
+  # repository to fit the pattern.
   id-format:
     separator: "{{ID_SEPARATOR}}"
     padding: {{ID_PADDING}}
 
 owned:
-  # Artefato: entrada com `living-docs.id-prefix`. Família de IDs e ciclo de vida.
+  # Artifact: an entry with `living-docs.id-prefix`. ID family and lifecycle.
   - path: {{ADR_PATH}}
     owner: "{{OWNER}}"
     skill: decision-recorder
@@ -33,12 +33,6 @@ owned:
     format: { collection: table, key: ID, state-field: Status }
     living-docs:
       id-prefix: DA
-      # A tabela é lida por gente, em português; o check pergunta pelo nome
-      # canônico. O mapeamento mora aqui porque é específico do projeto.
-      field-map:
-        resolved-by: "Resolvida por"
-        blocks: "Bloqueia"
-        gap: "Lacuna"
 
   - path: {{TDR_PATH}}
     owner: "{{OWNER}}"
@@ -50,15 +44,16 @@ owned:
       mutable-fields: [status, last-reviewed]
 {{REQUIREMENTS_BLOCK}}{{RELEASES_BLOCK}}
 {{DOCUMENTS_BLOCK}}
-  # O que o `init` cria e não é documentação: tem dono e não tem bloco.
+  # What `init` creates that is not documentation: it has an owner and no block.
   - path: CODEOWNERS
     owner: "{{OWNER}}"
   - path: .github/workflows/living-docs.yml
     owner: "{{OWNER}}"
 
-# `ownership validate` exige dono para TODO arquivo do repositório, não só para
-# a documentação. Declare o seu código em `owned` (sem bloco `living-docs:`) ou
-# tire-o da governança aqui. O init não inventa esses caminhos. Exemplo:
+# `ownership validate` requires an owner for EVERY file in the repository, not
+# only for documentation. Declare your code under `owned` (without a
+# `living-docs:` block) or take it out of governance here. init does not invent
+# these paths. Example:
 #
 # owned:
 #   - path: src/
@@ -66,33 +61,33 @@ owned:
 ignore: ["node_modules/**", "**/node_modules/**"]
 
 generated: []
-# Artefato gerado: é negado editar à mão, e `ownership validate` compara o
-# arquivo versionado com a saída do gerador.
+# Generated artifact: editing it by hand is denied, and `ownership validate`
+# compares the versioned file with the generator output.
 #
-# O `command` IMPRIME o conteúdo esperado na saída padrão e NÃO escreve arquivo
-# nenhum — um check que reescreve o que está checando apaga a evidência no mesmo
-# instante em que a reporta. Gerador que só sabe escrever arquivo ganha um
-# invólucro: gere num diretório temporário e imprima o resultado.
+# The `command` PRINTS the expected content to standard output and writes NO
+# file — a check that rewrites what it is checking erases the evidence the
+# moment it reports it. A generator that only knows how to write a file gets a
+# wrapper: generate into a temporary directory and print the result.
 #
-# O init não inventa gerador, pela mesma razão que não inventa `watches`.
-# Declare o seu. Exemplo:
+# init does not invent a generator, for the same reason it does not invent
+# `watches`. Declare yours. Example:
 #
 # generated:
 #   - path: docs/contracts/openapi.gen.yaml
 #     command: "node tools/gen-openapi.js"
 
-# Código → doc dono: lembrado depois da edição, perguntado antes do commit e
-# cobrado no diff do PR. Preencha com os caminhos do SEU código — o init não
-# inventa vínculo, porque vínculo que ninguém reconhece ensina a ignorar o
-# lembrete. A regra que aponta o CHANGELOG com `consumer-visible: true` diz quais
-# caminhos são visíveis a quem consome. Exemplo:
+# Code → owning doc: reminded after the edit, asked before the commit and
+# enforced on the PR diff. Fill in with the paths of YOUR code — init does not
+# invent a link, because a link nobody recognizes teaches people to ignore the
+# reminder. The rule that points at the CHANGELOG with `consumer-visible: true`
+# says which paths are visible to whoever consumes. Example:
 #
 # watches:
 #   - code: "src/domain/**"
 #     doc: docs/requirements/rules.md
-#     reason: "comportamento novo exige regra com ID antes do código"
+#     reason: "new behavior needs a rule with an ID before the code"
 #   - code: "src/api/**"
 #     doc: CHANGELOG.md
 #     consumer-visible: true
-#     reason: "mudança visível ao consumidor nasce com a entrada no mesmo PR"
+#     reason: "a consumer-visible change is born with its entry in the same PR"
 watches: []

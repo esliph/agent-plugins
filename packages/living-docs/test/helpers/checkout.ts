@@ -2,14 +2,14 @@ import { join, resolve } from 'node:path'
 import { toolkitRoot } from '../../src/core/roots.ts'
 
 /**
- * Raiz do checkout deste repositório: onde moram `docs/`, `CLAUDE.md`,
- * `CHANGELOG.md`, `bin/`, `.claude-plugin/marketplace.json` e o
- * `.ownership.yml` que os testes de dogfooding leem.
+ * Root of this repository's checkout: where `docs/`, `CLAUDE.md`,
+ * `CHANGELOG.md`, `bin/`, `.claude-plugin/marketplace.json` and the
+ * `.ownership.yml` that the dogfooding tests read live.
  *
- * Não é `toolkitRoot()`: desde que o toolkit mora em `packages/living-docs/`,
- * toolkit e repositório validado deixaram de coincidir neste projeto (RNF-0003).
- * E não é `repoRoot()`: ele lê o diretório de trabalho, e `npm test --workspaces`
- * roda com o cwd no pacote. O pacote fica dois níveis abaixo do checkout.
+ * It is not `toolkitRoot()`: since the toolkit lives in `packages/living-docs/`,
+ * the toolkit and the validated repository no longer coincide in this project (RNF-0003).
+ * And it is not `repoRoot()`: that reads the working directory, and `npm test --workspaces`
+ * runs with the cwd in the package. The package sits two levels below the checkout.
  */
 export function checkoutRoot(): string {
   return resolve(join(toolkitRoot(), '..', '..'))

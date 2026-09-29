@@ -6,34 +6,34 @@ import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-// ADR, RN e REL são internos porque estão declarados. TDR, de propósito, não
-// está: é o caso do projeto que ainda não instalou a família.
+// ADR, RN and REL are internal because they are declared. TDR, on purpose, is
+// not: it is the case of the project that has not installed the family yet.
 const OWNERSHIP = `
 version: 2
 plugins: [living-docs]
 owned:
   - path: docs/decisions/adr/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs: { id-prefix: ADR }
   - path: docs/requirements/rules.md
-    owner: "@time"
+    owner: "@team"
     skill: requirements-keeper
     states: [draft, active, revoked]
     format: { collection: sections, key: first-token }
     living-docs: { id-prefix: RN }
   - path: docs/releases/
-    owner: "@time"
+    owner: "@team"
     skill: release-historian
     states: [draft, published]
     living-docs: { id-prefix: REL, audience: external }
   - path: CHANGELOG.md
-    owner: "@time"
+    owner: "@team"
     skill: release-historian
     living-docs: { audience: external }
   - path: CONTRIBUTING.md
-    owner: "@time"
+    owner: "@team"
     skill: working-agreements-keeper
     living-docs: {}
 `
@@ -64,8 +64,8 @@ const releaseNote = (frontmatterExtra: string[], body: string[]): string =>
     'id: REL-0001',
     'title: v1.0.0',
     'status: draft',
-    'owner: "@time"',
-    'trigger: Nunca. Congelada depois de publicada.',
+    'owner: "@team"',
+    'trigger: Never. Frozen once published.',
     ...frontmatterExtra,
     'last-reviewed: 2026-09-15',
     '---',
@@ -74,8 +74,8 @@ const releaseNote = (frontmatterExtra: string[], body: string[]): string =>
     '',
   ].join('\n')
 
-test('RN-0030: ID de artefato em prosa, em documento externo, reprova na linha certa', () => {
-  const findings = findingsFor({ 'CHANGELOG.md': changelog('- A regra RN-0001 passa a valer.') })
+test('RN-0030: an artifact ID in prose, in an external document, fails on the right line', () => {
+  const findings = findingsFor({ 'CHANGELOG.md': changelog('- Rule RN-0001 starts to apply.') })
 
   assert.equal(findings.length, 1)
   assert.equal(findings[0]?.ruleId, 'living-docs/external-audience')
@@ -85,54 +85,54 @@ test('RN-0030: ID de artefato em prosa, em documento externo, reprova na linha c
   assert.match(findings[0]?.message ?? '', /RN-0001/)
 })
 
-test('RN-0030: ID entre crases reprova — marcação inline não esconde o que o leitor vê', () => {
-  const findings = findingsFor({ 'CHANGELOG.md': changelog('- Decidido em `ADR-0003`.') })
+test('RN-0030: an ID in backticks fails — inline markup does not hide what the reader sees', () => {
+  const findings = findingsFor({ 'CHANGELOG.md': changelog('- Decided in `ADR-0003`.') })
 
   assert.equal(findings.length, 1)
   assert.match(findings[0]?.message ?? '', /ADR-0003/)
 })
 
-test('RN-0030: ID só no caminho de um link reprova, mesmo fora do texto renderizado', () => {
-  const findings = findingsFor({ 'CHANGELOG.md': changelog('- Veja [a decisão](docs/decisions/adr/ADR-0003-duas-raizes.md).') })
+test('RN-0030: an ID only in a link path fails, even outside the rendered text', () => {
+  const findings = findingsFor({ 'CHANGELOG.md': changelog('- See [the decision](docs/decisions/adr/ADR-0003-two-roots.md).') })
 
   assert.equal(findings.length, 1)
   assert.match(findings[0]?.message ?? '', /ADR-0003/)
 })
 
-test('RN-0030: ID dentro de bloco de código cercado passa — é exemplo', () => {
+test('RN-0030: an ID inside a fenced code block passes — it is an example', () => {
   assert.deepEqual(findingsFor({ 'CHANGELOG.md': changelog('```text', 'RN-0001', '```') }), [])
 })
 
-test('RN-0030: ID só no frontmatter de um artefato externo passa — é contrato de máquina', () => {
-  const nota = releaseNote(['relates-to: [ADR-0003]'], ['# v1.0.0', '', 'Nada muda para quem usa.'])
+test('RN-0030: an ID only in the frontmatter of an external artifact passes — it is a machine contract', () => {
+  const note = releaseNote(['relates-to: [ADR-0003]'], ['# v1.0.0', '', 'Nothing changes for whoever uses it.'])
 
-  assert.deepEqual(findingsFor({ 'docs/releases/REL-0001-v1.md': nota }), [])
+  assert.deepEqual(findingsFor({ 'docs/releases/REL-0001-v1.md': note }), [])
 })
 
-test('RN-0030: identificador da interface pública citado em documento externo passa', () => {
-  assert.deepEqual(findingsFor({ 'CHANGELOG.md': changelog('- `living-docs/external-audience` reprova, `living-docs/session-inventory` avisa, e o código de saída é `EXIT-2`.') }), [])
+test('RN-0030: a public interface identifier cited in an external document passes', () => {
+  assert.deepEqual(findingsFor({ 'CHANGELOG.md': changelog('- `living-docs/external-audience` fails, `living-docs/session-inventory` warns, and the exit code is `EXIT-2`.') }), [])
 })
 
-test('RN-0030: o mesmo ID em documento interno passa', () => {
-  assert.deepEqual(findingsFor({ 'CONTRIBUTING.md': '# Como se contribui\n\nA regra RN-0001 e o `ADR-0003`.\n' }), [])
+test('RN-0030: the same ID in an internal document passes', () => {
+  assert.deepEqual(findingsFor({ 'CONTRIBUTING.md': '# How to contribute\n\nThe rule RN-0001 and `ADR-0003`.\n' }), [])
 })
 
-test('RN-0030: ID de prefixo não declarado em artifacts: passa — o check não conhece prefixo nenhum', () => {
-  assert.deepEqual(findingsFor({ 'CHANGELOG.md': changelog('- Paga a `TDR-0001` e segue a ISO-8601.') }), [])
+test('RN-0030: an ID with a prefix not declared in artifacts: passes — the check knows no prefix', () => {
+  assert.deepEqual(findingsFor({ 'CHANGELOG.md': changelog('- Pays `TDR-0001` and follows ISO-8601.') }), [])
 })
 
-test('RN-0030: num documento com frontmatter, a linha reportada é a do arquivo', () => {
-  const nota = releaseNote([], ['# v1.0.0', '', 'Corrige o que RN-0001 exigia.'])
-  const findings = findingsFor({ 'docs/releases/REL-0001-v1.md': nota })
+test('RN-0030: in a document with frontmatter, the reported line is the file line', () => {
+  const note = releaseNote([], ['# v1.0.0', '', 'Fixes what RN-0001 required.'])
+  const findings = findingsFor({ 'docs/releases/REL-0001-v1.md': note })
 
-  // 8 linhas de frontmatter, uma em branco, o título, outra em branco: linha 12.
-  assert.equal(findings.length, 1, 'o id: REL-0001 do frontmatter não pode virar achado')
+  // 8 frontmatter lines, one blank, the title, another blank: line 12.
+  assert.equal(findings.length, 1, 'the id: REL-0001 of the frontmatter must not become a finding')
   assert.equal(findings[0]?.file, 'docs/releases/REL-0001-v1.md')
   assert.equal(findings[0]?.line, 12)
 })
 
-test('RN-0030: artefato com frontmatter quebrado é pulado — living-docs/frontmatter já reprova', () => {
-  const quebrada = ['---', 'id: [REL-0001', 'title: v1.0.0', '---', '', 'Corrige RN-0001.', ''].join('\n')
+test('RN-0030: an artifact with broken frontmatter is skipped — living-docs/frontmatter already fails it', () => {
+  const broken = ['---', 'id: [REL-0001', 'title: v1.0.0', '---', '', 'Fixes RN-0001.', ''].join('\n')
 
-  assert.deepEqual(findingsFor({ 'docs/releases/REL-0001-v1.md': quebrada }), [])
+  assert.deepEqual(findingsFor({ 'docs/releases/REL-0001-v1.md': broken }), [])
 })

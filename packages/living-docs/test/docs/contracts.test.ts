@@ -7,15 +7,15 @@ import { checkoutRoot } from '../helpers/checkout.ts'
 const ROOT = checkoutRoot()
 
 /**
- * Linhas de uma tabela markdown, sem cabeçalho nem separador. Localiza a tabela
- * pela primeira coluna, tolerando o alinhamento por padding de um formatador
- * (`| Código | ` vira `| Código            | `); o `^` amarra a uma linha de
- * tabela de verdade.
+ * Rows of a markdown table, without the header or the separator. Finds the table
+ * by its first column, tolerating the padding alignment a formatter adds
+ * (`| Code | ` becomes `| Code            | `); the `^` ties it to a real
+ * table line.
  */
 function rows(source: string, column: string): string[][] {
   const match = source.match(new RegExp(`^\\|\\s*${column}\\s*\\|`, 'm'))
 
-  assert.ok(match, `tabela não encontrada — esperava o cabeçalho | ${column} |`)
+  assert.ok(match, `table not found — expected the header | ${column} |`)
 
   return source
     .slice(match.index)
@@ -34,38 +34,38 @@ function rows(source: string, column: string): string[][] {
 
 const errors = (): string => readFileSync(join(ROOT, 'docs/contracts/errors.md'), 'utf8')
 
-test('o catálogo de erros lista códigos reais, cada um com significado, gatilho e status', () => {
-  const entries = rows(errors(), 'Código')
+test('the error catalog lists real codes, each with a meaning, trigger and status', () => {
+  const entries = rows(errors(), 'Code')
 
-  assert.ok(entries.length >= 4, `esperava ao menos 4 códigos, achei ${entries.length}`)
+  assert.ok(entries.length >= 4, `expected at least 4 codes, found ${entries.length}`)
 
-  const codigos = entries.map(row => row[0])
+  const codes = entries.map(row => row[0])
 
-  assert.equal(new Set(codigos).size, codigos.length, 'há código duplicado — um código, um significado')
+  assert.equal(new Set(codes).size, codes.length, 'duplicate code — one code, one meaning')
 
   for (const row of entries) {
-    assert.notEqual(row[1] ?? '', '', `código "${row[0]}" sem significado`)
-    assert.notEqual(row[2] ?? '', '', `código "${row[0]}" sem "quando ocorre"`)
+    assert.notEqual(row[1] ?? '', '', `code "${row[0]}" without a meaning`)
+    assert.notEqual(row[2] ?? '', '', `code "${row[0]}" without "when it occurs"`)
     const status = row[row.length - 1] ?? ''
 
-    assert.match(status, /^(active|deprecated|removed)/, `status "${status}" fora do ciclo de vida (spec §4)`)
+    assert.match(status, /^(active|deprecated|removed)/, `status "${status}" outside the lifecycle (spec §4)`)
   }
 })
 
-test('o catálogo de erros não duplica a tabela de checks — ela é gerada e mora em outro arquivo', () => {
-  assert.doesNotMatch(errors(), /\bCI-1\b.*\bstructure lint\b/, 'os IDs de check moram em docs/contracts/checks.gen.md')
-  assert.match(errors(), /checks\.gen\.md/, 'e este arquivo deve apontar para lá')
+test('the error catalog does not duplicate the checks table — it is generated and lives in another file', () => {
+  assert.doesNotMatch(errors(), /\bCI-1\b.*\bstructure lint\b/, 'check IDs live in docs/contracts/checks.gen.md')
+  assert.match(errors(), /checks\.gen\.md/, 'and this file must point there')
 })
 
-test('a política de versionamento responde o que é público, o que não muda e como se deprecia', () => {
+test('the versioning policy answers what is public, what never changes and how to deprecate', () => {
   const source = readFileSync(join(ROOT, 'docs/contracts/versioning-policy.md'), 'utf8')
 
-  for (const secao of ['## O que é público', '## O que nunca muda de significado', '## Como se deprecia']) {
-    assert.ok(source.includes(secao), `política sem a seção "${secao}"`)
+  for (const section of ['## What is public', '## What never changes meaning', '## How to deprecate']) {
+    assert.ok(source.includes(section), `policy without the section "${section}"`)
   }
 })
 
-test('RN-0001: os contratos têm dono no CODEOWNERS, como todo artefato', () => {
+test('RN-0001: the contracts have an owner in CODEOWNERS, like every artifact', () => {
   const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
 
   assert.match(codeowners, /^docs\/contracts\/\s+@\S+$/m)

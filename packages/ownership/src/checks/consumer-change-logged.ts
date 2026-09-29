@@ -51,8 +51,8 @@ export function ownershipConsumerChangeLogged(diff: DiffFacts): Check {
       }
 
       const changed = diff.changed.map(normalize)
-      // Cada doc só é cobrado pelos caminhos das regras que apontam para ele:
-      // tocar `src/cli/**` não pode exigir o doc de outra regra visível.
+      // Each doc is only charged for the paths of the rules that point to it:
+      // touching `src/cli/**` must not demand the doc of another visible rule.
       const hitsByDoc = new Map<string, string[]>()
 
       for (const watch of visible) {
@@ -81,8 +81,8 @@ export function ownershipConsumerChangeLogged(diff: DiffFacts): Check {
           findings.push(
             error(
               target,
-              `O diff \`${diff.base}...HEAD\` toca caminho visível ao consumidor (${trigger}) e \`${target}\` não está entre os caminhos alterados.`,
-              `Acrescente a entrada em \`## [Unreleased]\` de \`${target}\` — ou escreva \`Changelog: none — <razão>\` na mensagem de commit.`,
+              `The diff \`${diff.base}...HEAD\` touches a consumer-visible path (${trigger}) and \`${target}\` is not among the changed paths.`,
+              `Add the entry under \`## [Unreleased]\` in \`${target}\` — or write \`Changelog: none — <reason>\` in the commit message.`,
             ),
           )
           continue
@@ -93,7 +93,7 @@ export function ownershipConsumerChangeLogged(diff: DiffFacts): Check {
         try {
           source = readFileSync(join(context.root, target), 'utf8')
         } catch {
-          findings.push(error(target, `\`${target}\` está declarado como doc de mudança visível e está ausente do repositório.`, `Crie \`${target}\` no formato Keep a Changelog.`))
+          findings.push(error(target, `\`${target}\` is declared as the doc for visible changes and is missing from the repository.`, `Create \`${target}\` in the Keep a Changelog format.`))
           continue
         }
 
@@ -101,8 +101,8 @@ export function ownershipConsumerChangeLogged(diff: DiffFacts): Check {
           findings.push(
             error(
               target,
-              `O diff toca caminho visível ao consumidor (${trigger}) e \`## [Unreleased]\` de \`${target}\` não tem nenhum item.`,
-              'Escreva a entrada sob a subseção certa (Added, Changed, Deprecated, Removed, Fixed, Security).',
+              `The diff touches a consumer-visible path (${trigger}) and \`## [Unreleased]\` in \`${target}\` has no item.`,
+              'Write the entry under the right subsection (Added, Changed, Deprecated, Removed, Fixed, Security).',
             ),
           )
         }

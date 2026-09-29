@@ -2,28 +2,28 @@
 title: Definition of Done
 owner: "{{OWNER}}"
 trigger: >
-  Quando um item passa a ser exigido para considerar trabalho pronto, ou deixa
-  de ser — e toda vez que algo foi dado como pronto faltando um passo desta lista.
+  When an item becomes required to consider work done, or stops being — and
+  every time something was called done while missing a step from this list.
 last-reviewed: {{TODAY}}
 ---
 
 # Definition of Done
 
-Uma mudança está pronta quando todas as caixas abaixo estão marcadas. Cada item
-diz **o que o verifica**: um check, um hook, ou uma pessoa. Item que ninguém
-verifica não pertence a esta lista.
+A change is done when all the boxes below are ticked. Each item says **what
+verifies it**: a check, a hook, or a person. An item nobody verifies does not
+belong on this list.
 
-- [ ] O comportamento novo tem requisito com ID, escrito antes do código — verificação: `living-docs/frontmatter` e humana.
-- [ ] Toda regra `active` é citada por ao menos um teste — verificação: `living-docs/citation-coverage`.
-- [ ] Todo ID citado resolve para um item existente e não retirado — verificação: `living-docs/id-integrity`.
-- [ ] A decisão que não era óbvia virou ADR; a lacuna virou `DA-nnnn` — verificação: humana (`living-docs/state-promotion` intercepta a aceitação).
-- [ ] O atalho consciente virou `TDR-nnnn` com gatilho de pagamento observável — verificação: `living-docs/shortcut-debt` lembra; registrar é humana.
-- [ ] O doc dono de todo caminho vigiado tocado está no mesmo commit — verificação: `ownership/watch-reminder` e `ownership/commit-guard`.
-- [ ] Nenhum item congelado teve o corpo editado — verificação: `living-docs/append-only`.
-- [ ] Nenhum artefato gerado foi editado à mão — verificação: `ownership/generated-guard` e `ownership/generated-drift` (`ownership validate`).
-- [ ] A mudança visível ao consumidor levou a entrada em `## [Unreleased]`, ou a razão escrita no commit — verificação: `ownership/consumer-change-logged` (`ownership validate --base <ref>`).
-- [ ] A mensagem de commit cita o ID afetado — verificação: humana.
+- [ ] The new behavior has a requirement with an ID, written before the code — verification: `living-docs/frontmatter` and human.
+- [ ] Every `active` rule is cited by at least one test — verification: `living-docs/citation-coverage`.
+- [ ] Every cited ID resolves to an existing, non-retired item — verification: `living-docs/id-integrity`.
+- [ ] The decision that was not obvious became an ADR; the gap became a `DA-nnnn` — verification: human (`living-docs/state-promotion` intercepts the acceptance).
+- [ ] The conscious shortcut became a `TDR-nnnn` with an observable payment trigger — verification: `living-docs/shortcut-debt` reminds; recording it is human.
+- [ ] The owning doc of every watched path touched is in the same commit — verification: `ownership/watch-reminder` and `ownership/commit-guard`.
+- [ ] No frozen item had its body edited — verification: `living-docs/append-only`.
+- [ ] No generated artifact was edited by hand — verification: `ownership/generated-guard` and `ownership/generated-drift` (`ownership validate`).
+- [ ] The consumer-visible change carried the entry under `## [Unreleased]`, or the reason written in the commit — verification: `ownership/consumer-change-logged` (`ownership validate --base <ref>`).
+- [ ] The commit message cites the affected ID — verification: human.
 
-Acrescente aqui os passos do seu projeto (build, lint, deploy), **cada um com a
-verificação que o cobre**. Item sem verificação vira intenção, e intenção não é
-definição de pronto.
+Add your project's steps here (build, lint, deploy), **each one with the
+verification that covers it**. An item with no verification becomes an
+intention, and an intention is not a definition of done.

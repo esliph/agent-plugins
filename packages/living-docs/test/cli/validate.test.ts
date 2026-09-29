@@ -23,32 +23,32 @@ owned:
 const GOOD = [
   '---',
   'id: ADR-0001',
-  'title: Fila de eventos',
+  'title: Event queue',
   'status: draft',
   'owner: "@team"',
-  'trigger: Nunca. Imutável após aceito.',
+  'trigger: Never. Immutable once accepted.',
   'last-reviewed: 2026-08-21',
   '---',
   '',
-  '## Contexto',
+  '## Context',
 ].join('\n')
 
-test('RF-0001: repositório conforme sai com 0', () => {
+test('RF-0001: a conforming repository exits with 0', () => {
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, 'docs/decisions/adr/ADR-0001-a.md': GOOD }, root => {
     const result = runValidate(root)
 
     assert.deepEqual(result.findings, [])
     assert.equal(result.exitCode, 0)
-    // RNF-0005: o resultado traz o que mediu, e a medida não é estimada.
-    assert.ok(result.elapsedMs > 0, 'elapsedMs veio zerado — o relógio não foi lido')
+    // RNF-0005: the result carries what it measured, and the measure is not estimated.
+    assert.ok(result.elapsedMs > 0, 'elapsedMs came back zeroed — the clock was not read')
   })
 })
 
-test('RF-0001: erro de qualquer check leva a exit 1', () => {
+test('RF-0001: an error from any check leads to exit 1', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: CONFIG,
-      'docs/decisions/adr/ADR-0001-a.md': GOOD.replace('trigger: Nunca. Imutável após aceito.', 'trigger: Revisar mensalmente.'),
+      'docs/decisions/adr/ADR-0001-a.md': GOOD.replace('trigger: Never. Immutable once accepted.', "trigger: ''"),
     },
     root => {
       const result = runValidate(root)
@@ -60,7 +60,7 @@ test('RF-0001: erro de qualquer check leva a exit 1', () => {
   )
 })
 
-test('roda todos os checks do registry, não só o primeiro', () => {
+test('runs every check in the registry, not just the first', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: CONFIG,
@@ -75,21 +75,21 @@ test('roda todos os checks do registry, não só o primeiro', () => {
   )
 })
 
-test('arquivo de ownership ausente propaga OwnershipError', () => {
+test('a missing ownership file propagates OwnershipError', () => {
   withTempRepo({ 'README.md': '' }, root => {
     assert.throws(() => runValidate(root), OwnershipError)
   })
 })
 
-test('RF-0010: aviso é reportado e não muda o código de saída', () => {
-  const antigo = GOOD.replace('last-reviewed: 2026-08-21', 'last-reviewed: 2020-01-01')
+test('RF-0010: a warning is reported and does not change the exit code', () => {
+  const old = GOOD.replace('last-reviewed: 2026-08-21', 'last-reviewed: 2020-01-01')
 
-  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, 'docs/decisions/adr/ADR-0001-a.md': antigo }, root => {
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, 'docs/decisions/adr/ADR-0001-a.md': old }, root => {
     const result = runValidate(root)
 
     assert.equal(result.warnings, 1, JSON.stringify(result.findings, null, 2))
     assert.equal(result.errors, 0)
-    assert.equal(result.exitCode, 0, 'living-docs/staleness avisa; aviso não reprova (spec §9)')
+    assert.equal(result.exitCode, 0, 'living-docs/staleness warns; a warning does not fail (spec §9)')
     assert.equal(result.findings[0]?.ruleId, 'living-docs/staleness')
   })
 })

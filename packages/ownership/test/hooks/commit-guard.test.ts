@@ -6,23 +6,23 @@ import { withTempRepo } from '../helpers/tmp.ts'
 const env = (root: string) => ({ root, hostRoots: [root] })
 const CONFIG = 'version: 2\nowned: []\nwatches:\n  - code: "src/checks/**"\n    doc: docs/requirements/rules.md\n    reason: x\n'
 
-test('isGitCommit reconhece "git commit" no início e depois de separador', () => {
+test('isGitCommit recognizes "git commit" at the start and after a separator', () => {
   assert.equal(isGitCommit('git commit -m "x"'), true)
   assert.equal(isGitCommit('npm test && git commit -m "x"'), true)
   assert.equal(isGitCommit('git status'), false)
 })
 
-test('isGitCommit reconhece "git commit" em comando Bash multi-linha', () => {
+test('isGitCommit recognizes "git commit" in a multi-line Bash command', () => {
   assert.equal(isGitCommit('npm test\ngit commit -m "x"'), true)
 })
 
-test('não é Bash, allow', () => {
+test('not Bash, allow', () => {
   withTempRepo({ '.ownership.yml': CONFIG }, root => {
     assert.equal(decideCommitGuard({ tool_name: 'Edit', tool_input: { command: 'git commit -m x' } }, env(root)).action, 'allow')
   })
 })
 
-test('staged toca vigiado sem o doc: pergunta', () => {
+test('staged touches a watched path without the doc: ask', () => {
   withTempRepo({ '.ownership.yml': CONFIG }, root => {
     const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => 'src/checks/a.ts\0')
 
@@ -30,7 +30,7 @@ test('staged toca vigiado sem o doc: pergunta', () => {
   })
 })
 
-test('staged traz os dois: allow', () => {
+test('staged brings both: allow', () => {
   withTempRepo({ '.ownership.yml': CONFIG }, root => {
     const decision = decideCommitGuard(
       { tool_name: 'Bash', tool_input: { command: 'git commit -m x' } },
@@ -42,17 +42,17 @@ test('staged traz os dois: allow', () => {
   })
 })
 
-test('git runner falha (sem git): falha aberta, allow', () => {
+test('git runner fails (no git): fails open, allow', () => {
   withTempRepo({ '.ownership.yml': CONFIG }, root => {
     const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => {
-      throw new Error('sem git')
+      throw new Error('no git')
     })
 
     assert.equal(decision.action, 'allow')
   })
 })
 
-test('sem arquivo de ownership, o hook se cala (falha aberta)', () => {
+test('without an ownership file, the hook stays silent (fails open)', () => {
   withTempRepo({}, root => {
     const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => 'src/checks/a.ts\0')
 
@@ -60,21 +60,21 @@ test('sem arquivo de ownership, o hook se cala (falha aberta)', () => {
   })
 })
 
-test('a mensagem ensina as duas saídas legítimas: atualizar o doc, ou decisão humana', () => {
+test('the message teaches the two legitimate ways out: update the doc, or a human decision', () => {
   withTempRepo({ '.ownership.yml': CONFIG }, root => {
     const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => 'src/checks/a.ts\0')
 
     assert.ok(decision.action === 'ask')
-    assert.match(decision.reason, /atualize o doc/i)
-    assert.match(decision.reason, /decisão humana/i)
+    assert.match(decision.reason, /update the doc/i)
+    assert.match(decision.reason, /human decision/i)
   })
 })
 
-test('comando que não é git commit passa sem consultar o git', () => {
+test('a command that is not git commit passes without consulting git', () => {
   withTempRepo({ '.ownership.yml': CONFIG }, root => {
-    let consultado = false
+    let consulted = false
     const spy = () => {
-      consultado = true
+      consulted = true
 
       return ''
     }
@@ -82,11 +82,11 @@ test('comando que não é git commit passa sem consultar o git', () => {
     for (const command of ['git status', 'npm test', 'git add -A', 'echo "git commit"']) {
       assert.equal(decideCommitGuard({ tool_name: 'Bash', tool_input: { command } }, env(root), spy).action, 'allow', command)
     }
-    assert.equal(consultado, false)
+    assert.equal(consulted, false)
   })
 })
 
-test('índice vazio passa', () => {
+test('empty index passes', () => {
   withTempRepo({ '.ownership.yml': CONFIG }, root => {
     assert.equal(decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => '').action, 'allow')
   })

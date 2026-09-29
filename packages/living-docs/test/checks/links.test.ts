@@ -12,27 +12,27 @@ version: 2
 plugins: [living-docs]
 owned:
   - path: docs/decisions/adr/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs: { id-prefix: ADR }
   - path: .ownership.yml
-    owner: "@time"
+    owner: "@team"
     skill: living-docs-bootstrap
     living-docs: {}
-  - path: docs/guia.md
-    owner: "@time"
+  - path: docs/guide.md
+    owner: "@team"
     skill: working-agreements-keeper
     living-docs: {}
-  - path: docs/anexos/
-    owner: "@time"
+  - path: docs/attachments/
+    owner: "@team"
     living-docs: {}
   - path: CONTRIBUTING.md
-    owner: "@time"
+    owner: "@team"
     skill: working-agreements-keeper
     living-docs: {}
   - path: assets/
-    owner: "@time"
+    owner: "@team"
 `
 
 function contextFor(root: string) {
@@ -50,21 +50,21 @@ function contextFor(root: string) {
 const BASE = {
   [OWNERSHIP_FILE]: OWNERSHIP,
   'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
-  'CONTRIBUTING.md': '# como se contribui\n',
+  'CONTRIBUTING.md': '# how to contribute\n',
 }
 
-test('RN-0023: link relativo que resolve passa; arquivo, diretório e âncora inclusive', () => {
+test('RN-0023: a relative link that resolves passes; file, directory and anchor included', () => {
   withTempRepo(
     {
       ...BASE,
-      'docs/guia.md': [
-        '# Guia',
+      'docs/guide.md': [
+        '# Guide',
         '',
-        'Veja [o ADR](decisions/adr/ADR-0001-x.md) e [a pasta](decisions/adr/).',
-        'A âncora [dentro dele](decisions/adr/ADR-0001-x.md#contexto) também resolve.',
-        'E [da raiz](/CONTRIBUTING.md) igual.',
-        'Externo passa: [site](https://example.com) e [correio](mailto:a@b.c).',
-        'Âncora pura passa: [aqui](#guia).',
+        'See [the ADR](decisions/adr/ADR-0001-x.md) and [the folder](decisions/adr/).',
+        'The anchor [inside it](decisions/adr/ADR-0001-x.md#context) also resolves.',
+        'And [from the root](/CONTRIBUTING.md) the same.',
+        'External passes: [site](https://example.com) and [mail](mailto:a@b.c).',
+        'A bare anchor passes: [here](#guide).',
         '',
       ].join('\n'),
     },
@@ -74,11 +74,11 @@ test('RN-0023: link relativo que resolve passa; arquivo, diretório e âncora in
   )
 })
 
-test('RN-0023: link que não resolve reprova, com a linha e o alvo', () => {
+test('RN-0023: a link that does not resolve fails, with the line and the target', () => {
   withTempRepo(
     {
       ...BASE,
-      'docs/guia.md': ['# Guia', '', 'Veja [o que não existe](decisions/adr/ADR-9999-x.md).', ''].join('\n'),
+      'docs/guide.md': ['# Guide', '', 'See [what does not exist](decisions/adr/ADR-9999-x.md).', ''].join('\n'),
     },
     root => {
       const findings = livingDocsLinks.run(contextFor(root))
@@ -86,28 +86,28 @@ test('RN-0023: link que não resolve reprova, com a linha e o alvo', () => {
       assert.equal(findings.length, 1)
       assert.equal(findings[0]?.ruleId, 'living-docs/links')
       assert.equal(findings[0]?.severity, 'error')
-      assert.equal(findings[0]?.file, 'docs/guia.md')
+      assert.equal(findings[0]?.file, 'docs/guide.md')
       assert.equal(findings[0]?.line, 3)
       assert.match(findings[0]?.message ?? '', /ADR-9999-x\.md/)
     },
   )
 })
 
-test('RN-0023: link dentro de bloco cercado ou de marcação inline não é link', () => {
+test('RN-0023: a link inside a fenced block or inline markup is not a link', () => {
   withTempRepo(
     {
       ...BASE,
-      'docs/guia.md': [
-        '# Guia',
+      'docs/guide.md': [
+        '# Guide',
         '',
-        'Regex inline: `/\\]\\(?:mente\\)/` não é link.',
+        'Inline regex: `/\\]\\(?:ly\\)/` is not a link.',
         '',
         '```ts',
-        'const CADENCE = /\\b(?:tri|bi)?mestral(?:mente)?\\b/i;',
-        'const link = "[texto](nao-existe.md)";',
+        'const CADENCE = /\\b(?:quarter|bi)?ly(?:ly)?\\b/i;',
+        'const link = "[text](does-not-exist.md)";',
         '```',
         '',
-        'E `[[wikilink]]` entre crases é o nome do formato, não um destino.',
+        'And `[[wikilink]]` in backticks is the name of the format, not a destination.',
         '',
       ].join('\n'),
     },
@@ -117,28 +117,28 @@ test('RN-0023: link dentro de bloco cercado ou de marcação inline não é link
   )
 })
 
-test('RN-0023: wikilink resolve por nome do arquivo, e sem destino reprova', () => {
+test('RN-0023: a wikilink resolves by file name, and with no destination it fails', () => {
   withTempRepo(
     {
       ...BASE,
-      'docs/guia.md': ['# Guia', '', 'Veja [[ADR-0001-x]] e [[CONTRIBUTING]].', 'Mas [[nada-disso]] não existe.', ''].join('\n'),
+      'docs/guide.md': ['# Guide', '', 'See [[ADR-0001-x]] and [[CONTRIBUTING]].', 'But [[none-of-this]] does not exist.', ''].join('\n'),
     },
     root => {
       const findings = livingDocsLinks.run(contextFor(root))
 
       assert.equal(findings.length, 1)
       assert.equal(findings[0]?.line, 4)
-      assert.match(findings[0]?.message ?? '', /nada-disso/)
+      assert.match(findings[0]?.message ?? '', /none-of-this/)
       assert.match(findings[0]?.message ?? '', /wikilink/i)
     },
   )
 })
 
-test('RN-0023: definição de referência também é link', () => {
+test('RN-0023: a reference definition is also a link', () => {
   withTempRepo(
     {
       ...BASE,
-      'docs/guia.md': ['# Guia', '', 'Veja [o adr][adr].', '', '[adr]: decisions/adr/ADR-0000-inexistente.md', ''].join('\n'),
+      'docs/guide.md': ['# Guide', '', 'See [the adr][adr].', '', '[adr]: decisions/adr/ADR-0000-nonexistent.md', ''].join('\n'),
     },
     root => {
       const findings = livingDocsLinks.run(contextFor(root))
@@ -149,38 +149,38 @@ test('RN-0023: definição de referência também é link', () => {
   )
 })
 
-test('RN-0023: anexo binário no corpus da documentação reprova; texto e .gitkeep não', () => {
-  withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
-    mkdirSync(join(root, 'docs/anexos'), { recursive: true })
-    writeFileSync(join(root, 'docs/anexos/diagrama.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
-    writeFileSync(join(root, 'docs/anexos/diagrama.svg'), '<svg></svg>\n', 'utf8')
-    writeFileSync(join(root, 'docs/anexos/dados.json'), '{}\n', 'utf8')
-    writeFileSync(join(root, 'docs/anexos/.gitkeep'), '', 'utf8')
+test('RN-0023: a binary attachment in the documentation corpus fails; text and .gitkeep do not', () => {
+  withTempRepo({ ...BASE, 'docs/guide.md': '# Guide\n' }, root => {
+    mkdirSync(join(root, 'docs/attachments'), { recursive: true })
+    writeFileSync(join(root, 'docs/attachments/diagram.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
+    writeFileSync(join(root, 'docs/attachments/diagram.svg'), '<svg></svg>\n', 'utf8')
+    writeFileSync(join(root, 'docs/attachments/data.json'), '{}\n', 'utf8')
+    writeFileSync(join(root, 'docs/attachments/.gitkeep'), '', 'utf8')
 
     const findings = livingDocsLinks.run(contextFor(root))
 
     assert.equal(findings.length, 1, JSON.stringify(findings, null, 2))
-    assert.equal(findings[0]?.file, 'docs/anexos/diagrama.png')
-    assert.match(findings[0]?.message ?? '', /binário/)
-    assert.match(findings[0]?.fix ?? '', /texto|SVG/i)
+    assert.equal(findings[0]?.file, 'docs/attachments/diagram.png')
+    assert.match(findings[0]?.message ?? '', /Binary/)
+    assert.match(findings[0]?.fix ?? '', /text|SVG/i)
   })
 })
 
-test('RN-0023: binário fora do corpus não é assunto de living-docs/links', () => {
-  withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
+test('RN-0023: a binary outside the corpus is not a matter for living-docs/links', () => {
+  withTempRepo({ ...BASE, 'docs/guide.md': '# Guide\n' }, root => {
     mkdirSync(join(root, 'assets'), { recursive: true })
     writeFileSync(join(root, 'assets/logo.png'), Buffer.from([0x89, 0x50]))
     assert.deepEqual(livingDocsLinks.run(contextFor(root)), [])
   })
 })
 
-test('findLinks reconhece as três formas e ignora externo e âncora pura', () => {
+test('findLinks recognizes the three forms and ignores external and bare anchor', () => {
   const source = [
-    'inline [a](x.md) e imagem ![b](y.png)',
+    'inline [a](x.md) and image ![b](y.png)',
     '[ref]: z.md',
-    'wiki [[w]] e [[w|com título]]',
-    'externo [c](https://x.y) [d](mailto:a@b.c) [e](//cdn.x)',
-    'âncora [f](#secao)',
+    'wiki [[w]] and [[w|with title]]',
+    'external [c](https://x.y) [d](mailto:a@b.c) [e](//cdn.x)',
+    'anchor [f](#section)',
   ].join('\n')
 
   assert.deepEqual(findLinks(source), [

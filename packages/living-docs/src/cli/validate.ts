@@ -12,27 +12,27 @@ export interface ValidateResult {
   errors: number
   warnings: number
   exitCode: number
-  /** Artefatos gerados declarados — checados por `ownership validate`, não aqui (ADR-0005). */
+  /** Declared generated artifacts — checked by `ownership validate`, not here (ADR-0005). */
   generated: number
-  /** Vínculos código→doc declarados — a metade do diff é do núcleo e exige `--base` (ADR-0010). */
+  /** Declared code→doc links — half of the diff belongs to the core and requires `--base` (ADR-0010). */
   watched: number
   base: string | null
-  /** Quanto o conjunto de checks levou, medido (RNF-0005). */
+  /** How long the set of checks took, measured (RNF-0005). */
   elapsedMs: number
 }
 
 /**
  * `living-docs validate [--base <ref>]`.
  *
- * Com `base`, fala com o git **aqui** e passa os fatos aos checks de diff — o check
- * continua sendo função pura de (fatos, configuração, árvore) → achados.
+ * With `base`, it talks to git **here** and passes the facts to the diff checks — the check
+ * remains a pure function of (facts, configuration, tree) → findings.
  */
 export function runValidate(root: string, base: string | null = null, run?: GitRunner): ValidateResult {
   const inicio = process.hrtime.bigint()
 
-  // A varredura é memoizada por raiz dentro do processo (`src/core/files.ts`).
-  // Uma execução do `validate` é uma leitura só da árvore; duas execuções são
-  // duas — senão a segunda responderia sobre o repositório de antes.
+  // The scan is memoized per root within the process (`src/core/files.ts`).
+  // One `validate` run is a single read of the tree; two runs are
+  // two — otherwise the second would answer about the repository as it was before.
   forgetTree(root)
 
   const config = loadLivingDocsConfig(root)

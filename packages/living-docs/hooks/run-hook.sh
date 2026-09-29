@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Wrapper dos hooks de documentação viva: executa o toolkit no node do host.
+# Wrapper for the living-documentation hooks: runs the toolkit on the host's node.
 #
-# Falha aberta por contrato:
-# node ausente, dependência faltando, timeout ou erro de execução resultam em
-# saída vazia e exit 0. Um hook quebrado não pode travar o trabalho.
+# Fails open by contract:
+# a missing node, a missing dependency, a timeout or an execution error all
+# result in empty output and exit 0. A broken hook must not block the work.
 #
-# Duas raízes, e elas não se confundem: o código do **toolkit** sai
-# do caminho deste script, um nível acima dele — hooks/ e src/ moram lado a
-# lado na raiz do plugin, que é o diretório que o cache do marketplace copia
-# inteiro. O `.ownership.yml` lido é o do **repositório validado**, que vem de
+# Two roots, and they are not mixed up: the **toolkit** code comes
+# from this script's path, one level above it — hooks/ and src/ live side by
+# side at the plugin root, which is the directory the marketplace cache copies
+# whole. The `.ownership.yml` that is read belongs to the **validated repository**, which comes from
 # CLAUDE_PROJECT_DIR.
 
 HOOK="${1:-}"
@@ -19,10 +19,10 @@ REPO_ROOT="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 INPUT="$(cat)"
 
-# A condição `development` resolve @esliph/ownership pelo src/ do pacote irmão:
-# no checkout não existe dist/, e é isso que impede código velho de rodar em
-# silêncio. Fora do checkout (cache do marketplace) o ../ownership não existe,
-# e o hook falha aberto até o núcleo ser publicado no npm.
+# The `development` condition resolves @esliph/ownership through the sibling package's src/:
+# a checkout has no dist/, and that is what keeps stale code from running
+# silently. Outside the checkout (marketplace cache) ../ownership does not exist,
+# and the hook fails open until the core is published on npm.
 OUTPUT="$(printf '%s' "$INPUT" | LIVING_DOCS_REPO_ROOT="$REPO_ROOT" \
   NODE_OPTIONS="--conditions=development" \
   timeout 5 node "${TOOLKIT_ROOT}/src/hooks/${HOOK}.ts" 2>/dev/null)"

@@ -7,11 +7,11 @@ import type { Frontmatter } from '../frontmatter/parse.ts'
 const RULE = 'living-docs/staleness'
 
 /**
- * O estado que identifica uma família de dívida (spec §4: `open → paid`).
+ * The state that identifies a debt family (spec §4: `open → paid`).
  *
- * A identificação é pela máquina de estados, não pelo prefixo `TDR`: um projeto
- * que chame sua família de outra coisa e declare `states:` continua coberto, e o
- * check não ganha uma lista de prefixos para manter (`ADR-0007`, decisão 4).
+ * Identification is by state machine, not by the `TDR` prefix: a project
+ * that names its family something else and declares `states:` remains covered, and the
+ * check does not gain a prefix list to maintain (`ADR-0007`, decision 4).
  */
 const DEBT_STATE = 'paid'
 
@@ -23,12 +23,12 @@ export interface StaleDoc {
 }
 
 export interface PayWhen {
-  /** Expressão regular reconhecida linha a linha. */
+  /** Regular expression recognized line by line. */
   pattern: string
   paths: string[]
 }
 
-export type PayWhenProblem = 'ausente' | 'incompleto' | 'padrão inválido'
+export type PayWhenProblem = 'missing' | 'incomplete' | 'invalid pattern'
 
 export interface DebtWithoutTrigger {
   file: string
@@ -42,7 +42,7 @@ export interface DuePayment {
   line: number
   id: string
   pattern: string
-  /** Onde a condição foi encontrada, no formato `arquivo:linha`. */
+  /** Where the condition was found, in the `file:line` format. */
   evidence: string
 }
 
@@ -69,9 +69,9 @@ interface Reviewable {
 }
 
 /**
- * O que um artefato (`ArtifactDoc`) e um documento (`DocumentDoc`) têm em comum
- * para efeito de staleness: caminho, frontmatter e a skill dona da regra. As
- * duas interfaces batem nesse formato estruturalmente — não precisa de cast.
+ * What an artifact (`ArtifactDoc`) and a document (`DocumentDoc`) have in common
+ * for staleness purposes: path, frontmatter and the skill that owns the rule. The
+ * two interfaces match this shape structurally — no cast needed.
  */
 interface FrontmatterSource {
   file: string
@@ -79,7 +79,7 @@ interface FrontmatterSource {
   rule: { skill: string | null }
 }
 
-/** Documento sem frontmatter não tem o que vencer — é o caso do CHANGELOG, que a Fase 6 deixou sem de propósito. */
+/** A document without frontmatter has nothing to expire — the case of CHANGELOG, which Phase 6 deliberately left without. */
 function reviewableOf(source: FrontmatterSource): Reviewable | null {
   const frontmatter = source.frontmatter
 
@@ -96,7 +96,7 @@ function reviewableOf(source: FrontmatterSource): Reviewable | null {
   }
 }
 
-/** Tudo que declara data de revisão: artefato, container de coleção e documento. */
+/** Everything that declares a review date: artifact, collection container and document. */
 function reviewables(context: CheckContext): Reviewable[] {
   const sources: FrontmatterSource[] = [...context.docs, ...context.documents]
   const found: Reviewable[] = []
@@ -112,7 +112,7 @@ function reviewables(context: CheckContext): Reviewable[] {
   return found
 }
 
-/** Documentos revisados há mais tempo que o projeto aceita. */
+/** Documents reviewed longer ago than the project accepts. */
 export function staleDocs(context: CheckContext): StaleDoc[] {
   const limit = context.config.staleAfterMonths
   const stale: StaleDoc[] = []
@@ -121,7 +121,7 @@ export function staleDocs(context: CheckContext): StaleDoc[] {
     if (item.lastReviewed === null) {
       continue
     }
-    // Item congelado não se revisa (ADR-0007, decisão 7).
+    // A frozen item is not reviewed (ADR-0007, decision 7).
     if (item.status !== null && FROZEN_STATUSES.has(item.status)) {
       continue
     }
@@ -173,15 +173,15 @@ function openDebts(context: CheckContext): Debt[] {
   return debts
 }
 
-/** O `pay-when` do frontmatter, ou o problema que o torna inútil. */
+/** The frontmatter `pay-when`, or the problem that makes it useless. */
 export function payWhenOf(data: Record<string, unknown>): PayWhen | PayWhenProblem {
   const raw = data['pay-when']
 
   if (raw === undefined || raw === null) {
-    return 'ausente'
+    return 'missing'
   }
   if (typeof raw !== 'object' || Array.isArray(raw)) {
-    return 'incompleto'
+    return 'incomplete'
   }
 
   const record = raw as Record<string, unknown>
@@ -189,25 +189,25 @@ export function payWhenOf(data: Record<string, unknown>): PayWhen | PayWhenProbl
   const paths = record.paths
 
   if (typeof pattern !== 'string' || pattern.trim() === '') {
-    return 'incompleto'
+    return 'incomplete'
   }
   if (!Array.isArray(paths) || paths.length === 0) {
-    return 'incompleto'
+    return 'incomplete'
   }
   if (paths.some(path => typeof path !== 'string' || path.trim() === '')) {
-    return 'incompleto'
+    return 'incomplete'
   }
 
   try {
     new RegExp(pattern)
   } catch {
-    return 'padrão inválido'
+    return 'invalid pattern'
   }
 
   return { pattern, paths: paths as string[] }
 }
 
-/** Dívidas `open` cujo gatilho de pagamento não é verificável (`RN-0019`). */
+/** `open` debts whose payment trigger is not verifiable (`RN-0019`). */
 export function debtsWithoutTrigger(context: CheckContext): DebtWithoutTrigger[] {
   const found: DebtWithoutTrigger[] = []
 
@@ -222,7 +222,7 @@ export function debtsWithoutTrigger(context: CheckContext): DebtWithoutTrigger[]
   return found
 }
 
-/** Dívidas `open` cujo gatilho já aconteceu, com a evidência (spec §12, critério 7). */
+/** `open` debts whose trigger has already happened, with the evidence (spec §12, criterion 7). */
 export function duePayments(context: CheckContext): DuePayment[] {
   const due: DuePayment[] = []
 
@@ -231,12 +231,12 @@ export function duePayments(context: CheckContext): DuePayment[] {
 
     if (typeof payWhen === 'string') {
       continue
-    } // quem reporta é debtsWithoutTrigger
+    } // debtsWithoutTrigger reports this
 
     const pattern = new RegExp(payWhen.pattern)
 
     for (const file of listFiles(context.root, payWhen.paths)) {
-      // O próprio arquivo da dívida cita o gatilho em prosa; citar não é cumprir.
+      // The debt's own file cites the trigger in prose; citing is not fulfilling.
       if (file === debt.file) {
         continue
       }
@@ -271,10 +271,10 @@ export function duePayments(context: CheckContext): DuePayment[] {
 }
 
 /**
- * `living-docs/staleness` — staleness. O **único** check autorizado a apenas avisar (spec §9), e
- * só na metade do `last-reviewed`: a correção ali é ler o documento, e build
- * vermelho empurra para o bump em massa que a spec §13 recusa. A metade da
- * dívida reprova, porque é ela que fecha o critério de aceite 7.
+ * `living-docs/staleness` — staleness. The **only** check authorized to merely warn (spec §9), and
+ * only in the `last-reviewed` half: the fix there is to read the document, and a red
+ * build pushes toward the mass bump that spec §13 refuses. The debt
+ * half fails, because it is what closes acceptance criterion 7.
  *
  * Regras de origem: `RN-0018`, `RN-0019`.
  */
@@ -290,11 +290,11 @@ export const livingDocsStaleness: Check = {
         warning(
           stale.file,
           stale.line,
-          `\`last-reviewed\` tem ${stale.months} meses e o limite deste projeto é ${limit} (\`stale-after-months\`).`,
-          // Regra de origem: spec §13 (bump sem leitura é anti-requisito).
-          `Releia o documento e, se ele ainda é verdade, atualize \`last-reviewed\`${
-            stale.skill === null ? '' : ` (skill dona: ${stale.skill})`
-          }. Bump sem leitura, ou bump em massa, desliga o mecanismo de revisão fingindo cumpri-lo.`,
+          `\`last-reviewed\` is ${stale.months} months old and this project's limit is ${limit} (\`stale-after-months\`).`,
+          // Rule of origin: spec §13 (a bump without reading is an anti-requirement).
+          `Re-read the document and, if it is still true, update \`last-reviewed\`${
+            stale.skill === null ? '' : ` (owning skill: ${stale.skill})`
+          }. A bump without reading, or a mass bump, switches off the review mechanism while pretending to honor it.`,
         ),
       )
     }
@@ -304,11 +304,11 @@ export const livingDocsStaleness: Check = {
         error(
           debt.file,
           debt.line,
-          `${debt.id} está \`open\` e o gatilho de pagamento não é verificável: \`pay-when\` ${debt.problem}.`,
-          'Declare `pay-when` com `pattern` (regex, em aspas simples) e `paths` (globs onde procurá-lo) — ' +
-            // Regra de origem: RN-0019, ADR-0007.
-            'uma condição que alguém consegue apontar acontecendo (skill dona: decision-recorder). ' +
-            'Dívida sem gatilho verificável é `TODO` órfão com número.',
+          `${debt.id} is \`open\` and its payment trigger is not verifiable: \`pay-when\` ${debt.problem}.`,
+          'Declare `pay-when` with `pattern` (a regex, in single quotes) and `paths` (globs where to look for it) — ' +
+            // Rule of origin: RN-0019, ADR-0007.
+            'a condition someone can point to happening (owning skill: decision-recorder). ' +
+            'A debt with no verifiable trigger is an orphan `TODO` with a number.',
         ),
       )
     }
@@ -318,10 +318,10 @@ export const livingDocsStaleness: Check = {
         error(
           payment.file,
           payment.line,
-          `${payment.id} está \`open\` e o gatilho de pagamento já aconteceu: ${payment.evidence} casa \`${payment.pattern}\`.`,
-          // Regra de origem: RN-0005; spec §12, critério 7.
-          'Pague a dívida, ou reclassifique-a (`paid`, `accepted-permanently`) — as duas coisas são ato humano, ' +
-            'e `living-docs/state-promotion` intercepta. Enquanto ela seguir `open` com o gatilho cumprido, o CI reprova.',
+          `${payment.id} is \`open\` and its payment trigger has already happened: ${payment.evidence} matches \`${payment.pattern}\`.`,
+          // Rule of origin: RN-0005; spec §12, criterion 7.
+          'Pay the debt, or reclassify it (`paid`, `accepted-permanently`) — both are human acts, ' +
+            'and `living-docs/state-promotion` intercepts. While it stays `open` with the trigger met, CI fails.',
         ),
       )
     }

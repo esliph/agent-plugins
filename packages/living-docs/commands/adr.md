@@ -1,9 +1,9 @@
 ---
-description: Registra uma decisão arquitetural (ADR) em draft, ou supersede uma existente
-argument-hint: '[assunto da decisão]'
+description: Records an architecture decision (ADR) as a draft, or supersedes an existing one
+argument-hint: '[subject of the decision]'
 ---
 
-Use a skill `decision-recorder` para registrar um ADR sobre: $ARGUMENTS
+Use the `decision-recorder` skill to record an ADR about: $ARGUMENTS
 
-Se já existir um ADR sobre esse assunto, o caminho é supersedir — nunca editar o aceito.
-Pare em `status: draft`; a aceitação é ato humano.
+If an ADR about this subject already exists, the way is to supersede it — never edit the accepted one.
+Stop at `status: draft`; acceptance is a human act.

@@ -4,7 +4,7 @@ import { ownershipConsumerChangeLogged } from '../../src/checks/consumer-change-
 import { buildConfig } from '../helpers/config.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-test('sem watches consumer-visible, nenhum achado mesmo com diff grande', () => {
+test('without consumer-visible watches, no finding even with a big diff', () => {
   const config = buildConfig({})
 
   assert.deepEqual(
@@ -13,7 +13,7 @@ test('sem watches consumer-visible, nenhum achado mesmo com diff grande', () => 
   )
 })
 
-test('diff toca caminho consumer-visible e o changelog não veio junto: achado', () => {
+test('diff touches a consumer-visible path and the changelog did not come along: finding', () => {
   withTempRepo({}, root => {
     const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
     const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts'], messages: [] }).run({ root, config, today: '2026-09-17' })
@@ -22,7 +22,7 @@ test('diff toca caminho consumer-visible e o changelog não veio junto: achado',
   })
 })
 
-test('changelog veio junto mas sem item em Unreleased: achado', () => {
+test('changelog came along but with no item in Unreleased: finding', () => {
   withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n' }, root => {
     const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
     const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts', 'CHANGELOG.md'], messages: [] }).run({
@@ -35,7 +35,7 @@ test('changelog veio junto mas sem item em Unreleased: achado', () => {
   })
 })
 
-test('changelog veio junto com item em Unreleased: sem achado', () => {
+test('changelog came along with an item in Unreleased: no finding', () => {
   withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n\n- x\n' }, root => {
     const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
 
@@ -46,7 +46,7 @@ test('changelog veio junto com item em Unreleased: sem achado', () => {
   })
 })
 
-test('cada doc visível só é cobrado pelos caminhos da própria regra', () => {
+test('each visible doc is only charged for the paths of its own rule', () => {
   withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n\n- x\n' }, root => {
     const config = buildConfig({
       watches: [
@@ -64,10 +64,10 @@ test('cada doc visível só é cobrado pelos caminhos da própria regra', () => 
   })
 })
 
-test('Changelog: none — razão libera', () => {
+test('Changelog: none — reason releases', () => {
   withTempRepo({}, root => {
     const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
-    const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts'], messages: ['Changelog: none — interno'] }).run({
+    const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts'], messages: ['Changelog: none — internal'] }).run({
       root,
       config,
       today: '2026-09-17',
@@ -77,8 +77,8 @@ test('Changelog: none — razão libera', () => {
   })
 })
 
-test('item em Unreleased escrito com * conta como entrada', () => {
-  withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n\n* algo novo\n' }, root => {
+test('item in Unreleased written with * counts as an entry', () => {
+  withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n\n* something new\n' }, root => {
     const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
 
     assert.deepEqual(
@@ -88,12 +88,12 @@ test('item em Unreleased escrito com * conta como entrada', () => {
   })
 })
 
-test('doc declarado, no diff e ausente do repositório é achado, não silêncio', () => {
+test('doc declared, in the diff and absent from the repository is a finding, not silence', () => {
   withTempRepo({}, root => {
     const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
     const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts', 'CHANGELOG.md'], messages: [] }).run({ root, config, today: '2026-09-28' })
 
     assert.equal(findings.length, 1)
-    assert.match(findings[0]!.message, /ausente/)
+    assert.match(findings[0]!.message, /missing/)
   })
 })

@@ -22,8 +22,8 @@ function frontmatterState(source: string, field: string): string | null {
 }
 
 /**
- * Toda mudança de estado de um item que existe antes e depois, pareado pela
- * chave. Não decide se a mudança exige gente: isso não é deste módulo.
+ * Every state change of an item that exists before and after, paired by
+ * key. It does not decide whether the change requires a human: that is not this module's job.
  */
 export function findTransitions(before: string, after: string, rule: ResolvedOwnedRule, repoPath: string): Transition[] {
   const { format } = rule

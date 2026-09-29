@@ -10,36 +10,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # A metade de diff compara <base>...HEAD; um clone raso não tem a base.
+          # The diff half compares <base>...HEAD; a shallow clone lacks the base.
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
-          # O piso é `engines.node` do package.json (RNF-0002).
+          # The floor is `engines.node` in package.json (RNF-0002).
           node-version: '24'
           cache: npm
 
-      - name: Instalar dependências
+      - name: Install dependencies
         run: npm ci
 
-      - name: Testes
+      - name: Tests
         run: npm test
 
       - name: Type-check
         run: npm run typecheck
 
-      - name: Dono, ciclo de vida e artefato gerado
+      - name: Owner, lifecycle and generated artifact
         run: node --conditions=development packages/ownership/src/cli/index.ts validate
 
-      - name: Documentação viva — estado da árvore
+      - name: Living documentation — tree state
         run: node --conditions=development packages/living-docs/src/cli/index.ts validate
 
-      # O diff só existe com uma base. Em `push` não há base, e inventar uma
-      # produziria achado sobre mudança que não é desta branch.
-      - name: Vínculo código→doc e entrada de CHANGELOG no diff do PR
+      # The diff only exists with a base. On `push` there is no base, and inventing one
+      # would produce findings about a change that is not this branch's.
+      - name: Code→doc link and CHANGELOG entry in the PR diff
         if: github.event_name == 'pull_request'
         run: node --conditions=development packages/ownership/src/cli/index.ts validate --base ${{ github.event.pull_request.base.sha }}
 
-      - name: Documentação viva no diff do PR
+      - name: Living documentation in the PR diff
         if: github.event_name == 'pull_request'
         run: node --conditions=development packages/living-docs/src/cli/index.ts validate --base ${{ github.event.pull_request.base.sha }}

@@ -1,21 +1,21 @@
 ---
-title: Migração — <de> para <para>
+title: Migration — <from> to <to>
 owner: "{{OWNER}}"
 trigger: >
-  Quando uma mudança quebra compatibilidade, no mesmo PR que a decide.
+  When a change breaks compatibility, in the same PR that decides it.
 last-reviewed: {{TODAY}}
 ---
 
-# Migração — <de> para <para>
+# Migration — <from> to <to>
 
-## O que quebrou
+## What broke
 
-## Por que
+## Why
 
-<!-- Em texto corrido, o que foi decidido e por quê — sem o ID do ADR: quem lê este guia está do lado de fora. O commit que cria o guia cita o ADR. Migração sem decisão registrada é quebra sem porquê. -->
+<!-- In running text, what was decided and why — without the ADR's ID: whoever reads this guide is on the outside. The commit that creates the guide cites the ADR. A migration with no recorded decision is a break with no why. -->
 
-## Como migrar
+## How to migrate
 
 1.
 
-## Como saber que terminou
+## How to know it is finished

@@ -13,7 +13,7 @@ export interface ResolvedOwnedRule {
   format: FormatBlock
   derivesFrom: DerivesFrom | null
   pluginBlocks: Record<string, Record<string, unknown>>
-  /** Arquivo de ownership que declarou esta entrada. */
+  /** Ownership file that declared this entry. */
   origin: string
 }
 
@@ -25,7 +25,7 @@ export interface ResolvedWatchRule extends WatchRuleRaw {
   origin: string
 }
 
-/** Cada arquivo lido e a base dele — é o que deixa o `explain` dizer quem deveria governar um caminho sem dono. */
+/** Each file read and its base — what lets `explain` say who should govern a path with no owner. */
 export interface ResolvedFile {
   file: string
   base: string
@@ -34,7 +34,7 @@ export interface ResolvedFile {
 export interface ResolvedConfig {
   version: 2
   plugins: string[]
-  /** Blocos de topo do arquivo raiz, por nome de plugin — opacos ao núcleo. */
+  /** Top-level blocks of the root file, by plugin name — opaque to the core. */
   pluginBlocks: Record<string, Record<string, unknown>>
   owned: ResolvedOwnedRule[]
   generated: ResolvedGeneratedRule[]
@@ -48,7 +48,7 @@ export interface ResolvedConfig {
 export interface ResolveOptions {
   explicitPath?: string | null
   env?: Record<string, string | undefined>
-  /** Poda: só lê arquivos incluídos cujo diretório é ancestral de algum destes caminhos. */
+  /** Pruning: only reads included files whose directory is an ancestor of one of these paths. */
   onlyFor?: readonly string[]
 }
 
@@ -67,7 +67,7 @@ function withinBase(base: string, resolvedPath: string): boolean {
   return base === '' || resolvedPath === base || resolvedPath === `${base}/` || resolvedPath.startsWith(`${base}/`)
 }
 
-/** Diretório do arquivo mais o `basePath` — que o parser já garantiu não subir nem ter glob. */
+/** Directory of the file plus the `basePath` — which the parser already guaranteed neither climbs nor has a glob. */
 function baseOf(file: ParsedFile): string {
   const base = file.basePath === null ? file.dir : joinRel(file.dir, file.basePath)
 
@@ -75,8 +75,8 @@ function baseOf(file: ParsedFile): string {
 }
 
 /**
- * `watches[].doc` fica de fora: é o único campo que nunca é caminho editado, e é o
- * que deixa um pacote apontar para o CHANGELOG da raiz (spec §5).
+ * `watches[].doc` is left out: it is the only field that is never an edited path, and it is
+ * what lets a package point to the root CHANGELOG (spec §5).
  */
 function assertConfinement(file: ParsedFile, base: string): void {
   const declared: string[] = [
@@ -92,8 +92,8 @@ function assertConfinement(file: ParsedFile, base: string): void {
 
     if (!withinBase(base, resolved)) {
       throw new OwnershipError(
-        `${file.file}: "${entry}" resolve para "${resolved}", fora da base do arquivo ("${base || '.'}"). ` +
-          'Caminho que pode ser editado nunca escapa da base de quem o declara.',
+        `${file.file}: "${entry}" resolves to "${resolved}", outside the file base ("${base || '.'}"). ` +
+          'A path that can be edited never escapes the base of the file that declares it.',
       )
     }
   }
@@ -131,7 +131,7 @@ function readOwnershipFile(repoRoot: string, file: string, referencedBy: string)
   try {
     return readFileSync(join(repoRoot, file), 'utf8')
   } catch {
-    throw new OwnershipError(`${referencedBy}: include aponta para "${file}", que não existe ou não pode ser lido.`)
+    throw new OwnershipError(`${referencedBy}: include points to "${file}", which does not exist or cannot be read.`)
   }
 }
 
@@ -142,8 +142,8 @@ function collectTree(repoRoot: string, root: RootFile, onlyFor: readonly string[
   function walk(file: ParsedFile, base: string, ancestors: readonly string[]): void {
     for (const entry of file.include) {
       const target = joinRel(base, entry)
-      // Poda pelo diretório: como `basePath` só desce, a base do incluído é
-      // descendente dele, e um diretório que não alcança também não alcança por ela.
+      // Pruning by directory: since `basePath` only descends, the base of the included file is
+      // a descendant of it, and a directory it does not reach is not reached through it either.
       const targetDir = entry.endsWith('/') ? target.replace(/\/$/, '') : dirOf(target)
 
       if (!isAncestorOfAny(targetDir, onlyFor)) {
@@ -156,10 +156,10 @@ function collectTree(repoRoot: string, root: RootFile, onlyFor: readonly string[
         const candidates = listOwnershipFilesIn(repoRoot, target)
 
         if (candidates.length === 0) {
-          throw new OwnershipError(`${file.file}: include "${entry}" não tem nenhum arquivo de ownership dentro.`)
+          throw new OwnershipError(`${file.file}: include "${entry}" has no ownership file inside.`)
         }
         if (candidates.length > 1) {
-          throw new OwnershipError(`${file.file}: include "${entry}" é ambíguo — ${candidates.join(', ')}. Nomeie o arquivo explicitamente.`)
+          throw new OwnershipError(`${file.file}: include "${entry}" is ambiguous — ${candidates.join(', ')}. Name the file explicitly.`)
         }
         includedFile = candidates[0]!
       } else {
@@ -167,17 +167,17 @@ function collectTree(repoRoot: string, root: RootFile, onlyFor: readonly string[
       }
 
       if (ancestors.includes(includedFile)) {
-        throw new OwnershipError(`Ciclo de include: ${[...ancestors, includedFile].join(' → ')}.`)
+        throw new OwnershipError(`Include cycle: ${[...ancestors, includedFile].join(' → ')}.`)
       }
       if (seen.has(includedFile)) {
-        throw new OwnershipError(`${file.file}: "${includedFile}" já foi incluído por outro arquivo. Um arquivo de ownership é incluído uma vez só.`)
+        throw new OwnershipError(`${file.file}: "${includedFile}" was already included by another file. An ownership file is included only once.`)
       }
       seen.add(includedFile)
 
       const parsed = parseOwnershipFile(readOwnershipFile(repoRoot, includedFile, file.file), includedFile, { isRoot: false, pluginNames: root.plugins }) as ParsedFile
 
       if (parsed.version !== root.version) {
-        throw new OwnershipError(`${includedFile}: versão ${parsed.version} diverge de ${root.file} (versão ${root.version}). Um repositório, um esquema.`)
+        throw new OwnershipError(`${includedFile}: version ${parsed.version} differs from ${root.file} (version ${root.version}). One repository, one schema.`)
       }
 
       const childBase = baseOf(parsed)
@@ -193,7 +193,7 @@ function collectTree(repoRoot: string, root: RootFile, onlyFor: readonly string[
   return files
 }
 
-/** Contenção de diretório: `docs/` contém `docs/adr/x.md`; dois arquivos só colidem se forem o mesmo. */
+/** Directory containment: `docs/` contains `docs/adr/x.md`; two files only collide if they are the same. */
 function collides(a: string, b: string): boolean {
   if (a === b) {
     return true
@@ -215,7 +215,7 @@ function assertDisjoint(declared: readonly Declared[], what: string): void {
 
       if (collides(a.path, b.path)) {
         throw new OwnershipError(
-          `${what}: "${a.path}" (${a.file}) colide com "${b.path}" (${b.file}). ` + 'Um caminho é governado por uma declaração só — nenhuma contém outra.',
+          `${what}: "${a.path}" (${a.file}) collides with "${b.path}" (${b.file}). ` + 'A path is governed by a single declaration — none contains another.',
         )
       }
     }
@@ -258,7 +258,7 @@ export function resolveOwnership(repoRoot: string, opts: ResolveOptions = {}): R
   }
 
   const parsedRoot = parseOwnershipFile(readFileSync(join(repoRoot, rootFile), 'utf8'), rootFile, { isRoot: true, pluginNames: [] }) as RootFile
-  // A base da raiz é a raiz do repositório, more o arquivo onde morar (spec §5).
+  // The root's base is the repository root, wherever the file lives (spec §5).
   const root: RootFile = { ...parsedRoot, dir: '' }
   const rootBase = baseOf(root)
 
@@ -302,7 +302,7 @@ function covers(declared: string, repoPath: string): boolean {
   return target.endsWith('/') ? repoPath.startsWith(target) : repoPath === target
 }
 
-/** A regra de `owned[]` que governa este caminho — a disjunção garante que é uma só. */
+/** The `owned[]` rule that governs this path — the disjunction guarantees there is only one. */
 export function findOwnedRule(config: ResolvedConfig, repoPath: string): ResolvedOwnedRule | null {
   const target = normalize(repoPath)
 

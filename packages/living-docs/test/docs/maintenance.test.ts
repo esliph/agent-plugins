@@ -23,23 +23,23 @@ function contextFor() {
   }
 }
 
-test('RN-0016: todo documento deste repositório tem dono nos dois lugares', () => {
+test('RN-0016: every document in this repository has an owner in both places', () => {
   const codeowners = loadCodeowners(ROOT)
 
-  assert.ok(codeowners, 'CODEOWNERS deveria existir')
+  assert.ok(codeowners, 'CODEOWNERS should exist')
 
-  const semDono: string[] = []
+  const withoutOwner: string[] = []
 
   for (const file of documentationFiles(ROOT, CONFIG)) {
     if (ownersOf(codeowners, file) === null) {
-      semDono.push(file)
+      withoutOwner.push(file)
     }
   }
 
-  assert.deepEqual(semDono, [], `sem linha no CODEOWNERS: ${semDono.join(', ')}`)
+  assert.deepEqual(withoutOwner, [], `no line in CODEOWNERS: ${withoutOwner.join(', ')}`)
 })
 
-test('RN-0016: `documents:` e CODEOWNERS declaram o mesmo dono', () => {
+test('RN-0016: `documents:` and CODEOWNERS declare the same owner', () => {
   const codeowners = loadCodeowners(ROOT)
 
   assert.ok(codeowners)
@@ -47,38 +47,38 @@ test('RN-0016: `documents:` e CODEOWNERS declaram o mesmo dono', () => {
   for (const document of CONFIG.documents) {
     const owners = ownersOf(codeowners, document.path.replace(/\/$/, '/x'))
 
-    assert.ok(owners, `${document.path} sem dono no CODEOWNERS`)
-    assert.ok(owners.includes(document.owner), `${document.path}: .ownership.yml diz ${document.owner}, CODEOWNERS diz ${owners.join(', ')}`)
+    assert.ok(owners, `${document.path} without an owner in CODEOWNERS`)
+    assert.ok(owners.includes(document.owner), `${document.path}: .ownership.yml says ${document.owner}, CODEOWNERS says ${owners.join(', ')}`)
   }
 })
 
-test('RN-0019: toda dívida `open` deste repositório tem gatilho verificável e não vencido', () => {
+test('RN-0019: every `open` debt in this repository has a verifiable, unexpired trigger', () => {
   const context = contextFor()
 
   assert.deepEqual(
     debtsWithoutTrigger(context).map(debt => debt.id),
     [],
-    'dívida sem `pay-when` é `TODO` órfão com número',
+    'a debt without `pay-when` is an orphan `TODO` with a number',
   )
   assert.deepEqual(
     duePayments(context).map(payment => `${payment.id} — ${payment.evidence}`),
     [],
-    'se aparecer aqui, a dívida venceu: pague ou reclassifique (ato humano)',
+    'if it shows up here, the debt is due: pay it or reclassify it (human act)',
   )
 })
 
-test('ADR-0008: os dois papéis estão declarados e apontam para arquivos que existem', () => {
+test('ADR-0008: both roles are declared and point to files that exist', () => {
   for (const role of ['agent-contract', 'definition-of-done'] as const) {
     const document = documentWithRole(CONFIG, role)
 
-    assert.ok(document, `nenhum documento declara role: ${role} — living-docs/agent-contract-duplication e living-docs/done-verifiable não teriam como achá-lo`)
-    assert.ok(existsSync(join(ROOT, document.path)), `${document.path} declarado e ausente`)
+    assert.ok(document, `no document declares role: ${role} — living-docs/agent-contract-duplication and living-docs/done-verifiable would have no way to find it`)
+    assert.ok(existsSync(join(ROOT, document.path)), `${document.path} declared and absent`)
   }
 })
 
-test('RN-0020: o contrato do agente continua sendo índice — sem frase copiada de artefato dono', () => {
-  // A prova real é living-docs/agent-contract-duplication rodando em `validate`; este teste existe para que a
-  // falha aponte o contrato em vez de se perder no meio dos outros achados.
+test('RN-0020: the agent contract remains an index — no sentence copied from an owning artifact', () => {
+  // The real proof is living-docs/agent-contract-duplication running in `validate`; this test exists so that the
+  // failure points at the contract instead of getting lost among the other findings.
   const contract = documentWithRole(CONFIG, 'agent-contract')
 
   assert.ok(contract)
@@ -86,27 +86,27 @@ test('RN-0020: o contrato do agente continua sendo índice — sem frase copiada
   const context = contextFor()
   const source = context.documents.find(document => document.file === contract.path)?.source
 
-  assert.ok(source, `${contract.path} deveria estar coletado`)
+  assert.ok(source, `${contract.path} should have been collected`)
 })
 
-test('spec §12 criterios 9 e 10: o que so gente verifica entra como linha humana', () => {
-  const documento = documentWithRole(CONFIG, 'definition-of-done')
+test('spec §12 criteria 9 and 10: what only people verify goes in as a human line', () => {
+  const dodDocument = documentWithRole(CONFIG, 'definition-of-done')
 
-  assert.ok(documento)
-  const dod = readFileSync(join(ROOT, documento.path), 'utf8')
+  assert.ok(dodDocument)
+  const dod = readFileSync(join(ROOT, dodDocument.path), 'utf8')
 
-  const humanos = [/falta de contexto/i, /volume documental/i]
+  const human = [/lack of context/i, /document-volume metric/i]
 
-  for (const padrao of humanos) {
-    const linha = dod.split('\n').find(l => padrao.test(l))
+  for (const pattern of human) {
+    const line = dod.split('\n').find(l => pattern.test(l))
 
-    assert.ok(linha, `a Definition of Done nao tem a linha de ${padrao}`)
-    assert.match(linha ?? '', /^- \[ \] /, 'precisa ser item de checklist')
+    assert.ok(line, `the Definition of Done has no line for ${pattern}`)
+    assert.match(line ?? '', /^- \[ \] /, 'must be a checklist item')
     assert.match(
-      linha ?? '',
-      /verificacao: humana|verificação: humana/,
-      'estes dois sao verificacao humana por natureza — um check que fingisse medi-los seria pior que a ausencia dele',
+      line ?? '',
+      /verification: human\b/,
+      'these two are human verification by nature — a check that pretended to measure them would be worse than having none',
     )
-    assert.doesNotMatch(linha ?? '', /\bCI-\d+\b/, 'nenhum check mede estes dois')
+    assert.doesNotMatch(line ?? '', /\bCI-\d+\b/, 'no check measures these two')
   }
 })

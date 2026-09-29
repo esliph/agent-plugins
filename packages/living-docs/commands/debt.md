@@ -1,8 +1,8 @@
 ---
-description: Registra uma dívida técnica assumida de propósito, com gatilho de pagamento
-argument-hint: '[o atalho assumido]'
+description: Records technical debt taken on purpose, with a payment trigger
+argument-hint: '[the shortcut taken]'
 ---
 
-Use a skill `decision-recorder` para registrar um TDR sobre: $ARGUMENTS
+Use the `decision-recorder` skill to record a TDR about: $ARGUMENTS
 
-Exija um gatilho de pagamento observável. "Quando der tempo" não é gatilho.
+Require an observable payment trigger. "When there is time" is not a trigger.

@@ -8,34 +8,34 @@ const FINDING: Finding = {
   file: 'docs/decisions/adr/ADR-0001-x.md',
   line: 6,
   severity: 'error',
-  message: '`trigger` descreve cadência ("trimestral").',
-  fix: 'Nomeie o evento observável.',
+  message: '`trigger` describes a cadence ("quarterly").',
+  fix: 'Name the observable event.',
 }
 
-test('nomeia arquivo, linha, regra e correção', () => {
+test('names file, line, rule and fix', () => {
   const output = formatFindings([FINDING])
 
   assert.match(output, /docs\/decisions\/adr\/ADR-0001-x\.md:6/)
   assert.match(output, /living-docs\/frontmatter/)
   assert.match(output, /error/)
-  assert.match(output, /trimestral/)
-  assert.match(output, /Nomeie o evento observável\./)
+  assert.match(output, /quarterly/)
+  assert.match(output, /Name the observable event\./)
 })
 
-test('omite a linha quando ela é 0', () => {
+test('omits the line when it is 0', () => {
   const output = formatFindings([{ ...FINDING, line: 0 }])
 
   assert.match(output, /ADR-0001-x\.md\s/)
   assert.doesNotMatch(output, /ADR-0001-x\.md:0/)
 })
 
-test('resume a contagem por severidade', () => {
+test('summarizes the count by severity', () => {
   const output = formatFindings([FINDING, { ...FINDING, severity: 'warning' }])
 
-  assert.match(output, /1 erro/)
-  assert.match(output, /1 aviso/)
+  assert.match(output, /1 error/)
+  assert.match(output, /1 warning/)
 })
 
-test('sem findings, informa que está tudo certo', () => {
-  assert.match(formatFindings([]), /nenhuma/i)
+test('with no findings, reports that everything is fine', () => {
+  assert.match(formatFindings([]), /no violation/i)
 })

@@ -42,9 +42,9 @@ export function decideGeneratedGuard(payload: HookPayload, env: HookEnv): Genera
     return {
       action: 'deny',
       reason:
-        `ownership/generated-guard bloqueou: \`${repoPath}\` é artefato gerado, declarado em \`generated[]\` (${rule.origin}). ` +
-        `Mude a fonte anotada e rode \`${rule.command} > ${rule.path}\`. ` +
-        '`ownership validate` (ownership/generated-drift) verifica a deriva.',
+        `ownership/generated-guard blocked: \`${repoPath}\` is a generated artifact, declared in \`generated[]\` (${rule.origin}). ` +
+        `Change the annotated source and run \`${rule.command} > ${rule.path}\`. ` +
+        '`ownership validate` (ownership/generated-drift) checks for drift.',
     }
   }
 
@@ -64,9 +64,9 @@ export function decideGeneratedGuard(payload: HookPayload, env: HookEnv): Genera
   return {
     action: 'deny',
     reason:
-      `ownership/generated-guard bloqueou: \`${repoPath}\` abre com o marcador \`generated: do not edit\`. ` +
-      'Mude a fonte e rode o gerador. Este arquivo não está em `generated[]` — declare-o lá, com o comando do gerador, ' +
-      'para que `ownership/generated-drift` também o cubra.',
+      `ownership/generated-guard blocked: \`${repoPath}\` opens with the marker \`generated: do not edit\`. ` +
+      'Change the source and run the generator. This file is not in `generated[]` — declare it there, with the generator command, ' +
+      'so that `ownership/generated-drift` covers it too.',
   }
 }
 

@@ -2,37 +2,37 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { GitError, changedPaths, commitMessages, stagedPaths, runCommand } from '../../src/core/exec.ts'
 
-test('stagedPaths falha aberta: runner que lança devolve lista vazia', () => {
+test('stagedPaths fails open: a runner that throws returns an empty list', () => {
   assert.deepEqual(
     stagedPaths('/repo', () => {
-      throw new Error('sem git')
+      throw new Error('no git')
     }),
     [],
   )
 })
 
-test('changedPaths parseia saída NUL-separada', () => {
+test('changedPaths parses NUL-separated output', () => {
   assert.deepEqual(
     changedPaths('/repo', 'main', () => 'a.md\0b/c.md\0'),
     ['a.md', 'b/c.md'],
   )
 })
 
-test('commitMessages separa por NUL e apara espaço', () => {
+test('commitMessages splits on NUL and trims whitespace', () => {
   assert.deepEqual(
-    commitMessages('/repo', 'main', () => ' msg um \0msg dois\n\ncorpo\0'),
-    ['msg um', 'msg dois\n\ncorpo'],
+    commitMessages('/repo', 'main', () => ' msg one \0msg two\n\nbody\0'),
+    ['msg one', 'msg two\n\nbody'],
   )
 })
 
-test('runCommand executa e devolve stdout', () => {
+test('runCommand executes and returns stdout', () => {
   assert.equal(runCommand('node -e "process.stdout.write(String(1+1))"', process.cwd()), '2')
 })
 
-test('changedPaths com base que não resolve lança GitError — o check não inventa diff vazio', () => {
+test('changedPaths with a base that does not resolve throws GitError — the check does not invent an empty diff', () => {
   assert.throws(
     () =>
-      changedPaths('/repo', 'nao-existe', () => {
+      changedPaths('/repo', 'does-not-exist', () => {
         throw new Error('fatal: bad revision')
       }),
     GitError,

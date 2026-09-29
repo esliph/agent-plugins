@@ -1,254 +1,258 @@
 ---
-title: Requisitos funcionais
+title: Functional requirements
 owner: '@esliph/engineering'
 trigger: >
-  Antes de implementar qualquer comportamento desta família, e a toda regra nova
-  ou alterada.
+  Before implementing any behavior of this family, and on every new or changed
+  rule.
 last-reviewed: 2026-09-18
 ---
 
-# Requisitos funcionais
+# Functional requirements
 
-Cada requisito é uma seção com ID citável. Formato: `templates/requirements.md`.
+Each requirement is a section with a citable ID. Format: `templates/requirements.md`.
 
-## RF-0001 — `validate` falha o build quando há erro, e só então
-
-- **status:** active
-- **fora de escopo:** o formato da saída
-
-`living-docs validate` sai com código 1 se qualquer check produziu achado de
-severidade `error`, e 0 caso contrário. Aviso não falha o build — aviso ignorado
-é o começo da wiki morta, e por isso quase nada é aviso.
-
-## RF-0002 — `init` é idempotente e adota o que já existe
+## RF-0001 — `validate` fails the build when there is an error, and only then
 
 - **status:** active
-- **fora de escopo:** migrar o conteúdo do artefato adotado para outro formato
+- **out of scope:** the format of the output
 
-Rodar `living-docs init` duas vezes não duplica arquivo, não reescreve conteúdo
-existente e não renumera ID. Encontrando artefato equivalente sob outro caminho,
-adota-o no `.ownership.yml` em vez de criar um paralelo.
+`living-docs validate` exits with code 1 if any check produced a finding of
+`error` severity, and 0 otherwise. A warning does not fail the build — an ignored
+warning is the beginning of the dead wiki, and that is why almost nothing is a
+warning.
 
-## RF-0003 — `init` instala o conjunto do estágio, e diz o que não instalou
+## RF-0002 — `init` is idempotent and adopts what already exists
 
 - **status:** active
-- **fora de escopo:** escolher o estágio, que é julgamento humano
+- **out of scope:** migrating the content of the adopted artifact to another format
 
-`living-docs init --stage <estágio>` instala apenas a moldura que o estágio pede,
-e lista explicitamente o que ficou fora.
+Running `living-docs init` twice does not duplicate a file, does not rewrite
+existing content and does not renumber an ID. Finding an equivalent artifact under
+another path, it adopts it in `.ownership.yml` instead of creating a parallel one.
 
-## RF-0004 — `init --stage small-team` instala os acordos de trabalho
+## RF-0003 — `init` installs the stage's set, and says what it did not install
+
+- **status:** active
+- **out of scope:** choosing the stage, which is human judgment
+
+`living-docs init --stage <stage>` installs only the frame the stage asks for, and
+explicitly lists what was left out.
+
+## RF-0004 — `init --stage small-team` installs the working agreements
 
 - **status:** active
 - **relates-to:** RF-0002
-- **fora de escopo:** preencher `watches`, que exige conhecer o código do projeto e é ato humano
+- **out of scope:** filling in `watches`, which requires knowing the project's code and is a human act
 
-No estágio `small-team`, `living-docs init` cria `CONTRIBUTING.md`, a Definition
-of Done e o contrato do agente. Encontrando `AGENTS.md`, adota-o como contrato em
-vez de criar um `CLAUDE.md` paralelo; encontrando qualquer um deles já escrito,
-mantém o conteúdo intacto.
+At the `small-team` stage, `living-docs init` creates `CONTRIBUTING.md`, the
+Definition of Done and the agent contract. Finding `AGENTS.md`, it adopts it as the
+contract instead of creating a parallel `CLAUDE.md`; finding any of them already
+written, it keeps the content intact.
 
-O que o comando **não** faz é inventar `watches`: um vínculo código→doc que
-ninguém reconhece é ruído que ensina a ignorar o lembrete.
+What the command does **not** do is invent `watches`: a code→doc link that nobody
+recognizes is noise that teaches people to ignore the reminder.
 
-## RF-0005 — `init --stage small-team` instala a moldura de linguagem e intenção
+## RF-0005 — `init --stage small-team` installs the language and intent frame
 
 - **status:** active
 - **relates-to:** RF-0004
-- **fora de escopo:** o conteúdo real dos termos e princípios — a semente é o formato, não o vocabulário deste ou de outro projeto
+- **out of scope:** the real content of the terms and principles — the seed is the format, not the vocabulary of this or any other project
 
-No estágio `small-team`, `living-docs init` cria `docs/glossary.md`,
-`docs/charter/constitution.md` e `docs/charter/vision.md` a partir dos
-templates, com a mesma idempotência e a mesma política de adoção dos demais
-artefatos: não recria o que existe, não reescreve conteúdo do usuário.
+At the `small-team` stage, `living-docs init` creates `docs/glossary.md`,
+`docs/charter/constitution.md` and `docs/charter/vision.md` from the templates,
+with the same idempotence and the same adoption policy as the other artifacts: it
+does not recreate what exists, it does not rewrite user content.
 
-## RF-0006 — `living-docs drift` compara o artefato gerado com a saída do gerador
+## RF-0006 — `living-docs drift` compares the generated artifact with the generator output
 
 - **status:** active
 - **relates-to:** ADR-0005
-- **fora de escopo:** gerar o artefato — `drift` compara, nunca escreve
+- **out of scope:** generating the artifact — `drift` compares, never writes
 
-Para cada entrada de `generated[]` no `.ownership.yml`, `living-docs drift`
-executa `command`, compara a saída padrão com o arquivo em `path` e sai com
-código 1 se houver diferença, se o gerador falhar, ou se o arquivo declarado
-não existir. Sem entrada nenhuma declarada, ele diz isso e sai com 0.
+For each entry of `generated[]` in `.ownership.yml`, `living-docs drift` runs
+`command`, compares the standard output with the file at `path` and exits with code
+1 if there is a difference, if the generator fails, or if the declared file does not
+exist. With no entry declared, it says so and exits with 0.
 
-`living-docs validate` não roda essa comparação; quando há artefato gerado
-declarado, ele aponta o subcomando que a faz.
+`living-docs validate` does not run this comparison; when there is a declared
+generated artifact, it points to the subcommand that does.
 
-**Revogação proposta.** Com o living-docs sobre o núcleo (`ADR-0029`,
-`ADR-0030`), a comparação passa a ser do `ownership validate`, e
-`living-docs drift` deixa de existir. Este requisito descreve um comando que
-sai, e a revogação (`active → revoked`) é ato humano.
+**Proposed revocation.** With living-docs built on the core (`ADR-0029`,
+`ADR-0030`), the comparison becomes the job of `ownership validate`, and
+`living-docs drift` ceases to exist. This requirement describes a command that is
+going away, and the revocation (`active → revoked`) is a human act.
 
-## RF-0007 — `init --stage production` instala a moldura de contratos
+## RF-0007 — `init --stage production` installs the contracts frame
 
 - **status:** active
 - **relates-to:** RF-0005
-- **fora de escopo:** declarar o gerador — `generated[]` nasce vazio, com
-  exemplo comentado, pela mesma razão que `watches` nasce vazio (`RF-0004`)
+- **out of scope:** declaring the generator — `generated[]` is born empty, with a
+  commented example, for the same reason `watches` is born empty (`RF-0004`)
 
-No estágio `production`, `living-docs init` cria, além de tudo que
-`small-team` cria, `docs/contracts/errors.md` e
-`docs/contracts/versioning-policy.md` a partir dos templates, com a mesma
-idempotência e a mesma política de adoção dos demais artefatos.
+At the `production` stage, `living-docs init` creates, in addition to everything
+`small-team` creates, `docs/contracts/errors.md` and
+`docs/contracts/versioning-policy.md` from the templates, with the same idempotence
+and the same adoption policy as the other artifacts.
 
-A partir de `RF-0009`, `production` também instala a moldura de rastro
-histórico da Fase 6 — a lista do que o estágio pede e não instala fica vazia.
+From `RF-0009` on, `production` also installs the Phase 6 historical-trail frame —
+the list of what the stage asks for and does not install is empty.
 
-## RF-0008 — `living-docs changelog --base <ref>` cobra a entrada de CHANGELOG
+## RF-0008 — `living-docs changelog --base <ref>` enforces the CHANGELOG entry
 
 - **status:** active
 - **relates-to:** ADR-0006
-- **fora de escopo:** escrever a entrada — o comando cobra, nunca redige
+- **out of scope:** writing the entry — the command enforces, never drafts
 
-`living-docs changelog --base <ref>` compara `<ref>...HEAD`, e falha com código
-1 quando algum caminho alterado casa com `consumer-visible-paths` e o mesmo
-diff não traz o doc marcado `consumer-visible: true` em `watches` com ao menos
-um item sob `## [Unreleased]`, nem o rótulo de exceção com razão em alguma
-mensagem de commit do intervalo.
+`living-docs changelog --base <ref>` compares `<ref>...HEAD`, and fails with code 1
+when some changed path matches `consumer-visible-paths` and the same diff carries
+neither the doc marked `consumer-visible: true` in `watches` with at least one item
+under `## [Unreleased]`, nor the exception label with a reason in some commit
+message of the range.
 
-Sem `consumer-visible-paths` declarado, ele diz isso e sai com 0. Sem `--base`,
-sai com 2 — a base do diff não se adivinha. `living-docs validate` não faz essa
-comparação; quando há `consumer-visible-paths` declarado, ele aponta o
-subcomando que a faz.
+With no `consumer-visible-paths` declared, it says so and exits with 0. Without
+`--base`, it exits with 2 — the diff base is not guessed. `living-docs validate`
+does not make this comparison; when there is a declared `consumer-visible-paths`,
+it points to the subcommand that does.
 
-**Revogação proposta.** Com o living-docs sobre o núcleo (`ADR-0029`,
-`ADR-0030`), a cobrança é do `ownership validate --base`, que lê as regras de
-`watches` marcadas `consumer-visible: true`, e `living-docs changelog` deixa de
-existir; `consumer-visible-paths` também. Este requisito descreve um comando que
-sai, e a revogação (`active → revoked`) é ato humano.
+**Proposed revocation.** With living-docs built on the core (`ADR-0029`,
+`ADR-0030`), the enforcement becomes the job of `ownership validate --base`, which
+reads the `watches` rules marked `consumer-visible: true`, and `living-docs
+changelog` ceases to exist; so does `consumer-visible-paths`. This requirement
+describes a command that is going away, and the revocation (`active → revoked`) is
+a human act.
 
-## RF-0009 — `init --stage production` instala a moldura de rastro histórico
+## RF-0009 — `init --stage production` installs the historical-trail frame
 
 - **status:** active
 - **relates-to:** RF-0007
-- **fora de escopo:** declarar regras de `watches` com `consumer-visible: true`,
-  que nascem vazias com exemplo comentado pela mesma razão que `watches` e
-  `generated[]` nascem vazios (`RF-0004`)
+- **out of scope:** declaring `watches` rules with `consumer-visible: true`,
+  which are born empty with a commented example for the same reason `watches` and
+  `generated[]` are born empty (`RF-0004`)
 
-No estágio `production`, `living-docs init` cria, além de tudo que já criava,
-`CHANGELOG.md`, `docs/deprecations.md`, `docs/releases/` e `docs/migrations/` a
-partir dos templates, e declara o `REL` como entrada de `owned` com
-`living-docs.id-prefix: REL` — com a mesma idempotência e a mesma política de
-adoção dos demais artefatos.
+At the `production` stage, `living-docs init` creates, in addition to everything it
+already created, `CHANGELOG.md`, `docs/deprecations.md`, `docs/releases/` and
+`docs/migrations/` from the templates, and declares `REL` as an `owned` entry with
+`living-docs.id-prefix: REL` — with the same idempotence and the same adoption
+policy as the other artifacts.
 
-A lista do que o estágio pede e não instala fica vazia: `production` cobre as
-Fases 5 e 6 da spec §10, e as duas existem.
+The list of what the stage asks for and does not install is empty: `production`
+covers Phases 5 and 6 of spec §10, and both exist.
 
-## RF-0010 — `validate` roda os checks de estado da árvore, e aviso não reprova
+## RF-0010 — `validate` runs the tree-state checks, and a warning does not fail
 
 - **status:** active
 - **relates-to:** ADR-0007, ADR-0008
-- **fora de escopo:** a metade que depende do diff (`living-docs/open-decision-claim`), que entra por `--base` e é `RF-0011`
+- **out of scope:** the half that depends on the diff (`living-docs/open-decision-claim`), which comes in through `--base` and is `RF-0011`
 
-Uma execução de `validate` roda todos os checks que se contentam com o estado da
-árvore — hoje `living-docs/frontmatter`, `living-docs/id-integrity`,
+One `validate` run executes all the checks that are content with the state of the
+tree — today `living-docs/frontmatter`, `living-docs/id-integrity`,
 `living-docs/citation-coverage`, `living-docs/staleness`,
-`living-docs/agent-contract-duplication`, `living-docs/done-verifiable` e
-`living-docs/links` — e reporta os achados dos sete juntos. Achado `error` leva a código de saída 1; achado
-`warning` é reportado e **não** muda o código de saída.
+`living-docs/agent-contract-duplication`, `living-docs/done-verifiable` and
+`living-docs/links` — and reports the findings of the seven together. A finding of
+`error` leads to exit code 1; a `warning` finding is reported and does **not**
+change the exit code.
 
-Quando existe algo que `validate` não verifica — artefato gerado, entrada de
-CHANGELOG, o diff da branch —, ele imprime o ponteiro para o comando que
-verifica. Check que não roda e não avisa que não rodou é cobertura fingida.
+When there is something `validate` does not verify — a generated artifact, a
+CHANGELOG entry, the branch diff —, it prints the pointer to the command that
+verifies it. A check that does not run and does not warn that it did not run is
+faked coverage.
 
-## RF-0011 — `validate --base <ref>` cobra o doc dono do caminho vigiado que mudou
+## RF-0011 — `validate --base <ref>` enforces the owning doc of the watched path that changed
 
 - **status:** active
 - **relates-to:** ADR-0010, RN-0021
-- **fora de escopo:** a entrada de CHANGELOG, que é `ownership/consumer-change-logged` e tem comando próprio
+- **out of scope:** the CHANGELOG entry, which is `ownership/consumer-change-logged` and has a command of its own
 
-Com `--base <ref>`, `living-docs validate` acrescenta a verificação que depende do
-diff e que continua sendo dele: o caminho reivindicado por decisão aberta e
-alterado entre a base e `HEAD` reprova. A cobrança do doc dono do caminho vigiado
-que mudou passa a ser do `ownership validate --base`, e o living-docs deixa de
-fazê-la. Sem `--base`, a verificação por diff não roda e o comando diz que não
-rodou.
+With `--base <ref>`, `living-docs validate` adds the verification that depends on
+the diff and that remains its own: a path claimed by an open decision and changed
+between the base and `HEAD` fails. The enforcement of the owning doc of the watched
+path that changed becomes the job of `ownership validate --base`, and living-docs
+stops doing it. Without `--base`, the diff verification does not run and the command
+says it did not run.
 
-A base não se adivinha. Sem ela, o comando não escolhe uma por conta própria:
-escolher errado produziria achado sobre mudança que não é desta branch.
+The base is not guessed. Without it, the command does not pick one on its own:
+picking wrong would produce a finding about a change that is not this branch's.
 
-## RF-0012 — `init` declara todo documento que instala
+## RF-0012 — `init` declares every document it installs
 
 - **status:** active
 - **relates-to:** ADR-0008, RN-0016
-- **fora de escopo:** o vínculo `watches`, o gerador e as regras `consumer-visible: true`, que o `init` continua não inventando (`RF-0004`)
+- **out of scope:** the `watches` link, the generator and the `consumer-visible: true` rules, which `init` still does not invent (`RF-0004`)
 
-Todo documento que o `init` escreve e que não tem família de IDs é declarado em
-`owned`, com dono, o bloco `living-docs:` sem `id-prefix` e — quando existe uma —
-a skill dona. Um `init` que cria
-documento sem declará-lo entrega, na primeira execução, um repositório que
-reprova no próprio `ownership/owner-coverage`.
+Every document `init` writes that has no ID family is declared in `owned`, with an
+owner, the `living-docs:` block without `id-prefix` and — when there is one — the
+owning skill. An `init` that creates a document without declaring it delivers, on
+its first run, a repository that fails its own `ownership/owner-coverage`.
 
-Isso vale em todos os estágios: dono não é função de maturidade. O que muda com
-o estágio é **quais** documentos existem.
+This holds at every stage: an owner is not a function of maturity. What changes
+with the stage is **which** documents exist.
 
-## RF-0013 — `init` instala o enforcement do estágio, mesclando com o que já existe
+## RF-0013 — `init` installs the stage's enforcement, merging with what already exists
 
 - **status:** draft
 - **relates-to:** ADR-0012, ADR-0030
-- **fora de escopo:** o modo de invocação do CLI dentro do workflow, que é parâmetro de quem instala (`DA-0003`); e `.claude/settings.json` e o workflow instalado, que não são documentação e por isso não entram em `documents:`
+- **out of scope:** the way the CLI is invoked inside the workflow, which is a parameter of whoever installs (`DA-0003`); and `.claude/settings.json` and the installed workflow, which are not documentation and therefore do not enter `documents:`
 
-Além da moldura, `living-docs init` escreve as duas peças de enforcement: o
-workflow de CI do estágio e o registro do plugin que liga os hooks na sessão. As
-duas entram por **mesclagem**: um repositório com workflows próprios e hooks já
-registrados mantém tudo o que tem, e o toolkit acrescenta o que falta e nada
-mais. Rodar duas vezes não duplica entrada — a idempotência vale para o
-enforcement igual vale para o documento.
+In addition to the frame, `living-docs init` writes the two pieces of enforcement:
+the stage's CI workflow and the plugin registration that turns the hooks on in the
+session. Both come in by **merge**: a repository with workflows of its own and hooks
+already registered keeps everything it has, and the toolkit adds what is missing and
+nothing more. Running twice does not duplicate an entry — idempotence holds for
+enforcement just as it holds for the document.
 
-O workflow instalado roda as duas CLIs, a do `ownership` e a do living-docs. O
-`--invoke-ownership` diz como chamar a primeira, e o padrão é `npx ownership`.
+The installed workflow runs both CLIs, the `ownership` one and the living-docs one.
+`--invoke-ownership` says how to call the first, and the default is `npx ownership`.
 
-Um repositório com documento e nenhum check rodando é a promessa que este toolkit
-recusa: o enforcement é o que faz a regra valer.
+A repository with documents and no check running is the promise this toolkit
+refuses: enforcement is what makes the rule hold.
 
-## RF-0014 — O inventário relata a forma escrita dos IDs, e não a adota em silêncio
+## RF-0014 — The inventory reports the written form of IDs, and does not adopt it silently
 
 - **status:** draft
 - **relates-to:** ADR-0011, RN-0024
-- **fora de escopo:** converter IDs de uma forma para outra, que é reescrever preexistente
+- **out of scope:** converting IDs from one form to another, which is rewriting what pre-exists
 
-`living-docs init --dry-run` num repositório cujos IDs não estão na forma padrão
-relata qual forma encontrou e quantos itens leu naquela forma. Declarar a forma é
-ato de quem instala, não do inventário: adoção silenciosa de formato é a mesma
-classe de erro que adoção silenciosa de caminho, e a `SK-0` já recusa a segunda.
+`living-docs init --dry-run` in a repository whose IDs are not in the default form
+reports which form it found and how many items it read in that form. Declaring the
+form is the act of whoever installs, not of the inventory: silent adoption of a
+format is the same class of error as silent adoption of a path, and `SK-0` already
+refuses the latter.
 
-## RF-0015 — `init` marca como externo o que é escrito para quem vem de fora
+## RF-0015 — `init` marks as external what is written for readers from the outside
 
 - **status:** draft
 - **relates-to:** RF-0009, RF-0012, RN-0030
-- **fora de escopo:** o `README.md` de quem instala, que o `init` não declara como documentação e não passa a declarar por causa disto
+- **out of scope:** the `README.md` of whoever installs, which `init` does not declare as documentation and does not start declaring because of this
 
-No estágio `production` em diante, uma instalação nova declara `CHANGELOG.md`,
-`docs/deprecations.md`, `docs/migrations/` e o artefato `REL` com
-`audience: external`. É o rastro histórico, e ele é escrito para quem consome.
+From the `production` stage on, a new installation declares `CHANGELOG.md`,
+`docs/deprecations.md`, `docs/migrations/` and the `REL` artifact with
+`audience: external`. It is the historical trail, and it is written for whoever
+consumes.
 
-Num repositório que já declara essas entradas sem a marca, o `init` não
-reescreve a linha: relata, entre o que não instalou, cada entrada declarada sem
-a marca, dizendo que marcá-la é o que liga a verificação para ela. É a mesma
-política de quando ele acrescenta ao `.ownership.yml` e ao CODEOWNERS: o que já
-está escrito é de quem escreveu.
+In a repository that already declares these entries without the mark, `init` does
+not rewrite the line: it reports, among what it did not install, each entry declared
+without the mark, saying that marking it is what turns the verification on for it.
+It is the same policy as when it adds to `.ownership.yml` and to CODEOWNERS: what is
+already written belongs to whoever wrote it.
 
-## RF-0016 — `ownership validate [--base]` verifica dono, ciclo de vida, gatilho e gerado
+## RF-0016 — `ownership validate [--base]` verifies owner, lifecycle, trigger and generated
 
 - **status:** draft
 - **relates-to:** ADR-0019, RN-0032, RN-0034, RN-0035, RN-0037
-- **fora de escopo:** os checks de família de IDs, congelamento, staleness e citação, que continuam em `living-docs validate`
+- **out of scope:** the checks of ID family, freezing, staleness and citation, which remain in `living-docs validate`
 
-O comando `ownership validate` verifica dono, ciclo de vida, gatilho e
-artefato gerado do repositório inteiro. Com `--base <ref>`, restringe a
-verificação de vigiado (`watches`) aos caminhos que mudaram desde a ref
-informada, sem restringir a cobertura de dono, que nunca poda.
+The `ownership validate` command verifies the owner, lifecycle, trigger and
+generated artifact of the whole repository. With `--base <ref>`, it restricts the
+watch verification (`watches`) to the paths that changed since the given ref,
+without restricting owner coverage, which never prunes.
 
-## RF-0017 — `ownership explain <caminho>` responde qual arquivo e qual entrada cobrem um caminho
+## RF-0017 — `ownership explain <path>` answers which file and which entry cover a path
 
 - **status:** draft
 - **relates-to:** ADR-0019, ADR-0023, RN-0034
-- **fora de escopo:** explicar cobertura de família de ID ou de congelamento — perguntas do living-docs, não do núcleo
+- **out of scope:** explaining coverage of ID family or freezing — questions for living-docs, not for the core
 
-Para um caminho dado, `ownership explain <caminho>` responde qual entrada de
-`owned` o cobre e de qual arquivo de ownership ela vem. Quando nenhuma
-entrada cobre o caminho, responde qual arquivo de ownership tem base que o
-contém — a mesma pergunta que falta responder quando a cobertura de dono
-reprova.
+For a given path, `ownership explain <path>` answers which `owned` entry covers it
+and which ownership file it comes from. When no entry covers the path, it answers
+which ownership file has a base that contains it — the same question that is left
+to answer when owner coverage fails.

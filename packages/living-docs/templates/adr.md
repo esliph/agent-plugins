@@ -4,7 +4,7 @@ title: {{TITLE}}
 status: draft
 owner: "{{OWNER}}"
 trigger: >
-  Nunca. Imutável após aceito; uma decisão nova o supersede.
+  Never. Immutable once accepted; a new decision supersedes it.
 last-reviewed: {{TODAY}}
 relates-to: []
 supersedes: null
@@ -13,22 +13,22 @@ superseded-by: null
 
 # {{ID}} — {{TITLE}}
 
-## Contexto
+## Context
 
-<!-- Que força criou a necessidade da decisão. Sem narrar o código. -->
+<!-- What force created the need for the decision. Without narrating the code. -->
 
-## Alternativas consideradas
+## Alternatives considered
 
-<!-- Ao menos duas, com o motivo real do descarte de cada uma. -->
+<!-- At least two, with the real reason each one was discarded. -->
 
-## Decisão
+## Decision
 
-<!-- O que se decidiu, em uma frase afirmativa. -->
+<!-- What was decided, in one affirmative sentence. -->
 
-## Consequências
+## Consequences
 
-### O que se ganha
+### What we gain
 
-### O que se aceita perder
+### What we accept to lose
 
-<!-- Obrigatório. ADR sem consequência negativa declarada é propaganda. -->
+<!-- Mandatory. An ADR with no declared negative consequence is propaganda. -->

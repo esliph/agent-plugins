@@ -48,7 +48,7 @@ export function ownershipGeneratedDrift(exec: CommandRunner): Check {
           expected = exec(rule.command, context.root)
         } catch (err) {
           findings.push(
-            error(rule.path, 0, `O gerador falhou: \`${rule.command}\` — ${reasonOf(err)}`, `Conserte o comando declarado em \`generated[].command\` (${rule.origin}).`),
+            error(rule.path, 0, `The generator failed: \`${rule.command}\` — ${reasonOf(err)}`, `Fix the command declared in \`generated[].command\` (${rule.origin}).`),
           )
           continue
         }
@@ -58,14 +58,14 @@ export function ownershipGeneratedDrift(exec: CommandRunner): Check {
         try {
           actual = readFileSync(join(context.root, rule.path), 'utf8')
         } catch {
-          findings.push(error(rule.path, 0, 'Artefato gerado declarado e ausente do repositório.', `Gere-o e versione o resultado: \`${rule.command} > ${rule.path}\`.`))
+          findings.push(error(rule.path, 0, 'Generated artifact is declared and missing from the repository.', `Generate it and commit the result: \`${rule.command} > ${rule.path}\`.`))
           continue
         }
 
         const line = firstDifferentLine(actual, expected)
 
         if (line !== 0) {
-          findings.push(error(rule.path, line, 'O artefato gerado diverge da saída do gerador.', `Regenere: \`${rule.command} > ${rule.path}\`. Não edite o arquivo à mão.`))
+          findings.push(error(rule.path, line, 'The generated artifact differs from the generator output.', `Regenerate: \`${rule.command} > ${rule.path}\`. Do not edit the file by hand.`))
         }
       }
 

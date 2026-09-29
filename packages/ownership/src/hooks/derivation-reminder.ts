@@ -41,7 +41,7 @@ export function decideDerivationReminder(payload: HookPayload, env: HookEnv): De
     }
 
     for (const derived of derivedFilesOf(env.root, rule, repoPath)) {
-      reminders.push(`- \`${derived}\` (declara \`${rule.derivesFrom.field}: ${repoPath}\`, sob \`${rule.path}\`${rule.skill === null ? '' : `, skill dona: ${rule.skill}`})`)
+      reminders.push(`- \`${derived}\` (declares \`${rule.derivesFrom.field}: ${repoPath}\`, under \`${rule.path}\`${rule.skill === null ? '' : `, owning skill: ${rule.skill}`})`)
     }
   }
 
@@ -52,9 +52,9 @@ export function decideDerivationReminder(payload: HookPayload, env: HookEnv): De
   return {
     action: 'remind',
     context:
-      `ownership/derivation-reminder: \`${repoPath}\` é fonte de derivação — os documentos abaixo declaram derivar dela:\n` +
+      `ownership/derivation-reminder: \`${repoPath}\` is a derivation source — the documents below declare that they derive from it:\n` +
       `${reminders.join('\n')}\n` +
-      'Confira se eles ainda descrevem o que a fonte diz agora. Isto é lembrete, não é bloqueio.',
+      'Check that they still describe what the source says now. This is a reminder, not a block.',
   }
 }
 

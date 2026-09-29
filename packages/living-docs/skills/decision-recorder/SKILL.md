@@ -1,115 +1,120 @@
 ---
 name: decision-recorder
 description: >
-  Use quando alguém perguntar "por que isso foi feito assim?", quando você for
-  tomar uma decisão custosa de reverter (escolher biblioteca, formato de dado,
-  fronteira de módulo, protocolo), quando trombar numa lacuna — comportamento
-  sem regra escrita, "não sei o que fazer nesse caso", "isso está documentado?",
-  "qual é a regra de X?" — ou quando aceitar de propósito um atalho, gambiarra,
-  TODO ou dívida técnica que alguém vai pagar depois. Também para supersedir uma
-  decisão antiga que se revelou errada.
+  Use when someone asks "why was this done this way?", when you are about to
+  make a decision that is costly to reverse (choosing a library, a data format,
+  a module boundary, a protocol), when you run into a gap — behavior with no
+  written rule, "I don't know what to do in this case", "is this documented?",
+  "what is the rule for X?" — or when you deliberately accept a shortcut,
+  hack, TODO or technical debt that someone will pay off later. Also to
+  supersede an old decision that turned out to be wrong.
 ---
 
-# decision-recorder — dono de ADR, Open Decisions e Debt Register
+# decision-recorder — owner of ADRs, Open Decisions and the Debt Register
 
 ## Overview
 
-Três artefatos, uma máquina de estados única:
+Three artifacts, one single state machine:
 
 ```
-lacuna encontrada ──> DA-nnn (open)
-                        │
-                        └─ decidido ──> ADR-nnn (draft ──ato humano──> accepted)
-                                          │
-                                          └─ aceita perda deliberada ──> TDR-nnn
+gap found ──> DA-nnn (open)
+                 │
+                 └─ decided ──> ADR-nnn (draft ──human act──> accepted)
+                                   │
+                                   └─ accepts a deliberate loss ──> TDR-nnn
 ```
 
-Esta skill decide **onde um pedaço de conhecimento mora** e **qual ID ele
-recebe**. Ela não decide o mérito: levanta as alternativas e o trade-off,
-escreve `draft`/`open`, e para.
+This skill decides **where a piece of knowledge lives** and **which ID it
+gets**. It does not decide the merits: it lays out the alternatives and the
+trade-off, writes `draft`/`open`, and stops.
 
-Os caminhos, donos e prefixos vêm de `.ownership.yml` — leia-o primeiro,
-nunca assuma caminho.
+The paths, owners and prefixes come from `.ownership.yml` — read it first,
+never assume a path.
 
-## Do que você é dono
+## What you own
 
-| Artefato            | O que é                                                | Forma                                         |
+| Artifact            | What it is                                             | Shape                                         |
 | ------------------- | ------------------------------------------------------ | --------------------------------------------- |
-| ADR                 | Por que isto e não aquilo, e o que se aceita perder    | Um arquivo por decisão, numerado, append-only |
-| Open Decisions (DA) | O que ainda **não** foi decidido                       | Arquivo único, tabela, mutável                |
-| TDR                 | Dívida assumida de propósito, com gatilho de pagamento | Um arquivo por dívida                         |
+| ADR                 | Why this and not that, and what is accepted as a loss  | One file per decision, numbered, append-only  |
+| Open Decisions (DA) | What has **not** been decided yet                      | Single file, table, mutable                   |
+| TDR                 | Debt taken on purpose, with a payment trigger          | One file per debt                             |
 
-Templates: `templates/adr.md` e `templates/tdr.md`. Não reescreva o formato aqui.
+Templates: `templates/adr.md` and `templates/tdr.md`. Do not rewrite the format here.
 
-## Quando usar / quando não
+## When to use / when not to
 
-**Use** para: decisão custosa de reverter; lacuna que bloqueia implementação;
-atalho deliberado.
+**Use** for: a decision that is costly to reverse; a gap that blocks
+implementation; a deliberate shortcut.
 
-**Não use** para: decisão trivial e barata de reverter (o custo de um ADR é
-real — ele entra na leitura de todo mundo para sempre); registrar o que o código
-já diz; narrar uma implementação. Um ADR por escolha de nome de variável é
-exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação.
+**Do not use** for: a trivial decision that is cheap to reverse (the cost of an
+ADR is real — it enters everyone's reading forever); recording what the code
+already says; narrating an implementation. An ADR per variable-name choice is
+exactly the "twenty four-hundred-line documents" that kills documentation.
 
-**Nunca** use para tomar a decisão. Isso não é seu.
+**Never** use it to make the decision. That is not yours.
 
-## Procedimento
+## Procedure
 
-1. **Leia `.ownership.yml`** e descubra o caminho, o dono e o prefixo de
-   cada artefato. Se o arquivo não existir, pare e rode `/docs-setup`.
-2. **Classifique** o que está na sua frente:
-   - já se sabe o que fazer e é caro reverter → **ADR**;
-   - não se sabe → **DA** e **pare a implementação**;
-   - sabe-se, escolheu-se o pior de propósito → **TDR**.
-3. **Procure antes de criar.** Um `grep` pelo tema nos artefatos existentes. Se
-   já existe ADR sobre isso, o caminho é supersedir, não escrever um segundo.
-4. **Tome o próximo ID livre** do prefixo, conferindo também `docs/ids-retired.txt`.
-   Nunca recicle. Nunca pule.
-5. **Escreva a partir do template.** No ADR, exija de si mesmo as **alternativas
-   consideradas** com o motivo real do descarte, e a seção **o que se aceita
-   perder** — ADR sem consequência negativa declarada é propaganda.
-6. **No TDR, exija um gatilho de pagamento observável.** "Quando o volume passar
-   de 10k eventos/dia" ou "no primeiro PR que tocar este módulo" passam. "Quando
-   der tempo" não é gatilho: recuse e peça a condição.
-   - **Toda dívida nasce com o gatilho de pagamento nas duas formas:** a prosa, em
-     `## Gatilho de pagamento`, que explica o porquê; e `pay-when` no frontmatter,
-     com `pattern` (regex em aspas simples) e `paths` (onde procurá-lo), que é o
-     que `living-docs/staleness` avalia. Se você não consegue escrever a segunda, o gatilho não é
-     observável — e aí a dívida não está pronta para ser registrada. Não invente um
-     padrão que casa nada só para o check passar: isso é a caixinha marcada.
-7. **Feche os dois lados da referência.** DA resolvida aponta o ADR que a fechou;
-   o ADR aponta de volta em `relates-to`. Superseder preenche `supersedes` no
-   novo e `superseded-by` no antigo.
-8. **Antes de pedir aceitação de um ADR ou TDR importante**, considere rodar
-   o agent `decision-adversary` sobre a proposta — ele tenta refutar com um
-   checklist fixo, e o veredito ajuda a decidir se falta alternativa
-   considerada ou consequência omitida antes de gastar o tempo de quem aceita.
-9. **Pare em `draft`/`open`.** Diga qual decisão falta e a quem ela cabe. Se
-   você tentar promover, `living-docs/state-promotion` vai perguntar — e a resposta não é sua.
-10. **Rode `living-docs validate`** antes de encerrar.
-11. **Cite o ID na mensagem de commit.**
+1. **Read `.ownership.yml`** and find the path, the owner and the prefix of
+   each artifact. If the file does not exist, stop and run `/docs-setup`.
+2. **Classify** what is in front of you:
+   - what to do is known and it is expensive to reverse → **ADR**;
+   - it is not known → **DA**, and **stop the implementation**;
+   - it is known, and the worse option was chosen on purpose → **TDR**.
+3. **Search before creating.** A `grep` for the topic in the existing
+   artifacts. If an ADR about it already exists, the way is to supersede, not
+   to write a second one.
+4. **Take the next free ID** of the prefix, also checking `docs/ids-retired.txt`.
+   Never recycle. Never skip.
+5. **Write from the template.** In an ADR, demand of yourself the **alternatives
+   considered** with the real reason for each discard, and the section **what we
+   accept to lose** — an ADR with no declared negative consequence is
+   propaganda.
+6. **In a TDR, demand an observable payment trigger.** "When volume passes
+   10k events/day" or "on the first PR that touches this module" pass. "When
+   there is time" is not a trigger: refuse and ask for the condition.
+   - **Every debt is born with the payment trigger in both forms:** the prose,
+     under `## Payment trigger`, which explains the why; and `pay-when` in the
+     frontmatter, with `pattern` (a regex in single quotes) and `paths` (where
+     to look for it), which is what `living-docs/staleness` evaluates. If you
+     cannot write the second, the trigger is not observable — and then the debt
+     is not ready to be recorded. Do not invent a pattern that matches nothing
+     just to make the check pass: that is the ticked box.
+7. **Close both sides of the reference.** A resolved DA points to the ADR that
+   closed it; the ADR points back in `relates-to`. Superseding fills
+   `supersedes` in the new one and `superseded-by` in the old one.
+8. **Before asking for acceptance of an important ADR or TDR**, consider running
+   the `decision-adversary` agent on the proposal — it tries to refute with a
+   fixed checklist, and the verdict helps decide whether an alternative
+   considered or a consequence is missing before spending the acceptor's time.
+9. **Stop at `draft`/`open`.** Say which decision is missing and whose it is. If
+   you try to promote, `living-docs/state-promotion` will ask — and the answer
+   is not yours.
+10. **Run `living-docs validate`** before finishing.
+11. **Cite the ID in the commit message.**
 
-## Fronteiras
+## Boundaries
 
-| É seu                                                 | Não é seu                            |
+| Yours                                                 | Not yours                            |
 | ----------------------------------------------------- | ------------------------------------ |
-| Registrar por que isto e não aquilo, e o que se perde | Tomar a decisão                      |
-| Transformar lacuna em item bloqueante com ID          | Implementar a regra que falta        |
-| Registrar a dívida com gatilho de pagamento           | Pagar a dívida                       |
-| Propor supersedir um ADR errado                       | Editar um ADR aceito                 |
-| Apontar o formato do template                         | Duplicar o conteúdo do artefato aqui |
+| Recording why this and not that, and what is lost     | Making the decision                  |
+| Turning a gap into a blocking item with an ID         | Implementing the missing rule        |
+| Recording the debt with a payment trigger             | Paying the debt                      |
+| Proposing to supersede a wrong ADR                    | Editing an accepted ADR              |
+| Pointing to the template format                       | Duplicating the artifact's content here |
 
 ## Checklist
 
-- [ ] O artefato certo para a natureza do item (ADR / DA / TDR) — verificação humana
-- [ ] Frontmatter completo, com `trigger` nomeando um evento e não uma cadência — `living-docs/frontmatter`
-- [ ] ID sequencial, não reciclado, conferido contra `docs/ids-retired.txt` — `living-docs/id-integrity`
-- [ ] Toda citação a outro ID resolve — `living-docs/id-integrity`
-- [ ] `status` é `draft` ou `open`; promoção deixada para uma pessoa — `living-docs/state-promotion`
-- [ ] Nenhum ADR aceito foi editado; o caminho usado foi supersedir — `living-docs/append-only`
-- [ ] ADR declara alternativas consideradas e o que se aceita perder — verificação humana
-- [ ] TDR tem gatilho de pagamento observável, não uma data vaga — verificação humana
-- [ ] A implementação **não** avançou enquanto havia DA aberta sobre ela — verificação humana
-- [ ] Para decisão de peso, `decision-adversary` foi considerado antes de pedir aceitação — verificação humana
-- [ ] Toda dívida `open` declara `pay-when` verificável — verificação: `living-docs/staleness`.
-- [ ] Nenhum comentário do template sobreviveu ao preenchimento do ADR ou do TDR — verificação humana
+- [ ] The right artifact for the nature of the item (ADR / DA / TDR) — verification: human
+- [ ] Complete frontmatter — `living-docs/frontmatter`
+- [ ] The `trigger` names an event and not a cadence — verification: human
+- [ ] Sequential ID, not recycled, checked against `docs/ids-retired.txt` — `living-docs/id-integrity`
+- [ ] Every citation to another ID resolves — `living-docs/id-integrity`
+- [ ] `status` is `draft` or `open`; promotion left to a person — `living-docs/state-promotion`
+- [ ] No accepted ADR was edited; the path used was superseding — `living-docs/append-only`
+- [ ] The ADR declares alternatives considered and what we accept to lose — verification: human
+- [ ] The TDR has an observable payment trigger, not a vague date — verification: human
+- [ ] The implementation did **not** move ahead while there was an open DA about it — verification: human
+- [ ] For a weighty decision, `decision-adversary` was considered before asking for acceptance — verification: human
+- [ ] Every `open` debt declares a verifiable `pay-when` — verification: `living-docs/staleness`.
+- [ ] No template comment survived filling in the ADR or the TDR — verification: human

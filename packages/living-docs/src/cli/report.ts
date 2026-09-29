@@ -6,7 +6,7 @@ function plural(count: number, singular: string, pluralForm: string): string {
 
 export function formatFindings(findings: readonly Finding[]): string {
   if (findings.length === 0) {
-    return 'living-docs: nenhuma violação encontrada.'
+    return 'living-docs: no violation found.'
   }
 
   const lines: string[] = []
@@ -22,7 +22,7 @@ export function formatFindings(findings: readonly Finding[]): string {
   const warnings = findings.length - errors
 
   lines.push('')
-  lines.push(`living-docs: ${plural(errors, 'erro', 'erros')}, ${plural(warnings, 'aviso', 'avisos')}.`)
+  lines.push(`living-docs: ${plural(errors, 'error', 'errors')}, ${plural(warnings, 'warning', 'warnings')}.`)
 
   return lines.join('\n')
 }

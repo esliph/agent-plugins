@@ -23,22 +23,22 @@ const OPTIONS = {
   idFormat: DEFAULT_ID_FORMAT,
   invoke: 'npx living-docs',
   invokeOwnership: 'npx living-docs',
-  marketplace: 'time/living-docs',
+  marketplace: 'team/living-docs',
 }
 
 function seedAdr(root: string, status: string): string {
-  const file = 'docs/decisions/adr/ADR-0001-teste.md'
+  const file = 'docs/decisions/adr/ADR-0001-test.md'
   const content = [
     '---',
     'id: ADR-0001',
-    'title: Decisão de teste',
+    'title: Test decision',
     `status: ${status}`,
     'owner: "@team"',
-    'trigger: Nunca. Imutável após aceito.',
+    'trigger: Never. Immutable once accepted.',
     'last-reviewed: 2026-08-24',
     '---',
     '',
-    'corpo original',
+    'original body',
   ].join('\n')
 
   mkdirSync(join(root, 'docs/decisions/adr'), { recursive: true })
@@ -47,44 +47,44 @@ function seedAdr(root: string, status: string): string {
   return file
 }
 
-test('critério 1: SK-0 num repositório sem documentação viva não duplica nada', () => {
-  withTempRepo({ 'docs/adr/0001-preexistente.md': '# antigo\n' }, root => {
+test('criterion 1: SK-0 in a repository with no living documentation duplicates nothing', () => {
+  withTempRepo({ 'docs/adr/0001-preexisting.md': '# old\n' }, root => {
     const result = runInit(root, OPTIONS)
 
     assert.ok(result.adopted.some(entry => entry.path === 'docs/adr/'))
     assert.equal(existsSync(join(root, 'docs/decisions/adr')), false)
-    assert.equal(readFileSync(join(root, 'docs/adr/0001-preexistente.md'), 'utf8'), '# antigo\n')
+    assert.equal(readFileSync(join(root, 'docs/adr/0001-preexisting.md'), 'utf8'), '# old\n')
   })
 })
 
-test('critério 2: living-docs/append-only nega alterar o corpo de um ADR accepted e permite supersedir', () => {
+test('criterion 2: living-docs/append-only denies changing the body of an accepted ADR and allows superseding', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'accepted')
     const env = { root, hostRoots: [root] }
 
-    const negado = decideAppendOnly({ tool_name: 'Edit', tool_input: { file_path: file, old_string: 'corpo original', new_string: 'corpo novo' } }, env)
+    const denied = decideAppendOnly({ tool_name: 'Edit', tool_input: { file_path: file, old_string: 'original body', new_string: 'new body' } }, env)
 
-    assert.equal(negado.action, 'deny')
+    assert.equal(denied.action, 'deny')
 
-    const atual = readFileSync(join(root, file), 'utf8')
-    const supersedido = atual
+    const current = readFileSync(join(root, file), 'utf8')
+    const superseded = current
       .replace('status: accepted', 'status: superseded')
       .replace('last-reviewed: 2026-08-24', 'last-reviewed: 2026-08-24\nsuperseded-by: ADR-0002')
-    const permitido = decideAppendOnly({ tool_name: 'Write', tool_input: { file_path: file, content: supersedido } }, env)
+    const allowed = decideAppendOnly({ tool_name: 'Write', tool_input: { file_path: file, content: superseded } }, env)
 
-    assert.equal(permitido.action, 'allow')
+    assert.equal(allowed.action, 'allow')
   })
 })
 
-test('critério 3: trigger com cadência falha no CI nomeando o campo', () => {
+test('criterion 3: a trigger left empty fails in CI naming the field', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'draft')
 
     writeFileSync(
       join(root, file),
-      readFileSync(join(root, file), 'utf8').replace('trigger: Nunca. Imutável após aceito.', 'trigger: revisar trimestralmente'),
+      readFileSync(join(root, file), 'utf8').replace('trigger: Never. Immutable once accepted.', "trigger: ''"),
       'utf8',
     )
 
@@ -93,12 +93,11 @@ test('critério 3: trigger com cadência falha no CI nomeando o campo', () => {
     assert.equal(result.exitCode, 1)
     const finding = result.findings.find(f => f.ruleId === 'living-docs/frontmatter' && /trigger/.test(f.message))
 
-    assert.ok(finding, 'living-docs/frontmatter deveria acusar o campo trigger')
-    assert.match(finding.message, /trimestral/i)
+    assert.ok(finding, 'living-docs/frontmatter should flag the trigger field')
   })
 })
 
-test('living-docs/state-promotion pergunta ao promover uma decisão sem ato humano (mecanismo do spec §4)', () => {
+test('living-docs/state-promotion asks when promoting a decision without a human act (spec §4 mechanism)', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'draft')
@@ -111,19 +110,19 @@ test('living-docs/state-promotion pergunta ao promover uma decisão sem ato huma
   })
 })
 
-test('este repositório passa nos próprios checks', () => {
-  assert.ok(existsSync(join(ROOT, OWNERSHIP_FILE)), 'rode `living-docs init` antes')
+test('this repository passes its own checks', () => {
+  assert.ok(existsSync(join(ROOT, OWNERSHIP_FILE)), 'run `living-docs init` first')
   const result = runValidate(ROOT)
 
   assert.deepEqual(result.findings, [], JSON.stringify(result.findings, null, 2))
   assert.equal(result.exitCode, 0)
 })
 
-test('este repositório passa nos checks do núcleo — inclusive com o que só existe no checkout local', () => {
+test('this repository passes the core checks — including what only exists in the local checkout', () => {
   const root = checkoutRoot()
   const config = resolveOwnership(root)
 
-  assert.ok(config !== null, 'o checkout declara o arquivo de ownership na raiz')
+  assert.ok(config !== null, 'the checkout declares the ownership file at the root')
   const findings = coreChecks().flatMap(check => check.run({ root, config, today: '2026-09-28' }))
 
   assert.deepEqual(findings, [], JSON.stringify(findings, null, 2))
@@ -144,7 +143,7 @@ owned:
 watches:
   - code: "src/domain/**"
     doc: docs/requirements/rules.md
-    reason: "comportamento novo exige regra com ID antes do código"
+    reason: "new behavior requires a rule with an ID before the code"
 `
 
 const GENERATED_CONFIG = `
@@ -161,41 +160,41 @@ generated:
     command: "node tools/gen.js"
 `
 
-test('critério 6: o contrato gerado editado por fora reprova no núcleo', () => {
-  const GERADO = 'docs/contracts/api.gen.md'
-  const VERDADE = '<!-- generated: do not edit -->\n\n# API\n\n- GET /pedidos\n'
+test('criterion 6: the generated contract edited from outside fails in the core', () => {
+  const GENERATED = 'docs/contracts/api.gen.md'
+  const TRUTH = '<!-- generated: do not edit -->\n\n# API\n\n- GET /orders\n'
 
-  withTempRepo({ [OWNERSHIP_FILE]: GENERATED_CONFIG, [GERADO]: VERDADE }, root => {
-    // O guarda que nega a edição pelo agente é hoje `ownership/generated-guard`
-    // (ADR-0030); aqui fica a metade que independe de hook: editado por fora, a
-    // deriva é achado do núcleo.
+  withTempRepo({ [OWNERSHIP_FILE]: GENERATED_CONFIG, [GENERATED]: TRUTH }, root => {
+    // The guard that denies the agent's edit is now `ownership/generated-guard`
+    // (ADR-0030); what stays here is the half that does not depend on a hook: edited from
+    // outside, the drift is a core finding.
     const config = resolveOwnership(root)!
-    const deriva = coreChecks(() => VERDADE).find(check => check.id === 'ownership/generated-drift')!
+    const drift = coreChecks(() => TRUTH).find(check => check.id === 'ownership/generated-drift')!
 
-    writeFileSync(join(root, GERADO), VERDADE.replace('GET', 'POST'), 'utf8')
-    const derivou = deriva.run({ root, config, today: '2026-09-28' })
+    writeFileSync(join(root, GENERATED), TRUTH.replace('GET', 'POST'), 'utf8')
+    const drifted = drift.run({ root, config, today: '2026-09-28' })
 
-    assert.equal(derivou.length, 1)
-    assert.equal(derivou[0]?.severity, 'error')
+    assert.equal(drifted.length, 1)
+    assert.equal(drifted[0]?.severity, 'error')
 
-    // E com o arquivo igual à saída do gerador, o caminho fica livre.
-    writeFileSync(join(root, GERADO), VERDADE, 'utf8')
-    assert.deepEqual(deriva.run({ root, config, today: '2026-09-28' }), [])
+    // And with the file equal to the generator output, the path is clear.
+    writeFileSync(join(root, GENERATED), TRUTH, 'utf8')
+    assert.deepEqual(drift.run({ root, config, today: '2026-09-28' }), [])
   })
 })
 
-test('mecanismo da Fase 6: mudança visível ao consumidor é cobrada, e a razão escrita libera', () => {
+test('Phase 6 mechanism: a consumer-visible change is enforced, and the written reason releases it', () => {
   const OWNERSHIP = [
     'version: 2',
     'plugins: [living-docs]',
     'owned:',
     '  - path: docs/decisions/adr/',
-    '    owner: "@time"',
+    '    owner: "@team"',
     '    skill: decision-recorder',
     '    states: [draft, accepted, superseded]',
     '    living-docs: { id-prefix: ADR }',
     '  - path: CHANGELOG.md',
-    '    owner: "@time"',
+    '    owner: "@team"',
     'watches:',
     '  - code: "src/api/**"',
     '    doc: CHANGELOG.md',
@@ -203,52 +202,52 @@ test('mecanismo da Fase 6: mudança visível ao consumidor é cobrada, e a razã
     '',
   ].join('\n')
 
-  const CHANGELOG = '# Changelog\n\n## [Unreleased]\n\n### Added\n\n- `GET /pedidos` responde em centavos.\n'
+  const CHANGELOG = '# Changelog\n\n## [Unreleased]\n\n### Added\n\n- `GET /orders` responds in cents.\n'
 
   withTempRepo({ [OWNERSHIP_FILE]: OWNERSHIP, 'CHANGELOG.md': CHANGELOG }, root => {
     const config = resolveOwnership(root)!
-    const cobra = (changed: string[], messages: string[]) =>
+    const enforce = (changed: string[], messages: string[]) =>
       diffChecks({ base: 'base', changed, messages })
         .find(check => check.id === 'ownership/consumer-change-logged')!
         .run({ root, config, today: '2026-09-28' })
 
-    // sem a entrada no diff: reprova, nomeando o arquivo e o caminho vigiado
-    const reprovado = cobra(['src/api/pedidos.ts'], ['feat: centavos'])
+    // without the entry in the diff: fails, naming the file and the watched path
+    const failed = enforce(['src/api/orders.ts'], ['feat: cents'])
 
-    assert.equal(reprovado.length, 1)
-    assert.equal(reprovado[0]?.file, 'CHANGELOG.md')
+    assert.equal(failed.length, 1)
+    assert.equal(failed[0]?.file, 'CHANGELOG.md')
 
-    // com a entrada no mesmo diff: aprova
-    assert.deepEqual(cobra(['src/api/pedidos.ts', 'CHANGELOG.md'], ['feat: centavos']), [])
+    // with the entry in the same diff: passes
+    assert.deepEqual(enforce(['src/api/orders.ts', 'CHANGELOG.md'], ['feat: cents']), [])
 
-    // sem entrada, mas com a razão escrita no histórico: aprova
-    assert.deepEqual(cobra(['src/api/pedidos.ts'], ['refactor: renomeia interno\n\nChangelog: none — nada muda para quem consome']), [])
+    // with no entry, but with the reason written in the history: passes
+    assert.deepEqual(enforce(['src/api/orders.ts'], ['refactor: rename internal\n\nChangelog: none — nothing changes for consumers']), [])
   })
 })
 
-test('mecanismo da Fase 6: atalho novo sem TDR é lembrado, nunca bloqueado', () => {
+test('Phase 6 mechanism: a new shortcut without a TDR is reminded about, never blocked', () => {
   withTempRepo({}, root => {
     mkdirSync(join(root, 'src'), { recursive: true })
-    writeFileSync(join(root, 'src/cobranca.ts'), 'export const taxa = 0.05;\n', 'utf8')
+    writeFileSync(join(root, 'src/billing.ts'), 'export const fee = 0.05;\n', 'utf8')
 
     const decision = decideShortcutDebt(
       {
         tool_name: 'Edit',
         tool_input: {
-          file_path: 'src/cobranca.ts',
-          old_string: 'export const taxa = 0.05;',
-          new_string: '// FIXME: arredondamento errado em centavos\nexport const taxa = 0.05;',
+          file_path: 'src/billing.ts',
+          old_string: 'export const fee = 0.05;',
+          new_string: '// FIXME: wrong rounding in cents\nexport const fee = 0.05;',
         },
       },
       { root, hostRoots: [root] },
     )
 
-    assert.equal(decision.action, 'remind', 'living-docs/shortcut-debt é additionalContext: lembra e devolve o controle')
+    assert.equal(decision.action, 'remind', 'living-docs/shortcut-debt is additionalContext: it reminds and hands control back')
     assert.match(decision.action === 'remind' ? decision.context : '', /TDR/)
   })
 })
 
-const DIVIDA_CONFIG = [
+const DEBT_CONFIG = [
   'version: 2',
   'plugins: [living-docs]',
   'living-docs:',
@@ -272,56 +271,56 @@ const DIVIDA_CONFIG = [
   '',
 ].join('\n')
 
-function divida(status: string): string {
+function debt(status: string): string {
   return [
     '---',
     'id: TDR-0001',
-    'title: Atalho consciente',
+    'title: Conscious shortcut',
     `status: ${status}`,
     'owner: "@team"',
-    'trigger: Quando o gatilho de pagamento abaixo se cumprir.',
+    'trigger: When the payment trigger below is met.',
     'last-reviewed: 2026-08-20',
     'pay-when:',
     "  pattern: '^- \\*\\*status:\\*\\* revoked'",
     '  paths: ["docs/requirements/**"]',
     '---',
     '',
-    '# TDR-0001 — Atalho consciente',
+    '# TDR-0001 — Conscious shortcut',
     '',
   ].join('\n')
 }
 
-function regras(status: string): string {
+function rules(status: string): string {
   return [
     '---',
-    'title: Regras',
+    'title: Rules',
     'owner: "@team"',
-    'trigger: Antes de implementar qualquer comportamento, e a toda regra nova ou alterada.',
+    'trigger: Before implementing any behavior, and on every new or changed rule.',
     'last-reviewed: 2026-08-20',
     '---',
     '',
-    '## RN-0001 — Uma regra',
+    '## RN-0001 — A rule',
     '',
     `- **status:** ${status}`,
-    ...(status === 'revoked' ? ['- **revoked-by:** RN-0002', '', '## RN-0002 — Regra nova', '', '- **status:** active', '- **revokes:** RN-0001'] : []),
+    ...(status === 'revoked' ? ['- **revoked-by:** RN-0002', '', '## RN-0002 — New rule', '', '- **status:** active', '- **revokes:** RN-0001'] : []),
     '',
   ].join('\n')
 }
 
-test('critério 7: dívida com gatilho cumprido reprova até ser paga ou reclassificada', () => {
-  const arvore = (statusDivida: string, statusRegra: string) => ({
-    [OWNERSHIP_FILE]: DIVIDA_CONFIG,
-    'docs/decisions/debt/TDR-0001-x.md': divida(statusDivida),
-    'docs/requirements/rules.md': regras(statusRegra),
+test('criterion 7: a debt whose trigger is met fails until it is paid or reclassified', () => {
+  const tree = (debtStatus: string, ruleStatus: string) => ({
+    [OWNERSHIP_FILE]: DEBT_CONFIG,
+    'docs/decisions/debt/TDR-0001-x.md': debt(debtStatus),
+    'docs/requirements/rules.md': rules(ruleStatus),
   })
 
-  // gatilho não aconteceu: passa
-  withTempRepo(arvore('open', 'active'), root => {
+  // trigger did not happen: passes
+  withTempRepo(tree('open', 'active'), root => {
     assert.equal(runValidate(root).exitCode, 0)
   })
 
-  // gatilho aconteceu e a dívida segue open: reprova, nomeando a evidência
-  withTempRepo(arvore('open', 'revoked'), root => {
+  // trigger happened and the debt is still open: fails, naming the evidence
+  withTempRepo(tree('open', 'revoked'), root => {
     const result = runValidate(root)
 
     assert.equal(result.exitCode, 1)
@@ -333,130 +332,130 @@ test('critério 7: dívida com gatilho cumprido reprova até ser paga ou reclass
     assert.match(finding.message, /docs\/requirements\/rules\.md/)
   })
 
-  // reclassificada: volta a passar
-  withTempRepo(arvore('paid', 'revoked'), root => {
+  // reclassified: passes again
+  withTempRepo(tree('paid', 'revoked'), root => {
     assert.equal(runValidate(root).exitCode, 0)
   })
 })
 
-test('critério 8: no início da sessão, o inventário e as pendências chegam ao contexto', () => {
+test('criterion 8: at session start, the inventory and the pending items reach the context', () => {
   withTempRepo(
     {
-      [OWNERSHIP_FILE]: DIVIDA_CONFIG,
-      'docs/decisions/debt/TDR-0001-x.md': divida('open'),
-      'docs/requirements/rules.md': regras('revoked'),
+      [OWNERSHIP_FILE]: DEBT_CONFIG,
+      'docs/decisions/debt/TDR-0001-x.md': debt('open'),
+      'docs/requirements/rules.md': rules('revoked'),
     },
     root => {
       const decision = decideSessionInventory({ root, hostRoots: [root] }, '2026-08-27')
 
-      assert.equal(decision.action, 'inform', 'ninguém precisa procurar: o inventário chega')
+      assert.equal(decision.action, 'inform', 'nobody has to look for it: the inventory arrives')
       const context = decision.action === 'inform' ? decision.context : ''
 
       assert.match(context, /TDR-0001/)
-      assert.doesNotMatch(context, /permissionDecision/, 'é contexto, não decisão de permissão')
+      assert.doesNotMatch(context, /permissionDecision/, 'it is context, not a permission decision')
     },
   )
 })
 
-test('RN-0021: critério 5, metade 2 — o CI sinaliza pelo `watches`, e a razão escrita libera', () => {
-  const arvore = {
+test('RN-0021: criterion 5, half 2 — CI flags through `watches`, and the written reason releases it', () => {
+  const tree = {
     [OWNERSHIP_FILE]: WATCHED_CONFIG,
-    'docs/requirements/rules.md': regras('draft'),
+    'docs/requirements/rules.md': rules('draft'),
   }
 
-  withTempRepo(arvore, root => {
+  withTempRepo(tree, root => {
     const config = resolveOwnership(root)!
-    const cobra = (changed: string[], messages: string[]) =>
+    const enforce = (changed: string[], messages: string[]) =>
       diffChecks({ base: 'origin/master', changed, messages })
         .find(check => check.id === 'ownership/watch-satisfied')!
         .run({ root, config, today: '2026-09-28' })
 
-    // sem o doc dono no diff: reprova, nomeando o caminho vigiado
-    const reprovado = cobra(['src/domain/reembolso.ts'], ['feat: reembolso'])
+    // without the owning doc in the diff: fails, naming the watched path
+    const failed = enforce(['src/domain/refund.ts'], ['feat: refund'])
 
-    assert.equal(reprovado.length, 1)
-    assert.match(reprovado[0]?.message ?? '', /src\/domain\/reembolso\.ts/)
+    assert.equal(failed.length, 1)
+    assert.match(failed[0]?.message ?? '', /src\/domain\/refund\.ts/)
 
-    // com o doc no mesmo diff: passa
-    assert.deepEqual(cobra(['src/domain/reembolso.ts', 'docs/requirements/rules.md'], ['feat(RN-0001): reembolso']), [])
+    // with the doc in the same diff: passes
+    assert.deepEqual(enforce(['src/domain/refund.ts', 'docs/requirements/rules.md'], ['feat(RN-0001): refund']), [])
 
-    // com a razão escrita no histórico: passa
-    assert.deepEqual(cobra(['src/domain/reembolso.ts'], ['refactor: renomeia interno\n\nDocs: none — só renomeação, a regra não mudou']), [])
+    // with the reason written in the history: passes
+    assert.deepEqual(enforce(['src/domain/refund.ts'], ['refactor: rename internal\n\nDocs: none — rename only, the rule did not change']), [])
 
-    // e sem base, o `validate` do living-docs não acha nada disso
+    // and without a base, living-docs `validate` finds none of this
     assert.equal(runValidate(root).exitCode, 0)
   })
 })
 
-test('critério 1 (fechamento): o inventário relata a forma detectada e não toca em arquivo nenhum', () => {
-  const preexistente = [
+test('criterion 1 (closing): the inventory reports the detected form and touches no file', () => {
+  const preexisting = [
     '---',
-    'title: Regras',
-    'owner: "@time"',
-    'trigger: A toda regra nova ou alterada.',
+    'title: Rules',
+    'owner: "@team"',
+    'trigger: On every new or changed rule.',
     'last-reviewed: 2026-08-28',
     '---',
     '',
-    '## RN001 — Uma regra',
+    '## RN001 — A rule',
     '- **status:** active',
     '',
-    '## RN002 — Outra',
+    '## RN002 — Another',
     '- **status:** active',
     '',
   ].join('\n')
 
-  withTempRepo({ 'docs/business-rules.md': preexistente }, root => {
-    const antes = readFileSync(join(root, 'docs/business-rules.md'), 'utf8')
+  withTempRepo({ 'docs/business-rules.md': preexisting }, root => {
+    const before = readFileSync(join(root, 'docs/business-rules.md'), 'utf8')
 
     const result = runInit(root, { ...OPTIONS, stage: 'small-team', dryRun: true })
 
     assert.ok(result.adopted.some(entry => entry.path === 'docs/business-rules.md'))
-    assert.ok(result.detected, 'a forma detectada precisa ser relatada')
+    assert.ok(result.detected, 'the detected form must be reported')
     assert.deepEqual(result.detected.format, { separator: '', padding: 3 })
     assert.ok(result.detected.count >= 2)
-    assert.equal(readFileSync(join(root, 'docs/business-rules.md'), 'utf8'), antes)
+    assert.equal(readFileSync(join(root, 'docs/business-rules.md'), 'utf8'), before)
   })
 })
 
-const DECISAO_BLOQUEANTE = [
+const BLOCKING_DECISION = [
   'version: 2',
   'plugins: [living-docs]',
   'owned:',
   '  - path: docs/open-decisions.md',
-  '    owner: "@time"',
+  '    owner: "@team"',
   '    skill: decision-recorder',
   '    states: [open, resolved, dropped]',
   '    format: { collection: table, key: ID, state-field: Status }',
   '    living-docs:',
   '      id-prefix: DA',
   '      field-map:',
-  '        blocks: "Bloqueia"',
-  '        gap: "Lacuna"',
+  '        blocks: "Blocks"',
+  '        gap: "Gap"',
   '  - path: .ownership.yml',
-  '    owner: "@time"',
+  '    owner: "@team"',
   '    skill: living-docs-bootstrap',
   '    living-docs: {}',
   '',
 ].join('\n')
 
-const DECISOES = [
+const DECISIONS = [
   '---',
   'title: Open Decisions',
-  'owner: "@time"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'owner: "@team"',
+  'trigger: Every time someone ran into a gap.',
   'last-reviewed: 2026-08-28',
   '---',
   '',
-  '| ID | Lacuna | Status | Bloqueia | Aberta em |',
+  '| ID | Gap | Status | Blocks | Opened on |',
   '| --- | --- | --- | --- | --- |',
-  '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-28 |',
+  '| DA-0001 | How to round cents | open | `src/billing/**` | 2026-08-28 |',
   '',
 ].join('\n')
 
-test('critério 4 da spec §12: comportamento sem regra é perguntado na edição e reprovado no diff', () => {
-  const arvore = {
-    [OWNERSHIP_FILE]: DECISAO_BLOQUEANTE,
-    'docs/open-decisions.md': DECISOES,
+test('criterion 4 of spec §12: behavior with no rule is asked about on edit and failed on the diff', () => {
+  const tree = {
+    [OWNERSHIP_FILE]: BLOCKING_DECISION,
+    'docs/open-decisions.md': DECISIONS,
   }
 
   const git =
@@ -464,29 +463,29 @@ test('critério 4 da spec §12: comportamento sem regra é perguntado na ediçã
     (args: readonly string[]): string =>
       args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n'
 
-  withTempRepo(arvore, root => {
-    // Metade 1 — na edição, living-docs/open-decision-guard pergunta nomeando a decisão.
-    const pergunta = decideOpenDecisionGuard(
-      { tool_name: 'Edit', tool_input: { file_path: 'src/cobranca/taxa.ts', old_string: 'a', new_string: 'b' } },
+  withTempRepo(tree, root => {
+    // Half 1 — on edit, living-docs/open-decision-guard asks, naming the decision.
+    const question = decideOpenDecisionGuard(
+      { tool_name: 'Edit', tool_input: { file_path: 'src/billing/fee.ts', old_string: 'a', new_string: 'b' } },
       { root, hostRoots: [root] },
     )
 
-    assert.equal(pergunta.action, 'ask')
-    assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /DA-0001/)
+    assert.equal(question.action, 'ask')
+    assert.match(question.action === 'ask' ? question.reason : '', /DA-0001/)
 
-    // Metade 2 — no diff, living-docs/open-decision-claim reprova.
-    const reprovado = runValidate(root, 'origin/master', git(['src/cobranca/taxa.ts'], ['feat: centavos']))
-    const finding = reprovado.findings.find(f => f.ruleId === 'living-docs/open-decision-claim' && /DA-0001/.test(f.message))
+    // Half 2 — on the diff, living-docs/open-decision-claim fails.
+    const failed = runValidate(root, 'origin/master', git(['src/billing/fee.ts'], ['feat: cents']))
+    const finding = failed.findings.find(f => f.ruleId === 'living-docs/open-decision-claim' && /DA-0001/.test(f.message))
 
-    assert.ok(finding, JSON.stringify(reprovado.findings, null, 2))
-    assert.equal(reprovado.exitCode, 1)
+    assert.ok(finding, JSON.stringify(failed.findings, null, 2))
+    assert.equal(failed.exitCode, 1)
 
-    // E a razão escrita é a única saída.
-    const comRazao = git(['src/cobranca/taxa.ts'], ['refactor: renomeia interno\n\nDocs: none — não é a implementação da regra que falta'])
+    // And the written reason is the only way out.
+    const withReason = git(['src/billing/fee.ts'], ['refactor: rename internal\n\nDocs: none — this is not the implementation of the missing rule'])
 
-    assert.equal(runValidate(root, 'origin/master', comRazao).exitCode, 0)
+    assert.equal(runValidate(root, 'origin/master', withReason).exitCode, 0)
 
-    // Sem base, esta metade não roda.
+    // Without a base, this half does not run.
     assert.equal(runValidate(root).exitCode, 0)
   })
 })
@@ -516,71 +515,71 @@ const bumpPatch = (paths: string[]): string =>
     ])
     .join('\n')
 
-const REGRAS_COM_RN_0001 = [
+const RULES_WITH_RN_0001 = [
   '---',
-  'title: Regras',
-  'owner: "@time"',
-  'trigger: Antes de implementar comportamento novo.',
+  'title: Rules',
+  'owner: "@team"',
+  'trigger: Before implementing new behavior.',
   'last-reviewed: 2026-08-31',
   '---',
   '',
-  '## RN-0001 — Centavos arredondam para cima',
+  '## RN-0001 — Cents round up',
   '',
   '- **status:** draft',
   '',
-  'Prosa.',
+  'Prose.',
   '',
 ].join('\n')
 
-const OWNERSHIP_COM_REGRAS = [
+const OWNERSHIP_WITH_RULES = [
   'version: 2',
   'plugins: [living-docs]',
   'owned:',
   '  - path: docs/requirements/rules.md',
-  '    owner: "@time"',
+  '    owner: "@team"',
   '    skill: requirements-keeper',
   '    states: [draft, active, revoked]',
   '    format: { collection: sections, key: first-token }',
   '    living-docs: { id-prefix: RN }',
   '  - path: .ownership.yml',
-  '    owner: "@time"',
+  '    owner: "@team"',
   '    skill: living-docs-bootstrap',
   '    living-docs: {}',
   '',
 ].join('\n')
 
-test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () => {
-  const arvore = {
-    [OWNERSHIP_FILE]: OWNERSHIP_COM_REGRAS,
-    'docs/requirements/rules.md': REGRAS_COM_RN_0001,
+test('criteria 7 and 8 of spec §12: commit discipline is enforced in CI', () => {
+  const tree = {
+    [OWNERSHIP_FILE]: OWNERSHIP_WITH_RULES,
+    'docs/requirements/rules.md': RULES_WITH_RN_0001,
   }
 
-  withTempRepo(arvore, root => {
-    // Criterio 7 — tres documentos que so mudaram a data.
+  withTempRepo(tree, root => {
+    // Criterion 7 — three documents that only changed the date.
     const bumps = ['docs/a.md', 'docs/b.md', 'docs/c.md']
-    const massa = runValidate(root, 'origin/master', fakeGit(bumps, ['chore: revisao geral'], bumpPatch(bumps)))
-    const bumpFinding = massa.findings.find(f => f.ruleId === 'living-docs/commit-discipline' && /last-reviewed/.test(f.message))
+    const bulk = runValidate(root, 'origin/master', fakeGit(bumps, ['chore: general review'], bumpPatch(bumps)))
+    const bumpFinding = bulk.findings.find(f => f.ruleId === 'living-docs/commit-discipline' && /last-reviewed/.test(f.message))
 
-    assert.ok(bumpFinding, JSON.stringify(massa.findings, null, 2))
-    assert.equal(massa.exitCode, 1)
+    assert.ok(bumpFinding, JSON.stringify(bulk.findings, null, 2))
+    assert.equal(bulk.exitCode, 1)
 
-    // Criterio 8 — artefato alterado sem o ID na mensagem.
-    const semCitacao = runValidate(root, 'origin/master', fakeGit(['docs/requirements/rules.md'], ['docs: ajusta a prosa']))
+    // Criterion 8 — artifact changed without the ID in the message.
+    const noCitation = runValidate(root, 'origin/master', fakeGit(['docs/requirements/rules.md'], ['docs: adjust the prose']))
 
     assert.ok(
-      semCitacao.findings.some(f => f.ruleId === 'living-docs/commit-discipline' && /RN-0001/.test(f.message)),
-      JSON.stringify(semCitacao.findings, null, 2),
+      noCitation.findings.some(f => f.ruleId === 'living-docs/commit-discipline' && /RN-0001/.test(f.message)),
+      JSON.stringify(noCitation.findings, null, 2),
     )
 
-    // E citar o ID em qualquer commit do diff basta.
-    const comCitacao = runValidate(root, 'origin/master', fakeGit(['docs/requirements/rules.md'], ['docs(RN-0001): o caso do negativo']))
+    // And citing the ID in any commit of the diff is enough.
+    const withCitation = runValidate(root, 'origin/master', fakeGit(['docs/requirements/rules.md'], ['docs(RN-0001): the negative case']))
 
     assert.deepEqual(
-      comCitacao.findings.filter(f => f.ruleId === 'living-docs/commit-discipline'),
+      withCitation.findings.filter(f => f.ruleId === 'living-docs/commit-discipline'),
       [],
     )
 
-    // Sem base, living-docs/commit-discipline nao roda.
+    // Without a base, living-docs/commit-discipline does not run.
     assert.deepEqual(
       runValidate(root).findings.filter(f => f.ruleId === 'living-docs/commit-discipline'),
       [],
@@ -588,60 +587,61 @@ test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () 
   })
 })
 
-test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI', () => {
+test('ADR-0034: the owning skill of a trigger is checked in CI, its wording is not', () => {
   const ownership = [
     'version: 2',
     'plugins: [living-docs]',
     'owned:',
     '  - path: docs/open-decisions.md',
-    '    owner: "@time"',
+    '    owner: "@team"',
     '    skill: decision-recorder',
     '    states: [open, resolved, dropped]',
     '    format: { collection: table, key: ID, state-field: Status }',
     '    living-docs: { id-prefix: DA }',
     '  - path: .ownership.yml',
-    '    owner: "@time"',
+    '    owner: "@team"',
     '    skill: living-docs-bootstrap',
     '    living-docs: {}',
     '',
   ].join('\n')
 
-  const decisoes = (trigger: string): string =>
+  const decisions = (trigger: string): string =>
     [
       '---',
       'title: Open Decisions',
-      'owner: "@time"',
+      'owner: "@team"',
       `trigger: ${trigger}`,
       'last-reviewed: 2026-08-31',
       '---',
       '',
-      '| ID | Lacuna | Status | Aberta em |',
+      '| ID | Gap | Status | Opened on |',
       '| --- | --- | --- | --- |',
       '',
     ].join('\n')
 
-  // Divergente: reprova nomeando os dois.
+  // A trigger that shares no word with the skill description is no finding: the
+  // check never compares wording (ADR-0034, RN-0038).
   withTempRepo(
     {
       [OWNERSHIP_FILE]: ownership,
-      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
+      'docs/open-decisions.md': decisions('When the deploy breaks in production.'),
     },
     root => {
       const result = runValidate(root)
-      const finding = result.findings.find(f => f.ruleId === 'living-docs/trigger-routing')
 
-      assert.ok(finding, JSON.stringify(result.findings, null, 2))
-      assert.equal(finding?.severity, 'error')
-      assert.match(finding?.message ?? '', /decision-recorder/)
-      assert.equal(result.exitCode, 1)
+      assert.equal(
+        result.findings.find(f => f.ruleId === 'living-docs/trigger-routing'),
+        undefined,
+        JSON.stringify(result.findings, null, 2),
+      )
     },
   )
 
-  // Skill que a raiz do toolkit nao tem: avisa e segue.
+  // A skill the toolkit root does not have: warns and moves on.
   withTempRepo(
     {
-      [OWNERSHIP_FILE]: ownership.replace('skill: decision-recorder', 'skill: decisoes-do-time'),
-      'docs/open-decisions.md': decisoes('Quando o deploy quebrar em producao.'),
+      [OWNERSHIP_FILE]: ownership.replace('skill: decision-recorder', 'skill: team-decisions'),
+      'docs/open-decisions.md': decisions('When the deploy breaks in production.'),
     },
     root => {
       const result = runValidate(root)

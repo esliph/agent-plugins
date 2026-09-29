@@ -5,21 +5,21 @@ import { join } from 'node:path'
 import { listFiles, readTextFile, isProbablyText, forgetTree, MAX_BYTES } from '../../src/core/files.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-const ARVORE = {
-  'docs/um.md': '# um\n',
-  'docs/sub/dois.md': '# dois\n',
-  'docs/tres.txt': 'texto\n',
-  'src/quatro.ts': 'export const x = 1;\n',
-  'node_modules/pacote/cinco.md': '# não me leia\n',
+const TREE = {
+  'docs/one.md': '# one\n',
+  'docs/sub/two.md': '# two\n',
+  'docs/three.txt': 'text\n',
+  'src/four.ts': 'export const x = 1;\n',
+  'node_modules/package/five.md': '# do not read me\n',
   '.git/config': '[core]\n',
 }
 
-test('listFiles varre tudo, com `/` sempre, e pula o que nunca tem documento', () => {
-  withTempRepo(ARVORE, root => {
+test('listFiles scans everything, always with `/`, and skips what never holds a document', () => {
+  withTempRepo(TREE, root => {
     const files = listFiles(root)
 
-    assert.ok(files.includes('docs/sub/dois.md'))
-    assert.ok(files.includes('src/quatro.ts'))
+    assert.ok(files.includes('docs/sub/two.md'))
+    assert.ok(files.includes('src/four.ts'))
     assert.equal(
       files.some(file => file.startsWith('node_modules/')),
       false,
@@ -35,62 +35,62 @@ test('listFiles varre tudo, com `/` sempre, e pula o que nunca tem documento', (
   })
 })
 
-test('listFiles filtra por glob; lista vazia não é ausência de filtro', () => {
-  withTempRepo(ARVORE, root => {
-    assert.deepEqual(listFiles(root, ['docs/**/*.md']).sort(), ['docs/sub/dois.md', 'docs/um.md'])
-    assert.deepEqual(listFiles(root, []), [], 'filtro vazio casa nada — não é "tudo"')
-    assert.ok(listFiles(root, undefined).length > 3, 'sem filtro é tudo')
+test('listFiles filters by glob; an empty list is not the absence of a filter', () => {
+  withTempRepo(TREE, root => {
+    assert.deepEqual(listFiles(root, ['docs/**/*.md']).sort(), ['docs/one.md', 'docs/sub/two.md'])
+    assert.deepEqual(listFiles(root, []), [], 'an empty filter matches nothing — it is not "everything"')
+    assert.ok(listFiles(root, undefined).length > 3, 'no filter means everything')
   })
 })
 
-test('listFiles casa arquivo que começa com ponto — o corpus começa pelo `.ownership.yml`', () => {
+test('listFiles matches a file that starts with a dot — the corpus starts with `.ownership.yml`', () => {
   withTempRepo({ 'docs/.ownership.yml': 'version: 2\n', 'docs/sub/.gitkeep': '' }, root => {
     assert.deepEqual(listFiles(root, ['docs/**']).sort(), ['docs/.ownership.yml', 'docs/sub/.gitkeep'])
   })
 })
 
-test('a varredura é memoizada por raiz, e `forgetTree` a esquece', () => {
-  withTempRepo(ARVORE, root => {
+test('the scan is memoized per root, and `forgetTree` forgets it', () => {
+  withTempRepo(TREE, root => {
     forgetTree(root)
     assert.equal(listFiles(root, ['docs/**/*.md']).length, 2)
 
-    writeFileSync(join(root, 'docs/tres.md'), '# três\n', 'utf8')
-    assert.equal(listFiles(root, ['docs/**/*.md']).length, 2, 'dentro da mesma execução, a árvore é a de antes')
+    writeFileSync(join(root, 'docs/three.md'), '# three\n', 'utf8')
+    assert.equal(listFiles(root, ['docs/**/*.md']).length, 2, 'within the same run, the tree is the earlier one')
 
     forgetTree(root)
-    assert.equal(listFiles(root, ['docs/**/*.md']).length, 3, 'execução nova, árvore nova')
+    assert.equal(listFiles(root, ['docs/**/*.md']).length, 3, 'new run, new tree')
   })
 })
 
-test('o glob é aplicado a cada chamada — o cache guarda a varredura crua', () => {
-  withTempRepo(ARVORE, root => {
+test('the glob is applied on each call — the cache holds the raw scan', () => {
+  withTempRepo(TREE, root => {
     forgetTree(root)
-    const tudo = listFiles(root)
+    const everything = listFiles(root)
 
-    assert.deepEqual(listFiles(root, []), [], 'lista vazia segue casando nada, mesmo com a árvore em memória')
-    assert.deepEqual(listFiles(root, undefined), tudo)
+    assert.deepEqual(listFiles(root, []), [], 'an empty list still matches nothing, even with the tree in memory')
+    assert.deepEqual(listFiles(root, undefined), everything)
 
-    // A lista devolvida é cópia: ordenar o resultado não reordena o cache.
+    // The returned list is a copy: sorting the result does not reorder the cache.
     listFiles(root).sort().reverse()
-    assert.deepEqual(listFiles(root), tudo)
+    assert.deepEqual(listFiles(root), everything)
   })
 })
 
-test('readTextFile devolve o conteúdo, e null para binário, grande ou ausente', () => {
-  withTempRepo(ARVORE, root => {
-    assert.equal(readTextFile(root, 'docs/um.md'), '# um\n')
-    assert.equal(readTextFile(root, 'docs/nao-existe.md'), null)
+test('readTextFile returns the content, and null for binary, large or missing', () => {
+  withTempRepo(TREE, root => {
+    assert.equal(readTextFile(root, 'docs/one.md'), '# one\n')
+    assert.equal(readTextFile(root, 'docs/does-not-exist.md'), null)
 
-    mkdirSync(join(root, 'docs/anexos'), { recursive: true })
-    writeFileSync(join(root, 'docs/anexos/bin.dat'), Buffer.from([0x41, 0x00, 0x42]))
-    assert.equal(readTextFile(root, 'docs/anexos/bin.dat'), null, 'byte NUL é o sinal de binário')
+    mkdirSync(join(root, 'docs/attachments'), { recursive: true })
+    writeFileSync(join(root, 'docs/attachments/bin.dat'), Buffer.from([0x41, 0x00, 0x42]))
+    assert.equal(readTextFile(root, 'docs/attachments/bin.dat'), null, 'a NUL byte is the binary signal')
 
-    writeFileSync(join(root, 'docs/anexos/grande.md'), 'x'.repeat(MAX_BYTES + 1), 'utf8')
-    assert.equal(readTextFile(root, 'docs/anexos/grande.md'), null, 'acima do teto é dado, não texto')
+    writeFileSync(join(root, 'docs/attachments/large.md'), 'x'.repeat(MAX_BYTES + 1), 'utf8')
+    assert.equal(readTextFile(root, 'docs/attachments/large.md'), null, 'above the ceiling it is data, not text')
   })
 })
 
-test('isProbablyText separa texto de dado pelo byte NUL', () => {
-  assert.equal(isProbablyText('qualquer prosa'), true)
-  assert.equal(isProbablyText(`com${String.fromCharCode(0)}nul`), false)
+test('isProbablyText separates text from data by the NUL byte', () => {
+  assert.equal(isProbablyText('any prose'), true)
+  assert.equal(isProbablyText(`with${String.fromCharCode(0)}nul`), false)
 })

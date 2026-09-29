@@ -4,14 +4,14 @@ import { join } from 'node:path'
 import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import type { LivingDocsConfig } from '../../src/config/ownership.ts'
 
-/** Onde as fixtures escrevem o arquivo de ownership: a raiz, como o `init` semeia. */
+/** Where the fixtures write the ownership file: the root, as `init` seeds it. */
 export const OWNERSHIP_FILE = '.ownership.yml'
 
 /**
- * A configuração que o adaptador lê deste YAML v2. Para teste de função pura
- * que não precisa do repositório: o arquivo vive num diretório descartável e
- * some antes do retorno. Quem precisa dos arquivos do repositório usa
- * `withTempRepo` com `OWNERSHIP_FILE` e `loadLivingDocsConfig(root)`.
+ * The configuration the adapter reads from this YAML v2. For a pure-function
+ * test that does not need the repository: the file lives in a throwaway directory and
+ * disappears before returning. Whoever needs the repository files uses
+ * `withTempRepo` with `OWNERSHIP_FILE` and `loadLivingDocsConfig(root)`.
  */
 export function configFrom(yaml: string): LivingDocsConfig {
   const root = mkdtempSync(join(tmpdir(), 'living-docs-config-'))

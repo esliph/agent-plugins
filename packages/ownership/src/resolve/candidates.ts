@@ -3,26 +3,26 @@ import { join } from 'node:path'
 import { OwnershipError } from '../schema/types.ts'
 
 export interface LocateOptions {
-  /** Vem de `--ownership <caminho>` no CLI. */
+  /** Comes from `--ownership <path>` in the CLI. */
   explicitPath?: string | null
   env?: Record<string, string | undefined>
 }
 
-/** Ordem de candidatos quando nada é explícito (spec §8). */
+/** Order of candidates when nothing is explicit (spec §8). */
 const CANDIDATES: readonly string[] = ['.ownership.yml', 'docs/.ownership.yml']
 
 /**
- * O arquivo de ownership raiz, ou `null` — repositório sem o toolkit, e isso
- * não é erro. Dois candidatos presentes é erro que nomeia os dois e nunca
- * escolhe: um arquivo recém-migrado convivendo com um esquecido validaria
- * pelo esquecido em silêncio.
+ * The root ownership file, or `null` — a repository without the toolkit, and that
+ * is not an error. Two candidates present is an error that names both and never
+ * picks: a freshly migrated file living next to a forgotten one would validate
+ * through the forgotten one in silence.
  */
 export function locateRootFile(root: string, opts: LocateOptions = {}): string | null {
   const explicit = opts.explicitPath ?? opts.env?.OWNERSHIP_CONFIG ?? null
 
   if (explicit !== null) {
     if (!existsSync(join(root, explicit))) {
-      throw new OwnershipError(`${explicit}: não encontrado — indicado explicitamente e não existe no repositório.`)
+      throw new OwnershipError(`${explicit}: not found — given explicitly and does not exist in the repository.`)
     }
 
     return explicit
@@ -32,8 +32,8 @@ export function locateRootFile(root: string, opts: LocateOptions = {}): string |
 
   if (found.length > 1) {
     throw new OwnershipError(
-      `Mais de um arquivo de ownership encontrado: ${found.join(', ')}. ` +
-        'A ambiguidade não se resolve sozinha — apague um dos dois, ou aponte o certo com `--ownership <caminho>`.',
+      `More than one ownership file found: ${found.join(', ')}. ` +
+        'The ambiguity does not resolve itself — delete one of them, or point to the right one with `--ownership <path>`.',
     )
   }
 

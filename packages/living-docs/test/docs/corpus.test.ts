@@ -9,59 +9,59 @@ version: 2
 plugins: [living-docs]
 owned:
   - path: docs/decisions/adr/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs: { id-prefix: ADR }
   - path: docs/contracts/api.gen.md
-    owner: "@time"
+    owner: "@team"
     living-docs: {}
   - path: CONTRIBUTING.md
-    owner: "@time"
+    owner: "@team"
     living-docs: {}
-  - path: fora/do/repo.md
-    owner: "@time"
+  - path: outside/the/repo.md
+    owner: "@team"
     living-docs: {}
   - path: .ownership.yml
-    owner: "@time"
+    owner: "@team"
     living-docs: {}
   - path: docs/ids-retired.txt
-    owner: "@time"
+    owner: "@team"
     living-docs: {}
   - path: src/
-    owner: "@time"
+    owner: "@team"
 generated:
   - path: docs/contracts/api.gen.md
     command: "node gen.js"
 `
 
-test('declaredPaths junta artefatos, documentos e gerados', () => {
-  assert.deepEqual(new Set(declaredPaths(configFrom(OWNERSHIP))), new Set(['CONTRIBUTING.md', 'docs/contracts/api.gen.md', 'docs/decisions/adr/', 'fora/do/repo.md', '.ownership.yml', 'docs/ids-retired.txt']))
+test('declaredPaths joins artifacts, documents and generated files', () => {
+  assert.deepEqual(new Set(declaredPaths(configFrom(OWNERSHIP))), new Set(['CONTRIBUTING.md', 'docs/contracts/api.gen.md', 'docs/decisions/adr/', 'outside/the/repo.md', '.ownership.yml', 'docs/ids-retired.txt']))
 })
 
-test('documentationFiles = o que os caminhos do living-docs declaram e existe; o resto do repositório não entra', () => {
+test('documentationFiles = what the living-docs paths declare and exists; the rest of the repository does not get in', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: OWNERSHIP,
       'docs/decisions/adr/ADR-0001-x.md': '# adr\n',
-      'docs/contracts/api.gen.md': '# gerado\n',
+      'docs/contracts/api.gen.md': '# generated\n',
       'docs/ids-retired.txt': '\n',
-      'docs/avulso.md': '# ninguém declarou\n',
-      'CONTRIBUTING.md': '# como\n',
-      'README.md': '# leia\n',
-      'src/codigo.ts': 'export const x = 1;\n',
+      'docs/stray.md': '# nobody declared\n',
+      'CONTRIBUTING.md': '# how\n',
+      'README.md': '# read\n',
+      'src/code.ts': 'export const x = 1;\n',
     },
     root => {
       const files = documentationFiles(root, configFrom(OWNERSHIP))
 
       assert.ok(files.includes('docs/decisions/adr/ADR-0001-x.md'))
-      assert.ok(files.includes('.ownership.yml'), 'o mapa também é documento e também tem dono')
+      assert.ok(files.includes('.ownership.yml'), 'the map is also a document and also has an owner')
       assert.ok(files.includes('docs/ids-retired.txt'))
       assert.ok(files.includes('CONTRIBUTING.md'))
-      assert.equal(files.includes('fora/do/repo.md'), false, 'declarado e ausente não entra')
-      assert.equal(files.includes('README.md'), false, 'não declarado não é do corpus')
-      assert.equal(files.includes('docs/avulso.md'), false, 'estar sob docs/ não basta: quem declara é a entrada')
-      assert.equal(files.includes('src/codigo.ts'), false, 'coberto por entrada sem bloco living-docs: não é documentação')
+      assert.equal(files.includes('outside/the/repo.md'), false, 'declared and absent does not get in')
+      assert.equal(files.includes('README.md'), false, 'undeclared is not part of the corpus')
+      assert.equal(files.includes('docs/stray.md'), false, 'being under docs/ is not enough: the entry is what declares')
+      assert.equal(files.includes('src/code.ts'), false, 'covered by an entry without a living-docs block: not documentation')
     },
   )
 })

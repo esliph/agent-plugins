@@ -6,10 +6,10 @@ import { tmpdir } from 'node:os'
 import { dirname, join, sep } from 'node:path'
 
 /**
- * Simulação do cache do marketplace: o Claude Code copia só o diretório do
- * plugin, instala dependências a partir do lockfile que está nele e roda os
- * hooks de lá. O núcleo não depende de pacote irmão nenhum, e por isso
- * funciona sozinho no cache.
+ * Simulation of the marketplace cache: Claude Code copies only the plugin
+ * directory, installs dependencies from the lockfile inside it and runs the
+ * hooks from there. The core depends on no sibling package, and that is why
+ * it works on its own in the cache.
  */
 const PACKAGE_ROOT = join(import.meta.dirname, '..', '..')
 
@@ -17,17 +17,17 @@ const OWNERSHIP = [
   'version: 2',
   'owned:',
   '  - path: docs/requirements/rules.md',
-  "    owner: '@time'",
+  "    owner: '@team'",
   'watches:',
   "  - code: 'src/domain/**'",
   '    doc: docs/requirements/rules.md',
-  "    reason: 'comportamento novo exige regra antes do código'",
+  "    reason: 'new behavior requires a rule before the code'",
   '',
 ].join('\n')
 
-const PAYLOAD = JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: 'src/domain/reembolso.ts' } })
+const PAYLOAD = JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: 'src/domain/refund.ts' } })
 
-/** No Windows, o `bash` do PATH pode ser o do WSL; o Claude Code usa o do Git for Windows. */
+/** On Windows, the `bash` on PATH may be the WSL one; Claude Code uses the Git for Windows one. */
 function bashExecutable(): string | null {
   if (process.platform !== 'win32') {
     return 'bash'
@@ -62,34 +62,34 @@ function runHook(bash: string, cache: string, project: string): { status: number
   return { status: run.status, stdout: run.stdout, stderr: run.stderr }
 }
 
-test('o wrapper de hooks do núcleo chega a quem instala como executável', () => {
+test('the core hooks wrapper reaches whoever installs it as executable', () => {
   const entry = execFileSync('git', ['ls-files', '-s', '--', 'hooks/run-hook.sh'], { cwd: PACKAGE_ROOT, encoding: 'utf8' })
 
   assert.equal(entry.split(/\s+/)[0], '100755')
 })
 
-test('copiado sozinho para o cache, o plugin do núcleo instala e o hook responde de lá', { timeout: 180_000 }, t => {
+test('copied alone into the cache, the core plugin installs and the hook answers from there', { timeout: 180_000 }, t => {
   const bash = bashExecutable()
 
   if (bash === null) {
-    t.skip('sem o bash do Git for Windows: o CI (ubuntu) roda esta prova')
+    t.skip('no Git for Windows bash: the CI (ubuntu) runs this proof')
 
     return
   }
 
   const cache = mkdtempSync(join(tmpdir(), 'ownership-cache-'))
-  const project = mkdtempSync(join(tmpdir(), 'ownership-projeto-'))
+  const project = mkdtempSync(join(tmpdir(), 'ownership-project-'))
 
   try {
-    assert.ok(copyVersioned(cache) > 30, 'cópia vazia demais: o cache não recebeu o plugin')
+    assert.ok(copyVersioned(cache) > 30, 'copy too empty: the cache did not receive the plugin')
     assert.equal(existsSync(join(cache, 'node_modules')), false)
     writeFileSync(join(project, '.ownership.yml'), OWNERSHIP, 'utf8')
 
-    // Controle: sem dependências o hook quebra e, por contrato, se cala.
-    const semDependencias = runHook(bash, cache, project)
+    // Control: without dependencies the hook breaks and, by contract, stays silent.
+    const withoutDependencies = runHook(bash, cache, project)
 
-    assert.equal(semDependencias.status, 0, 'falha aberta: exit 0 mesmo quebrado')
-    assert.equal(semDependencias.stdout.trim(), '', 'sem node_modules o hook deveria se calar')
+    assert.equal(withoutDependencies.status, 0, 'fails open: exit 0 even when broken')
+    assert.equal(withoutDependencies.stdout.trim(), '', 'without node_modules the hook should stay silent')
 
     const install = spawnSync('npm', ['ci', '--ignore-scripts'], { cwd: cache, encoding: 'utf8', shell: true })
 
@@ -98,7 +98,7 @@ test('copiado sozinho para o cache, o plugin do núcleo instala e o hook respond
     const run = runHook(bash, cache, project)
 
     assert.equal(run.status, 0, run.stderr)
-    assert.notEqual(run.stdout.trim(), '', 'saída vazia é o que um hook quebrado também produz: não é sucesso')
+    assert.notEqual(run.stdout.trim(), '', 'empty output is what a broken hook also produces: it is not success')
 
     const output = JSON.parse(run.stdout) as { hookSpecificOutput: { hookEventName: string; additionalContext: string } }
 

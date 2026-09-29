@@ -5,18 +5,18 @@ import { forgetTree } from '../../src/core/files.ts'
 import { buildConfig } from '../helpers/config.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-test('per-file: status fora dos states declarados é achado', () => {
-  withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: inventado\n---\n' }, root => {
+test('per-file: status outside the declared states is a finding', () => {
+  withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: invented\n---\n' }, root => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/decisions/adr/', owner: '@a', states: ['draft', 'accepted', 'superseded'] }] })
     const findings = ownershipDeclaredState().run({ root, config, today: '2026-09-17' })
 
     assert.equal(findings.length, 1)
-    assert.match(findings[0]!.message, /inventado/)
+    assert.match(findings[0]!.message, /invented/)
   })
 })
 
-test('per-file: status dentro dos states declarados não é achado', () => {
+test('per-file: status within the declared states is not a finding', () => {
   withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: draft\n---\n' }, root => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/decisions/adr/', owner: '@a', states: ['draft', 'accepted'] }] })
@@ -25,8 +25,8 @@ test('per-file: status dentro dos states declarados não é achado', () => {
   })
 })
 
-test('sem states declarado, nenhuma validação — o núcleo não inventa vocabulário', () => {
-  withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: qualquer-coisa\n---\n' }, root => {
+test('no states declared, no validation — the core does not invent vocabulary', () => {
+  withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: anything\n---\n' }, root => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/decisions/adr/', owner: '@a' }] })
 
@@ -34,8 +34,8 @@ test('sem states declarado, nenhuma validação — o núcleo não inventa vocab
   })
 })
 
-test('table: item com status fora dos states é achado, com a linha certa', () => {
-  const content = '| ID | Status |\n| --- | ------ |\n| DA-01 | inventado |\n'
+test('table: item with status outside the states is a finding, with the right line', () => {
+  const content = '| ID | Status |\n| --- | ------ |\n| DA-01 | invented |\n'
 
   withTempRepo({ 'docs/open-decisions.md': content }, root => {
     forgetTree(root)
@@ -48,8 +48,8 @@ test('table: item com status fora dos states é achado, com a linha certa', () =
   })
 })
 
-test('sections: item com status fora dos states é achado', () => {
-  const content = '## RN-0001 — x\n\n- **status:** inventado\n'
+test('sections: item with status outside the states is a finding', () => {
+  const content = '## RN-0001 — x\n\n- **status:** invented\n'
 
   withTempRepo({ 'docs/requirements/rules.md': content }, root => {
     forgetTree(root)
@@ -63,7 +63,7 @@ test('sections: item com status fora dos states é achado', () => {
   })
 })
 
-test('chave duplicada é achado, mesmo sem states declarado', () => {
+test('duplicate key is a finding, even with no states declared', () => {
   const content = '| ID | Status |\n| --- | ------ |\n| DA-01 | open |\n| DA-01 | open |\n'
 
   withTempRepo({ 'docs/open-decisions.md': content }, root => {
@@ -79,8 +79,8 @@ test('chave duplicada é achado, mesmo sem states declarado', () => {
   })
 })
 
-test('state-field customizado é lido no lugar de status', () => {
-  withTempRepo({ 'docs/decisions/adr/x.md': '---\nsituação: inventado\n---\n' }, root => {
+test('custom state-field is read in place of status', () => {
+  withTempRepo({ 'docs/decisions/adr/x.md': '---\nsituação: invented\n---\n' }, root => {
     forgetTree(root)
     const config = buildConfig({
       owned: [{ path: 'docs/decisions/adr/', owner: '@a', states: ['draft'], format: { collection: 'per-file', key: null, keyMode: null, stateField: 'situação' } }],
@@ -90,20 +90,20 @@ test('state-field customizado é lido no lugar de status', () => {
   })
 })
 
-test('per-file: owner do frontmatter sem @ é achado, na linha do campo', () => {
-  withTempRepo({ 'docs/adr/ADR-0001.md': '---\nstatus: draft\nowner: time\n---\n' }, root => {
+test('per-file: frontmatter owner without @ is a finding, on the line of the field', () => {
+  withTempRepo({ 'docs/adr/ADR-0001.md': '---\nstatus: draft\nowner: team\n---\n' }, root => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/adr/', owner: '@x', states: ['draft'] }] })
     const findings = ownershipDeclaredState().run({ root, config, today: '2026-09-28' })
 
     assert.equal(findings.length, 1)
     assert.equal(findings[0]?.line, 3)
-    assert.match(findings[0]?.message ?? '', /owner.*"time".*@/)
+    assert.match(findings[0]?.message ?? '', /owner.*"team".*@/)
   })
 })
 
-test('per-file: owner com @, ou ausente, não é achado — ausência é de quem cobra o frontmatter', () => {
-  withTempRepo({ 'docs/adr/ADR-0001.md': "---\nstatus: draft\nowner: '@time'\n---\n", 'docs/adr/ADR-0002.md': '---\nstatus: draft\n---\n' }, root => {
+test('per-file: owner with @, or absent, is not a finding — absence is the concern of whoever enforces the frontmatter', () => {
+  withTempRepo({ 'docs/adr/ADR-0001.md': "---\nstatus: draft\nowner: '@team'\n---\n", 'docs/adr/ADR-0002.md': '---\nstatus: draft\n---\n' }, root => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'docs/adr/', owner: '@x', states: ['draft'] }] })
 
@@ -111,7 +111,7 @@ test('per-file: owner com @, ou ausente, não é achado — ausência é de quem
   })
 })
 
-test('per-file: entrada sem states não tem o owner do frontmatter cobrado — modelo de documento com placeholder não é violação', () => {
+test('per-file: entry without states has no frontmatter owner enforced — a document template with a placeholder is not a violation', () => {
   withTempRepo({ 'templates/adr.md': '---\nstatus: draft\nowner: "{{OWNER}}"\n---\n' }, root => {
     forgetTree(root)
     const config = buildConfig({ owned: [{ path: 'templates/', owner: '@x' }] })
@@ -120,7 +120,7 @@ test('per-file: entrada sem states não tem o owner do frontmatter cobrado — m
   })
 })
 
-test('per-file: entrada sem states não lê o frontmatter — modelo com {{ID}} sem aspas não faz o parser avisar', async () => {
+test('per-file: entry without states does not read the frontmatter — a template with unquoted {{ID}} does not make the parser warn', async () => {
   const warnings: string[] = []
   const onWarning = (warning: Error): void => {
     warnings.push(warning.message)
@@ -128,13 +128,13 @@ test('per-file: entrada sem states não lê o frontmatter — modelo com {{ID}} 
 
   process.on('warning', onWarning)
   try {
-    withTempRepo({ 'modelos/adr.md': '---\nid: {{ID}}\ntitle: {{TITLE}}\nowner: {{OWNER}}\n---\n' }, root => {
+    withTempRepo({ 'templates-dir/adr.md': '---\nid: {{ID}}\ntitle: {{TITLE}}\nowner: {{OWNER}}\n---\n' }, root => {
       forgetTree(root)
-      const config = buildConfig({ owned: [{ path: 'modelos/', owner: '@a' }] })
+      const config = buildConfig({ owned: [{ path: 'templates-dir/', owner: '@a' }] })
 
       assert.deepEqual(ownershipDeclaredState().run({ root, config, today: '2026-09-28' }), [])
     })
-    // O aviso do Node sai no tick seguinte.
+    // The Node warning is emitted on the next tick.
     await new Promise(resolve => setImmediate(resolve))
   } finally {
     process.off('warning', onWarning)

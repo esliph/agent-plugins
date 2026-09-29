@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as api from '../../src/index.ts'
 
-test('a API pública expõe o que o living-docs importa', () => {
+test('the public API exposes what living-docs imports', () => {
   for (const name of [
     'resolveOwnership',
     'findOwnedRule',
@@ -19,6 +19,6 @@ test('a API pública expõe o que o living-docs importa', () => {
     'ownersOf',
     'CORE_CHECK_CATALOG',
   ]) {
-    assert.ok(name in api, `${name} deveria ser exportado`)
+    assert.ok(name in api, `${name} should be exported`)
   }
 })
