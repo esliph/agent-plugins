@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { OwnershipError, documentWithRole, fieldOf, findArtifactRule, findDocumentRule, loadLivingDocsConfig } from '../../src/config/ownership.ts'
+import { OwnershipError, documentWithRole, fieldOf, hasField, findArtifactRule, findDocumentRule, loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { DEFAULT_ID_FORMAT } from '../../src/docs/schema.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
 import { configFrom } from '../helpers/ownership.ts'
@@ -210,4 +210,12 @@ test('field-map normaliza as duas pontas, vale o nome canônico sem mapa, e valo
 
   assert.equal(fieldOf(plain.artifacts[0]!, item, 'resolved-by'), 'DA-0001')
   assert.throws(() => configFrom(yaml(ADR.replace('append-only: true', "field-map: { resolved-by: '' }"))), /field-map\.resolved-by precisa ser uma string não vazia/)
+})
+
+test('RN-0039: hasField tells a missing column from an empty one, through field-map', () => {
+  const rule = configFrom(yaml(DA)).artifacts[0]!
+  const item = { key: 'DA-0001', state: 'resolved', line: 1, fields: { 'resolvida por': '' } }
+
+  assert.equal(hasField(rule, item, 'resolved-by'), true)
+  assert.equal(hasField(rule, item, 'blocks'), false)
 })

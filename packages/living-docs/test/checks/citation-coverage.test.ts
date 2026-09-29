@@ -290,3 +290,35 @@ test('living-docs/citation-coverage: toda finding é error, nunca warning', () =
     },
   )
 })
+
+const CONFIG_WITHOUT_FIELD_MAP = CONFIG.replace('      field-map:\n        resolved-by: "Resolvida por"\n', '')
+
+test('RN-0039: a resolved decision in a table without the canonical column points to field-map', () => {
+  const tree = {
+    [OWNERSHIP_FILE]: CONFIG_WITHOUT_FIELD_MAP,
+    'docs/open-decisions.md': decisions('| DA-0001 | Gap | resolved | ADR-0001 | 2026-08-24 |'),
+    'docs/decisions/adr/ADR-0001-x.md': adr('ADR-0001', 'accepted', ['relates-to: [DA-0001]']),
+  }
+
+  withTempRepo(tree, root => {
+    const found = runValidate(root).findings.filter(f => f.ruleId === 'living-docs/citation-coverage' && f.file === 'docs/open-decisions.md')
+
+    assert.equal(found.length, 1, JSON.stringify(found, null, 2))
+    assert.match(found[0]?.fix ?? '', /field-map/)
+    assert.match(found[0]?.fix ?? '', /resolved-by/)
+  })
+})
+
+test('RN-0039: an existing but empty column is an empty value, with no field-map hint', () => {
+  const tree = {
+    [OWNERSHIP_FILE]: CONFIG,
+    'docs/open-decisions.md': decisions('| DA-0001 | Gap | resolved | — | 2026-08-24 |'),
+  }
+
+  withTempRepo(tree, root => {
+    const found = runValidate(root).findings.filter(f => f.ruleId === 'living-docs/citation-coverage' && f.file === 'docs/open-decisions.md')
+
+    assert.equal(found.length, 1, JSON.stringify(found, null, 2))
+    assert.doesNotMatch(found[0]?.fix ?? '', /field-map/)
+  })
+})

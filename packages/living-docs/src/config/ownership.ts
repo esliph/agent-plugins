@@ -337,6 +337,17 @@ export function fieldOf(rule: ArtifactRule, item: DocItem, canonical: string): s
   return value.trim()
 }
 
+/**
+ * Whether the item carries a canonical field at all — a column or a bullet,
+ * even an empty one — honouring the artifact's `field-map`. Tells "the table
+ * has no such column" apart from "the cell is empty" (RN-0039).
+ */
+export function hasField(rule: ArtifactRule, item: DocItem, canonical: string): boolean {
+  const key = rule.fieldMap[normalizeFieldKey(canonical)] ?? normalizeFieldKey(canonical)
+
+  return item.fields[key] !== undefined
+}
+
 function normalizePath(repoPath: string): string {
   return repoPath.split('\\').join('/').replace(/^\.\//, '')
 }

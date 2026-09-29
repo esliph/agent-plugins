@@ -1,6 +1,6 @@
 import type { Check, CheckContext, Finding } from '../core/types.ts'
 import type { ArtifactRule } from '../config/ownership.ts'
-import { fieldOf } from '../config/ownership.ts'
+import { fieldOf, hasField } from '../config/ownership.ts'
 import { canonicalId, parseId } from '../docs/schema.ts'
 import type { IdFormat } from '../docs/schema.ts'
 import { findCitations } from '../ids/citations.ts'
@@ -23,10 +23,27 @@ interface Entry {
   rule: ArtifactRule
   /** Leitura de um campo canônico, seja frontmatter ou item de coleção. */
   read(canonical: string): string | null
+  /** True when a collection item has no such field at all; per-file entries never lack one here. */
+  lacks(canonical: string): boolean
 }
 
 function error(file: string, line: number, message: string, fix: string): Finding {
   return { ruleId: RULE, file, line, severity: 'error', message, fix }
+}
+
+/**
+ * The hint for a field the item does not carry at all: the project may name
+ * the column in its own words, and `field-map` is where it says so (RN-0039).
+ */
+function missingFieldHint(entry: Entry, canonical: string): string {
+  if (!entry.lacks(canonical)) {
+    return ''
+  }
+
+  return (
+    ` ${entry.file} has no \`${canonical}\` field. If the project names it differently, declare it under ` +
+    `\`field-map\` in this artifact's entry of the ownership file: \`field-map: { ${canonical}: '<your column>' }\`.`
+  )
 }
 
 /** IDs canônicos citados dentro de um valor, qualquer que seja a forma dele. */
@@ -63,6 +80,7 @@ function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
         line: doc.frontmatter?.lines.id ?? 1,
         status: typeof data?.status === 'string' ? data.status : '',
         rule: doc.rule,
+        lacks: () => false,
         read: canonical => {
           const value = data?.[canonical]
 
@@ -84,6 +102,7 @@ function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
         line: item.line,
         status: item.state,
         rule: doc.rule,
+        lacks: canonical => !hasField(doc.rule, item, canonical),
         read: canonical => fieldOf(doc.rule, item, canonical),
       })
     }
@@ -145,7 +164,7 @@ export const livingDocsCitationCoverage: Check = {
             entry.line,
             `${entry.id} está \`revoked\` sem declarar \`revoked-by\`.`,
             // Regra de origem: spec §5, SK-4.
-            'Regra removida é revogada, não deletada — aponte o ID que a substituiu.',
+            'Regra removida é revogada, não deletada — aponte o ID que a substituiu.' + missingFieldHint(entry, 'revoked-by'),
           ),
         )
       }
@@ -161,7 +180,7 @@ export const livingDocsCitationCoverage: Check = {
               entry.line,
               `${entry.id} está \`resolved\` sem dizer o que a resolveu.`,
               // Regra de origem: spec §5, SK-3, regra 7.
-              'Toda decisão aberta fechada aponta o ADR que a fechou.',
+              'Toda decisão aberta fechada aponta o ADR que a fechou.' + missingFieldHint(entry, 'resolved-by'),
             ),
           )
         }
