@@ -510,7 +510,7 @@ Every path in the repository has an owner entry that covers it, except what an
 
 ## RN-0038 — No check depends on the language of a document's prose
 
-- **status:** accept
+- **status:** active
 - **relates-to:** ADR-0032, ADR-0034
 - **out of scope:** the machine vocabulary a check reads — frontmatter keys, state names, IDs, the fixed markers `human` and `Docs: none —` — which is structure and is the same in every language
 
@@ -521,7 +521,7 @@ corpus would produce in English.
 
 ## RN-0039 — A missing canonical table column points to `field-map`
 
-- **status:** accept
+- **status:** active
 - **relates-to:** ADR-0032, RN-0038
 - **out of scope:** a column that exists and is empty, which is reported as an empty value
 

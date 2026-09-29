@@ -1,7 +1,7 @@
 ---
 id: TDR-0001
 title: HK-1 does not freeze a revoked section inside a collection file
-status: open
+status: accepted-permanently
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable while the debt exists; paying it marks it as paid.
