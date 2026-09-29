@@ -1,7 +1,7 @@
 ---
 id: ADR-0035
 title: The repository root presents the marketplace; the agent contract stays living-docs
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.
