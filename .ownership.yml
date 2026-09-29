@@ -26,12 +26,6 @@ owned:
     format: { collection: table, key: ID, state-field: Status }
     living-docs:
       id-prefix: DA
-      # A tabela é lida por gente, em português; o check pergunta pelo nome
-      # canônico. O mapeamento mora aqui porque é específico do projeto.
-      field-map:
-        resolved-by: 'Resolvida por'
-        blocks: 'Bloqueia'
-        gap: 'Lacuna'
 
   - path: docs/decisions/debt/
     owner: '@esliph/engineering'
