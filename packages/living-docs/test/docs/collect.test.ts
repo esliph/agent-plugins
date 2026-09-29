@@ -25,42 +25,42 @@ owned:
 const ADR = [
   '---',
   'id: ADR-0001',
-  'title: Primeira decisão',
+  'title: First decision',
   'status: accepted',
   'owner: "@team"',
-  'trigger: Nunca. Imutável após aceito.',
+  'trigger: Never. Immutable once accepted.',
   'last-reviewed: 2026-08-21',
   '---',
   '',
-  '## Contexto',
+  '## Context',
 ].join('\n')
 
 const OPEN_DECISIONS = [
   '---',
   'title: Open Decisions',
   'owner: "@product"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'trigger: Every time someone bumped into a gap.',
   'last-reviewed: 2026-08-21',
   '---',
   '',
-  '| ID | Lacuna | Status | Resolvida por |',
+  '| ID | Gap | Status | Resolved by |',
   '| --- | --- | --- | --- |',
-  '| DA-0001 | Reembolso parcial | open | — |',
+  '| DA-0001 | Partial refund | open | — |',
 ].join('\n')
 
-test('coleta artefatos por diretório e por arquivo único', () => {
+test('collects artifacts by directory and by single file', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: CONFIG,
-      'docs/decisions/adr/ADR-0001-primeira.md': ADR,
+      'docs/decisions/adr/ADR-0001-first.md': ADR,
       'docs/open-decisions.md': OPEN_DECISIONS,
-      'README.md': '# fora do escopo',
+      'README.md': '# out of scope',
     },
     root => {
       const docs = collectArtifacts(root, loadLivingDocsConfig(root))
       const files = docs.map(doc => doc.file).sort()
 
-      assert.deepEqual(files, ['docs/decisions/adr/ADR-0001-primeira.md', 'docs/open-decisions.md'])
+      assert.deepEqual(files, ['docs/decisions/adr/ADR-0001-first.md', 'docs/open-decisions.md'])
 
       const adr = docs.find(doc => doc.rule.idPrefix === 'ADR')
 
@@ -76,35 +76,35 @@ test('coleta artefatos por diretório e por arquivo único', () => {
   )
 })
 
-test('ignora artefatos gerados e arquivos não-markdown', () => {
+test('ignores generated artifacts and non-markdown files', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: CONFIG,
       'docs/decisions/adr/ADR-0001-x.md': ADR,
-      'docs/decisions/adr/index.gen.md': '# gerado',
-      'docs/decisions/adr/nota.txt': 'nada',
+      'docs/decisions/adr/index.gen.md': '# generated',
+      'docs/decisions/adr/note.txt': 'nothing',
       'docs/open-decisions.md': OPEN_DECISIONS,
     },
     root => {
       const files = collectArtifacts(root, loadLivingDocsConfig(root)).map(doc => doc.file)
 
       assert.equal(files.includes('docs/decisions/adr/index.gen.md'), false)
-      assert.equal(files.includes('docs/decisions/adr/nota.txt'), false)
+      assert.equal(files.includes('docs/decisions/adr/note.txt'), false)
     },
   )
 })
 
-test('caminho declarado mas ausente no disco não quebra a coleta', () => {
+test('a declared path that is missing on disk does not break the collection', () => {
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG }, root => {
     assert.deepEqual(collectArtifacts(root, loadLivingDocsConfig(root)), [])
   })
 })
 
-test('frontmatter inválido vira syntaxError, não exceção', () => {
+test('invalid frontmatter becomes syntaxError, not an exception', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: CONFIG,
-      'docs/decisions/adr/ADR-0002-quebrado.md': '---\nid: ADR-0002\ntitle: "unterminated\n---\ncorpo\n',
+      'docs/decisions/adr/ADR-0002-broken.md': '---\nid: ADR-0002\ntitle: "unterminated\n---\nbody\n',
     },
     root => {
       const docs = collectArtifacts(root, loadLivingDocsConfig(root))
@@ -116,82 +116,82 @@ test('frontmatter inválido vira syntaxError, não exceção', () => {
   )
 })
 
-const OWNERSHIP_COM_DOCUMENTOS = `
+const OWNERSHIP_WITH_DOCUMENTS = `
 version: 2
 plugins: [living-docs]
 owned:
   - path: docs/decisions/adr/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs: { id-prefix: ADR }
   - path: CONTRIBUTING.md
-    owner: "@time"
+    owner: "@team"
     skill: working-agreements-keeper
     living-docs: {}
   - path: CHANGELOG.md
-    owner: "@time"
+    owner: "@team"
     skill: release-historian
     living-docs: {}
   - path: docs/ids-retired.txt
-    owner: "@time"
+    owner: "@team"
     living-docs: {}
   - path: docs/superpowers/
-    owner: "@time"
+    owner: "@team"
     living-docs: {}
 `
 
-test('ADR-0008: collectDocuments lê só markdown, e frontmatter ausente não é erro', () => {
+test('ADR-0008: collectDocuments reads only markdown, and absent frontmatter is not an error', () => {
   withTempRepo(
     {
       'CONTRIBUTING.md':
-        '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-01\n---\n\n# Como se contribui\n',
+        '---\ntitle: How to contribute\nowner: "@team"\ntrigger: when the process changes\nlast-reviewed: 2026-08-01\n---\n\n# How to contribute\n',
       'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
-      'docs/ids-retired.txt': '# nenhum\n',
-      'docs/superpowers/plans/um.md': '# plano\n',
+      'docs/ids-retired.txt': '# none\n',
+      'docs/superpowers/plans/one.md': '# plan\n',
     },
     root => {
-      const documents = collectDocuments(root, configFrom(OWNERSHIP_COM_DOCUMENTOS))
+      const documents = collectDocuments(root, configFrom(OWNERSHIP_WITH_DOCUMENTS))
 
-      assert.deepEqual(documents.map(document => document.file).sort(), ['CHANGELOG.md', 'CONTRIBUTING.md', 'docs/superpowers/plans/um.md'])
+      assert.deepEqual(documents.map(document => document.file).sort(), ['CHANGELOG.md', 'CONTRIBUTING.md', 'docs/superpowers/plans/one.md'])
 
       const contributing = documents.find(document => document.file === 'CONTRIBUTING.md')
 
-      assert.equal(contributing?.frontmatter?.data.owner, '@time')
+      assert.equal(contributing?.frontmatter?.data.owner, '@team')
 
       const changelog = documents.find(document => document.file === 'CHANGELOG.md')
 
-      assert.equal(changelog?.frontmatter, null, 'CHANGELOG não tem frontmatter, e isso é decisão da Fase 6')
+      assert.equal(changelog?.frontmatter, null, 'CHANGELOG has no frontmatter, and that is a Phase 6 decision')
 
-      const plano = documents.find(document => document.file === 'docs/superpowers/plans/um.md')
+      const plan = documents.find(document => document.file === 'docs/superpowers/plans/one.md')
 
-      assert.equal(plano?.rule.skill, null)
+      assert.equal(plan?.rule.skill, null)
     },
   )
 })
 
-test('ADR-0008: documento declarado e ausente do repositório não vira entrada', () => {
+test('ADR-0008: a document that is declared and absent from the repository does not become an entry', () => {
   withTempRepo({}, root => {
-    assert.deepEqual(collectDocuments(root, configFrom(OWNERSHIP_COM_DOCUMENTOS)), [])
+    assert.deepEqual(collectDocuments(root, configFrom(OWNERSHIP_WITH_DOCUMENTS)), [])
   })
 })
 
-test('tabela de coleção sem coluna Status: os itens chegam sem estado, e quem reclama é o check de estrutura', () => {
+test('collection table without a Status column: the items arrive without state, and the structure check is what complains', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: `version: 2
 plugins: [living-docs]
 owned:
   - path: docs/open-decisions.md
-    owner: '@time'
+    owner: '@team'
     skill: decision-recorder
     states: [open, resolved, dropped]
     format: { collection: table, key: ID, state-field: Status }
     living-docs: { id-prefix: DA }
 `,
-      // A linha `nota` não é ID: o núcleo a devolve como chave opaca, e é o
-      // filtro de forma de ID do living-docs que a tira.
-      'docs/open-decisions.md': '| ID | Lacuna |\n| --- | --- |\n| DA-0001 | x |\n| nota | y |\n',
+      // The `note` row is not an ID: the core returns it as an opaque key, and it is
+      // the living-docs ID-shape filter that drops it.
+      'docs/open-decisions.md': '| ID | Gap |\n| --- | --- |\n| DA-0001 | x |\n| note | y |\n',
     },
     root => {
       const docs = collectArtifacts(root, loadLivingDocsConfig(root))
@@ -204,20 +204,20 @@ owned:
   )
 })
 
-test('requisito em título ### não é item — só ## declara requisito', () => {
+test('a requirement under a ### heading is not an item — only ## declares a requirement', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: `version: 2
 plugins: [living-docs]
 owned:
   - path: docs/requirements/rules.md
-    owner: '@time'
+    owner: '@team'
     skill: requirements-keeper
     states: [draft, active, revoked]
     format: { collection: sections, key: first-token }
     living-docs: { id-prefix: RN }
 `,
-      'docs/requirements/rules.md': '## RN-0001 — Regra\n\n- **status:** active\n\n### RN-0002 — Sub\n\n- **status:** active\n\n## Contexto\n',
+      'docs/requirements/rules.md': '## RN-0001 — Rule\n\n- **status:** active\n\n### RN-0002 — Sub\n\n- **status:** active\n\n## Context\n',
     },
     root => {
       const docs = collectArtifacts(root, loadLivingDocsConfig(root))

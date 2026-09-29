@@ -15,7 +15,7 @@ function coreFindings(root: string, diff: { base: string; changed: string[]; mes
   const config = resolveOwnership(root)!
   const context = { root, config, today: TODAY }
 
-  return [...coreChecks(() => 'saída do gerador\n'), ...diffChecks(diff)].flatMap(check => check.run(context))
+  return [...coreChecks(() => 'generator output\n'), ...diffChecks(diff)].flatMap(check => check.run(context))
 }
 
 function livingDocsFindings(root: string, diff: { base: string; changed: string[]; messages: string[] }): Finding[] {
@@ -29,29 +29,29 @@ const BASE_OWNED = `version: 2
 plugins: [living-docs]
 owned:
   - path: docs/decisions/adr/
-    owner: '@time'
+    owner: '@team'
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs: { id-prefix: ADR, append-only: true }
   - path: docs/definition-of-done.md
-    owner: '@time'
+    owner: '@team'
     skill: working-agreements-keeper
     living-docs: { role: definition-of-done }
   - path: CHANGELOG.md
-    owner: '@time'
+    owner: '@team'
     living-docs: { audience: external }
   - path: .ownership.yml
-    owner: '@time'
+    owner: '@team'
     living-docs: {}
   - path: CODEOWNERS
-    owner: '@time'
+    owner: '@team'
   - path: out.md
-    owner: '@time'
+    owner: '@team'
 `
 
-const ADR_OK = "---\nid: ADR-0001\ntitle: Decisão\nstatus: draft\nowner: '@time'\ntrigger: Nunca.\nlast-reviewed: 2026-09-01\nrelates-to: []\n---\n\n# ADR-0001\n"
+const ADR_OK = "---\nid: ADR-0001\ntitle: Decision\nstatus: draft\nowner: '@team'\ntrigger: Never.\nlast-reviewed: 2026-09-01\nrelates-to: []\n---\n\n# ADR-0001\n"
 
-test('cada regra movida é reportada pelo núcleo, e o living-docs fica calado sobre ela', () => {
+test('each moved rule is reported by the core, and living-docs stays silent about it', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: `${BASE_OWNED}generated:
@@ -62,84 +62,84 @@ watches:
     doc: CHANGELOG.md
     consumer-visible: true
 `,
-      CODEOWNERS: 'docs/ @time\nCHANGELOG.md @time\n.ownership.yml @time\nCODEOWNERS @time\nout.md @time\n',
-      // declared-state: status fora de states; owner sem @.
-      'docs/decisions/adr/ADR-0001-a.md': ADR_OK.replace('status: draft', 'status: aceito').replace("owner: '@time'", 'owner: time'),
-      'docs/definition-of-done.md': "---\ntitle: DoD\nowner: '@time'\ntrigger: Quando muda o que é pronto.\nlast-reviewed: 2026-09-01\n---\n\n- [ ] Algo — verificação: human.\n",
+      CODEOWNERS: 'docs/ @team\nCHANGELOG.md @team\n.ownership.yml @team\nCODEOWNERS @team\nout.md @team\n',
+      // declared-state: status outside states; owner without @.
+      'docs/decisions/adr/ADR-0001-a.md': ADR_OK.replace('status: draft', 'status: approved').replace("owner: '@team'", 'owner: team'),
+      'docs/definition-of-done.md': "---\ntitle: DoD\nowner: '@team'\ntrigger: When what counts as done changes.\nlast-reviewed: 2026-09-01\n---\n\n- [ ] Something — verification: human.\n",
       'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
-      // generated-drift: diverge da saída do gerador.
-      'out.md': 'editado à mão\n',
-      // owner-coverage: arquivo sem dono.
-      'solto.txt': 'x\n',
+      // generated-drift: diverges from the generator output.
+      'out.md': 'hand-edited\n',
+      // owner-coverage: file without an owner.
+      'stray.txt': 'x\n',
       'src/a.ts': 'export {}\n',
     },
     root => {
-      // watch-satisfied e consumer-change-logged: o diff toca src/ sem o CHANGELOG.
+      // watch-satisfied and consumer-change-logged: the diff touches src/ without the CHANGELOG.
       const diff = { base: 'main', changed: ['src/a.ts'], messages: ['feat: x'] }
       const core = new Set(coreFindings(root, diff).map(finding => finding.ruleId))
 
       for (const rule of ['ownership/declared-state', 'ownership/generated-drift', 'ownership/owner-coverage', 'ownership/watch-satisfied', 'ownership/consumer-change-logged']) {
-        assert.ok(core.has(rule), `${rule} deveria reportar a violação plantada`)
+        assert.ok(core.has(rule), `${rule} should report the planted violation`)
       }
 
-      // O living-docs pode achar outras coisas nesta fixture (ela não é um
-      // repositório exemplar); não pode achar nada onde as violações movidas
-      // foram plantadas. As linhas 4 e 5 do ADR são `status` e `owner`.
+      // living-docs may find other things in this fixture (it is not an
+      // exemplary repository); it must find nothing where the moved violations
+      // were planted. Lines 4 and 5 of the ADR are `status` and `owner`.
       const living = livingDocsFindings(root, diff)
-      const plantados = new Set(['out.md', 'solto.txt', 'src/a.ts', 'CHANGELOG.md'])
+      const planted = new Set(['out.md', 'stray.txt', 'src/a.ts', 'CHANGELOG.md'])
 
       assert.deepEqual(
-        living.filter(finding => plantados.has(finding.file)),
+        living.filter(finding => planted.has(finding.file)),
         [],
-        'o living-docs não pode reportar o que é do núcleo',
+        'living-docs must not report what belongs to the core',
       )
       assert.deepEqual(
         living.filter(finding => finding.file === 'docs/decisions/adr/ADR-0001-a.md' && (finding.line === 4 || finding.line === 5)),
         [],
-        'status fora de states e owner sem @ são do ownership/declared-state',
+        'status outside states and owner without @ belong to ownership/declared-state',
       )
     },
   )
 })
 
-test('cada regra que ficou é reportada pelo living-docs, e o núcleo fica calado sobre ela', () => {
+test('each rule that stayed is reported by living-docs, and the core stays silent about it', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: `${BASE_OWNED}`,
-      CODEOWNERS: 'docs/ @time\nCHANGELOG.md @time\n.ownership.yml @time\nCODEOWNERS @time\nout.md @time\n',
+      CODEOWNERS: 'docs/ @team\nCHANGELOG.md @team\n.ownership.yml @team\nCODEOWNERS @team\nout.md @team\n',
       'out.md': 'x\n',
       // frontmatter: empty trigger.
-      'docs/decisions/adr/ADR-0001-a.md': ADR_OK.replace('trigger: Nunca.', "trigger: ''"),
-      // done-verifiable: item sem verificação nomeada.
-      'docs/definition-of-done.md': "---\ntitle: DoD\nowner: '@time'\ntrigger: Quando muda o que é pronto.\nlast-reviewed: 2026-09-01\n---\n\n- [ ] Algo sem quem verifique.\n",
-      // external-audience e links: ID de artefato e link quebrado em texto externo.
-      'CHANGELOG.md': '# Changelog\n\nVeja ADR-0001 e [isto](nao-existe.md).\n',
+      'docs/decisions/adr/ADR-0001-a.md': ADR_OK.replace('trigger: Never.', "trigger: ''"),
+      // done-verifiable: item with no named verification.
+      'docs/definition-of-done.md': "---\ntitle: DoD\nowner: '@team'\ntrigger: When what counts as done changes.\nlast-reviewed: 2026-09-01\n---\n\n- [ ] Something with nobody to verify.\n",
+      // external-audience and links: artifact ID and broken link in external text.
+      'CHANGELOG.md': '# Changelog\n\nSee ADR-0001 and [this](does-not-exist.md).\n',
     },
     root => {
       const diff = { base: 'main', changed: [], messages: [] }
       const living = new Set(livingDocsFindings(root, diff).map(finding => finding.ruleId))
 
       for (const rule of ['living-docs/frontmatter', 'living-docs/done-verifiable', 'living-docs/links', 'living-docs/external-audience']) {
-        assert.ok(living.has(rule), `${rule} deveria reportar a violação plantada`)
+        assert.ok(living.has(rule), `${rule} should report the planted violation`)
       }
       assert.deepEqual(
         coreFindings(root, diff).map(finding => finding.ruleId),
         [],
-        'o núcleo não pode reportar o que é do living-docs',
+        'the core must not report what belongs to living-docs',
       )
     },
   )
 })
 
-test('a única sobreposição é de propósito: chave duplicada numa coleção é do núcleo e também do id-integrity', () => {
-  // `living-docs/id-integrity` cobre também sequência e citação, e não está entre
-  // as regras movidas: a duplicata de ID continua nos dois plugins. Este teste
-  // fixa a sobreposição para que ela seja vista, e não podada por engano.
-  const tabela = [
-    '| ID | Lacuna | Status |',
+test('the only overlap is deliberate: a duplicate key in a collection belongs to the core and also to id-integrity', () => {
+  // `living-docs/id-integrity` also covers sequence and citation, and is not among
+  // the moved rules: the ID duplicate remains in both plugins. This test
+  // pins the overlap so that it is seen, and not pruned by mistake.
+  const table = [
+    '| ID | Gap | Status |',
     '| --- | --- | --- |',
-    '| DA-0001 | Primeira | open |',
-    '| DA-0001 | Repetida | open |',
+    '| DA-0001 | First | open |',
+    '| DA-0001 | Repeated | open |',
     '',
   ].join('\n')
 
@@ -149,19 +149,19 @@ test('a única sobreposição é de propósito: chave duplicada numa coleção �
 plugins: [living-docs]
 owned:
   - path: docs/open-decisions.md
-    owner: '@time'
+    owner: '@team'
     skill: decision-recorder
     states: [open, resolved, dropped]
     format: { collection: table, key: ID, state-field: Status }
     living-docs: { id-prefix: DA }
   - path: .ownership.yml
-    owner: '@time'
+    owner: '@team'
     living-docs: {}
   - path: CODEOWNERS
-    owner: '@time'
+    owner: '@team'
 `,
-      CODEOWNERS: 'docs/ @time\n.ownership.yml @time\nCODEOWNERS @time\n',
-      'docs/open-decisions.md': tabela,
+      CODEOWNERS: 'docs/ @team\n.ownership.yml @team\nCODEOWNERS @team\n',
+      'docs/open-decisions.md': table,
     },
     root => {
       const diff = { base: 'main', changed: [], messages: [] }

@@ -13,9 +13,9 @@ function packagesOf(lockfile: string): unknown {
   return (JSON.parse(readFileSync(lockfile, 'utf8')) as { packages: unknown }).packages
 }
 
-test('RNF-0002: o package-lock.json do pacote está em dia com o package.json', { timeout: 120_000 }, () => {
-  // Os dois pacotes lado a lado, como no checkout: sem o irmão, `file:../ownership`
-  // não resolve. O lockfile entra junto para o npm só mudar o que o package.json pede.
+test('RNF-0002: the package-lock.json of the package is up to date with package.json', { timeout: 120_000 }, () => {
+  // The two packages side by side, as in the checkout: without the sibling, `file:../ownership`
+  // does not resolve. The lockfile goes along so npm only changes what package.json asks for.
   const isolated = mkdtempSync(join(tmpdir(), 'living-docs-lock-'))
   const pkg = join(isolated, 'packages', 'living-docs')
   const core = join(isolated, 'packages', 'ownership')
@@ -32,7 +32,7 @@ test('RNF-0002: o package-lock.json do pacote está em dia com o package.json', 
     assert.deepEqual(
       packagesOf(join(pkg, 'package-lock.json')),
       packagesOf(join(PACKAGE_ROOT, 'package-lock.json')),
-      'Lockfile desatualizado. Regere num diretório temporário com packages/living-docs e packages/ownership lado a lado (veja o passo 2.3 do plano de 2026-09-28).',
+      'Outdated lockfile. Regenerate it in a temporary directory with packages/living-docs and packages/ownership side by side (see step 2.3 of the 2026-09-28 plan).',
     )
   } finally {
     rmSync(isolated, { recursive: true, force: true })

@@ -12,14 +12,14 @@ import { checkoutRoot } from '../helpers/checkout.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
 /**
- * RN-0031: o que o toolkit entrega a quem instala — os arquivos que o `init`
- * semeia, os templates, o texto do plugin e as strings do código — não cita o
- * rastro interno do toolkit (ADR-0018).
+ * RN-0031: what the toolkit delivers to whoever installs it — the files `init`
+ * seeds, the templates, the plugin text and the code strings — does not cite the
+ * toolkit's internal trail (ADR-0018).
  *
- * Rastro interno é o `id-prefix` declarado no `.ownership.yml` do
- * toolkit, mais `spec §<n>` e o caminho `docs/superpowers/`. Nenhuma lista de
- * prefixos mora aqui: `CI-n`, `HK-n`, `SK-n`, `CM-n` e `EXIT-n` ficam de fora
- * porque ninguém os declara como família de artefato — o mesmo desenho de living-docs/external-audience.
+ * Internal trail is the `id-prefix` declared in the toolkit's `.ownership.yml`,
+ * plus `spec §<n>` and the path `docs/superpowers/`. No list of
+ * prefixes lives here: `CI-n`, `HK-n`, `SK-n`, `CM-n` and `EXIT-n` stay out
+ * because nobody declares them as an artifact family — the same design as living-docs/external-audience.
  */
 const ROOT = toolkitRoot()
 const CONFIG = loadLivingDocsConfig(checkoutRoot())
@@ -31,7 +31,7 @@ interface Trail {
   excerpt: string
 }
 
-/** As ocorrências de rastro interno em `text`, com a linha 1-indexed. */
+/** The internal trail occurrences in `text`, with the 1-indexed line. */
 function trailIn(file: string, text: string): Trail[] {
   const lines = text.replace(/\r\n/g, '\n').split('\n')
   const found: Trail[] = []
@@ -66,21 +66,21 @@ function toolkitPath(absolute: string): string {
   return relative(ROOT, absolute).split(sep).join('/')
 }
 
-test('RN-0031: o detector acha o rastro interno e deixa a interface pública e o placeholder', () => {
-  const texto = [
-    'Regra de origem: ADR-0011 e spec §3, em docs/superpowers/research/x.md.',
-    'living-docs/done-verifiable reprova, ownership/generated-guard bloqueia, SK-7 e EXIT-2 são públicos.',
-    '| Termo | Fonte | RN-nnnn |',
+test('RN-0031: the detector finds the internal trail and leaves the public interface and the placeholder alone', () => {
+  const text = [
+    'Rule of origin: ADR-0011 and spec §3, in docs/superpowers/research/x.md.',
+    'living-docs/done-verifiable fails, ownership/generated-guard blocks, SK-7 and EXIT-2 are public.',
+    '| Term | Source | RN-nnnn |',
   ].join('\n')
 
   assert.deepEqual(
-    trailIn('x', texto).map(trail => `${trail.line}:${trail.excerpt}`),
+    trailIn('x', text).map(trail => `${trail.line}:${trail.excerpt}`),
     ['1:ADR-0011', '1:spec §3', '1:docs/superpowers/'],
   )
-  assert.ok(INTERNAL.has('ADR') && INTERNAL.has('RN'), 'o conjunto vem do .ownership.yml do toolkit')
+  assert.ok(INTERNAL.has('ADR') && INTERNAL.has('RN'), 'the set comes from the toolkit .ownership.yml')
 })
 
-test('RN-0031: o que o init semeia, em todo estágio, e os templates crus não citam o rastro interno do toolkit', () => {
+test('RN-0031: what init seeds, in every stage, and the raw templates do not cite the internal trail of the toolkit', () => {
   const found: Trail[] = []
   const comments: string[] = []
   let scanned = 0
@@ -88,18 +88,18 @@ test('RN-0031: o que o init semeia, em todo estágio, e os templates crus não c
   for (const stage of STAGES) {
     withTempRepo({}, root => {
       const result = runInit(root, {
-        owner: '@time',
+        owner: '@team',
         dryRun: false,
         stage,
         idFormat: DEFAULT_ID_FORMAT,
         invoke: 'npx living-docs',
         invokeOwnership: 'npx living-docs',
-        marketplace: 'time/living-docs',
+        marketplace: 'team/living-docs',
       })
 
       for (const entry of result.created) {
-        // `created` traz diretório (`docs/decisions/adr/`) e a linha do settings
-        // com um sufixo explicativo depois do caminho.
+        // `created` carries a directory (`docs/decisions/adr/`) and the settings line
+        // with an explanatory suffix after the path.
         const path = entry.split(' ')[0] ?? entry
         const absolute = join(root, path)
 
@@ -110,9 +110,9 @@ test('RN-0031: o que o init semeia, em todo estágio, e os templates crus não c
 
         scanned++
         found.push(...trailIn(`[${stage}] ${path}`, source))
-        // Nenhum estágio semeia artefato por arquivo: tudo que o init escreve é
-        // documento-coleção ou documento externo, e nenhum dos dois guarda
-        // comentário para quem escreve.
+        // No stage seeds a per-file artifact: everything init writes is a
+        // collection document or an external document, and neither keeps
+        // a comment for whoever writes.
         if (path.endsWith('.md') && source.includes('<!--')) {
           comments.push(`[${stage}] ${path}`)
         }
@@ -120,30 +120,30 @@ test('RN-0031: o que o init semeia, em todo estágio, e os templates crus não c
     })
   }
 
-  // Os templates que o init não semeia (adr, tdr, migration, release-note) só
-  // são cobertos por esta varredura crua.
+  // The templates that init does not seed (adr, tdr, migration, release-note) are
+  // only covered by this raw scan.
   for (const absolute of filesUnder(join(ROOT, 'templates'))) {
     scanned++
     found.push(...trailIn(toolkitPath(absolute), readFileSync(absolute, 'utf8')))
   }
 
-  assert.ok(scanned > 20, `varredura vazia demais: ${scanned} arquivo(s)`)
-  assert.deepEqual(comments, [], `semente com comentário HTML:\n${comments.join('\n')}`)
-  assert.equal(found.length, 0, `rastro interno do toolkit no que o init entrega:\n${report(found)}`)
+  assert.ok(scanned > 20, `scan too empty: ${scanned} file(s)`)
+  assert.deepEqual(comments, [], `seed with an HTML comment:\n${comments.join('\n')}`)
+  assert.equal(found.length, 0, `toolkit internal trail in what init delivers:\n${report(found)}`)
 })
 
-/** O que o cache do marketplace entrega de texto do plugin — `src/` e `test/` têm varredura própria ou nenhuma. */
+/** The plugin text that the marketplace cache delivers — `src/` and `test/` have their own scan or none. */
 const PLUGIN_DIRS = ['.claude-plugin', 'hooks', 'commands', 'skills', 'agents'] as const
 
-test('RN-0031: o texto do plugin não cita o rastro interno do toolkit', () => {
+test('RN-0031: the plugin text does not cite the internal trail of the toolkit', () => {
   const files = PLUGIN_DIRS.flatMap(dir => filesUnder(join(ROOT, dir)))
   const found = files.flatMap(absolute => trailIn(toolkitPath(absolute), readFileSync(absolute, 'utf8')))
 
-  assert.ok(files.length > 10, `varredura vazia demais: ${files.length} arquivo(s)`)
-  assert.equal(found.length, 0, `rastro interno do toolkit no plugin:\n${report(found)}`)
+  assert.ok(files.length > 10, `scan too empty: ${files.length} file(s)`)
+  assert.equal(found.length, 0, `toolkit internal trail in the plugin:\n${report(found)}`)
 })
 
-test('RN-0031: as strings do código não citam o rastro interno do toolkit — comentário pode', () => {
+test('RN-0031: the code strings do not cite the internal trail of the toolkit — a comment may', () => {
   const files = filesUnder(join(ROOT, 'src')).filter(absolute => absolute.endsWith('.ts'))
   const found: Trail[] = []
 
@@ -171,6 +171,6 @@ test('RN-0031: as strings do código não citam o rastro interno do toolkit — 
     visit(source)
   }
 
-  assert.ok(files.length > 20, `varredura vazia demais: ${files.length} arquivo(s)`)
-  assert.equal(found.length, 0, `rastro interno do toolkit em string de src/:\n${report(found)}`)
+  assert.ok(files.length > 20, `scan too empty: ${files.length} file(s)`)
+  assert.equal(found.length, 0, `toolkit internal trail in a src/ string:\n${report(found)}`)
 })

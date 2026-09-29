@@ -26,7 +26,7 @@ owned:
 `
 
 function adr(id: string, body = ''): string {
-  return ['---', `id: ${id}`, 'title: Decisão', 'status: draft', 'owner: "@team"', 'trigger: Nunca.', 'last-reviewed: 2026-08-21', '---', '', body].join('\n')
+  return ['---', `id: ${id}`, 'title: Decision', 'status: draft', 'owner: "@team"', 'trigger: Never.', 'last-reviewed: 2026-08-21', '---', '', body].join('\n')
 }
 
 function openDecisions(rows: string[]): string {
@@ -34,11 +34,11 @@ function openDecisions(rows: string[]): string {
     '---',
     'title: Open Decisions',
     'owner: "@product"',
-    'trigger: Toda vez que alguém trombou numa lacuna.',
+    'trigger: Every time someone ran into a gap.',
     'last-reviewed: 2026-08-21',
     '---',
     '',
-    '| ID | Lacuna | Status | Resolvida por |',
+    '| ID | Gap | Status | Resolved by |',
     '| --- | --- | --- | --- |',
     ...rows,
   ].join('\n')
@@ -56,18 +56,18 @@ function run(files: Record<string, string>): Finding[] {
   return findings
 }
 
-test('sequência íntegra e citações que resolvem não produzem finding', () => {
+test('an intact sequence and citations that resolve produce no finding', () => {
   assert.deepEqual(
     run({
-      'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Fecha DA-0001.'),
+      'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Closes DA-0001.'),
       'docs/decisions/adr/ADR-0002-b.md': adr('ADR-0002'),
-      'docs/open-decisions.md': openDecisions(['| DA-0001 | Lacuna | resolved | ADR-0001 |']),
+      'docs/open-decisions.md': openDecisions(['| DA-0001 | Gap | resolved | ADR-0001 |']),
     }),
     [],
   )
 })
 
-test('ID duplicado falha nomeando os dois arquivos', () => {
+test('a duplicate ID fails naming both files', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-0001-b.md': adr('ADR-0001'),
@@ -80,7 +80,7 @@ test('ID duplicado falha nomeando os dois arquivos', () => {
   assert.match(findings[0]?.message ?? '', /ADR-0001-a\.md/)
 })
 
-test('ID presente em ids-retired.txt reaparecendo falha', () => {
+test('an ID present in ids-retired.txt reappearing fails', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/open-decisions.md': openDecisions([]),
@@ -91,7 +91,7 @@ test('ID presente em ids-retired.txt reaparecendo falha', () => {
   assert.match(findings[0]?.message ?? '', /recycled|retired/i)
 })
 
-test('RN-0003: ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não dois artefatos', () => {
+test('RN-0003: ADR-001 and ADR-0001 are the same logical ID — a duplicate, not two artifacts', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-001-b.md': adr('ADR-001'),
@@ -101,12 +101,12 @@ test('RN-0003: ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não do
   assert.equal(findings.length, 1)
   assert.equal(findings[0]?.ruleId, 'living-docs/id-integrity')
   assert.match(findings[0]?.message ?? '', /Duplicate/)
-  // A mensagem mostra o ID como a pessoa escreveu, não a forma canônica.
+  // The message shows the ID as the person wrote it, not the canonical form.
   assert.match(findings[0]?.message ?? '', /Duplicate ID ADR-001/)
   assert.match(findings[0]?.message ?? '', /ADR-0001-a\.md/)
 })
 
-test('RN-0003: repadding não recicla um ID retirado — ADR-0002 retirado barra ADR-002', () => {
+test('RN-0003: repadding does not recycle a retired ID — retired ADR-0002 blocks ADR-002', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-002-b.md': adr('ADR-002'),
@@ -119,7 +119,7 @@ test('RN-0003: repadding não recicla um ID retirado — ADR-0002 retirado barra
   assert.match(findings[0]?.message ?? '', /recycled/i)
 })
 
-test('ID retirado sem padding canônico ainda barra a forma padded', () => {
+test('a retired ID without canonical padding still blocks the padded form', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-0002-b.md': adr('ADR-0002'),
@@ -131,7 +131,7 @@ test('ID retirado sem padding canônico ainda barra a forma padded', () => {
   assert.match(findings[0]?.message ?? '', /ID ADR-0002 is in/)
 })
 
-test('buraco na sequência falha apontando o registro de retirados', () => {
+test('a sequence gap fails pointing at the retired registry', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
     'docs/decisions/adr/ADR-0003-c.md': adr('ADR-0003'),
@@ -143,7 +143,7 @@ test('buraco na sequência falha apontando o registro de retirados', () => {
   assert.equal(findings[0]?.file, RETIRED_IDS_PATH)
 })
 
-test('buraco explicado por ids-retired.txt não falha', () => {
+test('a gap explained by ids-retired.txt does not fail', () => {
   assert.deepEqual(
     run({
       'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001'),
@@ -155,9 +155,9 @@ test('buraco explicado por ids-retired.txt não falha', () => {
   )
 })
 
-test('RN-0007: citação que não resolve falha na linha da citação', () => {
+test('RN-0007: a citation that does not resolve fails on the citation line', () => {
   const findings = run({
-    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Supersede ADR-0099.'),
+    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Supersedes ADR-0099.'),
     'docs/open-decisions.md': openDecisions([]),
   })
 
@@ -166,9 +166,9 @@ test('RN-0007: citação que não resolve falha na linha da citação', () => {
   assert.equal(findings[0]?.file, 'docs/decisions/adr/ADR-0001-a.md')
 })
 
-test('RN-0007: citação para um ID retirado falha', () => {
+test('RN-0007: a citation to a retired ID fails', () => {
   const findings = run({
-    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Ver DA-0001.'),
+    'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'See DA-0001.'),
     'docs/open-decisions.md': openDecisions([]),
     [RETIRED_IDS_PATH]: 'DA-0001\n',
   })
@@ -178,17 +178,17 @@ test('RN-0007: citação para um ID retirado falha', () => {
   assert.match(findings[0]?.message ?? '', /retired/i)
 })
 
-test('citação de prefixo não declarado é ignorada — instalação por fases', () => {
+test('a citation of an undeclared prefix is ignored — phased installation', () => {
   assert.deepEqual(
     run({
-      'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Implementa RN-014 e RF-002.'),
+      'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'Implements RN-014 and RF-002.'),
       'docs/open-decisions.md': openDecisions([]),
     }),
     [],
   )
 })
 
-test('RN-0024: a mensagem de buraco de sequência sai na forma escrita do projeto', () => {
+test('RN-0024: the sequence gap message comes out in the written form of the project', () => {
   const config = CONFIG.replace('owned:', 'living-docs:\n  id-format: { separator: "", padding: 3 }\nowned:')
   let findings: Finding[] = []
 
@@ -213,6 +213,6 @@ test('RN-0024: a mensagem de buraco de sequência sai na forma escrita do projet
   )
 
   assert.equal(findings.length, 1, JSON.stringify(findings, null, 2))
-  assert.match(findings[0]?.message ?? '', /ADR002/, 'o ID sugerido vem de writeId, na forma do projeto')
-  assert.doesNotMatch(findings[0]?.message ?? '', /ADR-0002/, 'nenhum check monta ID por concatenação')
+  assert.match(findings[0]?.message ?? '', /ADR002/, 'the suggested ID comes from writeId, in the form of the project')
+  assert.doesNotMatch(findings[0]?.message ?? '', /ADR-0002/, 'no check builds an ID by concatenation')
 })

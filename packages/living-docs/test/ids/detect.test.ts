@@ -3,22 +3,22 @@ import assert from 'node:assert/strict'
 import { detectIdFormat } from '../../src/ids/detect.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-const SEM_HIFEN = [
-  '# Regras',
+const NO_HYPHEN = [
+  '# Rules',
   '',
-  '## RN001 — Uma regra',
+  '## RN001 — A rule',
   '- **status:** active',
   '',
-  '## RN002 — Outra',
+  '## RN002 — Another',
   '- **status:** active',
   '',
-  '## RN003 — Mais uma',
+  '## RN003 — One more',
   '- **status:** active',
   '',
 ].join('\n')
 
-test('RF-0014: a varredura relata a forma dominante e quantos itens leu nela', () => {
-  withTempRepo({ 'docs/business-rules.md': SEM_HIFEN }, root => {
+test('RF-0014: the scan reports the dominant form and how many items it read in it', () => {
+  withTempRepo({ 'docs/business-rules.md': NO_HYPHEN }, root => {
     const detected = detectIdFormat(root, ['docs/business-rules.md'])
 
     assert.ok(detected)
@@ -28,13 +28,13 @@ test('RF-0014: a varredura relata a forma dominante e quantos itens leu nela', (
   })
 })
 
-test('RF-0014: repositório sem ID nenhum não inventa forma', () => {
-  withTempRepo({ 'docs/vazio.md': '# nada aqui\n' }, root => {
-    assert.equal(detectIdFormat(root, ['docs/vazio.md']), null)
+test('RF-0014: a repository with no IDs at all does not invent a form', () => {
+  withTempRepo({ 'docs/empty.md': '# nothing here\n' }, root => {
+    assert.equal(detectIdFormat(root, ['docs/empty.md']), null)
   })
 })
 
-test('RF-0014: a forma padrão é detectada como padrão', () => {
+test('RF-0014: the default form is detected as the default', () => {
   withTempRepo({ 'docs/adr/ADR-0001-x.md': '---\nid: ADR-0001\n---\n\n# ADR-0001\n' }, root => {
     const detected = detectIdFormat(root, ['docs/adr/'])
 

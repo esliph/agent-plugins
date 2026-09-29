@@ -4,7 +4,7 @@ import { decideSessionInventory } from '../../src/hooks/session-inventory.ts'
 import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-const HOJE = '2026-08-27'
+const TODAY = '2026-08-27'
 
 const OWNERSHIP = `
 version: 2
@@ -13,109 +13,109 @@ living-docs:
   stale-after-months: 6
 owned:
   - path: docs/decisions/adr/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs: { id-prefix: ADR }
   - path: docs/open-decisions.md
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [open, resolved, dropped]
     format: { collection: table, key: ID, state-field: Status }
     living-docs:
       id-prefix: DA
       field-map:
-        resolved-by: "Resolvida por"
+        resolved-by: "Resolved by"
   - path: docs/decisions/debt/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [open, paid, accepted-permanently]
     living-docs: { id-prefix: TDR }
   - path: docs/requirements/rules.md
-    owner: "@time"
+    owner: "@team"
     skill: requirements-keeper
     states: [draft, active, revoked]
     format: { collection: sections, key: first-token }
     living-docs: { id-prefix: RN }
   - path: CONTRIBUTING.md
-    owner: "@time"
+    owner: "@team"
     skill: working-agreements-keeper
     living-docs: {}
 `
 
-const DAS = [
+const OPEN_DECISIONS = [
   '---',
   'title: Open Decisions',
-  'owner: "@time"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'owner: "@team"',
+  'trigger: Every time someone bumped into a gap.',
   'last-reviewed: 2026-08-20',
   '---',
   '',
-  '| ID | Lacuna | Status | Resolvida por | Aberta em |',
+  '| ID | Gap | Status | Resolved by | Opened on |',
   '| --- | --- | --- | --- | --- |',
-  '| DA-0001 | Como declarar X | open | — | 2026-08-01 |',
+  '| DA-0001 | How to declare X | open | — | 2026-08-01 |',
   '',
 ].join('\n')
 
-const REGRAS_REVOGADA = [
+const REVOKED_RULES = [
   '---',
-  'title: Regras',
-  'owner: "@time"',
-  'trigger: A toda regra nova.',
+  'title: Rules',
+  'owner: "@team"',
+  'trigger: On every new rule.',
   'last-reviewed: 2026-08-20',
   '---',
   '',
-  '## RN-0001 — Uma regra',
+  '## RN-0001 — A rule',
   '',
   '- **status:** revoked',
   '- **revoked-by:** RN-0002',
   '',
 ].join('\n')
 
-const DIVIDA = [
+const DEBT = [
   '---',
   'id: TDR-0001',
-  'title: Atalho',
+  'title: Shortcut',
   'status: open',
-  'owner: "@time"',
-  'trigger: Quando o gatilho abaixo se cumprir.',
+  'owner: "@team"',
+  'trigger: When the trigger below is met.',
   'last-reviewed: 2026-08-01',
   'pay-when:',
   "  pattern: '^- \\*\\*status:\\*\\* revoked'",
   '  paths: ["docs/requirements/**"]',
   '---',
   '',
-  '# TDR-0001 — Atalho',
+  '# TDR-0001 — Shortcut',
   '',
 ].join('\n')
 
-const ARVORE = {
+const TREE = {
   [OWNERSHIP_FILE]: OWNERSHIP,
-  'docs/open-decisions.md': DAS,
-  'docs/requirements/rules.md': REGRAS_REVOGADA,
-  'docs/decisions/debt/TDR-0001-x.md': DIVIDA,
-  'CONTRIBUTING.md': '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2024-01-01\n---\n\n# Como\n',
+  'docs/open-decisions.md': OPEN_DECISIONS,
+  'docs/requirements/rules.md': REVOKED_RULES,
+  'docs/decisions/debt/TDR-0001-x.md': DEBT,
+  'CONTRIBUTING.md': '---\ntitle: How\nowner: "@team"\ntrigger: when the process changes\nlast-reviewed: 2024-01-01\n---\n\n# How\n',
 }
 
-test('critério 8: o inventário chega ao contexto sem ninguém procurar', () => {
-  withTempRepo(ARVORE, root => {
-    const decision = decideSessionInventory({ root, hostRoots: [root] }, HOJE)
+test('criterion 8: the inventory reaches the context without anyone looking for it', () => {
+  withTempRepo(TREE, root => {
+    const decision = decideSessionInventory({ root, hostRoots: [root] }, TODAY)
 
     assert.equal(decision.action, 'inform')
 
     const context = decision.action === 'inform' ? decision.context : ''
 
     assert.match(context, /living-docs\/session-inventory/)
-    assert.match(context, /DA-0001/, 'decisão aberta')
-    assert.match(context, /TDR-0001/, 'dívida com gatilho cumprido')
-    assert.match(context, /CONTRIBUTING\.md/, 'documento vencido')
-    assert.match(context, /docs\/decisions\/adr\//, 'artefato declarado e ausente')
+    assert.match(context, /DA-0001/, 'open decision')
+    assert.match(context, /TDR-0001/, 'debt with its trigger met')
+    assert.match(context, /CONTRIBUTING\.md/, 'expired document')
+    assert.match(context, /docs\/decisions\/adr\//, 'artifact declared and absent')
   })
 })
 
-test('RN-0022: é injeção de contexto, nunca decisão de permissão', () => {
-  withTempRepo(ARVORE, root => {
-    const decision = decideSessionInventory({ root, hostRoots: [root] }, HOJE)
+test('RN-0022: it is context injection, never a permission decision', () => {
+  withTempRepo(TREE, root => {
+    const decision = decideSessionInventory({ root, hostRoots: [root] }, TODAY)
     const context = decision.action === 'inform' ? decision.context : ''
 
     assert.doesNotMatch(context, /\bdeny\b/)
@@ -124,43 +124,43 @@ test('RN-0022: é injeção de contexto, nunca decisão de permissão', () => {
   })
 })
 
-test('RN-0022: o inventário é curto — lista longa aparece truncada com a contagem', () => {
-  const muitas = [
-    ...DAS.split('\n').slice(0, -1),
-    ...Array.from({ length: 9 }, (_, i) => `| DA-${String(i + 2).padStart(4, '0')} | Lacuna ${i} | open | — | 2026-08-01 |`),
+test('RN-0022: the inventory is short — a long list shows up truncated with the count', () => {
+  const many = [
+    ...OPEN_DECISIONS.split('\n').slice(0, -1),
+    ...Array.from({ length: 9 }, (_, i) => `| DA-${String(i + 2).padStart(4, '0')} | Gap ${i} | open | — | 2026-08-01 |`),
     '',
   ].join('\n')
 
-  withTempRepo({ ...ARVORE, 'docs/open-decisions.md': muitas }, root => {
-    const decision = decideSessionInventory({ root, hostRoots: [root] }, HOJE)
+  withTempRepo({ ...TREE, 'docs/open-decisions.md': many }, root => {
+    const decision = decideSessionInventory({ root, hostRoots: [root] }, TODAY)
     const context = decision.action === 'inform' ? decision.context : ''
 
-    assert.match(context, /\(10\)/, 'a contagem total aparece')
-    assert.equal((context.match(/DA-\d{4}/g) ?? []).length <= 6, true, 'só os primeiros entram')
+    assert.match(context, /\(10\)/, 'the total count shows up')
+    assert.equal((context.match(/DA-\d{4}/g) ?? []).length <= 6, true, 'only the first ones get in')
   })
 })
 
-test('RNF-0001: configuração ilegível cala o hook em vez de estourar', () => {
+test('RNF-0001: an unreadable configuration silences the hook instead of blowing up', () => {
   withTempRepo({ [OWNERSHIP_FILE]: 'version: 99\n' }, root => {
-    assert.deepEqual(decideSessionInventory({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
+    assert.deepEqual(decideSessionInventory({ root, hostRoots: [root] }, TODAY), { action: 'silent' })
   })
   withTempRepo({ 'README.md': '' }, root => {
-    assert.deepEqual(decideSessionInventory({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
+    assert.deepEqual(decideSessionInventory({ root, hostRoots: [root] }, TODAY), { action: 'silent' })
   })
 })
 
-test('living-docs/session-inventory não reimplementa living-docs/staleness: sem dívida vencida e sem doc velho, as duas linhas não aparecem', () => {
-  const semDivida = { ...ARVORE }
+test('living-docs/session-inventory does not reimplement living-docs/staleness: with no due debt and no old doc, the two lines do not show up', () => {
+  const withoutDebt = { ...TREE }
 
-  delete (semDivida as Record<string, string>)['docs/decisions/debt/TDR-0001-x.md']
-  semDivida['CONTRIBUTING.md'] = '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-20\n---\n\n# Como\n'
+  delete (withoutDebt as Record<string, string>)['docs/decisions/debt/TDR-0001-x.md']
+  withoutDebt['CONTRIBUTING.md'] = '---\ntitle: How\nowner: "@team"\ntrigger: when the process changes\nlast-reviewed: 2026-08-20\n---\n\n# How\n'
 
-  withTempRepo(semDivida, root => {
-    const decision = decideSessionInventory({ root, hostRoots: [root] }, HOJE)
+  withTempRepo(withoutDebt, root => {
+    const decision = decideSessionInventory({ root, hostRoots: [root] }, TODAY)
     const context = decision.action === 'inform' ? decision.context : ''
 
-    assert.doesNotMatch(context, /gatilho de pagamento/)
-    assert.doesNotMatch(context, /vencid/)
-    assert.match(context, /DA-0001/, 'o resto do inventário continua')
+    assert.doesNotMatch(context, /payment trigger met/)
+    assert.doesNotMatch(context, /Expired document/)
+    assert.match(context, /DA-0001/, 'the rest of the inventory carries on')
   })
 })

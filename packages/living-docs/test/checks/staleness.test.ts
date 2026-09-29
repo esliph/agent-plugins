@@ -5,7 +5,7 @@ import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-const HOJE = '2026-08-27'
+const TODAY = '2026-08-27'
 
 const OWNERSHIP = `
 version: 2
@@ -14,7 +14,7 @@ living-docs:
   stale-after-months: 6
 owned:
   - path: docs/decisions/adr/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [draft, accepted, superseded]
     living-docs:
@@ -22,22 +22,22 @@ owned:
       append-only: true
       mutable-fields: [status, superseded-by, last-reviewed]
   - path: docs/decisions/debt/
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [open, paid, accepted-permanently]
     living-docs: { id-prefix: TDR, append-only: true }
   - path: docs/requirements/rules.md
-    owner: "@time"
+    owner: "@team"
     skill: requirements-keeper
     states: [draft, active, revoked]
     format: { collection: sections, key: first-token }
     living-docs: { id-prefix: RN }
   - path: CONTRIBUTING.md
-    owner: "@time"
+    owner: "@team"
     skill: working-agreements-keeper
     living-docs: {}
   - path: CHANGELOG.md
-    owner: "@time"
+    owner: "@team"
     skill: release-historian
     living-docs: {}
 `
@@ -50,7 +50,7 @@ function contextFor(root: string, ownership = OWNERSHIP) {
     config,
     docs: collectArtifacts(root, config),
     documents: collectDocuments(root, config),
-    today: HOJE,
+    today: TODAY,
   }
 }
 
@@ -58,72 +58,72 @@ function adr(status: string, lastReviewed: string): string {
   return [
     '---',
     'id: ADR-0001',
-    'title: Decisão de teste',
+    'title: Test decision',
     `status: ${status}`,
-    'owner: "@time"',
-    'trigger: Nunca. Imutável após aceito.',
+    'owner: "@team"',
+    'trigger: Never. Immutable once accepted.',
     `last-reviewed: ${lastReviewed}`,
     'relates-to: [RN-0001]',
     '---',
     '',
-    'corpo',
+    'body',
   ].join('\n')
 }
 
-/** `pay-when` em YAML com aspas simples: aspas simples não processam `\`, e o padrão é regex. */
+/** `pay-when` in YAML with single quotes: single quotes do not process `\`, and the pattern is a regex. */
 const PAY_WHEN = ['pay-when:', "  pattern: '^- \\*\\*status:\\*\\* revoked'", '  paths: ["docs/requirements/**"]']
 
 function debt(status: string, extra: readonly string[] = []): string {
   return [
     '---',
     'id: TDR-0001',
-    'title: Atalho de teste',
+    'title: Test shortcut',
     `status: ${status}`,
-    'owner: "@time"',
-    'trigger: Quando o gatilho de pagamento abaixo se cumprir.',
+    'owner: "@team"',
+    'trigger: When the payment trigger below is met.',
     'last-reviewed: 2026-08-01',
     ...extra,
     '---',
     '',
-    '# TDR-0001 — Atalho de teste',
+    '# TDR-0001 — Test shortcut',
     '',
-    'O gatilho é o primeiro PR que revogar um requisito.',
+    'The trigger is the first PR that revokes a requirement.',
   ].join('\n')
 }
 
-const RULES_ATIVA = [
+const RULES_ACTIVE = [
   '---',
-  'title: Regras',
-  'owner: "@time"',
-  'trigger: A toda regra nova.',
+  'title: Rules',
+  'owner: "@team"',
+  'trigger: On every new rule.',
   'last-reviewed: 2026-08-20',
   '---',
   '',
-  '## RN-0001 — Uma regra qualquer',
+  '## RN-0001 — Any rule',
   '',
   '- **status:** active',
   '',
-  'O enunciado.',
+  'The statement.',
 ].join('\n')
 
-const RULES_REVOGADA = RULES_ATIVA.replace('- **status:** active', '- **status:** revoked')
+const RULES_REVOKED = RULES_ACTIVE.replace('- **status:** active', '- **status:** revoked')
 
-test('RN-0018: documento além do limite avisa, e aviso não é erro', () => {
+test('RN-0018: a document past the limit warns, and a warning is not an error', () => {
   withTempRepo(
     {
       'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2026-01-01'),
-      'docs/requirements/rules.md': RULES_ATIVA,
+      'docs/requirements/rules.md': RULES_ACTIVE,
     },
     root => {
       const findings = livingDocsStaleness.run(contextFor(root))
-      const aviso = findings.find(finding => finding.file === 'docs/decisions/adr/ADR-0001-a.md')
+      const warning = findings.find(finding => finding.file === 'docs/decisions/adr/ADR-0001-a.md')
 
-      assert.ok(aviso, 'ADR revisado em janeiro deveria vencer em agosto')
-      assert.equal(aviso.ruleId, 'living-docs/staleness')
-      assert.equal(aviso.severity, 'warning')
-      assert.match(aviso.message, /7 months/)
-      assert.match(aviso.message, /stale-after-months/)
-      assert.match(aviso.fix, /mass bump/i)
+      assert.ok(warning, 'an ADR reviewed in January should be stale by August')
+      assert.equal(warning.ruleId, 'living-docs/staleness')
+      assert.equal(warning.severity, 'warning')
+      assert.match(warning.message, /7 months/)
+      assert.match(warning.message, /stale-after-months/)
+      assert.match(warning.fix, /mass bump/i)
       assert.equal(
         findings.some(finding => finding.severity === 'error'),
         false,
@@ -132,11 +132,11 @@ test('RN-0018: documento além do limite avisa, e aviso não é erro', () => {
   )
 })
 
-test('ADR-0007: item congelado não vence — avisar sobre ele ensinaria o bump em massa', () => {
+test('ADR-0007: a frozen item does not go stale — warning about it would teach the mass bump', () => {
   withTempRepo(
     {
       'docs/decisions/adr/ADR-0001-a.md': adr('accepted', '2020-01-01'),
-      'docs/requirements/rules.md': RULES_ATIVA,
+      'docs/requirements/rules.md': RULES_ACTIVE,
     },
     root => {
       assert.deepEqual(staleDocs(contextFor(root)), [])
@@ -144,12 +144,12 @@ test('ADR-0007: item congelado não vence — avisar sobre ele ensinaria o bump 
   )
 })
 
-test('RN-0018: documento de `documents:` vence; sem frontmatter, não tem o que vencer', () => {
+test('RN-0018: a `documents:` document goes stale; without frontmatter, there is nothing to go stale', () => {
   withTempRepo(
     {
-      'docs/requirements/rules.md': RULES_ATIVA,
+      'docs/requirements/rules.md': RULES_ACTIVE,
       'CONTRIBUTING.md':
-        '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2025-01-01\n---\n\n# Como se contribui\n',
+        '---\ntitle: How to contribute\nowner: "@team"\ntrigger: when the process changes\nlast-reviewed: 2025-01-01\n---\n\n# How to contribute\n',
       'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n',
     },
     root => {
@@ -164,13 +164,13 @@ test('RN-0018: documento de `documents:` vence; sem frontmatter, não tem o que 
   )
 })
 
-test('RN-0018: `last-reviewed` fora do formato ISO não vence — living-docs/frontmatter já cobra o formato', () => {
+test('RN-0018: `last-reviewed` outside the ISO format does not go stale — living-docs/frontmatter already enforces the format', () => {
   withTempRepo(
     {
-      'docs/requirements/rules.md': RULES_ATIVA,
-      // Data velha o bastante para vencer se fosse parseada — mas não é ISO.
+      'docs/requirements/rules.md': RULES_ACTIVE,
+      // A date old enough to go stale if it were parsed — but it is not ISO.
       'CONTRIBUTING.md':
-        '---\ntitle: Como se contribui\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 1 de janeiro de 2020\n---\n\n# Como se contribui\n',
+        '---\ntitle: How to contribute\nowner: "@team"\ntrigger: when the process changes\nlast-reviewed: January 1st, 2020\n---\n\n# How to contribute\n',
     },
     root => {
       const stale = staleDocs(contextFor(root))
@@ -183,36 +183,36 @@ test('RN-0018: `last-reviewed` fora do formato ISO não vence — living-docs/fr
   )
 })
 
-test('RN-0019: dívida `open` sem `pay-when` é erro, com o problema nomeado', () => {
+test('RN-0019: an `open` debt without `pay-when` is an error, with the problem named', () => {
   withTempRepo(
     {
       'docs/decisions/debt/TDR-0001-x.md': debt('open'),
-      'docs/requirements/rules.md': RULES_ATIVA,
+      'docs/requirements/rules.md': RULES_ACTIVE,
     },
     root => {
-      const semGatilho = debtsWithoutTrigger(contextFor(root))
+      const withoutTrigger = debtsWithoutTrigger(contextFor(root))
 
       assert.deepEqual(
-        semGatilho.map(item => [item.id, item.problem]),
+        withoutTrigger.map(item => [item.id, item.problem]),
         [['TDR-0001', 'missing']],
       )
 
       const findings = livingDocsStaleness.run(contextFor(root))
-      const erro = findings.find(finding => finding.severity === 'error')
+      const error = findings.find(finding => finding.severity === 'error')
 
-      assert.ok(erro)
-      assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
-      assert.match(erro.message, /TDR-0001/)
-      assert.match(erro.fix, /pay-when/)
+      assert.ok(error)
+      assert.equal(error.file, 'docs/decisions/debt/TDR-0001-x.md')
+      assert.match(error.message, /TDR-0001/)
+      assert.match(error.fix, /pay-when/)
     },
   )
 })
 
-test('RN-0019: `pay-when` incompleto e padrão que não compila são erros distintos', () => {
+test('RN-0019: an incomplete `pay-when` and a pattern that does not compile are distinct errors', () => {
   withTempRepo(
     {
       'docs/decisions/debt/TDR-0001-x.md': debt('open', ['pay-when:', '  paths: ["docs/**"]']),
-      'docs/requirements/rules.md': RULES_ATIVA,
+      'docs/requirements/rules.md': RULES_ACTIVE,
     },
     root => {
       assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'incomplete')
@@ -222,7 +222,7 @@ test('RN-0019: `pay-when` incompleto e padrão que não compila são erros disti
   withTempRepo(
     {
       'docs/decisions/debt/TDR-0001-x.md': debt('open', ['pay-when:', "  pattern: '([('", '  paths: ["docs/**"]']),
-      'docs/requirements/rules.md': RULES_ATIVA,
+      'docs/requirements/rules.md': RULES_ACTIVE,
     },
     root => {
       assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'invalid pattern')
@@ -230,11 +230,11 @@ test('RN-0019: `pay-when` incompleto e padrão que não compila são erros disti
   )
 })
 
-test('critério 7: dívida com gatilho cumprido reprova, e a evidência aparece', () => {
+test('criterion 7: a debt with its trigger met fails, and the evidence shows up', () => {
   withTempRepo(
     {
       'docs/decisions/debt/TDR-0001-x.md': debt('open', PAY_WHEN),
-      'docs/requirements/rules.md': RULES_REVOGADA,
+      'docs/requirements/rules.md': RULES_REVOKED,
     },
     root => {
       const due = duePayments(contextFor(root))
@@ -244,22 +244,22 @@ test('critério 7: dívida com gatilho cumprido reprova, e a evidência aparece'
       assert.match(due[0]?.evidence ?? '', /^docs\/requirements\/rules\.md:\d+$/)
 
       const findings = livingDocsStaleness.run(contextFor(root))
-      const erro = findings.find(finding => finding.severity === 'error')
+      const error = findings.find(finding => finding.severity === 'error')
 
-      assert.ok(erro)
-      assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
-      assert.match(erro.message, /payment trigger has already happened/)
-      assert.match(erro.message, /docs\/requirements\/rules\.md/)
-      assert.match(erro.fix, /paid|accepted-permanently/)
+      assert.ok(error)
+      assert.equal(error.file, 'docs/decisions/debt/TDR-0001-x.md')
+      assert.match(error.message, /payment trigger has already happened/)
+      assert.match(error.message, /docs\/requirements\/rules\.md/)
+      assert.match(error.fix, /paid|accepted-permanently/)
     },
   )
 })
 
-test('critério 7: sem a condição no repositório, a dívida `open` passa', () => {
+test('criterion 7: without the condition in the repository, the `open` debt passes', () => {
   withTempRepo(
     {
       'docs/decisions/debt/TDR-0001-x.md': debt('open', PAY_WHEN),
-      'docs/requirements/rules.md': RULES_ATIVA,
+      'docs/requirements/rules.md': RULES_ACTIVE,
     },
     root => {
       assert.deepEqual(duePayments(contextFor(root)), [])
@@ -268,41 +268,41 @@ test('critério 7: sem a condição no repositório, a dívida `open` passa', ()
   )
 })
 
-test('critério 7: dívida paga ou aceita permanentemente sai da conta', () => {
+test('criterion 7: a paid or permanently accepted debt leaves the count', () => {
   for (const status of ['paid', 'accepted-permanently']) {
     withTempRepo(
       {
         'docs/decisions/debt/TDR-0001-x.md': debt(status, PAY_WHEN),
-        'docs/requirements/rules.md': RULES_REVOGADA,
+        'docs/requirements/rules.md': RULES_REVOKED,
       },
       root => {
-        assert.deepEqual(duePayments(contextFor(root)), [], `status ${status} não deveria vencer`)
+        assert.deepEqual(duePayments(contextFor(root)), [], `status ${status} should not fall due`)
         assert.deepEqual(debtsWithoutTrigger(contextFor(root)), [])
       },
     )
   }
 })
 
-test('ADR-0007: o próprio arquivo da dívida não conta como ocorrência do gatilho', () => {
+test('ADR-0007: the debt file itself does not count as an occurrence of the trigger', () => {
   withTempRepo(
     {
-      // O corpo da dívida contém, literalmente, o texto que o padrão procura.
+      // The debt body contains, literally, the text the pattern looks for.
       'docs/decisions/debt/TDR-0001-x.md': `${debt('open', [
         'pay-when:',
         "  pattern: 'status: revoked'",
         '  paths: ["docs/**"]',
-      ])}\n\nO gatilho é qualquer seção que vire \`status: revoked\`.\n`,
-      'docs/requirements/rules.md': RULES_ATIVA,
+      ])}\n\nThe trigger is any section that becomes \`status: revoked\`.\n`,
+      'docs/requirements/rules.md': RULES_ACTIVE,
     },
     root => {
-      assert.deepEqual(duePayments(contextFor(root)), [], 'citar o gatilho não é cumpri-lo')
+      assert.deepEqual(duePayments(contextFor(root)), [], 'citing the trigger is not meeting it')
     },
   )
 })
 
-test('payWhenOf distingue ausente, incompleto e válido', () => {
+test('payWhenOf tells absent, incomplete and valid apart', () => {
   assert.equal(payWhenOf({}), 'missing')
-  assert.equal(payWhenOf({ 'pay-when': 'quando der tempo' }), 'incomplete')
+  assert.equal(payWhenOf({ 'pay-when': 'when there is time' }), 'incomplete')
   assert.equal(payWhenOf({ 'pay-when': { pattern: 'x' } }), 'incomplete')
   assert.equal(payWhenOf({ 'pay-when': { pattern: 'x', paths: [] } }), 'incomplete')
   assert.deepEqual(payWhenOf({ 'pay-when': { pattern: 'x', paths: ['src/**'] } }), {
@@ -311,11 +311,11 @@ test('payWhenOf distingue ausente, incompleto e válido', () => {
   })
 })
 
-test('living-docs/staleness é o único check que avisa: nada aqui reprova por documento vencido', () => {
+test('living-docs/staleness is the only check that warns: nothing here fails for a stale document', () => {
   withTempRepo(
     {
       'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2019-01-01'),
-      'docs/requirements/rules.md': RULES_ATIVA,
+      'docs/requirements/rules.md': RULES_ACTIVE,
     },
     root => {
       const findings = livingDocsStaleness.run(contextFor(root))

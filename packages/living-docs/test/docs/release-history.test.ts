@@ -9,7 +9,7 @@ import { checkoutRoot } from '../helpers/checkout.ts'
 const ROOT = checkoutRoot()
 const config = loadLivingDocsConfig(ROOT)
 
-/** Os itens de `## [Unreleased]` — o mesmo critério do check do núcleo, que não o exporta. */
+/** The items of `## [Unreleased]` — the same criterion as the core check, which does not export it. */
 function unreleasedEntries(source: string): string[] {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
   const start = lines.findIndex(line => /^##\s+\[?unreleased\]?/i.test(line.trim()))
@@ -34,16 +34,16 @@ function unreleasedEntries(source: string): string[] {
   return entries
 }
 
-test('RN-0013: este repositório declara o que é visível ao consumidor', () => {
-  const codigos = config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code)
+test('RN-0013: this repository declares what is visible to the consumer', () => {
+  const codes = config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code)
 
-  assert.ok(codigos.length > 0, 'nenhuma regra de watches marcada consumer-visible: o cobrador do CHANGELOG estaria instalado e inerte')
-  assert.ok(codigos.includes('bin/**'))
-  assert.ok(codigos.includes('packages/living-docs/src/cli/**'))
+  assert.ok(codes.length > 0, 'no watches rule marked consumer-visible: the CHANGELOG enforcer would be installed and inert')
+  assert.ok(codes.includes('bin/**'))
+  assert.ok(codes.includes('packages/living-docs/src/cli/**'))
 
-  // O pacote é o plugin, mas só a superfície do plugin é pública: a lista é
-  // explícita, e um curinga no pacote inteiro puxaria src/ e test/.
-  const visivel = picomatch(codigos)
+  // The package is the plugin, but only the plugin surface is public: the list is
+  // explicit, and a wildcard over the whole package would pull in src/ and test/.
+  const isVisible = picomatch(codes)
 
   for (const path of [
     'packages/living-docs/.claude-plugin/plugin.json',
@@ -54,46 +54,46 @@ test('RN-0013: este repositório declara o que é visível ao consumidor', () =>
     'packages/living-docs/templates/adr.md',
     'packages/living-docs/src/cli/index.ts',
   ]) {
-    assert.ok(visivel(path), `${path} deveria ser visível ao consumidor`)
+    assert.ok(isVisible(path), `${path} should be visible to the consumer`)
   }
   for (const path of ['packages/living-docs/src/core/roots.ts', 'packages/living-docs/test/smoke.test.ts', 'packages/living-docs/package.json']) {
-    assert.equal(visivel(path), false, `${path} não é superfície pública`)
+    assert.equal(isVisible(path), false, `${path} is not public surface`)
   }
 })
 
-test('ADR-0006: alguma regra de watches diz onde a entrada deveria estar', () => {
-  const alvos = new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.doc))
+test('ADR-0006: some watches rule says where the entry should be', () => {
+  const targets = new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.doc))
 
-  assert.deepEqual([...alvos], ['CHANGELOG.md'])
+  assert.deepEqual([...targets], ['CHANGELOG.md'])
 })
 
-test('RN-0013: o CHANGELOG é voltado ao consumidor — Keep a Changelog, sem frontmatter', () => {
+test('RN-0013: the CHANGELOG is consumer-facing — Keep a Changelog, no frontmatter', () => {
   const source = readFileSync(join(ROOT, 'CHANGELOG.md'), 'utf8')
 
-  assert.doesNotMatch(source, /^---$/m, 'frontmatter de documentação viva não pertence ao CHANGELOG')
+  assert.doesNotMatch(source, /^---$/m, 'living-documentation frontmatter does not belong in the CHANGELOG')
   assert.match(source, /^## \[Unreleased\]$/m)
-  assert.ok(unreleasedEntries(source).length > 0, 'a Fase 6 muda o contrato público: Unreleased não pode estar vazio')
+  assert.ok(unreleasedEntries(source).length > 0, 'Phase 6 changes the public contract: Unreleased cannot be empty')
 })
 
-test('RN-0015: a tabela de depreciações cobra as quatro coisas', () => {
+test('RN-0015: the deprecations table demands the four things', () => {
   const source = readFileSync(join(ROOT, 'docs/deprecations.md'), 'utf8')
   const header = source.split('\n').find(line => line.trim().startsWith('| What |'))
 
-  assert.ok(header, 'docs/deprecations.md sem a tabela')
-  for (const coluna of ['Announced on', 'Removed in', 'Replacement', 'Migration guide']) {
-    assert.ok(header.includes(coluna), `a tabela precisa da coluna "${coluna}"`)
+  assert.ok(header, 'docs/deprecations.md without the table')
+  for (const column of ['Announced on', 'Removed in', 'Replacement', 'Migration guide']) {
+    assert.ok(header.includes(column), `the table needs the column "${column}"`)
   }
 })
 
-test('RN-0001: o rastro histórico tem dono no CODEOWNERS, como todo artefato', () => {
+test('RN-0001: the historical trail has an owner in CODEOWNERS, like every artifact', () => {
   const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
 
   for (const path of ['CHANGELOG.md', 'docs/deprecations.md', 'docs/releases/', 'docs/migrations/']) {
-    assert.match(codeowners, new RegExp(`^${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+@\\S+$`, 'm'), `${path} sem dono`)
+    assert.match(codeowners, new RegExp(`^${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+@\\S+$`, 'm'), `${path} without an owner`)
   }
 })
 
-test('REL está declarado, para que living-docs/append-only congele release note publicada', () => {
+test('REL is declared, so that living-docs/append-only freezes a published release note', () => {
   const rel = config.artifacts.find(artifact => artifact.idPrefix === 'REL')
 
   assert.ok(rel)
@@ -101,14 +101,14 @@ test('REL está declarado, para que living-docs/append-only congele release note
   assert.equal(rel?.skill, 'release-historian')
 })
 
-test('RN-0030: este repositório marca como externo o que escreve para quem vem de fora', () => {
+test('RN-0030: this repository marks as external what it writes for outside readers', () => {
   for (const path of ['README.md', 'CHANGELOG.md', 'docs/deprecations.md', 'docs/migrations/']) {
-    assert.equal(config.documents.find(document => document.path === path)?.audience, 'external', `${path} deveria estar marcado`)
+    assert.equal(config.documents.find(document => document.path === path)?.audience, 'external', `${path} should be marked`)
   }
   assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
 
-  // docs/contracts/ fica de fora: cita as próprias fontes, e marcá-lo é decisão própria.
+  // docs/contracts/ stays out: it cites its own sources, and marking it is a decision of its own.
   for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md']) {
-    assert.equal(config.documents.find(document => document.path === path)?.audience, 'internal', `${path} não é marcado por esta entrega`)
+    assert.equal(config.documents.find(document => document.path === path)?.audience, 'internal', `${path} is not marked by this delivery`)
   }
 })

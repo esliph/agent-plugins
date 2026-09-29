@@ -5,44 +5,44 @@ import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { OWNERSHIP_FILE, configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-/** O mapa de propriedade, com o artefato DA declarado em `owned`. */
+/** The ownership map, with the DA artifact declared in `owned`. */
 const OWNERSHIP = `
 version: 2
 plugins: [living-docs]
 owned:
   - path: .ownership.yml
-    owner: "@time"
+    owner: "@team"
     skill: living-docs-bootstrap
     living-docs: {}
   - path: docs/open-decisions.md
-    owner: "@time"
+    owner: "@team"
     skill: decision-recorder
     states: [open, resolved, dropped]
     format: { collection: table, key: ID, state-field: Status }
     living-docs:
       id-prefix: DA
       field-map:
-        blocks: "Bloqueia"
-        gap: "Lacuna"
+        blocks: "Blocks"
+        gap: "Gap"
 `
 
-const DECISOES = [
+const DECISIONS = [
   '---',
   'title: Open Decisions',
-  'owner: "@time"',
-  'trigger: Toda vez que alguém trombou numa lacuna.',
+  'owner: "@team"',
+  'trigger: Every time someone ran into a gap.',
   'last-reviewed: 2026-08-27',
   '---',
   '',
-  '| ID | Lacuna | Status | Bloqueia | Aberta em |',
+  '| ID | Gap | Status | Blocks | Opened on |',
   '| --- | --- | --- | --- | --- |',
-  '| DA-0001 | Como arredondar centavos | open | `src/cobranca/**` | 2026-08-27 |',
+  '| DA-0001 | How to round cents | open | `src/billing/**` | 2026-08-27 |',
   '',
 ].join('\n')
 
-const ARVORE = {
+const TREE = {
   [OWNERSHIP_FILE]: OWNERSHIP,
-  'docs/open-decisions.md': DECISOES,
+  'docs/open-decisions.md': DECISIONS,
 }
 
 function contextFor(root: string) {
@@ -57,44 +57,44 @@ function contextFor(root: string) {
   }
 }
 
-test('ADR-0010: rótulo sem razão não é exceção', () => {
-  assert.equal(docsExceptionReason(['Docs: none — a regra não mudou']), 'a regra não mudou')
+test('ADR-0010: a label with no reason is not an exception', () => {
+  assert.equal(docsExceptionReason(['Docs: none — the rule did not change']), 'the rule did not change')
   assert.equal(docsExceptionReason(['Docs: none']), null)
-  assert.equal(docsExceptionReason(['docs: NONE — minúscula também']), 'minúscula também')
-  assert.equal(docsExceptionReason(['Changelog: none — outro rótulo']), null)
+  assert.equal(docsExceptionReason(['docs: NONE — lowercase too']), 'lowercase too')
+  assert.equal(docsExceptionReason(['Changelog: none — another label']), null)
 })
 
-test('RN-0026: o diff que toca caminho reivindicado por decisão aberta reprova', () => {
-  withTempRepo(ARVORE, root => {
-    const diff = { base: 'origin/master', changed: ['src/cobranca/taxa.ts'], messages: ['feat: centavos'] }
+test('RN-0026: a diff that touches a path claimed by an open decision fails', () => {
+  withTempRepo(TREE, root => {
+    const diff = { base: 'origin/master', changed: ['src/billing/fee.ts'], messages: ['feat: cents'] }
     const findings = livingDocsOpenDecisionClaim(diff).run(contextFor(root))
-    const achado = findings.find(finding => /DA-0001/.test(finding.message))
+    const found = findings.find(finding => /DA-0001/.test(finding.message))
 
-    assert.ok(achado, JSON.stringify(findings, null, 2))
-    assert.equal(achado.ruleId, 'living-docs/open-decision-claim')
-    assert.equal(achado.severity, 'error')
-    assert.equal(achado.file, 'docs/open-decisions.md')
-    assert.match(achado.message, /src\/cobranca\/taxa\.ts/)
-    assert.match(achado.message, /centavos/, 'a lacuna precisa ser nomeada')
-    assert.match(achado.fix, /decision-recorder/)
-    assert.match(achado.fix, /Docs: none/)
+    assert.ok(found, JSON.stringify(findings, null, 2))
+    assert.equal(found.ruleId, 'living-docs/open-decision-claim')
+    assert.equal(found.severity, 'error')
+    assert.equal(found.file, 'docs/open-decisions.md')
+    assert.match(found.message, /src\/billing\/fee\.ts/)
+    assert.match(found.message, /cents/, 'the gap must be named')
+    assert.match(found.fix, /decision-recorder/)
+    assert.match(found.fix, /Docs: none/)
   })
 })
 
-test('RN-0026: sem diff, o check não roda — inventar diff seria achado sobre outra branch', () => {
-  withTempRepo(ARVORE, root => {
+test('RN-0026: without a diff, the check does not run — inventing a diff would be a finding about another branch', () => {
+  withTempRepo(TREE, root => {
     assert.deepEqual(livingDocsOpenDecisionClaim().run(contextFor(root)), [])
   })
 })
 
-test('RN-0026: a razão escrita libera o diff', () => {
-  withTempRepo(ARVORE, root => {
-    const comRazao = {
+test('RN-0026: the written reason releases the diff', () => {
+  withTempRepo(TREE, root => {
+    const withReason = {
       base: 'origin/master',
-      changed: ['src/cobranca/taxa.ts'],
-      messages: ['refactor: renomeia interno\n\nDocs: none — não é a implementação da regra que falta'],
+      changed: ['src/billing/fee.ts'],
+      messages: ['refactor: rename internal\n\nDocs: none — this is not the implementation of the missing rule'],
     }
 
-    assert.deepEqual(livingDocsOpenDecisionClaim(comRazao).run(contextFor(root)), [])
+    assert.deepEqual(livingDocsOpenDecisionClaim(withReason).run(contextFor(root)), [])
   })
 })

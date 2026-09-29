@@ -14,9 +14,9 @@ function source(relative: string): string {
 }
 
 /**
- * O bit de execução vem do índice do git, não do sistema de arquivos: um
- * checkout Windows não tem modo POSIX, e o que chega a quem clona é o modo
- * versionado. Mesma escolha de `test/plugin/manifest.test.ts`.
+ * The execute bit comes from the git index, not from the filesystem: a
+ * Windows checkout has no POSIX mode, and what reaches whoever clones is the
+ * versioned mode. Same choice as `test/plugin/manifest.test.ts`.
  */
 function gitMode(relative: string): string {
   const entry = execFileSync('git', ['ls-files', '-s', '--', relative], { cwd: ROOT, encoding: 'utf8' })
@@ -24,67 +24,67 @@ function gitMode(relative: string): string {
   return entry.split(/\s+/)[0] ?? ''
 }
 
-test('RNF-0006: bin/dev é executável e não enumera comando nenhum', () => {
-  assert.equal(gitMode('bin/dev'), '100755', 'bin/dev precisa estar versionado como executável')
+test('RNF-0006: bin/dev is executable and enumerates no command', () => {
+  assert.equal(gitMode('bin/dev'), '100755', 'bin/dev must be versioned as executable')
 
   const wrapper = source('bin/dev')
 
-  assert.match(wrapper, /"\$@"/, 'o wrapper repassa os argumentos que recebeu')
-  assert.match(wrapper, /exec\s+docker\s+exec/, 'o comando substitui o wrapper — é assim que o código de saída é o do comando')
+  assert.match(wrapper, /"\$@"/, 'the wrapper forwards the arguments it received')
+  assert.match(wrapper, /exec\s+docker\s+exec/, 'the command replaces the wrapper — that is how the exit code is the exit code of the command')
 
-  // A invariante da spec §2, verificada em vez de prometida: uma tabela de
-  // subcomandos é exatamente o que não pode existir aqui, porque é ela que
-  // divergiria da lista do host.
-  assert.doesNotMatch(wrapper, /\bcase\s+"?\$\{?[1@]/, 'tabela de subcomandos: a lista que diverge do host começa assim')
-  assert.doesNotMatch(wrapper, /src\/cli\/index\.ts/, 'bin/dev não conhece o CLI — quem o conhece é bin/living-docs')
+  // The spec §2 invariant, verified instead of promised: a subcommand table
+  // is exactly what cannot exist here, because it is what would
+  // diverge from the host list.
+  assert.doesNotMatch(wrapper, /\bcase\s+"?\$\{?[1@]/, 'subcommand table: the list that diverges from the host starts like this')
+  assert.doesNotMatch(wrapper, /src\/cli\/index\.ts/, 'bin/dev does not know the CLI — bin/living-docs does')
 })
 
-test('RNF-0006: bin/dev deriva a raiz do próprio caminho e respeita LIVING_DOCS_CONTAINER', () => {
+test('RNF-0006: bin/dev derives the root from its own path and honors LIVING_DOCS_CONTAINER', () => {
   const wrapper = source('bin/dev')
 
-  assert.match(wrapper, /LIVING_DOCS_CONTAINER:-esliph-living-docs/, 'o nome do container vem do ambiente, com o padrão que bin/living-docs já publica')
-  assert.match(wrapper, /BASH_SOURCE\[0\]/, 'a raiz do repositório sai do caminho do próprio script (ADR-0003), nunca do diretório de trabalho')
+  assert.match(wrapper, /LIVING_DOCS_CONTAINER:-esliph-living-docs/, 'the container name comes from the environment, with the default that bin/living-docs already publishes')
+  assert.match(wrapper, /BASH_SOURCE\[0\]/, 'the repository root comes from the path of the script itself (ADR-0003), never from the working directory')
 })
 
-test('RNF-0006: bin/living-docs delega a bin/dev, sem lógica de container própria', () => {
-  assert.equal(gitMode('bin/living-docs'), '100755', 'bin/living-docs precisa continuar executável')
+test('RNF-0006: bin/living-docs delegates to bin/dev, with no container logic of its own', () => {
+  assert.equal(gitMode('bin/living-docs'), '100755', 'bin/living-docs must remain executable')
 
   const wrapper = source('bin/living-docs')
 
-  assert.match(wrapper, /\/dev\b/, 'o wrapper do CLI invoca bin/dev')
-  assert.match(wrapper, /node\s+--conditions=development\s+packages\/living-docs\/src\/cli\/index\.ts/, 'e é ele, não bin/dev, que conhece o CLI')
+  assert.match(wrapper, /\/dev\b/, 'the CLI wrapper invokes bin/dev')
+  assert.match(wrapper, /node\s+--conditions=development\s+packages\/living-docs\/src\/cli\/index\.ts/, 'and it, not bin/dev, is what knows the CLI')
 
-  // O teste que impede a duplicação de lógica voltar: toda conversa com o
-  // daemon mora em bin/dev, e um segundo lugar que a tenha é um segundo lugar
-  // para divergir.
-  assert.doesNotMatch(wrapper, /docker\s+(exec|inspect|compose)/, 'lógica de container duplicada — ela pertence a bin/dev (ADR-0016)')
+  // The test that keeps the logic duplication from coming back: every conversation with the
+  // daemon lives in bin/dev, and a second place that has it is a second place
+  // to diverge.
+  assert.doesNotMatch(wrapper, /docker\s+(exec|inspect|compose)/, 'duplicated container logic — it belongs in bin/dev (ADR-0016)')
 
-  // O modo de falha que TDR-0002 descreveu: sair 2 porque o container não está
-  // de pé. bin/dev sobe o container; ninguém mais precisa recusar-se a rodar.
-  assert.doesNotMatch(wrapper, /exit\s+2\b/, 'o container ausente deixou de ser modo de falha (E-2)')
+  // The failure mode that TDR-0002 described: exiting 2 because the container is not
+  // up. bin/dev brings the container up; nobody else needs to refuse to run.
+  assert.doesNotMatch(wrapper, /exit\s+2\b/, 'the absent container is no longer a failure mode (E-2)')
 })
 
-test('RNF-0006: .ownership.yml cobre bin/dev em watches, marcado visível ao consumidor', () => {
+test('RNF-0006: .ownership.yml covers bin/dev in watches, marked consumer-visible', () => {
   const config = loadLivingDocsConfig(ROOT)
 
-  // Mecanismo 1: quem toca bin/dev leva o doc dono no mesmo commit. O
-  // agrupamento por doc (`watchesFor`) é do núcleo agora (ADR-0030); aqui basta
-  // achar as regras cujo padrão bate, o mesmo que o núcleo faz por baixo.
+  // Mechanism 1: whoever touches bin/dev brings the owning doc in the same commit. The
+  // grouping by doc (`watchesFor`) belongs to the core now (ADR-0030); here it is enough to
+  // find the rules whose pattern matches, the same thing the core does underneath.
   const matches = config.watches.filter(watch => picomatch(watch.code)('bin/dev'))
 
   assert.deepEqual(
     matches.map(match => match.doc),
     ['CHANGELOG.md'],
-    'bin/dev é ponto de entrada público e precisa de doc dono declarado',
+    'bin/dev is a public entry point and needs a declared owning doc',
   )
-  assert.equal(matches[0]?.consumerVisible, true, 'a mudança é visível a quem consome')
+  assert.equal(matches[0]?.consumerVisible, true, 'the change is visible to whoever consumes it')
 
-  // A mesma cobertura pelo lado do cobrador de CHANGELOG, que lê as regras
-  // marcadas `consumer-visible: true`.
-  const visivel = picomatch(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code))
+  // The same coverage from the CHANGELOG enforcer side, which reads the rules
+  // marked `consumer-visible: true`.
+  const isVisible = picomatch(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.code))
 
-  assert.ok(visivel('bin/dev'), 'bin/dev fora das regras consumer-visible: ninguém cobraria a entrada de CHANGELOG')
+  assert.ok(isVisible('bin/dev'), 'bin/dev outside the consumer-visible rules: nobody would demand the CHANGELOG entry')
 
-  // E o wrapper que já existia não pode ter sido descoberto no caminho.
-  assert.ok(visivel('bin/living-docs'))
+  // And the wrapper that already existed cannot have been left uncovered along the way.
+  assert.ok(isVisible('bin/living-docs'))
 })

@@ -4,7 +4,7 @@ import { changedLines, changedPaths, commitMessages, GitError } from '../../src/
 
 const NUL = String.fromCharCode(0)
 
-/** Runner falso: grava os argumentos recebidos e devolve a saída combinada. */
+/** Fake runner: records the received arguments and returns the combined output. */
 function fake(output: string): { run: (args: readonly string[], cwd: string) => string; calls: string[][] } {
   const calls: string[][] = []
 
@@ -18,7 +18,7 @@ function fake(output: string): { run: (args: readonly string[], cwd: string) => 
   }
 }
 
-test('ADR-0006: changedPaths usa três pontos, -z e safe.directory', () => {
+test('ADR-0006: changedPaths uses three dots, -z and safe.directory', () => {
   const git = fake(`src/cli/index.ts${NUL}CHANGELOG.md${NUL}`)
   const paths = changedPaths('/repo', 'origin/master', git.run)
 
@@ -26,42 +26,42 @@ test('ADR-0006: changedPaths usa três pontos, -z e safe.directory', () => {
   assert.deepEqual(git.calls[0], ['-c', 'safe.directory=*', 'diff', '--name-only', '-z', 'origin/master...HEAD'])
 })
 
-test('ADR-0006: caminho com acento volta inteiro, sem aspas nem escape', () => {
-  const git = fake(`docs/decisões.md${NUL}`)
+test('ADR-0006: a path with an accent comes back whole, without quotes or escaping', () => {
+  const git = fake(`docs/résumé.md${NUL}`)
 
-  assert.deepEqual(changedPaths('/repo', 'base', git.run), ['docs/decisões.md'])
+  assert.deepEqual(changedPaths('/repo', 'base', git.run), ['docs/résumé.md'])
 })
 
-test('changedPaths normaliza a barra e descarta entrada vazia', () => {
+test('changedPaths normalizes the slash and drops empty entries', () => {
   const git = fake(`src\\cli\\index.ts${NUL}${NUL}`)
 
   assert.deepEqual(changedPaths('/repo', 'base', git.run), ['src/cli/index.ts'])
 })
 
-test('ADR-0006: commitMessages usa dois pontos e separa por NUL', () => {
-  const git = fake(`feat: um${NUL}\nfix: dois\n\nChangelog: none — razão${NUL}\n`)
+test('ADR-0006: commitMessages uses two dots and splits on NUL', () => {
+  const git = fake(`feat: one${NUL}\nfix: two\n\nChangelog: none — reason${NUL}\n`)
   const messages = commitMessages('/repo', 'origin/master', git.run)
 
-  assert.deepEqual(messages, ['feat: um', 'fix: dois\n\nChangelog: none — razão'])
+  assert.deepEqual(messages, ['feat: one', 'fix: two\n\nChangelog: none — reason'])
   assert.deepEqual(git.calls[0], ['-c', 'safe.directory=*', 'log', '--format=%B%x00', 'origin/master..HEAD'])
 })
 
-test('ADR-0006: erro de git vira GitError — este módulo não falha aberta', () => {
+test('ADR-0006: a git error becomes GitError — this module does not fail open', () => {
   const run = () => {
     const err = new Error('Command failed') as Error & { stderr: string }
 
-    err.stderr = "fatal: bad revision 'origem/nao-existe'\n"
+    err.stderr = "fatal: bad revision 'origin/does-not-exist'\n"
     throw err
   }
 
   assert.throws(
-    () => changedPaths('/repo', 'origem/nao-existe', run),
+    () => changedPaths('/repo', 'origin/does-not-exist', run),
     (err: unknown) => err instanceof GitError && /bad revision/.test(err.message),
   )
   assert.throws(() => commitMessages('/repo', 'x', run), GitError)
 })
 
-test('GitError nomeia o comando que falhou, não só a causa', () => {
+test('GitError names the command that failed, not only the cause', () => {
   const run = () => {
     throw new Error('spawn git ENOENT')
   }
@@ -80,22 +80,22 @@ const PATCH = [
   '@@ -6 +6 @@',
   '-last-reviewed: 2026-01-01',
   '+last-reviewed: 2026-08-31',
-  'diff --git a/docs/apagado.md b/docs/apagado.md',
+  'diff --git a/docs/deleted.md b/docs/deleted.md',
   'deleted file mode 100644',
-  '--- a/docs/apagado.md',
+  '--- a/docs/deleted.md',
   '+++ /dev/null',
   '@@ -1,2 +0,0 @@',
-  '-titulo',
-  '--- isto e conteudo removido, nao cabecalho',
+  '-title',
+  '--- this is removed content, not a header',
   '',
 ].join('\n')
 
-test('RN-0027: changedLines separa por arquivo e nao confunde conteudo com cabecalho', () => {
+test('RN-0027: changedLines splits per file and does not mistake content for a header', () => {
   const git = fake(PATCH)
   const edits = changedLines('/repo', 'origin/master', git.run)
 
-  // O arquivo apagado nao vira edicao: `+++ /dev/null` nao abre secao, e as
-  // linhas removidas dele nao vazam para o arquivo anterior.
+  // The deleted file does not become an edit: `+++ /dev/null` does not open a section, and its
+  // removed lines do not leak into the previous file.
   assert.deepEqual(edits, [
     {
       path: 'docs/glossary.md',
