@@ -246,6 +246,12 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Fixed
 
+- `bin/dev` volta a funcionar pelo Git Bash no Windows: o shell reescrevia o
+  diretório de trabalho do container como caminho do host, e o `docker exec`
+  falhava sem rodar o comando. Dentro do container, o `git` passa a aceitar o
+  checkout montado — antes, tudo que o consultava (testes inclusive) falhava com
+  "dubious ownership". A imagem precisa ser reconstruída uma vez
+  (`docker compose up -d --build`).
 - Os templates que `living-docs init` semeia voltam a trazer os placeholders
   `{{ID}}`, `{{TITLE}}` e `{{TODAY}}` na forma que o `init` substitui. Um
   formatador de código os havia reescrito como `{ { ID } }` — o YAML os lê como

@@ -25,6 +25,12 @@ if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null)" != "tr
   docker compose -f "$ROOT/compose.yaml" up -d >&2
 fi
 
+# Daqui em diante todo caminho é do container, e o Git Bash do Windows
+# reescreveria `/opt/living-docs` (e qualquer caminho em "$@") como caminho do
+# host — o docker recusa o exec com "Cwd must be an absolute path". A conversão
+# só é desligada depois do compose: lá "$ROOT" é caminho do host e precisa dela.
+export MSYS_NO_PATHCONV=1
+
 # `-t` só quando stdin é um terminal: com um pipe na entrada, o docker exec
 # recusa a alocação. A expansão com `+` é o que mantém o array vazio compatível
 # com `set -u`.
