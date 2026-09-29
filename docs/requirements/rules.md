@@ -387,7 +387,7 @@ e nunca "por causa de qual regra".
 
 ## RN-0029 — O gatilho do artefato e a `description` da skill dona falam do mesmo evento
 
-- **status:** draft
+- **status:** revoked
 - **revoked-by:** ADR-0034
 - **relates-to:** ADR-0013, RN-0010
 - **fora de escopo:** o `trigger` de um item dentro de uma coleção, que é do item e não do artefato

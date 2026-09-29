@@ -1,7 +1,7 @@
 ---
 id: ADR-0013
 title: Os dois limiares do fechamento — bump em massa e semelhança de gatilho
-status: draft
+status: superseded
 owner: '@esliph/engineering'
 trigger: >
   Nunca. Imutável após aceito; uma decisão nova o supersede.

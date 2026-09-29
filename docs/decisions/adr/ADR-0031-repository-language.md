@@ -1,7 +1,7 @@
 ---
 id: ADR-0031
 title: Repository language
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.

@@ -1,7 +1,7 @@
 ---
 id: ADR-0032
 title: The toolkit does not choose the language of consumer documents
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.

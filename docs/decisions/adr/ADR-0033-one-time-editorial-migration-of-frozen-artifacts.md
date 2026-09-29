@@ -1,7 +1,7 @@
 ---
 id: ADR-0033
 title: One-time editorial migration of frozen artifacts
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.

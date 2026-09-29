@@ -1,7 +1,7 @@
 ---
 id: ADR-0034
 title: Retire the lexical trigger threshold
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.
