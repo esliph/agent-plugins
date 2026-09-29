@@ -15,10 +15,10 @@ import { CHECK_CATALOG } from './catalog.ts'
 import type { CatalogEntry } from './catalog.ts'
 
 /**
- * Checks que `living-docs validate` roda, na ordem. Nenhum deles executa nada.
+ * Checks that `living-docs validate` runs, in order. None of them executes anything.
  *
- * Função, e não constante: `living-docs/open-decision-claim` e `living-docs/commit-discipline` recebem o diff por injeção. Sem diff,
- * a metade do diff simplesmente não roda (`ADR-0010`).
+ * A function, not a constant: `living-docs/open-decision-claim` and `living-docs/commit-discipline` receive the diff by injection. Without a diff,
+ * the diff half simply does not run (`ADR-0010`).
  */
 export function validateChecks(diff: CommitFacts | null = null): readonly Check[] {
   return [
@@ -37,8 +37,8 @@ export function validateChecks(diff: CommitFacts | null = null): readonly Check[
 }
 
 /**
- * Reexportado de `./catalog.ts` (fonte real, sem dependências) para não
- * quebrar quem já importa `CHECK_CATALOG`/`CatalogEntry` daqui.
+ * Re-exported from `./catalog.ts` (the real source, dependency-free) so as not to
+ * break whoever already imports `CHECK_CATALOG`/`CatalogEntry` from here.
  */
 export type { CatalogEntry, CommitFacts }
 export { CHECK_CATALOG }

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * Gerador do contrato público dos checks (SK-5), dos dois plugins.
+ * Generator of the checks' public contract (SK-5), for both plugins.
  *
- * Imprime o conteúdo esperado de `docs/contracts/checks.gen.md` na saída padrão
- * e **não escreve arquivo nenhum** — é o contrato de gerador que `ADR-0005`
- * fixa, e é o que permite a `ownership/generated-drift` comparar sem reescrever
- * o que está checando.
+ * Prints the expected content of `docs/contracts/checks.gen.md` to standard output
+ * and **writes no file** — it is the generator contract that `ADR-0005`
+ * fixes, and it is what lets `ownership/generated-drift` compare without rewriting
+ * what it is checking.
  *
- * A saída é determinística: nenhuma data, nenhum caminho de máquina, nenhuma
- * contagem. Um gerador que imprime "gerado em <hoje>" produz deriva a cada
- * execução e desliga a checagem de deriva no segundo dia.
+ * The output is deterministic: no date, no machine path, no
+ * count. A generator that prints "generated on <today>" produces drift on every
+ * run and turns off the drift check on the second day.
  */
 import { CORE_CHECK_CATALOG } from '@esliph/ownership'
 import type { CatalogEntry } from '@esliph/ownership'
@@ -25,7 +25,7 @@ cited by the Definition of Done of whoever uses the toolkit, and do not change
 meaning (\`docs/contracts/versioning-policy.md\`). Each rule runs in a single plugin.
 `
 
-/** `|` numa célula quebraria a tabela — escapar é do gerador, não de quem escreve. */
+/** A `|` in a cell would break the table — escaping is the generator's job, not the writer's. */
 function cell(value: string): string {
   return value.replaceAll('|', '\\|')
 }

@@ -1,14 +1,14 @@
 import { join, resolve } from 'node:path'
 
 /**
- * Raiz do **toolkit**: onde moram `src/`, `templates/` e o plugin (`skills/`,
- * `hooks/`, `commands/`, `agents/`, `.claude-plugin/`).
+ * Root of the **toolkit**: where `src/`, `templates/` and the plugin (`skills/`,
+ * `hooks/`, `commands/`, `agents/`, `.claude-plugin/`) live.
  *
- * Derivada do próprio arquivo — o toolkit sempre sabe onde ele mesmo está e por
- * isso não precisa de configuração para se achar. `LIVING_DOCS_TOOLKIT_ROOT`
- * existe para o teste que monta um layout artificial, não para uso normal.
+ * Derived from the file itself — the toolkit always knows where it is and so
+ * needs no configuration to find itself. `LIVING_DOCS_TOOLKIT_ROOT`
+ * exists for the test that builds an artificial layout, not for normal use.
  *
- * Regra de origem: ADR-0003.
+ * Rule of origin: ADR-0003.
  */
 export function toolkitRoot(): string {
   const override = process.env.LIVING_DOCS_TOOLKIT_ROOT
@@ -17,14 +17,14 @@ export function toolkitRoot(): string {
 }
 
 /**
- * Raiz do **repositório validado**: onde moram `docs/.ownership.yml` e os
- * artefatos. Nunca derivada do toolkit — é o outro lado de ADR-0003.
+ * Root of the **validated repository**: where `docs/.ownership.yml` and the
+ * artifacts live. Never derived from the toolkit — it is the other side of ADR-0003.
  */
 export function repoRoot(): string {
   return resolve(process.env.LIVING_DOCS_REPO_ROOT ?? process.cwd())
 }
 
-/** Diretório dos templates que `living-docs init` escreve. Sempre do toolkit. */
+/** Directory of the templates that `living-docs init` writes. Always the toolkit's. */
 export function templatesDir(): string {
   return join(toolkitRoot(), 'templates')
 }

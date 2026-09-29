@@ -32,15 +32,15 @@ are verified by \`ownership validate [--base <ref>]\`.
 `
 
 /**
- * O relato da medida (`RNF-0005`). Sai a cada execução: um orçamento que só
- * aparece quando estoura é um orçamento que ninguém sabe que existe.
+ * The report of the measurement (`RNF-0005`). It is emitted on every run: a budget that only
+ * shows up when it is blown is a budget nobody knows exists.
  *
- * Não muda o código de saída. Quem reprova por lentidão é o teste do orçamento,
- * contra o corpus deste repositório — um `validate` que saísse com 1 porque a
- * máquina estava carregada trocaria um enforcement por um teste instável.
+ * It does not change the exit code. What fails on slowness is the budget test,
+ * against this repository's corpus — a `validate` that exited 1 because the
+ * machine was loaded would trade an enforcement for a flaky test.
  */
 function reportElapsed(elapsedMs: number): void {
-  // Regra de origem: RNF-0005.
+  // Rule of origin: RNF-0005.
   process.stdout.write(`living-docs: check set in ${formatElapsed(elapsedMs)} ` + `(declared ceiling: ${formatElapsed(CHECK_BUDGET_MS)}).\n`)
   if (elapsedMs > CHECK_BUDGET_MS) {
     process.stderr.write('living-docs: the set exceeded the declared ceiling. Measure what got slow before raising the number.\n')
@@ -63,7 +63,7 @@ function main(argv: readonly string[]): number {
       const base = baseIndex === -1 ? null : (argv[baseIndex + 1] ?? '')
 
       if (base === '') {
-        // Regra de origem: ADR-0010.
+        // Rule of origin: ADR-0010.
         process.stderr.write('living-docs: `--base` needs a ref — the diff base is not guessed.\n')
 
         return 2
@@ -72,8 +72,8 @@ function main(argv: readonly string[]): number {
       const result = runValidate(root, base)
 
       process.stdout.write(`${formatFindings(result.findings)}\n`)
-      // Ponteiro, não achado: artefato gerado e vínculo código→doc são do
-      // núcleo agora, e ficar calado sobre isso seria fingir cobertura.
+      // Pointer, not a finding: generated artifact and code→doc link belong to the
+      // core now, and staying silent about it would be pretending to cover it.
       if (result.generated > 0 || result.watched > 0) {
         process.stdout.write(
           `living-docs: ${result.generated} generated artifact(s) and ${result.watched} declared code→doc link(s) — ` +
@@ -104,7 +104,7 @@ function main(argv: readonly string[]): number {
       const padding = paddingIndex === -1 ? DEFAULT_ID_FORMAT.padding : Number.parseInt(argv[paddingIndex + 1] ?? '', 10)
 
       if (!SEPARATORS_ALLOWED.includes(separator) || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
-        // Regra de origem: ADR-0011.
+        // Rule of origin: ADR-0011.
         process.stderr.write(
           `living-docs: invalid ID form. --id-separator accepts ${SEPARATORS_ALLOWED.map(s => `"${s}"`).join(', ')} ` +
             `and --id-padding an integer between ${PADDING_RANGE.min} and ${PADDING_RANGE.max}.\n`,
@@ -117,7 +117,7 @@ function main(argv: readonly string[]): number {
       const invoke = invokeIndex === -1 ? 'npx living-docs' : (argv[invokeIndex + 1] ?? '')
 
       if (invoke.trim() === '') {
-        // Regra de origem: DA-0003.
+        // Rule of origin: DA-0003.
         process.stderr.write('living-docs: `--invoke` needs the command that runs the CLI in your CI — it is not guessed.\n')
 
         return 2
@@ -173,8 +173,8 @@ function main(argv: readonly string[]): number {
       if (result.created.length === 0) {
         process.stdout.write('living-docs: nothing to create; the scaffold already exists.\n')
       }
-      // Honestidade sobre o estágio: dizer o que ficou de fora vale mais do que
-      // fingir que o conjunto inteiro foi instalado (spec §10).
+      // Honesty about the stage: saying what was left out is worth more than
+      // pretending the whole set was installed (spec §10).
       for (const item of result.notInstalled) {
         process.stdout.write(`not installed  ${item}\n`)
       }

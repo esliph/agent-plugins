@@ -2,12 +2,12 @@ import { execFileSync } from 'node:child_process'
 import type { GitRunner } from './staged.ts'
 
 /**
- * Teto de um comando git de leitura. Generoso perto dos 3 s de `staged.ts`:
- * `ownership/consumer-change-logged` roda no PR, não dentro do orçamento de 5 s de um hook (spec §7).
+ * Ceiling for a read-only git command. Generous compared with the 3 s of `staged.ts`:
+ * `ownership/consumer-change-logged` runs on the PR, not inside a hook's 5 s budget (spec §7).
  */
 export const TIMEOUT_MS = 10_000
 
-/** Falha de git que o chamador precisa ver. Não existe atalho para "não sei". */
+/** A git failure the caller needs to see. There is no shortcut for "I don't know". */
 export class GitError extends Error {
   constructor(message: string) {
     super(message)
@@ -23,11 +23,11 @@ export const runGitDiff: GitRunner = (args, cwd) =>
     encoding: 'utf8',
     timeout: TIMEOUT_MS,
     maxBuffer: 16 * 1024 * 1024,
-    // stderr capturado, não herdado: ele vira a mensagem do GitError.
+    // stderr captured, not inherited: it becomes the GitError message.
     stdio: ['ignore', 'pipe', 'pipe'],
   })
 
-/** A primeira linha útil do erro: stderr se houver, mensagem se não. */
+/** The first useful line of the error: stderr if there is any, message if not. */
 function reasonOf(err: unknown): string {
   const stderr = (err as { stderr?: unknown }).stderr
   const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
@@ -36,14 +36,14 @@ function reasonOf(err: unknown): string {
 }
 
 /**
- * `safe.directory=*` pelo mesmo motivo de `src/git/staged.ts`: o container roda
- * com uid diferente do dono do checkout montado (`ADR-0003`), e sem isso o git
- * recusa o repositório.
+ * `safe.directory=*` for the same reason as `src/git/staged.ts`: the container runs
+ * with a uid different from the owner of the mounted checkout (`ADR-0003`), and without it git
+ * refuses the repository.
  *
- * Ao contrário de `staged.ts`, aqui **erro sobe**. Lá quem chama é um hook, e
- * silêncio custa uma pergunta a menos; aqui quem chama é um check, e silêncio
- * custa um contrato quebrado passando com a autoridade de um CI verde
- * (`ADR-0006`, decisão 3).
+ * Unlike `staged.ts`, here **errors bubble up**. There the caller is a hook, and
+ * silence costs one question fewer; here the caller is a check, and silence
+ * costs a broken contract passing with the authority of a green CI
+ * (`ADR-0006`, decision 3).
  */
 function git(args: readonly string[], root: string, run: GitRunner, what: string): string {
   try {
@@ -54,12 +54,12 @@ function git(args: readonly string[], root: string, run: GitRunner, what: string
 }
 
 /**
- * Caminhos que esta branch mudou em relação à base, sempre com `/`.
+ * Paths this branch changed relative to the base, always with `/`.
  *
- * Três pontos, e não dois: parte do merge-base, então o que entrou na base
- * depois que a branch saiu **não** conta como mudança da branch (`ADR-0006`).
- * `-z` porque sem ele o git envolve em aspas e escapa caminho com acento, e
- * caminho escapado não casa com glob nenhum.
+ * Three dots, not two: it starts from the merge-base, so what entered the base
+ * after the branch diverged does **not** count as a change of the branch (`ADR-0006`).
+ * `-z` because without it git wraps in quotes and escapes paths with accents, and an
+ * escaped path matches no glob.
  */
 export function changedPaths(root: string, base: string, run: GitRunner = runGitDiff): string[] {
   const output = git(['diff', '--name-only', '-z', `${base}...HEAD`], root, run, `git diff ${base}...HEAD`)
@@ -71,12 +71,12 @@ export function changedPaths(root: string, base: string, run: GitRunner = runGit
 }
 
 /**
- * Mensagens completas dos commits que esta branch acrescentou.
+ * Full messages of the commits this branch added.
  *
- * Dois pontos aqui, de propósito: a pergunta é "quais commits são desta
- * branch", não "qual é a diferença de conteúdo". `%x00` separa as mensagens
- * porque elas têm linhas em branco por dentro — o rótulo de exceção é um
- * trailer, e trailer mora depois de uma linha em branco.
+ * Two dots here, on purpose: the question is "which commits belong to this
+ * branch", not "what is the content difference". `%x00` separates the messages
+ * because they have blank lines inside — the exception label is a
+ * trailer, and a trailer lives after a blank line.
  */
 export function commitMessages(root: string, base: string, run: GitRunner = runGitDiff): string[] {
   const output = git(['log', '--format=%B%x00', `${base}..HEAD`], root, run, `git log ${base}..HEAD`)
@@ -87,29 +87,29 @@ export function commitMessages(root: string, base: string, run: GitRunner = runG
     .filter(message => message !== '')
 }
 
-/** O que um arquivo ganhou e perdeu neste diff. Ordem de leitura, sem contexto. */
+/** What a file gained and lost in this diff. Reading order, no context. */
 export interface FileEdit {
-  /** Caminho relativo à raiz, sempre com `/`. */
+  /** Path relative to the root, always with `/`. */
   path: string
   added: string[]
   removed: string[]
 }
 
-/** Só o cabeçalho de destino abre seção — `+++ /dev/null` (remoção) não abre. */
+/** Only the destination header opens a section — `+++ /dev/null` (removal) does not. */
 const FILE_HEADER = /^\+\+\+ b\/(.+)$/
 
 /**
- * O diff linha a linha, por arquivo (`RN-0027`).
+ * The diff line by line, per file (`RN-0027`).
  *
- * `--unified=0` porque a pergunta é "o que mudou", e não "em volta de quê":
- * linha de contexto aqui só aumentaria o texto a percorrer no PR (`RNF-0005`).
- * `--no-renames` para que renomear não vire um par de arquivos fantasma, e
- * `core.quotePath=false` pela mesma razão do `-z` de `changedPaths` — caminho
- * com acento escapado não casa com caminho nenhum.
+ * `--unified=0` because the question is "what changed", not "around what":
+ * a context line here would only increase the text to walk through on the PR (`RNF-0005`).
+ * `--no-renames` so that a rename does not become a pair of ghost files, and
+ * `core.quotePath=false` for the same reason as the `-z` of `changedPaths` — a path
+ * with an escaped accent matches no path.
  *
- * O estado `inHunk` não é zelo: uma linha **removida** cujo conteúdo começa com
- * `--` é escrita como `--- ...`, idêntica a um cabeçalho de origem. Só depois de
- * um `@@` uma linha é conteúdo.
+ * The `inHunk` state is not zeal: a **removed** line whose content starts with
+ * `--` is written as `--- ...`, identical to a source header. Only after
+ * a `@@` is a line content.
  */
 export function changedLines(root: string, base: string, run: GitRunner = runGitDiff): FileEdit[] {
   const output = git(

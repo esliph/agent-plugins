@@ -4,16 +4,16 @@ import type { ArtifactDoc, DocumentDoc } from '../docs/collect.ts'
 export type Severity = 'error' | 'warning'
 
 export interface Finding {
-  /** ID do check que produziu a finding, ex.: 'living-docs/frontmatter'. */
+  /** ID of the check that produced the finding, e.g. 'living-docs/frontmatter'. */
   ruleId: string
-  /** Caminho relativo à raiz do repositório. */
+  /** Path relative to the repository root. */
   file: string
-  /** Linha 1-indexed; 0 quando a finding não tem linha. */
+  /** 1-indexed line; 0 when the finding has no line. */
   line: number
   severity: Severity
-  /** O que está errado. */
+  /** What is wrong. */
   message: string
-  /** O caminho válido para corrigir. */
+  /** The valid path to fix it. */
   fix: string
 }
 
@@ -21,16 +21,16 @@ export interface CheckContext {
   root: string
   config: LivingDocsConfig
   docs: ArtifactDoc[]
-  /** Documentos sem família de IDs, declarados em `documents:` (`ADR-0008`). */
+  /** Documents without an ID family, declared in `documents:` (`ADR-0008`). */
   documents: DocumentDoc[]
   /**
-   * Hoje, em ISO. Nenhum check lê o relógio por dentro (`ADR-0007`, `RNF-0004`):
-   * a data entra por valor, e é isso que torna `living-docs/staleness` testável.
+   * Today, as ISO. No check reads the clock internally (`ADR-0007`, `RNF-0004`):
+   * the date comes in by value, and that is what makes `living-docs/staleness` testable.
    */
   today: string
 }
 
-/** Fatos do diff da branch, entregues por injeção a quem os lê (`ADR-0006`). */
+/** Facts of the branch diff, handed by injection to whoever reads them (`ADR-0006`). */
 export interface DiffFacts {
   base: string
   changed: string[]

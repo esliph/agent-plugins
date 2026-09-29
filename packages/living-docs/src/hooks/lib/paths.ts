@@ -3,8 +3,8 @@ function normalize(path: string): string {
 }
 
 /**
- * Caminho relativo à raiz do repositório, ou null se o arquivo está fora dele.
- * `roots` traz a raiz do container e a raiz do host, nessa ordem de preferência.
+ * Path relative to the repository root, or null if the file is outside it.
+ * `roots` carries the container root and the host root, in that order of preference.
  */
 export function toRepoPath(filePath: string, roots: readonly string[]): string | null {
   const normalized = normalize(filePath)

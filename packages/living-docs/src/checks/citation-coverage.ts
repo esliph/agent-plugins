@@ -9,7 +9,7 @@ import type { CitationSite } from '../ids/coverage.ts'
 
 const RULE = 'living-docs/citation-coverage'
 
-/** Pares que precisam fechar dos dois lados (spec §8). */
+/** Pairs that must close on both sides (spec §8). */
 const PAIRS: readonly { from: string; to: string }[] = Object.freeze([
   { from: 'supersedes', to: 'superseded-by' },
   { from: 'revokes', to: 'revoked-by' },
@@ -21,7 +21,7 @@ interface Entry {
   line: number
   status: string
   rule: ArtifactRule
-  /** Leitura de um campo canônico, seja frontmatter ou item de coleção. */
+  /** Reading of a canonical field, be it frontmatter or a collection item. */
   read(canonical: string): string | null
   /** True when a collection item has no such field at all; per-file entries never lack one here. */
   lacks(canonical: string): boolean
@@ -46,7 +46,7 @@ function missingFieldHint(entry: Entry, canonical: string): string {
   )
 }
 
-/** IDs canônicos citados dentro de um valor, qualquer que seja a forma dele. */
+/** Canonical IDs cited inside a value, whatever its shape. */
 function idsIn(value: string | null, format: IdFormat): string[] {
   if (value === null) {
     return []
@@ -59,9 +59,9 @@ function idsIn(value: string | null, format: IdFormat): string[] {
 }
 
 /**
- * Todo item rastreável do repositório, com uma leitura uniforme de campo.
- * Frontmatter de arquivo e item de coleção respondem à mesma pergunta canônica,
- * e é isso que permite a `living-docs/citation-coverage` não conhecer nome de campo nenhum.
+ * Every traceable item in the repository, with a uniform field reading.
+ * File frontmatter and collection items answer the same canonical question,
+ * and that is what lets `living-docs/citation-coverage` know no field name at all.
  */
 function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
   const entries: Entry[] = []
@@ -123,7 +123,7 @@ export const livingDocsCitationCoverage: Check = {
     for (const entry of entries) {
       const self = canonicalId(parseId(entry.id, format)!)
 
-      // 1 e 2 — pares bidirecionais.
+      // 1 and 2 — bidirectional pairs.
       for (const pair of PAIRS) {
         for (const side of [pair, { from: pair.to, to: pair.from }]) {
           for (const targetId of idsIn(entry.read(side.from), format)) {
@@ -156,7 +156,7 @@ export const livingDocsCitationCoverage: Check = {
         }
       }
 
-      // 3 — revogação sem quem revogou.
+      // 3 — revocation without who revoked.
       if (entry.status === 'revoked' && entry.read('revoked-by') === null) {
         findings.push(
           error(
@@ -169,7 +169,7 @@ export const livingDocsCitationCoverage: Check = {
         )
       }
 
-      // 4 e 5 — DA resolvida aponta o ADR, e o ADR aponta de volta.
+      // 4 and 5 — a resolved DA points at the ADR, and the ADR points back.
       if (entry.status === 'resolved') {
         const resolvers = idsIn(entry.read('resolved-by'), format)
 
@@ -205,7 +205,7 @@ export const livingDocsCitationCoverage: Check = {
         }
       }
 
-      // 6 — ADR aceito sem ligação.
+      // 6 — accepted ADR without a link.
       if (entry.status === 'accepted' && idsIn(entry.read('relates-to'), format).length === 0) {
         findings.push(
           error(
@@ -219,7 +219,7 @@ export const livingDocsCitationCoverage: Check = {
       }
     }
 
-    // 7 — cobertura por citação, uma varredura por conjunto distinto de globs.
+    // 7 — coverage by citation, one scan per distinct set of globs.
     const scans = new Map<string, Map<string, CitationSite[]>>()
 
     for (const entry of entries) {
@@ -239,8 +239,8 @@ export const livingDocsCitationCoverage: Check = {
       const found = [...sites.entries()].some(([id, places]) => {
         const parsed = parseId(id, format)
 
-        // Citação dentro do próprio arquivo do artefato não cobre nada: a regra
-        // precisa ser citada de fora para que o grafo feche (spec §8).
+        // A citation inside the artifact's own file covers nothing: the rule
+        // must be cited from outside for the graph to close (spec §8).
         return parsed !== null && canonicalId(parsed) === canonical && places.some(place => place.file !== entry.file)
       })
 

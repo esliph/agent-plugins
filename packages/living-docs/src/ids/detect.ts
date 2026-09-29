@@ -4,17 +4,17 @@ import type { IdFormat } from '../docs/schema.ts'
 
 export interface DetectedFormat {
   format: IdFormat
-  /** Quantas ocorrências foram lidas nessa forma. */
+  /** How many occurrences were read in this form. */
   count: number
-  /** Uma ocorrência real, para quem instala reconhecer o que o toolkit viu. */
+  /** One real occurrence, so the installer can recognize what the toolkit saw. */
   sample: string
 }
 
 /**
- * Varredura deliberadamente permissiva: prefixo de 2 a 4 maiúsculas, separador
- * opcional de um caractere, 2 a 6 dígitos. A pergunta é "que forma este
- * repositório usa?", e um detector que já soubesse a resposta não detectaria
- * nada (`RF-0014`).
+ * Deliberately permissive scan: a prefix of 2 to 4 capital letters, an optional
+ * one-character separator, 2 to 6 digits. The question is "what form does this
+ * repository use?", and a detector that already knew the answer would detect
+ * nothing (`RF-0014`).
  */
 const ANY_ID = /\b([A-Z]{2,4})([-_.:]?)(\d{2,6})\b/g
 
@@ -23,9 +23,9 @@ function keyOf(separator: string, digits: number): string {
 }
 
 /**
- * A forma escrita dominante nos caminhos dados, ou `null` quando não há ID
- * nenhum. Só os caminhos que o `init` resolveu entram: detectar formato no
- * repositório inteiro é ruído, não inventário.
+ * The dominant written form in the given paths, or `null` when there is no ID
+ * at all. Only the paths `init` resolved go in: detecting the format across the
+ * whole repository is noise, not inventory.
  */
 export function detectIdFormat(root: string, paths: readonly string[]): DetectedFormat | null {
   const globs = paths.map(path => (path.endsWith('/') ? `${path}**` : path))

@@ -1,9 +1,9 @@
 import { repoRoot } from '../../core/roots.ts'
 
 export interface HookEnv {
-  /** Raiz do repositório validado (ADR-0003). */
+  /** Root of the validated repository (ADR-0003). */
   root: string
-  /** Raízes reconhecidas em `file_path`: a do container e a do host. */
+  /** Roots recognized in `file_path`: the container's and the host's. */
   hostRoots: readonly string[]
 }
 
@@ -13,8 +13,8 @@ export interface HookPayload {
 }
 
 /**
- * Ambiente do hook. `LIVING_DOCS_HOST_ROOT` não muda de nome em ADR-0003: ela
- * sempre significou "o prefixo de caminho do lado do host", que não é ambíguo.
+ * Hook environment. `LIVING_DOCS_HOST_ROOT` does not change its name in ADR-0003: it
+ * always meant "the path prefix on the host side", which is not ambiguous.
  */
 export function hookEnv(): HookEnv {
   const root = repoRoot()
@@ -62,10 +62,10 @@ export function askOutput(reason: string): string {
 }
 
 /**
- * Saída de hook que **não** decide permissão: injeta contexto e devolve o
- * controle. É a forma de ownership/watch-reminder (PostToolUse) e, na Fase 7, de living-docs/session-inventory (SessionStart).
- * Não existe variante com `permissionDecision` aqui de propósito — o mecanismo 1
- * lembra e pergunta, nunca nega (spec §7).
+ * Hook output that does **not** decide permission: it injects context and hands
+ * control back. It is the form of ownership/watch-reminder (PostToolUse) and, in Phase 7, of living-docs/session-inventory (SessionStart).
+ * There is deliberately no variant with `permissionDecision` here — mechanism 1
+ * reminds and asks, never denies (spec §7).
  */
 export function contextOutput(event: 'PostToolUse' | 'SessionStart', context: string): string {
   return JSON.stringify({
@@ -73,7 +73,7 @@ export function contextOutput(event: 'PostToolUse' | 'SessionStart', context: st
   })
 }
 
-/** Emite a decisão; `null` significa "deixe passar em silêncio". */
+/** Emits the decision; `null` means "let it through silently". */
 export function emit(value: string | null): void {
   if (value !== null) {
     process.stdout.write(`${value}\n`)

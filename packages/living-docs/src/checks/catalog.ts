@@ -1,23 +1,23 @@
 export interface CatalogEntry {
   id: string
   name: string
-  /** O comando do CLI que roda este check. */
+  /** The CLI command that runs this check. */
   command: string
   /** The failure condition — the 'Fails when' column of spec §9. */
   failsWhen: string
 }
 
 /**
- * O contrato público dos checks: é isto que um projeto consumidor cita na
- * Definition of Done dele, e é a fonte anotada de `docs/contracts/checks.gen.md`
- * (`ownership/generated-drift` a compara com a saída do gerador). Para mudar o
- * contrato, mude aqui e regere — nunca o contrário. O catálogo do núcleo mora em
+ * The public contract of the checks: this is what a consuming project cites in
+ * its Definition of Done, and it is the annotated source of `docs/contracts/checks.gen.md`
+ * (`ownership/generated-drift` compares it with the generator output). To change the
+ * contract, change it here and regenerate — never the other way around. The core catalog lives in
  * `@esliph/ownership` (`CORE_CHECK_CATALOG`).
  *
- * Este arquivo não importa nada (nem `yaml`, `picomatch`, `node:child_process`,
- * nem os checks living-docs/frontmatter/2/3): é só tipos e dados, de propósito — `src/tools/gen-checks.ts`
- * importa daqui, e não de `registry.ts`, para não puxar transitivamente
- * dependências que um gerador não precisa.
+ * This file imports nothing (neither `yaml`, `picomatch`, `node:child_process`,
+ * nor the living-docs/frontmatter/2/3 checks): it is only types and data, on purpose — `src/tools/gen-checks.ts`
+ * imports from here, and not from `registry.ts`, so as not to transitively pull in
+ * dependencies a generator does not need.
  */
 export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
   {

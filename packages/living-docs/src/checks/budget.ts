@@ -1,19 +1,19 @@
 /**
- * O teto de tempo do **conjunto** de checks (`RNF-0005`, spec §9).
+ * The time ceiling of the **set** of checks (`RNF-0005`, spec §9).
  *
- * Do conjunto, e não de cada check: é o conjunto que roda no PR, e um teto por
- * check aprovaria oito checks lentos. Os três candidatos conhecidos a estourá-lo
- * são `ownership/generated-drift` (executa subprocesso), `living-docs/agent-contract-duplication` (compara frase com frase) e `living-docs/links`
- * (varre o corpus inteiro).
+ * Of the set, not of each check: the set is what runs on the PR, and a per-check
+ * ceiling would approve eight slow checks. The three known candidates to blow it
+ * are `ownership/generated-drift` (runs a subprocess), `living-docs/agent-contract-duplication` (compares sentence with sentence) and `living-docs/links`
+ * (scans the whole corpus).
  *
- * Dois minutos é "minutos, no PR" com uma ordem de grandeza de folga sobre a
- * medida real deste repositório — e é isso que um orçamento precisa pegar:
- * regressão de ordem de grandeza, não ruído de máquina carregada. Subir este
- * número sem uma medida nova ao lado é transformá-lo de volta em intenção.
+ * Two minutes is "minutes, on the PR" with an order of magnitude of slack over the
+ * real measurement of this repository — and that is what a budget must catch:
+ * an order-of-magnitude regression, not noise from a loaded machine. Raising this
+ * number without a new measurement beside it turns it back into intent.
  */
 export const CHECK_BUDGET_MS = 120_000
 
-/** Milissegundos como quem lê o log do PR os lê. */
+/** Milliseconds, the way whoever reads the PR log reads them. */
 export function formatElapsed(ms: number): string {
   return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`
 }

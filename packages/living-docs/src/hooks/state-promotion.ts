@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * PreToolUse (Edit|Write): intercepta promoção de estado que exige ato humano.
+ * PreToolUse (Edit|Write): intercepts a state promotion that requires a human act.
  *
- * Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §4 — "nenhum agente promove
- * estado sozinho". Devolve `ask`, nunca `deny`: promover é legítimo, só não é
- * ato de agente.
+ * Rule of origin: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §4 — "no agent promotes
+ * state on its own". Returns `ask`, never `deny`: promoting is legitimate, it is just not
+ * an agent's act.
  */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -49,16 +49,16 @@ function statusOf(source: string): { id: string; status: string } | null {
 }
 
 /**
- * A primeira transição desta edição que exige gente. O pareamento antes/depois é
- * do núcleo (`findTransitions`); a lista de transições que exigem ato humano é
- * do living-docs, fixa, até `DA-0004` decidir como o núcleo a declara.
+ * The first transition in this edit that requires a person. The before/after pairing belongs
+ * to the core (`findTransitions`); the list of transitions that require a human act belongs
+ * to living-docs, fixed, until `DA-0004` decides how the core declares it.
  */
 function findPromotion(before: string, after: string, rule: ArtifactRule, repoPath: string): Promotion | null {
   for (const transition of findTransitions(before, after, rule.core, repoPath)) {
     if (!isHumanPromotion(transition.from, transition.to)) {
       continue
     }
-    // Em per-file a chave do núcleo é o caminho; a mensagem nomeia o ID.
+    // In per-file the core's key is the path; the message names the ID.
     const id = rule.collection === 'per-file' ? (statusOf(after)?.id ?? transition.key) : transition.key
 
     return { id, from: transition.from, to: transition.to }
@@ -91,7 +91,7 @@ export function decideStatePromotion(payload: HookPayload, env: HookEnv): StateP
   try {
     config = loadLivingDocsConfig(env.root)
   } catch {
-    return ALLOW // falha aberta
+    return ALLOW // fails open
   }
   const rule = findArtifactRule(config, repoPath)
 
@@ -104,7 +104,7 @@ export function decideStatePromotion(payload: HookPayload, env: HookEnv): StateP
   try {
     current = readFileSync(join(env.root, repoPath), 'utf8')
   } catch {
-    return ALLOW // arquivo novo nasce em draft/open; nada a promover
+    return ALLOW // new file is born in draft/open; nothing to promote
   }
 
   const next = applyToolInput(current, toolInput)

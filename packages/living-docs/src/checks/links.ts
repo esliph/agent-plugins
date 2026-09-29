@@ -8,11 +8,11 @@ import { stripCode } from '../docs/markdown.ts'
 const RULE = 'living-docs/links'
 
 /**
- * Formatos que não se leem em diff nem se revisam em PR (spec §13).
+ * Formats that are neither read in a diff nor reviewed in a PR (spec §13).
  *
- * Denylist, não allowlist, de propósito: `.svg` é XML e diffável, `.json` e
- * `.csv` são texto, e reprovar formato de texto legítimo seria o check ensinando
- * estilo em vez de cobrar a regra. O que a spec recusa é o **binário**.
+ * Denylist, not allowlist, on purpose: `.svg` is XML and diffable, `.json` and
+ * `.csv` are text, and failing a legitimate text format would be the check teaching
+ * style instead of enforcing the rule. What the spec refuses is the **binary**.
  */
 export const BINARY_EXTENSIONS: ReadonlySet<string> = new Set([
   'png',
@@ -65,7 +65,7 @@ export const BINARY_EXTENSIONS: ReadonlySet<string> = new Set([
 
 export interface Link {
   target: string
-  /** Linha 1-indexed. */
+  /** 1-indexed line. */
   line: number
   kind: 'link' | 'wikilink'
 }
@@ -74,24 +74,24 @@ const INLINE = /\[[^\]\n]*\]\(\s*<?([^)>\s]+)>?(?:\s+"[^"]*")?\s*\)/g
 const DEFINITION = /^[ \t]{0,3}\[[^\]\n]+\]:[ \t]*<?([^\s>]+)>?/g
 const WIKILINK = /\[\[([^\]|\n]+?)(?:\|[^\]\n]*)?\]\]/g
 
-/** Protocolo, ou raiz de rede: o alvo não é deste repositório. */
+/** Protocol, or network root: the target is not from this repository. */
 const EXTERNAL = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i
 
 function error(file: string, line: number, message: string, fix: string): Finding {
   return { ruleId: RULE, file, line, severity: 'error', message, fix }
 }
 
-/** O alvo aponta para fora do repositório, ou para dentro do próprio arquivo. */
+/** The target points outside the repository, or inside the file itself. */
 function isOutOfScope(target: string): boolean {
   return EXTERNAL.test(target) || target.startsWith('#')
 }
 
 /**
- * Links de um texto **já sem código** (`stripCode` é de quem chama).
+ * Links of a text **already without code** (`stripCode` is the caller's job).
  *
- * Só o que deveria resolver dentro do repositório: link externo e âncora pura
- * saem aqui, e não lá embaixo. Um verificador de link que tenta resolver
- * `https://` precisa de rede, e o toolkit não tem (`RNF-0001`).
+ * Only what should resolve inside the repository: external links and pure anchors
+ * leave here, and not further down. A link checker that tries to resolve
+ * `https://` needs a network, and the toolkit has none (`RNF-0001`).
  */
 export function findLinks(source: string): Link[] {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
@@ -122,12 +122,12 @@ export function findLinks(source: string): Link[] {
 }
 
 /**
- * O alvo como caminho relativo à raiz do repositório, ou `null` quando não sobra
- * caminho nenhum depois de tirar fragmento e query.
+ * The target as a path relative to the repository root, or `null` when no
+ * path is left after removing fragment and query.
  *
- * O fragmento é descartado e o **arquivo** é verificado: resolver âncora exigiria
- * reproduzir a regra de slug de cada renderizador, e uma regra reproduzida pela
- * metade reprova link que funciona.
+ * The fragment is discarded and the **file** is verified: resolving an anchor would require
+ * reproducing each renderer's slug rule, and a rule reproduced
+ * halfway fails a link that works.
  */
 function resolveTarget(from: string, target: string): string | null {
   const withoutFragment = target.split('#')[0]?.split('?')[0] ?? ''
@@ -141,7 +141,7 @@ function resolveTarget(from: string, target: string): string | null {
   try {
     decoded = decodeURIComponent(withoutFragment)
   } catch {
-    // alvo com `%` que não é escape: verifica como veio
+    // target with a `%` that is not an escape: verify as it came
   }
 
   const base = decoded.startsWith('/') ? decoded.slice(1) : posix.join(posix.dirname(from), decoded)
@@ -149,7 +149,7 @@ function resolveTarget(from: string, target: string): string | null {
   return posix.normalize(base).replace(/^\.\//, '')
 }
 
-/** Nome de arquivo (sem `.md`, minúsculo) → arquivos do corpus com aquele nome. */
+/** File name (without `.md`, lowercase) → corpus files with that name. */
 function wikilinkIndex(files: readonly string[]): Map<string, string[]> {
   const index = new Map<string, string[]>()
 
@@ -166,16 +166,16 @@ function extensionOf(file: string): string | null {
   const base = posix.basename(file)
   const dot = base.lastIndexOf('.')
 
-  // `dot <= 0` cobre "sem extensão" e ".gitkeep" — nome que começa com ponto.
+  // `dot <= 0` covers "no extension" and ".gitkeep" — a name that starts with a dot.
   return dot <= 0 ? null : base.slice(dot + 1).toLowerCase()
 }
 
 /**
- * `living-docs/links` — links. Regra de origem: `RN-0023`.
+ * `living-docs/links` — links. Rule of origin: `RN-0023`.
  *
- * Começa apagando código, e essa ordem é o check: a primeira coisa que um
- * varredor de links ingênuo pega é o exemplo de link dentro de um bloco de
- * TypeScript — e cobrar exemplo ensina a não escrever exemplo.
+ * It starts by erasing code, and that order is the check: the first thing a naive
+ * link scanner catches is the link example inside a TypeScript
+ * block — and charging for an example teaches not to write examples.
  */
 export const livingDocsLinks: Check = {
   id: RULE,
@@ -186,7 +186,7 @@ export const livingDocsLinks: Check = {
     const corpus = new Set(files)
     const index = wikilinkIndex(files)
 
-    // 1 — anexo binário no corpus da documentação (spec §13).
+    // 1 — binary attachment in the documentation corpus (spec §13).
     for (const file of files) {
       const extension = extensionOf(file)
 

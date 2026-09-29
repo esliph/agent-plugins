@@ -1,19 +1,19 @@
-/** Abre ou fecha bloco de código cercado. O grupo guarda o tamanho da cerca. */
+/** Opens or closes a fenced code block. The group holds the fence length. */
 const FENCE = /^\s{0,3}(`{3,}|~{3,})/
 
 /**
- * O texto sem bloco cercado, e **com** a marcação inline intacta.
+ * The text without fenced blocks, and **with** the inline markup intact.
  *
- * Preservar a contagem de linhas não é detalhe — é o que permite reportar a
- * linha do achado. E a cerca precisa fechar com uma do **mesmo tamanho ou
- * maior** (CommonMark): sem isso, um bloco aberto com quatro crases fecha na
- * primeira cerca de três que estiver dentro dele, e o resto do arquivo volta a
- * ser lido como prosa — que é exatamente como um exemplo de código vira um
- * falso positivo.
+ * Preserving the line count is not a detail — it is what allows reporting the
+ * finding's line. And the fence must close with one of the **same length or
+ * longer** (CommonMark): without that, a block opened with four backticks closes at the
+ * first three-backtick fence inside it, and the rest of the file is read as
+ * prose again — which is exactly how a code example becomes a
+ * false positive.
  *
- * É a metade que serve a quem **procura** um ID escrito entre crases: apagar
- * código inline apagaria justamente o que se procura, mas o exemplo dentro de
- * uma cerca continua sendo exemplo (`living-docs/done-verifiable`, item de Definition of Done).
+ * It is the half that serves whoever **looks for** an ID written between backticks: erasing inline
+ * code would erase precisely what is being looked for, but the example inside
+ * a fence is still an example (`living-docs/done-verifiable`, Definition of Done item).
  */
 export function stripFences(source: string): string {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
@@ -43,10 +43,10 @@ export function stripFences(source: string): string {
 }
 
 /**
- * O texto sem código: bloco cercado e marcação inline saem, e as linhas ficam.
+ * The text without code: fenced block and inline markup go out, and the lines stay.
  *
- * É `stripFences` seguido do apagamento do código inline — quem compara prosa
- * (`duplicatedSentences`, `sentencesOf`) quer as duas coisas fora.
+ * It is `stripFences` followed by erasing the inline code — whoever compares prose
+ * (`duplicatedSentences`, `sentencesOf`) wants both gone.
  */
 export function stripCode(source: string): string {
   return stripFences(source)
@@ -55,7 +55,7 @@ export function stripCode(source: string): string {
     .join('\n')
 }
 
-/** Prosa comparável: minúscula, sem marcação, sem pontuação, espaço colapsado. */
+/** Comparable prose: lowercase, no markup, no punctuation, whitespace collapsed. */
 export function normalizeProse(text: string): string {
   return text
     .toLowerCase()
@@ -68,13 +68,13 @@ const BLOCK_START = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+|\|)/
 const MARKER = /^\s*(?:[-*+]\s+|#{1,6}\s+|>\s?|\d+[.)]\s+)/
 
 /**
- * Frases do documento, já sem código, com a linha em que cada uma começa.
+ * Sentences of the document, already without code, with the line where each one starts.
  *
- * O parágrafo é juntado **antes** do corte em frases: prosa quebrada em oitenta
- * colunas não pode escapar de uma comparação por frase só por causa de onde o
- * editor deu enter (`ADR-0009`). Item de lista, título, citação e linha de
- * tabela começam frase nova — juntá-los ao parágrafo anterior inventaria uma
- * frase que ninguém escreveu.
+ * The paragraph is joined **before** being cut into sentences: prose wrapped at eighty
+ * columns must not escape a per-sentence comparison merely because of where the
+ * editor hit enter (`ADR-0009`). A list item, heading, quote and table
+ * row start a new sentence — joining them to the previous paragraph would invent a
+ * sentence nobody wrote.
  */
 export function sentencesOf(source: string): { text: string; line: number }[] {
   const lines = stripCode(source).split('\n')

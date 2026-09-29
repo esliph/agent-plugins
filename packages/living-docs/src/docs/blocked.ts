@@ -3,28 +3,28 @@ import { fieldOf } from '../config/ownership.ts'
 import type { ArtifactDoc } from './collect.ts'
 
 /**
- * Uma decisão aberta que nomeou os caminhos que ela bloqueia (`RN-0026`).
+ * An open decision that named the paths it blocks (`RN-0026`).
  *
- * O campo é opcional de propósito: decisão aberta sem caminho declarado continua
- * válida e não bloqueia nada. O que a spec recusa é o contrário — declarar o
- * caminho e não ser lembrado.
+ * The field is optional on purpose: an open decision without a declared path remains
+ * valid and blocks nothing. What the spec refuses is the opposite — declaring the
+ * path and not being reminded.
  */
 export interface BlockedClaim {
   id: string
-  /** O documento onde a decisão mora. */
+  /** The document where the decision lives. */
   doc: string
   line: number
-  /** Os globs declarados, como o projeto os escreveu. */
+  /** The declared globs, as the project wrote them. */
   paths: string[]
   skill: string
   owner: string
-  /** O enunciado da lacuna, quando o item o traz. */
+  /** The statement of the gap, when the item carries it. */
   gap: string | null
 }
 
 const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na'])
 
-/** Um caminho por vírgula ou por espaço; crase é decoração de markdown. */
+/** One path per comma or space; backticks are markdown decoration. */
 function splitPaths(raw: string): string[] {
   return raw
     .split(/[,\s]+/)
@@ -32,7 +32,7 @@ function splitPaths(raw: string): string[] {
     .filter(path => path !== '' && !EMPTY.has(path.toLowerCase()))
 }
 
-/** As reivindicações declaradas por decisões `open`, em qualquer forma de coleção. */
+/** The claims declared by `open` decisions, in any collection form. */
 export function blockedClaims(docs: readonly ArtifactDoc[]): BlockedClaim[] {
   const claims: BlockedClaim[] = []
 
@@ -92,15 +92,15 @@ export function blockedClaims(docs: readonly ArtifactDoc[]): BlockedClaim[] {
   return claims
 }
 
-/** Que reivindicações este conjunto de caminhos toca, e o que cada uma pegou. */
+/** Which claims this set of paths touches, and what each one caught. */
 export function claimsFor(claims: readonly BlockedClaim[], paths: readonly string[]): { claim: BlockedClaim; matched: string[] }[] {
   const normalized = paths.map(path => path.replace(/\\/g, '/').replace(/^\.\//, ''))
   const hits: { claim: BlockedClaim; matched: string[] }[] = []
 
   for (const claim of claims) {
     const matches = picomatch(claim.paths)
-    // O próprio documento da decisão nunca é bloqueado: quem vai resolvê-la
-    // precisa poder escrever nela.
+    // The decision's own document is never blocked: whoever is going to resolve it
+    // needs to be able to write in it.
     const matched = normalized.filter(path => path !== claim.doc && matches(path))
 
     if (matched.length > 0) {

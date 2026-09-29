@@ -4,15 +4,15 @@ import { blockedClaims, claimsFor } from '../docs/blocked.ts'
 
 const RULE = 'living-docs/open-decision-claim'
 
-/** O rótulo que libera o check (`ADR-0010`). */
+/** The label that releases the check (`ADR-0010`). */
 export function docsExceptionReason(messages: readonly string[]): string | null {
   return exceptionReasonFor('Docs', messages)
 }
 
 /**
- * `living-docs/open-decision-claim` — o diff toca caminho reivindicado por
- * decisão aberta (`RN-0026`). Só roda com o diff (`ADR-0010`), e o rótulo
- * `Docs: none — <razão>` o libera. É a metade determinística do critério 4 da
+ * `living-docs/open-decision-claim` — the diff touches a path claimed by an
+ * open decision (`RN-0026`). It only runs with the diff (`ADR-0010`), and the label
+ * `Docs: none — <reason>` releases it. It is the deterministic half of criterion 4 of
  * spec §12.
  */
 export function livingDocsOpenDecisionClaim(diff: DiffFacts | null = null): Check {

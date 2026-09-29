@@ -1,6 +1,6 @@
 import { parseFrontmatter } from '../../frontmatter/parse.ts'
 
-/** Conteúdo que o arquivo teria depois deste `tool_input`, ou null se não dá para prever. */
+/** Content the file would have after this `tool_input`, or null if it cannot be predicted. */
 export function applyToolInput(current: string, toolInput: Record<string, unknown>): string | null {
   const content = toolInput.content
 
@@ -22,7 +22,7 @@ export function applyToolInput(current: string, toolInput: Record<string, unknow
 }
 
 export interface DocumentDiff {
-  /** Chaves de frontmatter adicionadas, removidas ou com valor diferente, em ordem alfabética. */
+  /** Frontmatter keys added, removed or with a different value, in alphabetical order. */
   changedFields: string[]
   bodyChanged: boolean
 }

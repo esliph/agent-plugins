@@ -7,21 +7,21 @@ export const RETIRED_IDS_PATH = 'docs/ids-retired.txt'
 
 export interface Citation {
   id: string
-  /** Linha 1-indexed dentro de `source`. */
+  /** 1-indexed line within `source`. */
   line: number
 }
 
 /**
- * Sintaxe de citação do projeto (spec §8, `ADR-0011`): a forma escrita declarada
- * em `id-format`, com o padrão `<PREFIXO>-<número>`.
+ * The project's citation syntax (spec §8, `ADR-0011`): the written form declared
+ * in `id-format`, with the pattern `<PREFIX>-<number>`.
  *
- * Derivada de `idPatternSource` — uma fonte, não duas cópias que se pedem para
- * mudar juntas. Um match com prefixo não declarado (uma referência a "ISO-8601",
- * por exemplo) é inofensivo: `id-integrity.ts` só resolve citações cujo prefixo está
- * em `known`, e os demais são ignorados em silêncio.
+ * Derived from `idPatternSource` — one source, not two copies that ask to be
+ * changed together. A match with an undeclared prefix (a reference to "ISO-8601",
+ * for example) is harmless: `id-integrity.ts` only resolves citations whose prefix is
+ * in `known`, and the rest are silently ignored.
  *
- * Global e sem âncoras de propósito: varre texto livre em busca de várias
- * citações por linha.
+ * Global and without anchors on purpose: it scans free text looking for several
+ * citations per line.
  */
 export function citationPattern(format: IdFormat = DEFAULT_ID_FORMAT): RegExp {
   return new RegExp(`\\b${idPatternSource(format)}\\b`, 'g')
@@ -43,7 +43,7 @@ export function findCitations(source: string, format: IdFormat = DEFAULT_ID_FORM
   return citations
 }
 
-/** IDs retirados — nunca podem reaparecer (spec §2). */
+/** Retired IDs — they can never reappear (spec §2). */
 export function loadRetiredIds(root: string): Set<string> {
   let source: string
 

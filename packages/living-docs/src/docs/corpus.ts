@@ -7,7 +7,7 @@ function normalize(path: string): string {
   return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
-/** Todo caminho que é do living-docs: artefatos, documentos e gerados. */
+/** Every path that belongs to living-docs: artifacts, documents and generated ones. */
 export function declaredPaths(config: LivingDocsConfig): string[] {
   return [...config.artifacts.map(artifact => artifact.path), ...config.documents.map(document => document.path), ...config.generated.map(generated => generated.path)].map(
     normalize,
@@ -15,13 +15,13 @@ export function declaredPaths(config: LivingDocsConfig): string[] {
 }
 
 /**
- * O corpus da documentação: tudo que mora num caminho do living-docs e existe.
+ * The documentation corpus: everything that lives on a living-docs path and exists.
  *
- * Antes era "tudo sob o diretório do arquivo de ownership, mais o declarado fora
- * dele". Com o arquivo na raiz, esse diretório seria o repositório inteiro. O
- * corpus passa a ser o que as entradas com bloco `living-docs:` declaram, que é
- * o que o projeto disse ser documentação (ADR-0029). É o conjunto que o check de
- * links varre e onde anexo binário reprova.
+ * It used to be "everything under the ownership file's directory, plus what is declared outside
+ * it". With the file at the root, that directory would be the whole repository. The
+ * corpus is now what the entries with a `living-docs:` block declare, which is
+ * what the project said documentation is (ADR-0029). It is the set the links check
+ * scans and where a binary attachment fails.
  */
 export function documentationFiles(root: string, config: LivingDocsConfig): string[] {
   const files = new Set<string>()

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * PreToolUse (Edit|Write): pergunta quando a edição toca um caminho que uma
- * decisão aberta reivindicou.
+ * PreToolUse (Edit|Write): asks when the edit touches a path that an
+ * open decision has claimed.
  *
- * Regra de origem: `RN-0026`, e o critério de aceite 4 da spec §12 —
- * comportamento sem regra escrita vira decisão aberta **e a implementação não
- * acontece**. Devolve `ask`, nunca nega: negar exigiria julgar se aquela
- * edição é a implementação da regra que falta ou outra coisa qualquer no mesmo
- * caminho, e hook que julga está no lugar errado (spec §1, corolário 1).
+ * Rule of origin: `RN-0026`, and acceptance criterion 4 of spec §12 —
+ * behavior without a written rule becomes an open decision **and the implementation does not
+ * happen**. Returns `ask`, never denies: denying would require judging whether that
+ * edit is the implementation of the missing rule or something else entirely on the same
+ * path, and a hook that judges is in the wrong place (spec §1, corollary 1).
  */
 import { loadLivingDocsConfig } from '../config/ownership.ts'
 import { collectArtifacts } from '../docs/collect.ts'
@@ -40,7 +40,7 @@ export function decideOpenDecisionGuard(payload: HookPayload, env: HookEnv): Ope
 
     hits = claimsFor(blockedClaims(collectArtifacts(env.root, config)), [repoPath])
   } catch {
-    return ALLOW // falha aberta (`RNF-0001`)
+    return ALLOW // fails open (`RNF-0001`)
   }
 
   const hit = hits[0]

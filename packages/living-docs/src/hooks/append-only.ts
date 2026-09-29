@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * PreToolUse (Edit|Write): nega alteração de item append-only congelado.
+ * PreToolUse (Edit|Write): denies changes to a frozen append-only item.
  *
- * Regra de origem: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §4 — "nenhum estado terminal
- * permite edição do corpo". A allowlist de campos vem de docs/.ownership.yml.
+ * Rule of origin: docs/superpowers/research/2026-08-24-living-documentation-toolkit.md §4 — "no terminal state
+ * allows editing the body". The field allowlist comes from docs/.ownership.yml.
  */
 import { readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
@@ -43,7 +43,7 @@ export function decideAppendOnly(payload: HookPayload, env: HookEnv): HookDecisi
   try {
     rule = findArtifactRule(loadLivingDocsConfig(env.root), repoPath)
   } catch {
-    return ALLOW // falha aberta: sem configuração legível, não trave o trabalho
+    return ALLOW // fails open: without readable configuration, do not block the work
   }
   if (!rule || !rule.appendOnly) {
     return ALLOW
@@ -54,7 +54,7 @@ export function decideAppendOnly(payload: HookPayload, env: HookEnv): HookDecisi
   try {
     current = readFileSync(join(env.root, repoPath), 'utf8')
   } catch {
-    return ALLOW // criar item novo é sempre permitido
+    return ALLOW // creating a new item is always allowed
   }
 
   let status: unknown
@@ -72,7 +72,7 @@ export function decideAppendOnly(payload: HookPayload, env: HookEnv): HookDecisi
 
   if (next === null) {
     return ALLOW
-  } // não dá para prever o resultado
+  } // the result cannot be predicted
 
   const mutable = rule.mutableFields.length > 0 ? rule.mutableFields : MUTABLE_FIELDS_DEFAULT
   const diff = diffDocument(current, next)
@@ -102,12 +102,12 @@ async function main(): Promise<void> {
 
   if (!payload) {
     return
-  } // falha aberta
+  } // fails open
   const decision = decideAppendOnly(payload, hookEnv())
 
   emit(decision.action === 'deny' ? denyOutput(decision.reason) : null)
 }
 
 if (process.argv[1]?.endsWith('append-only.ts')) {
-  main().catch(() => process.exit(0)) // falha aberta, sempre
+  main().catch(() => process.exit(0)) // fails open, always
 }

@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process'
 
-/** Executor de git, injetável: o teste não precisa de um repositório para provar o resto. */
+/** Git executor, injectable: the test does not need a repository to prove the rest. */
 export type GitRunner = (args: readonly string[], cwd: string) => string
 
-/** Teto local; o orçamento do hook inteiro é 5 s (spec §7). */
+/** Local ceiling; the whole hook's budget is 5 s (spec §7). */
 const TIMEOUT_MS = 3_000
 
 const runGit: GitRunner = (args, cwd) =>
@@ -15,15 +15,15 @@ const runGit: GitRunner = (args, cwd) =>
   })
 
 /**
- * Caminhos no índice, relativos à raiz do repositório e sempre com `/`.
+ * Paths in the index, relative to the repository root and always with `/`.
  *
- * `-z` porque o git envolve em aspas e escapa caminho com acento ou espaço, e um
- * caminho escapado não casa com glob nenhum. `safe.directory=*` porque o hook roda
- * no container com uid diferente do dono do checkout montado (`ADR-0003`), e sem
- * isso o git recusa o repositório.
+ * `-z` because git wraps in quotes and escapes paths with accents or spaces, and an
+ * escaped path matches no glob. `safe.directory=*` because the hook runs
+ * in the container with a uid different from the owner of the mounted checkout (`ADR-0003`), and without
+ * it git refuses the repository.
  *
- * Falha aberta (`RNF-0001`): erro nenhum sobe daqui. Lista vazia significa "não
- * sei", e quem chama trata "não sei" como "deixe passar".
+ * Fails open (`RNF-0001`): no error bubbles up from here. An empty list means "I don't
+ * know", and whoever calls treats "I don't know" as "let it through".
  */
 export function stagedPaths(root: string, run: GitRunner = runGit): string[] {
   let output: string

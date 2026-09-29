@@ -9,10 +9,10 @@ import { findCitations } from '../ids/citations.ts'
 const RULE = 'living-docs/commit-discipline'
 
 /**
- * O diff com as linhas, e não só os caminhos. É o fato a mais que `living-docs/commit-discipline` pede e
- * que `ownership/consumer-change-logged` e `living-docs/open-decision-claim` não precisam — por isso um tipo próprio, e não um campo
- * opcional em `DiffFacts`: campo opcional que alguém esquece de preencher vira
- * check que se cala sem dizer que se calou.
+ * The diff with the lines, and not only the paths. It is the extra fact that `living-docs/commit-discipline` asks for and
+ * that `ownership/consumer-change-logged` and `living-docs/open-decision-claim` do not need — hence a type of its own, and not an
+ * optional field in `DiffFacts`: an optional field someone forgets to fill in becomes a
+ * check that goes quiet without saying it went quiet.
  */
 export interface CommitFacts extends DiffFacts {
   edits: readonly FileEdit[]
@@ -20,14 +20,14 @@ export interface CommitFacts extends DiffFacts {
 
 const LAST_REVIEWED = /^\s*last-reviewed\s*:/i
 
-/** A edição mexeu na data de revisão e em mais nada (`RN-0027`). */
+/** The edit touched the review date and nothing else (`RN-0027`). */
 export function isPureDateBump(edit: FileEdit): boolean {
   return edit.added.length === 1 && edit.removed.length === 1 && LAST_REVIEWED.test(edit.added[0] ?? '') && LAST_REVIEWED.test(edit.removed[0] ?? '')
 }
 
 /**
- * Os IDs que este arquivo declara, em forma canônica (`RN-0024`). Artefato
- * individual declara um no frontmatter; coleção declara um por item.
+ * The IDs this file declares, in canonical form (`RN-0024`). An individual
+ * artifact declares one in the frontmatter; a collection declares one per item.
  */
 export function declaredIds(doc: ArtifactDoc, format: IdFormat): string[] {
   const raw: unknown[] = doc.rule.collection === 'per-file' ? [doc.frontmatter?.data?.id] : doc.items.map(item => item.key)
@@ -54,16 +54,16 @@ function error(file: string, message: string, fix: string): Finding {
 }
 
 /**
- * `living-docs/commit-discipline` — commit discipline. Duas metades, as duas lidas do diff da branch: o
- * bump em massa de `last-reviewed` (`RN-0027`, anti-requisito da spec §13) e o
- * commit que altera artefato sem citar o ID afetado (`RN-0028`, spec §11).
+ * `living-docs/commit-discipline` — commit discipline. Two halves, both read from the branch diff: the
+ * mass bump of `last-reviewed` (`RN-0027`, spec §13 anti-requirement) and the
+ * commit that changes an artifact without citing the affected ID (`RN-0028`, spec §11).
  *
- * Roda no grupo que já recebe o diff por injeção, pela mesma razão de `ownership/consumer-change-logged` e
- * de `living-docs/open-decision-claim`: sem base não há commit para ler, e inventar um
- * produziria achado sobre mudança que não é desta branch (`ADR-0010`).
+ * Runs in the group that already receives the diff by injection, for the same reason as `ownership/consumer-change-logged` and
+ * `living-docs/open-decision-claim`: without a base there is no commit to read, and inventing one
+ * would produce a finding about a change that is not from this branch (`ADR-0010`).
  *
- * A unidade das duas metades é o **diff da branch**, não o commit: é a unidade
- * que o CI tem, e partir um bump em três commits não o torna revisão de verdade
+ * The unit of both halves is the **branch diff**, not the commit: it is the unit
+ * CI has, and splitting a bump into three commits does not make it a real review
  * (`ADR-0013`).
  */
 export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
@@ -77,9 +77,9 @@ export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
       const findings: Finding[] = []
       const { config } = context
 
-      // 1 — bump em massa de `last-reviewed` (`RN-0027`).
-      // Sem rótulo de exceção, de propósito: o rótulo seria a caixinha marcada
-      // que o anti-requisito da spec §13 descreve (`ADR-0013`).
+      // 1 — mass bump of `last-reviewed` (`RN-0027`).
+      // No exception label, on purpose: the label would be the ticked box
+      // that the spec §13 anti-requirement describes (`ADR-0013`).
       const bumps = facts.edits.filter(isPureDateBump).map(edit => normalizePath(edit.path))
 
       if (bumps.length >= config.lastReviewedBumpLimit) {
@@ -98,7 +98,7 @@ export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
         )
       }
 
-      // 2 — commit que altera artefato sem citar o ID afetado (`RN-0028`).
+      // 2 — commit that changes an artifact without citing the affected ID (`RN-0028`).
       const citados = new Set<string>()
 
       for (const message of facts.messages) {
@@ -119,13 +119,13 @@ export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
 
         if (doc === undefined) {
           continue
-        } // apagado no diff: não há ID a citar
+        } // deleted in the diff: no ID to cite
 
         const ids = declaredIds(doc, config.idFormat)
 
         if (ids.length === 0) {
           continue
-        } // arquivo de artefato sem item: nada a citar
+        } // artifact file without an item: nothing to cite
         if (ids.some(id => citados.has(id))) {
           continue
         }

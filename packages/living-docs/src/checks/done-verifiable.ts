@@ -24,13 +24,13 @@ function normalizePath(path: string): string {
 }
 
 /**
- * Itens de Definition of Done que não nomeiam o que os verifica (`RN-0017`).
+ * Definition of Done items that do not name what verifies them (`RN-0017`).
  *
- * `stripFences`, não `stripCode`: o vocabulário de verificação (`plugin/nome`,
- * …) é normalmente escrito entre crases, e apagar código inline apagaria o
- * próprio ID que este check procura. A cerca, essa sai — a Definition of Done
- * que documenta o próprio formato num bloco de exemplo não pode reprovar por
- * causa do exemplo.
+ * `stripFences`, not `stripCode`: the verification vocabulary (`plugin/name`,
+ * …) is normally written between backticks, and erasing inline code would erase the
+ * very ID this check looks for. The fence, that one goes — a Definition of Done
+ * that documents its own format in an example block cannot fail because of
+ * the example.
  */
 export function dodItemsWithoutVerification(source: string): { text: string; line: number }[] {
   const lines = stripFences(source).split('\n')
@@ -52,10 +52,10 @@ export function dodItemsWithoutVerification(source: string): { text: string; lin
 }
 
 /**
- * `living-docs/done-verifiable` — item de Definition of Done sem verificação
- * nomeada (`RN-0017`). Um dos três pedaços do antigo check de cobertura de
- * propriedade: nomes separados porque "falhou o check sete" nunca disse qual
- * parte falhou (§7 da spec de 2026-09-18).
+ * `living-docs/done-verifiable` — Definition of Done item without a named
+ * verification (`RN-0017`). One of the three pieces of the former ownership
+ * coverage check: separate names because "check seven failed" never said which
+ * part failed (§7 of the 2026-09-18 spec).
  */
 export const livingDocsDoneVerifiable: Check = {
   id: RULE,

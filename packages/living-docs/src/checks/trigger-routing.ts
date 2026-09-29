@@ -7,11 +7,11 @@ import { toolkitRoot } from '../core/roots.ts'
 const RULE = 'living-docs/trigger-routing'
 
 /**
- * A `description` de cada skill da raiz do **toolkit** (`ADR-0003`).
+ * The `description` of each skill in the **toolkit** root (`ADR-0003`).
  *
- * É o único check que atravessa as duas raízes: o artefato mora no repositório
- * validado e a skill mora no toolkit. Diretório ausente devolve mapa vazio, e
- * mapa vazio vira aviso — nunca falha.
+ * It is the only check that crosses both roots: the artifact lives in the validated
+ * repository and the skill lives in the toolkit. A missing directory returns an empty map, and
+ * an empty map becomes a warning — never a failure.
  */
 export function loadSkillDescriptions(root: string = toolkitRoot()): Map<string, string> {
   const dir = join(root, 'skills')
@@ -39,7 +39,7 @@ export function loadSkillDescriptions(root: string = toolkitRoot()): Map<string,
     try {
       description = parseFrontmatter(source)?.data.description
     } catch {
-      continue // SKILL.md com frontmatter quebrado é achado de `authoring`, não daqui
+      continue // SKILL.md with broken frontmatter is an `authoring` finding, not this check's
     }
     if (typeof description === 'string') {
       found.set(name, description)
@@ -70,12 +70,12 @@ function triggerOf(frontmatter: { data: Record<string, unknown>; lines: Record<s
 }
 
 /**
- * Os pares (documento, skill dona) que este check compara.
+ * The (document, owning skill) pairs this check compares.
  *
- * Artefato `per-file` fica de fora de propósito: cada arquivo dele é um **item**,
- * e o `trigger` de um ADR — "Nunca. Imutável após aceito" — é do item, não do
- * artefato (`ADR-0013`). Entram os containers de coleção e as entradas de
- * `documents:` que declaram skill.
+ * A `per-file` artifact is left out on purpose: each of its files is an **item**,
+ * and the `trigger` of an ADR — "Never. Immutable once accepted" — belongs to the item, not to the
+ * artifact (`ADR-0013`). Collection containers and the entries of
+ * `documents:` that declare a skill are included.
  */
 export function routedDocs(context: CheckContext): RoutedDoc[] {
   const routed: RoutedDoc[] = []

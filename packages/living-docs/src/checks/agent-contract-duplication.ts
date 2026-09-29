@@ -4,14 +4,14 @@ import { normalizeProse, sentencesOf, stripCode } from '../docs/markdown.ts'
 
 const RULE = 'living-docs/agent-contract-duplication'
 
-/** Piso de palavras da comparação de frases (`ADR-0009`). */
+/** Word floor of the sentence comparison (`ADR-0009`). */
 export const WORD_FLOOR = 12
 
 export interface Duplication {
-  /** A frase como está escrita no contrato. */
+  /** The sentence as written in the contract. */
   sentence: string
   line: number
-  /** O artefato dono onde ela reaparece. */
+  /** The owning artifact where it reappears. */
   source: string
 }
 
@@ -23,7 +23,7 @@ function normalizePath(path: string): string {
   return path.replace(/\\/g, '/').replace(/^\.\//, '')
 }
 
-/** Frases do contrato do agente que reaparecem, palavra por palavra, num artefato dono. */
+/** Sentences of the agent contract that reappear, word for word, in an owning artifact. */
 export function duplicatedSentences(contract: string, corpus: readonly { file: string; source: string }[]): Duplication[] {
   const normalized = corpus.map(entry => ({
     file: entry.file,
@@ -49,11 +49,11 @@ export function duplicatedSentences(contract: string, corpus: readonly { file: s
 }
 
 /**
- * `living-docs/agent-contract-duplication` — o contrato do agente repete texto
- * de artefato dono (`RN-0010`, `RN-0020`). Um dos três pedaços do antigo check
- * de cobertura de propriedade (os outros são `living-docs/done-verifiable` e
- * `living-docs/open-decision-claim`): a cobertura de dono e o vínculo de
- * `watches` são do núcleo (`ownership/owner-coverage` e
+ * `living-docs/agent-contract-duplication` — the agent contract repeats text
+ * from an owning artifact (`RN-0010`, `RN-0020`). One of the three pieces of the former
+ * ownership coverage check (the others are `living-docs/done-verifiable` and
+ * `living-docs/open-decision-claim`): owner coverage and the
+ * `watches` link belong to the core (`ownership/owner-coverage` and
  * `ownership/watch-satisfied`).
  */
 export const livingDocsAgentContractDuplication: Check = {
@@ -75,9 +75,9 @@ export const livingDocsAgentContractDuplication: Check = {
       return findings
     }
 
-    // Corpus: quem tem skill dona. Plano, spec e README citam por ofício, e
-    // reprovar o contrato por causa de quem o citou inverteria quem copiou
-    // de quem (`ADR-0009`).
+    // Corpus: whatever has an owning skill. Plan, spec and README cite by duty, and
+    // failing the contract because of who cites it would invert who copied
+    // from whom (`ADR-0009`).
     const corpus = [
       ...context.docs.map(doc => ({ file: doc.file, source: doc.source, skill: doc.rule.skill })),
       ...context.documents.map(document => ({

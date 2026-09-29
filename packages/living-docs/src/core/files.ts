@@ -3,15 +3,15 @@ import { join } from 'node:path'
 import picomatch from 'picomatch'
 
 /**
- * Diretórios que nunca contêm documento nem citação escrita por gente.
+ * Directories that never contain a document or a citation written by people.
  *
- * Vieram de `src/ids/coverage.ts`, que era o único a caminhar pela árvore até
- * `living-docs/staleness`, `ownership/owner-coverage` e `living-docs/links` também precisarem. Uma quarta cópia da mesma varredura
- * é como as três divergem.
+ * They came from `src/ids/coverage.ts`, which was the only one walking the tree until
+ * `living-docs/staleness`, `ownership/owner-coverage` and `living-docs/links` needed it too. A fourth copy of the same scan
+ * is how the three diverge.
  */
 export const SKIP_DIRS: ReadonlySet<string> = new Set(['.git', 'node_modules', 'dist', 'coverage', '.next', '.cache'])
 
-/** Acima disto, é dado, não texto — e ler custa mais do que vale. */
+/** Above this, it is data, not text — and reading costs more than it is worth. */
 export const MAX_BYTES = 512 * 1024
 
 function walk(root: string, relative: string, out: string[]): void {
@@ -44,25 +44,25 @@ function walk(root: string, relative: string, out: string[]): void {
 }
 
 /**
- * A varredura crua, memoizada por raiz.
+ * The raw scan, memoized per root.
  *
- * Uma execução faz a mesma pergunta muitas vezes: `living-docs/staleness` consulta a árvore uma
- * vez por dívida `open`, `ownership/owner-coverage` e `living-docs/links` mais uma cada, e `living-docs/session-inventory` chama `living-docs/staleness`
- * no início de **toda** sessão, dentro dos 5 segundos que `RNF-0001` dá ao
- * hook. Sem memória, isso é uma travessia de disco por pergunta.
+ * A run asks the same question many times: `living-docs/staleness` queries the tree once
+ * per `open` debt, `ownership/owner-coverage` and `living-docs/links` once more each, and `living-docs/session-inventory` calls `living-docs/staleness`
+ * at the start of **every** session, within the 5 seconds that `RNF-0001` gives the
+ * hook. Without memory, that is one disk traversal per question.
  *
- * O cache guarda a lista **sem filtro**: o glob continua sendo aplicado a cada
- * chamada, porque é ele que distingue "tudo" de "nada" — e essa distinção não
- * pode virar acidente de cache.
+ * The cache holds the list **unfiltered**: the glob is still applied on each
+ * call, because it is what tells "everything" from "nothing" — and that distinction must not
+ * become a cache accident.
  *
- * A memória vale por processo, e o processo do CLI e do hook roda um comando e
- * morre. Quem muda a árvore e volta a perguntar dentro do mesmo processo chama
- * `forgetTree` — é o que `runValidate` e `decideSessionInventory` fazem ao começar, para que
- * duas execuções seguidas nunca leiam a árvore de antes.
+ * The memory is per process, and the CLI and hook process runs one command and
+ * dies. Whoever changes the tree and asks again within the same process calls
+ * `forgetTree` — which is what `runValidate` and `decideSessionInventory` do on start, so that
+ * two consecutive runs never read the tree as it was before.
  */
 const TREES = new Map<string, string[]>()
 
-/** Esquece a árvore memoizada: de uma raiz, ou de todas. */
+/** Forgets the memoized tree: of one root, or of all. */
 export function forgetTree(root?: string): void {
   if (root === undefined) {
     TREES.clear()
@@ -87,24 +87,24 @@ function treeOf(root: string): string[] {
 }
 
 /**
- * Arquivos do repositório, relativos à raiz e sempre com `/`.
+ * Files of the repository, relative to the root and always with `/`.
  *
- * Sem `globs`, tudo. Com lista vazia, nada — as duas perguntas são diferentes, e
- * confundi-las faria um check com configuração vazia varrer o repositório
- * inteiro.
+ * Without `globs`, everything. With an empty list, nothing — the two questions differ, and
+ * confusing them would make a check with empty configuration scan the whole
+ * repository.
  *
- * `dot: true` não é gosto: sem ele, `docs/**` **não casa** `docs/.ownership.yml`
- * nem `docs/decisions/adr/.gitkeep`, porque o padrão do picomatch é ignorar
- * arquivo que começa com ponto. O corpus de `ownership/owner-coverage` começa justamente pelo mapa de
- * propriedade, e um caminhador que o esconde faria o check aprovar por vacuidade
- * o único arquivo que ele não pode deixar sem dono. O que se pula de verdade é a
- * lista `SKIP_DIRS`, e ela é explícita.
+ * `dot: true` is not a matter of taste: without it, `docs/**` **does not match** `docs/.ownership.yml`
+ * nor `docs/decisions/adr/.gitkeep`, because picomatch's default is to ignore
+ * a file that starts with a dot. The `ownership/owner-coverage` corpus starts precisely with the ownership
+ * map, and a walker that hides it would make the check pass by vacuity
+ * the one file it must not leave without an owner. What is really skipped is the
+ * `SKIP_DIRS` list, and it is explicit.
  */
 export function listFiles(root: string, globs?: readonly string[]): string[] {
   const files = treeOf(root)
 
-  // Cópia: a lista memoizada é de quem a guarda, e `.sort()` de um chamador não
-  // pode reordenar a árvore do processo inteiro.
+  // Copy: the memoized list belongs to whoever holds it, and a caller's `.sort()` must not
+  // reorder the whole process's tree.
   if (globs === undefined) {
     return [...files]
   }
@@ -117,15 +117,15 @@ export function listFiles(root: string, globs?: readonly string[]): string[] {
   return files.filter(file => matches(file))
 }
 
-/** Byte NUL é o sinal barato de "isto é dado binário, não texto". */
+/** A NUL byte is the cheap signal for "this is binary data, not text". */
 export function isProbablyText(content: string): boolean {
   return content.indexOf(String.fromCharCode(0)) === -1
 }
 
 /**
- * O conteúdo do arquivo, ou `null` quando ele é grande demais, binário ou
- * ilegível. As três razões colapsam numa só porque nenhum consumidor as trata de
- * forma diferente: todas significam "não leia isto".
+ * The file's content, or `null` when it is too large, binary or
+ * unreadable. The three reasons collapse into one because no consumer handles them
+ * differently: all mean "do not read this".
  */
 export function readTextFile(root: string, file: string): string | null {
   try {
