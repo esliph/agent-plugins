@@ -1,197 +1,197 @@
-# Documentação viva
+# Living documentation
 
-Catálogo de artefatos de conhecimento que vale montar e manter versionado em um projeto de software — genérico, não específico deste repositório. A última seção aplica o catálogo ao EsliphFinance.
+A catalog of knowledge artifacts worth building and keeping under version control in a software project — generic, not specific to this repository. The last section applies the catalog to EsliphFinance.
 
-## O princípio organizador
+## The organizing principle
 
-Documentação viva não é "documentação atualizada". É documentação com três propriedades:
+Living documentation is not "up-to-date documentation". It is documentation with three properties:
 
-1. Mora no mesmo repositório do código.
-2. Tem um **gatilho explícito de atualização** — não uma cadência de calendário.
-3. Tem dono.
+1. It lives in the same repository as the code.
+2. It has an **explicit update trigger** — not a calendar cadence.
+3. It has an owner.
 
-Tudo que não tem gatilho vira wiki morta em três meses.
+Anything without a trigger becomes a dead wiki within three months.
 
-O segundo eixo é separar artefatos por **taxa de mudança**. Misturar princípios (mudam por ano) com estado do código (muda por PR) no mesmo arquivo é a causa mais comum de documentação apodrecida.
+The second axis is to separate artifacts by **rate of change**. Mixing principles (which change yearly) with the state of the code (which changes per PR) in the same file is the most common cause of rotten documentation.
 
 ---
 
-## Camada 1 — Intenção
+## Layer 1 — Intent
 
-Muda raramente. É o contrato de valores.
+Changes rarely. It is the contract of values.
 
-| Artefato                               | Responde                                                                                                     | Gatilho de atualização                                |
+| Artifact | Answers | Update trigger |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
-| **Constitution / Engineering Charter** | O que é inviolável aqui: princípios de design, política de teste, política de segurança, o que nunca fazemos | Só por emenda deliberada, com log de emendas e versão |
-| **Product Vision / North Star**        | Que problema, para quem, qual métrica de sucesso                                                             | Mudança de estratégia                                 |
-| **Glossary / Ubiquitous Language**     | O que cada termo do domínio significa — um significado só                                                    | Toda vez que um termo novo aparece em código ou spec  |
+| **Constitution / Engineering Charter** | What is inviolable here: design principles, test policy, security policy, what we never do | Only by deliberate amendment, with an amendment log and a version |
+| **Product Vision / North Star** | What problem, for whom, what success metric | Change of strategy |
+| **Glossary / Ubiquitous Language** | What each domain term means — one meaning only | Every time a new term appears in code or spec |
 
-A Constitution ganhou tração com _spec-driven development_ justamente porque é o documento que agentes de IA leem primeiro. Ela é curta — 1 a 2 páginas — e cada princípio é testável ("valores monetários são inteiros em centavos", não "prezamos por qualidade").
+The Constitution gained traction with _spec-driven development_ precisely because it is the document that AI agents read first. It is short — 1 to 2 pages — and each principle is testable ("monetary values are integers in cents", not "we value quality").
 
-O Glossary é o mais subestimado da lista. É o que faz o nome no código, o nome na spec e o nome na conversa com o negócio serem o mesmo nome.
+The Glossary is the most underrated item on the list. It is what makes the name in the code, the name in the spec and the name in the conversation with the business be the same name.
 
 ---
 
-## Camada 2 — Decisões
+## Layer 2 — Decisions
 
-Append-only, imutáveis.
+Append-only, immutable.
 
-| Artefato                               | Responde                                                        | Gatilho                                                    |
+| Artifact | Answers | Trigger |
 | -------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------- |
-| **ADR** (Architecture Decision Record) | Por que isto e não aquilo, e o que aceitamos perder             | Toda decisão custosa de reverter                           |
-| **RFC / Design Doc**                   | A proposta longa, antes da decisão                              | Antes de uma mudança grande; o ADR é o resumo do resultado |
-| **Open Decisions / Decision Backlog**  | O que ainda **não** foi decidido                                | Toda vez que alguém trombou numa lacuna                    |
-| **Debt Register (TDR)**                | Que dívida assumimos de propósito, com que gatilho de pagamento | Ao fazer o atalho conscientemente                          |
+| **ADR** (Architecture Decision Record) | Why this and not that, and what we accepted to lose | Every decision that is costly to reverse |
+| **RFC / Design Doc** | The long proposal, before the decision | Before a large change; the ADR is the summary of the outcome |
+| **Open Decisions / Decision Backlog** | What has **not** been decided yet | Every time someone bumped into a gap |
+| **Debt Register (TDR)** | What debt we took on on purpose, with what payment trigger | When taking the shortcut consciously |
 
-A regra de ouro do ADR: **nunca editar um ADR aceito**. Ele ganha status `superseded by ADR-042`. A história das decisões é o ativo; um ADR reescrito retroativamente vale zero. Use MADR ou o formato Nygard (Contexto / Decisão / Status / Consequências), um por arquivo, numerado.
+The golden rule of the ADR: **never edit an accepted ADR**. It gets the status `superseded by ADR-042`. The history of decisions is the asset; an ADR rewritten retroactively is worth zero. Use MADR or the Nygard format (Context / Decision / Status / Consequences), one per file, numbered.
 
-O **Open Decisions** é o artefato que quase ninguém mantém e que mais evita retrabalho — principalmente com agentes. Sem ele, a lacuna vira invenção silenciosa: alguém implementa uma regra que ninguém aprovou. Com ele, a lacuna é um item com ID que bloqueia implementação.
+**Open Decisions** is the artifact that almost nobody maintains and that avoids the most rework — especially with agents. Without it, the gap turns into silent invention: someone implements a rule that nobody approved. With it, the gap is an item with an ID that blocks implementation.
 
 ---
 
-## Camada 3 — Especificação
+## Layer 3 — Specification
 
-O que o produto **deve** fazer.
+What the product **must** do.
 
-| Artefato                                      | Responde                                                                 | Gatilho                                     |
+| Artifact | Answers | Trigger |
 | --------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
-| **Requirements com IDs estáveis** (RF/RNF/RN) | A regra de negócio canônica                                              | Antes de implementar qualquer comportamento |
-| **Feature Spec** (por feature)                | User stories, critérios de aceite em Given/When/Then, **fora de escopo** | Por feature, antes do plano técnico         |
-| **Quality Attribute Scenarios / NFR budget**  | Latência, disponibilidade, custo — com números                           | Quando um número muda ou é violado          |
-| **Domain model / invariantes**                | Agregados, o que nunca pode ser verdade                                  | Ao modelar ou remodelar um contexto         |
+| **Requirements with stable IDs** (RF/RNF/RN) | The canonical business rule | Before implementing any behavior |
+| **Feature Spec** (per feature) | User stories, acceptance criteria in Given/When/Then, **out of scope** | Per feature, before the technical plan |
+| **Quality Attribute Scenarios / NFR budget** | Latency, availability, cost — with numbers | When a number changes or is violated |
+| **Domain model / invariants** | Aggregates, what can never be true | When modeling or remodeling a context |
 
-O detalhe que faz diferença são os **IDs estáveis e citáveis**. Um requisito sem ID não pode ser referenciado por um teste, por um commit, por um ADR. Com ID, existe rastreabilidade bidirecional — o teste cita a regra, a regra sabe quais testes a cobrem, e uma mudança tem raio de impacto calculável por `grep`.
+The detail that makes the difference is **stable, citable IDs**. A requirement without an ID cannot be referenced by a test, by a commit, by an ADR. With an ID, there is bidirectional traceability — the test cites the rule, the rule knows which tests cover it, and a change has an impact radius computable by `grep`.
 
-O campo **fora de escopo** na spec vale tanto quanto o escopo. É ele que impede o alargamento silencioso.
+The **out of scope** field in the spec is worth as much as the scope. It is what prevents silent widening.
 
 ---
 
-## Camada 4 — Arquitetura
+## Layer 4 — Architecture
 
-O que **está** construído.
+What **is** built.
 
-| Artefato                                    | Responde                                                                     | Gatilho                                               |
+| Artifact | Answers | Trigger |
 | ------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **C4 (Contexto / Container / Componente)**  | Como o sistema se encaixa, em 3 zooms                                        | Mudança estrutural                                    |
-| **Arc42** (ou esqueleto equivalente)        | Índice canônico do documento de arquitetura                                  | Serve de moldura, não muda                            |
-| **Context Map / mapa por domínio**          | Onde cada regra vive, fronteiras entre contextos, **o que ainda não existe** | No mesmo PR que muda o código do contexto             |
-| **Data model / ERD + política de migração** | Formato dos dados e como ele evolui                                          | Toda migration                                        |
-| **Threat model (STRIDE)**                   | Superfície de ataque e mitigação                                             | Mudança de superfície: novo endpoint, novo integrador |
+| **C4 (Context / Container / Component)** | How the system fits together, in 3 zooms | Structural change |
+| **Arc42** (or an equivalent skeleton) | Canonical index of the architecture document | Serves as a frame, does not change |
+| **Context Map / per-domain map** | Where each rule lives, boundaries between contexts, **what does not exist yet** | In the same PR that changes the context's code |
+| **Data model / ERD + migration policy** | Shape of the data and how it evolves | Every migration |
+| **Threat model (STRIDE)** | Attack surface and mitigation | Surface change: new endpoint, new integrator |
 
-Regra dura: **diagrama é código**. Mermaid, PlantUML ou Structurizr DSL versionados em texto. Um `.drawio`, um Figma ou um PNG colado no Confluence não é documentação viva — é um artefato que ninguém consegue diffar e por isso ninguém atualiza.
+Hard rule: **diagrams are code**. Mermaid, PlantUML or Structurizr DSL versioned as text. A `.drawio`, a Figma or a PNG pasted into Confluence is not living documentation — it is an artifact that nobody can diff and therefore nobody updates.
 
-Distinção crítica entre as camadas 3 e 4: a especificação diz o que **deve** ser; a arquitetura diz o que **é**. Fundir as duas elimina a capacidade de enxergar o gap.
+Critical distinction between layers 3 and 4: the specification says what **must** be; the architecture says what **is**. Merging the two eliminates the ability to see the gap.
 
 ---
 
-## Camada 5 — Contratos
+## Layer 5 — Contracts
 
-Gerados, não escritos à mão.
+Generated, not handwritten.
 
-| Artefato                             | Responde                                             | Gatilho                          |
+| Artifact | Answers | Trigger |
 | ------------------------------------ | ---------------------------------------------------- | -------------------------------- |
-| **OpenAPI / AsyncAPI / GraphQL SDL** | O contrato exato da interface                        | Gerado do código, no CI          |
-| **Error catalog**                    | Códigos de erro estáveis e o que cada um significa   | Novo código de erro              |
-| **Event catalog / schema registry**  | Que eventos existem, qual o payload, quem consome    | Novo evento ou mudança de schema |
-| **Versioning & deprecation policy**  | Como quebramos compatibilidade sem quebrar o cliente | Raramente                        |
+| **OpenAPI / AsyncAPI / GraphQL SDL** | The exact contract of the interface | Generated from the code, in CI |
+| **Error catalog** | Stable error codes and what each one means | New error code |
+| **Event catalog / schema registry** | Which events exist, what the payload is, who consumes them | New event or schema change |
+| **Versioning & deprecation policy** | How we break compatibility without breaking the client | Rarely |
 
-Se pode ser gerado, **não escreva**. Contrato escrito à mão diverge do código no primeiro dia. O que se escreve à mão é a política em volta dele (versionamento, depreciação), não o contrato.
+If it can be generated, **do not write it**. A handwritten contract diverges from the code on day one. What is written by hand is the policy around it (versioning, deprecation), not the contract.
 
 ---
 
-## Camada 6 — Operação
+## Layer 6 — Operations
 
-O que sustenta em produção.
+What sustains it in production.
 
-| Artefato                                  | Responde                                                   | Gatilho                                                     |
+| Artifact | Answers | Trigger |
 | ----------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
-| **Runbooks** (um por alerta/procedimento) | O que fazer às 3h da manhã                                 | Todo alerta novo; todo incidente que revelou passo faltando |
-| **SLO/SLI + error budget policy**         | Qual é o "bom o suficiente" e o que fazemos quando estoura | Trimestral ou por violação                                  |
-| **Postmortems** (blameless, append-only)  | O que aconteceu, por quê, quais ações                      | Todo incidente relevante                                    |
-| **On-call handbook / escalation**         | Quem chamar, quando                                        | Mudança de time                                             |
-| **DR / restore drill log**                | O backup realmente restaura? Quando testamos por último?   | Todo drill                                                  |
-| **Feature flag registry**                 | Que flags existem, quem é dono, quando morrem              | Nova flag                                                   |
+| **Runbooks** (one per alert/procedure) | What to do at 3 a.m. | Every new alert; every incident that revealed a missing step |
+| **SLO/SLI + error budget policy** | What "good enough" is and what we do when it is blown | Quarterly or on violation |
+| **Postmortems** (blameless, append-only) | What happened, why, which actions | Every relevant incident |
+| **On-call handbook / escalation** | Whom to call, when | Team change |
+| **DR / restore drill log** | Does the backup actually restore? When did we last test it? | Every drill |
+| **Feature flag registry** | Which flags exist, who owns them, when they die | New flag |
 
-Postmortem só é vivo se as ações viram itens rastreados com dono e prazo — senão é catarse documentada. O registro de flags é o que evita a dívida invisível: flags temporárias que viram permanentes porque ninguém sabe se ainda são usadas.
+A postmortem is only alive if the actions become tracked items with an owner and a deadline — otherwise it is documented catharsis. The flag registry is what prevents invisible debt: temporary flags that become permanent because nobody knows whether they are still in use.
 
 ---
 
-## Camada 7 — Como se trabalha aqui
+## Layer 7 — How we work here
 
-| Artefato                                     | Responde                                                                         | Gatilho                                     |
+| Artifact | Answers | Trigger |
 | -------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------- |
-| **CONTRIBUTING + Definition of Done**        | Quando uma tarefa está realmente pronta                                          | Mudança de processo                         |
-| **CLAUDE.md / AGENTS.md**                    | O contrato com agentes de IA: onde está a verdade, o que nunca fazer, como rodar | Quando um agente erra por falta de contexto |
-| **Style guide** (só o que o linter não pega) | Nomenclatura, idioma, granularidade                                              | Decisão de estilo nova                      |
-| **Test strategy**                            | O que é unitário, o que é e2e, o que se mocka                                    | Mudança de estratégia                       |
-| **Onboarding path**                          | Primeiro dia, primeira semana                                                    | Toda vez que alguém novo tropeça            |
+| **CONTRIBUTING + Definition of Done** | When a task is really done | Process change |
+| **CLAUDE.md / AGENTS.md** | The contract with AI agents: where the truth is, what never to do, how to run | When an agent errs for lack of context |
+| **Style guide** (only what the linter misses) | Naming, language, granularity | New style decision |
+| **Test strategy** | What is unit, what is e2e, what gets mocked | Change of strategy |
+| **Onboarding path** | First day, first week | Every time a newcomer stumbles |
 
-O `CLAUDE.md`/`AGENTS.md` virou artefato de primeira classe. O padrão que funciona é ele ser **índice e política**, não conteúdo: diz _onde_ está a verdade e _quais_ regras nunca se quebram, e delega o resto. Conteúdo duplicado nele apodrece igual a qualquer outro.
+`CLAUDE.md`/`AGENTS.md` has become a first-class artifact. The pattern that works is for it to be an **index and policy**, not content: it says _where_ the truth is and _which_ rules are never broken, and delegates the rest. Duplicated content in it rots like in any other.
 
-O gatilho dele é o melhor que existe: toda vez que um agente ou uma pessoa nova erra por falta de contexto, é sinal de linha faltando. Isso torna o documento auto-corretivo.
+Its trigger is the best there is: every time an agent or a newcomer errs for lack of context, it is a sign of a missing line. This makes the document self-correcting.
 
 ---
 
-## Camada 8 — Rastro histórico
+## Layer 8 — Historical trail
 
-- **CHANGELOG.md** no formato Keep a Changelog, voltado ao consumidor — não é `git log`.
+- **CHANGELOG.md** in the Keep a Changelog format, aimed at the consumer — it is not `git log`.
 - **Release notes**.
 - **Migration / upgrade guides**.
-- **Registro de depreciações**, com data de remoção e substituto.
+- **Deprecation register**, with removal date and replacement.
 
 ---
 
-## O que realmente faz a documentação ser viva
+## What really makes documentation alive
 
-Os artefatos são a parte fácil. O que separa documentação viva de wiki morta são seis mecanismos:
+The artifacts are the easy part. What separates living documentation from a dead wiki is six mechanisms:
 
-1. **Docs-as-code, no mesmo PR.** Se a atualização da documentação não cabe no PR que mudou o código, ela não acontece. Isso implica mesmo repositório, texto plano, revisão no mesmo review.
-2. **Gatilho, não cadência.** Cada documento diz no topo _quando_ deve ser atualizado. "Revisar trimestralmente" é uma promessa que ninguém cumpre; "atualize no mesmo PR que muda `src/domain/billing`" é executável.
-3. **Rastreabilidade por ID.** Código → regra, teste → regra, ADR → requisito, incidente → runbook. É o que permite responder "o que quebra se eu mudar essa regra" sem ler tudo.
-4. **Automação no CI.** Link-checker, lint de estrutura, diagramas e contratos gerados, e um campo `last-reviewed` que faz o CI avisar quando passa de N meses.
-5. **Ciclo de vida em vez de deleção.** `draft → accepted → superseded/deprecated`. Deletar apaga o "por quê"; marcar preserva.
-6. **Fonte única com dono.** Cada fato mora em exatamente um arquivo; os outros linkam. Duplicata é garantia de divergência.
+1. **Docs-as-code, in the same PR.** If the documentation update does not fit in the PR that changed the code, it does not happen. This implies the same repository, plain text, review in the same review.
+2. **Trigger, not cadence.** Each document says at the top _when_ it must be updated. "Review quarterly" is a promise nobody keeps; "update in the same PR that changes `src/domain/billing`" is executable.
+3. **Traceability by ID.** Code → rule, test → rule, ADR → requirement, incident → runbook. It is what makes it possible to answer "what breaks if I change this rule" without reading everything.
+4. **Automation in CI.** Link checker, structure lint, generated diagrams and contracts, and a `last-reviewed` field that makes CI warn when it passes N months.
+5. **Lifecycle instead of deletion.** `draft → accepted → superseded/deprecated`. Deleting erases the "why"; marking preserves it.
+6. **Single source with an owner.** Each fact lives in exactly one file; the others link. Duplication is a guarantee of divergence.
 
-Teste de sanidade: **se ninguém lê, não está vivo**. Vinte documentos de 400 linhas cada é um sistema morto. Prefira poucos documentos curtos, gerados onde der, com índice claro.
-
----
-
-## Anti-padrões que matam
-
-- Wiki (Confluence/Notion) paralela ao repositório — diverge por construção.
-- Diagrama em formato binário.
-- ADR editado retroativamente.
-- Documento que narra o código linha a linha — o código já faz isso melhor.
-- "Cobertura documental" como meta — produz volume, não verdade.
-- Documento sem dono no CODEOWNERS.
-- Requisito sem ID.
+Sanity test: **if nobody reads it, it is not alive**. Twenty documents of 400 lines each is a dead system. Prefer few short documents, generated where possible, with a clear index.
 
 ---
 
-## Conjunto mínimo por estágio
+## Anti-patterns that kill
 
-| Estágio                         | Comece com                                                                              |
+- A wiki (Confluence/Notion) parallel to the repository — diverges by construction.
+- A diagram in a binary format.
+- An ADR edited retroactively.
+- A document that narrates the code line by line — the code already does that better.
+- "Documentation coverage" as a goal — produces volume, not truth.
+- A document with no owner in CODEOWNERS.
+- A requirement without an ID.
+
+---
+
+## Minimum set per stage
+
+| Stage | Start with |
 | ------------------------------- | --------------------------------------------------------------------------------------- |
-| **Solo / protótipo**            | README, `AGENTS.md`/`CLAUDE.md`, ADRs, Open Decisions                                   |
-| **Time pequeno / produto real** | + Constitution, Requirements com IDs, Glossary, C4 nível 1–2, CHANGELOG, Test strategy  |
-| **Produção com usuários**       | + SLOs, Runbooks, Postmortems, Threat model, contratos gerados, política de depreciação |
-| **Múltiplos times**             | + Context Map, RFC process, Debt Register, Event catalog                                |
+| **Solo / prototype** | README, `AGENTS.md`/`CLAUDE.md`, ADRs, Open Decisions |
+| **Small team / real product** | + Constitution, Requirements with IDs, Glossary, C4 level 1–2, CHANGELOG, Test strategy |
+| **Production with users** | + SLOs, Runbooks, Postmortems, Threat model, generated contracts, deprecation policy |
+| **Multiple teams** | + Context Map, RFC process, Debt Register, Event catalog |
 
-A ordem importa: **ADR e Open Decisions antes de tudo**. Custam quase nada e são os únicos que capturam informação que se perde de verdade — o "por quê" e o "ainda não sabemos". O resto pode ser reconstruído a partir do código; esses dois, não.
+The order matters: **ADR and Open Decisions before everything**. They cost almost nothing and are the only ones that capture information that is truly lost — the "why" and the "we don't know yet". The rest can be reconstructed from the code; these two cannot.
 
 ---
 
-## Estado atual do EsliphFinance
+## Current state of EsliphFinance
 
-| Camada               | Situação                                                                                                                                                             |
+| Layer | Situation |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 — Intenção         | **Parcial.** Os princípios invioláveis estão dispersos no `CLAUDE.md`, sem Constitution própria. Sem Glossary.                                                       |
-| 2 — Decisões         | **Parcial.** `docs/open-decisions.md` (DA0xx) cobre bem o "ainda não decidido", mas não há ADRs: o "porquê" das decisões técnicas só existe no histórico de commits. |
-| 3 — Especificação    | **Coberta.** `docs/requirements.md` com IDs estáveis (RF/RNF/RN).                                                                                                    |
-| 4 — Arquitetura      | **Coberta.** `docs/domains/` por contexto e `docs/architecture/` por eixo transversal.                                                                               |
-| 5 — Contratos        | **Ausente.** Sem OpenAPI gerado nem catálogo de códigos de erro.                                                                                                     |
-| 6 — Operação         | **Ausente.** Ainda não há produção.                                                                                                                                  |
-| 7 — Como se trabalha | **Coberta.** `CLAUDE.md`, `server/CLAUDE.md` e as skills em `.claude/skills/`.                                                                                       |
-| 8 — Rastro histórico | **Ausente.** Sem CHANGELOG.                                                                                                                                          |
+| 1 — Intent | **Partial.** The inviolable principles are scattered in `CLAUDE.md`, with no Constitution of their own. No Glossary. |
+| 2 — Decisions | **Partial.** `docs/open-decisions.md` (DA0xx) covers the "not yet decided" well, but there are no ADRs: the "why" of the technical decisions only exists in the commit history. |
+| 3 — Specification | **Covered.** `docs/requirements.md` with stable IDs (RF/RNF/RN). |
+| 4 — Architecture | **Covered.** `docs/domains/` per context and `docs/architecture/` per cross-cutting axis. |
+| 5 — Contracts | **Absent.** No generated OpenAPI nor error-code catalog. |
+| 6 — Operations | **Absent.** There is no production yet. |
+| 7 — How we work here | **Covered.** `CLAUDE.md`, `server/CLAUDE.md` and the skills in `.claude/skills/`. |
+| 8 — Historical trail | **Absent.** No CHANGELOG. |
 
-Buracos mais relevantes hoje, em ordem: **ADRs**, **Glossary**, **CHANGELOG**.
+Most relevant holes today, in order: **ADRs**, **Glossary**, **CHANGELOG**.
