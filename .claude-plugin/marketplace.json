@@ -1,6 +1,6 @@
 {
   "name": "esliph",
-  "description": "Toolkit de documentação viva: ADR, decisões abertas, dívida registrada, requisitos com ID estável, contrato gerado e o enforcement que os mantém vivos.",
+  "description": "Living-documentation toolkit: ADRs, open decisions, recorded debt, requirements with stable IDs, a generated contract and the enforcement that keeps them alive.",
   "owner": {
     "name": "Dan Ruan",
     "email": "danrsaquetti@gmail.com"
@@ -8,13 +8,13 @@
   "plugins": [
     {
       "name": "living-docs",
-      "description": "Sete skills donas de artefato, dois agents, cinco hooks e sete comandos — o lado de sessão do toolkit de documentação viva.",
+      "description": "Seven artifact-owning skills, two agents, five hooks and seven commands — the session side of the living-documentation toolkit.",
       "version": "0.1.0",
       "source": "./packages/living-docs"
     },
     {
       "name": "ownership",
-      "description": "Dono, ciclo de vida e gatilho de cada caminho: o núcleo que a documentação viva usa, e que roda sozinho.",
+      "description": "Owner, lifecycle and trigger of each path: the core that living documentation uses, and that runs on its own.",
       "version": "0.1.0",
       "source": "./packages/ownership"
     }

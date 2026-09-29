@@ -2,18 +2,19 @@
 title: Open Decisions
 owner: "{{OWNER}}"
 trigger: >
-  Toda vez que alguém trombou numa lacuna — comportamento sem regra escrita.
+  Every time someone runs into a gap — behavior with no written rule.
 last-reviewed: {{TODAY}}
 ---
 
 # Open Decisions
 
-O que ainda **não** foi decidido. Enquanto um item está aqui, ele não tem regra
-e **não deve ser implementado** — a saída é o ID, não o código.
+What has **not** been decided yet. While an item is here it has no rule and
+**must not be implemented** — the way out is the ID, not the code.
 
-A coluna **Bloqueia** é opcional: quando preenchida com os caminhos que a lacuna
-impede de implementar, `living-docs/open-decision-guard` pergunta na edição e `living-docs/open-decision-claim` reprova no diff. Vazia
-(`—`), a decisão continua válida e não bloqueia nada.
+The **Blocks** column is optional: when it lists the paths the gap prevents
+from being implemented, `living-docs/open-decision-guard` asks on edit and
+`living-docs/open-decision-claim` fails on the diff. Empty (`—`), the decision
+is still valid and blocks nothing.
 
-| ID | Lacuna | Status | Resolvida por | Bloqueia | Aberta em |
+| ID | Gap | Status | Resolved-by | Blocks | Opened |
 | --- | --- | --- | --- | --- | --- |

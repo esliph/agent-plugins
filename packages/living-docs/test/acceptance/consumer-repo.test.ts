@@ -338,3 +338,30 @@ test('criterio 12: a camada 4 entra com dono e sem skill, sem que nenhum check m
     }
   })
 })
+
+test('RN-0039: a freshly seeded repository reads a resolved decision without field-map', () => {
+  withTempRepo({}, root => {
+    runInit(root, OPTIONS)
+
+    const ownership = readFileSync(join(root, OWNERSHIP_FILE), 'utf8')
+
+    assert.doesNotMatch(ownership, /field-map/)
+
+    const decisionsPath = /- path: (\S*open-decisions\.md)/.exec(ownership)?.[1]
+
+    assert.ok(decisionsPath, 'the seeded ownership file declares the open-decisions table')
+
+    const decisions = join(root, decisionsPath)
+    const seeded = readFileSync(decisions, 'utf8')
+    const newline = seeded.endsWith('\n') ? '' : '\n'
+
+    writeFileSync(decisions, `${seeded}${newline}| DA-0001 | A gap | resolved | — | — | 2026-09-29 |\n`)
+
+    const coverage = runValidate(root).findings.filter(f => f.ruleId === 'living-docs/citation-coverage' && f.file === decisionsPath)
+
+    // The row names no resolver: the finding is about the empty value, and it
+    // must not claim the column is missing.
+    assert.equal(coverage.length, 1, JSON.stringify(coverage, null, 2))
+    assert.doesNotMatch(coverage[0]?.fix ?? '', /field-map/)
+  })
+})

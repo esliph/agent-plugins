@@ -1,10 +1,10 @@
 ---
-description: Registra ou atualiza um termo do glossary
-argument-hint: '[termo]'
+description: Records or updates a glossary term
+argument-hint: '[term]'
 ---
 
-Use a skill `glossary-keeper` para registrar ou atualizar em `docs/glossary.md` o termo: $ARGUMENTS
+Use the `glossary-keeper` skill to record or update the term in `docs/glossary.md`: $ARGUMENTS
 
-Um significado por termo. Se a palavra já cobre outra coisa, marque o termo
-antigo como `banned` e aponte o substituto — não crie uma segunda linha para
-a mesma palavra.
+One meaning per term. If the word already covers something else, mark the old
+term as `banned` and point to the replacement — do not create a second row for
+the same word.

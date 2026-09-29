@@ -2,28 +2,28 @@
 title: {{TITLE}}
 owner: "{{OWNER}}"
 trigger: >
-  Antes de implementar qualquer comportamento desta família, e a toda regra nova
-  ou alterada.
+  Before implementing any behavior of this family, and on every new or changed
+  rule.
 last-reviewed: {{TODAY}}
 ---
 
 # {{TITLE}}
 
-Cada requisito é uma seção com ID citável. O ID nunca é reciclado, e é ele que
-torna o raio de impacto calculável por `grep`.
+Each requirement is a section with a citable ID. The ID is never recycled, and
+it is what makes the blast radius computable by `grep`.
 
-Formato de uma seção:
+Format of a section:
 
 ```
-## {{PREFIX}}-nnnn — Título afirmativo da regra
+## {{PREFIX}}-nnnn — Affirmative title of the rule
 
 - **status:** draft
 - **relates-to:** ADR-nnnn
-- **fora de escopo:** o que esta regra deliberadamente não cobre
+- **out of scope:** what this rule deliberately does not cover
 
-O enunciado, em uma ou duas frases. O que **deve** ser — nunca o que o código faz.
+The statement, in one or two sentences. What **must** be — never what the code does.
 ```
 
-O `nnnn` acima é literal de propósito: o exemplo não pode virar um requisito de
-verdade nem uma citação pendurada. Troque-o pelo próximo número livre, conferido
-contra `docs/ids-retired.txt`.
+The `nnnn` above is literal on purpose: the example must not become a real
+requirement or a dangling citation. Replace it with the next free number,
+checked against `docs/ids-retired.txt`.

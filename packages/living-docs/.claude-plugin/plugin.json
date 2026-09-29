@@ -1,7 +1,7 @@
 {
   "name": "living-docs",
   "version": "0.1.0",
-  "description": "Documentação viva: ADR, Open Decisions, Debt Register, requisitos com ID estável, acordos de trabalho, vocabulário do domínio, princípios invioláveis, contrato público gerado, rastro histórico voltado a quem consome, e manutenção contínua — inventário de sessão, staleness, cobertura de propriedade, links e auditoria de divergência. Fases 0–7.",
+  "description": "Living documentation: ADRs, Open Decisions, Debt Register, requirements with stable IDs, working agreements, domain vocabulary, inviolable principles, generated public contract, a historical trail aimed at whoever consumes, and continuous maintenance — session inventory, staleness, ownership coverage, links and divergence audit. Phases 0–7.",
   "keywords": ["adr", "documentation", "decisions", "living-docs"],
   "dependencies": ["ownership"]
 }

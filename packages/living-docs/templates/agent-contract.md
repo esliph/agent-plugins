@@ -1,34 +1,36 @@
-# Contrato do agente
+# Agent contract
 
-Índice e política. **Nenhuma afirmação factual mora aqui**: cada uma vive no
-artefato dono e é lida de lá.
+Index and policy. **No factual claim lives here**: each one lives in the
+owning artifact and is read from there.
 
-## Antes de mexer em qualquer coisa
+## Before touching anything
 
-- O mapa de propriedade é `.ownership.yml`. Nenhum caminho de documento se
-  adivinha: lê-se de lá.
-- Como se trabalha aqui: `CONTRIBUTING.md`. Quando algo está pronto:
+- The ownership map is `.ownership.yml`. No document path is guessed: it is
+  read from there.
+- How we work here: `CONTRIBUTING.md`. When something is done:
   `docs/definition-of-done.md`.
 
-## Política
+## Policy
 
-- **A regra vem antes do código.** O que o sistema deve fazer está em
-  `docs/requirements/`; se a regra não existe, abra uma `DA` (`/open-decision`)
-  e pare. Não invente a regra que falta.
-- **Você não aceita decisão.** Skill escreve `draft`/`open`; promover é ato
-  humano — `living-docs/state-promotion` pergunta.
-- **Você não corrige item congelado.** ADR aceito ganha `superseded` e um ADR
-  novo — `living-docs/append-only` bloqueia o resto.
-- **Documento e código viajam juntos.** Caminho vigiado em `watches` tem doc
-  dono; `ownership/watch-reminder` lembra e `ownership/commit-guard` pergunta.
-- **Atalho consciente vira `TDR`** (`/debt`) com gatilho de pagamento observável.
-- **Texto para quem lê de fora não carrega ID de artefato.** O que está marcado
-  `audience: external` explica em texto corrido; o vínculo fica no artefato ou
-  no commit — `living-docs/external-audience` cobra.
+- **The rule comes before the code.** What the system must do is in
+  `docs/requirements/`; if the rule does not exist, open a `DA`
+  (`/open-decision`) and stop. Do not invent the rule that is missing.
+- **You do not accept decisions.** A skill writes `draft`/`open`; promoting is a
+  human act — `living-docs/state-promotion` asks.
+- **You do not fix a frozen item.** An accepted ADR gets `superseded` and a new
+  ADR — `living-docs/append-only` blocks the rest.
+- **Document and code travel together.** A path watched in `watches` has an
+  owning doc; `ownership/watch-reminder` reminds and `ownership/commit-guard`
+  asks.
+- **A conscious shortcut becomes a `TDR`** (`/debt`) with an observable payment
+  trigger.
+- **Text for readers on the outside carries no artifact ID.** What is marked
+  `audience: external` explains in running text; the link stays in the artifact
+  or in the commit — `living-docs/external-audience` enforces it.
 
-## O que nunca fazer
+## What to never do
 
-- Escrever documento que narra o código.
-- Criar artefato de documentação fora do controle de versão.
-- Bumpar `last-reviewed` em massa.
-- Copiar para cá o conteúdo de qualquer artefato acima.
+- Write a document that narrates the code.
+- Create a documentation artifact outside version control.
+- Bump `last-reviewed` in bulk.
+- Copy the content of any artifact above into here.

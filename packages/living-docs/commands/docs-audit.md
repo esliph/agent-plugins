@@ -1,16 +1,16 @@
 ---
-description: Audita a divergência entre código e documentação num escopo — o que o diff deveria ter atualizado e não atualizou.
-argument-hint: '[escopo: ref de diff, caminho, ou staged]'
+description: Audits the divergence between code and documentation in a scope — what the diff should have updated and did not.
+argument-hint: '[scope: diff ref, path, or staged]'
 ---
 
-Acione o agent `docs-divergence-auditor` com o escopo: $ARGUMENTS
+Invoke the `docs-divergence-auditor` agent with the scope: $ARGUMENTS
 
-Sem escopo, use o que está no índice (`git diff --cached --name-only`) e diga
-isso na primeira linha do relatório.
+With no scope, use what is in the index (`git diff --cached --name-only`) and
+say so on the first line of the report.
 
-O agent aponta e para: ele não tem `Edit` nem `Write`. Cada achado nomeia o
-artefato dono que deveria mudar — a correção é de quem é dono dele, pela skill
-dona que o `.ownership.yml` declara.
+The agent points and stops: it has neither `Edit` nor `Write`. Each finding
+names the owning artifact that should change — the fix belongs to whoever owns
+it, through the owning skill that `.ownership.yml` declares.
 
-Comportamento sem regra escrita não vira código: vira `DA-nnnn`
-(`/open-decision`) e a implementação para.
+Behavior with no written rule does not become code: it becomes a `DA-nnnn`
+(`/open-decision`) and the implementation stops.

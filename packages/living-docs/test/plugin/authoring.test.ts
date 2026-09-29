@@ -224,6 +224,6 @@ test('RN-0030: release-historian não pede que o guia de migração aponte o ADR
 test('RN-0030: o template de migração pede o porquê em texto corrido, não o ID do ADR', () => {
   const template = readFileSync(join(ROOT, 'templates/migration.md'), 'utf8')
 
-  assert.doesNotMatch(template, /O ADR que decidiu\./)
-  assert.match(template, /commit que cria o guia cita o ADR/)
+  assert.doesNotMatch(template, /The ADR that decided\./)
+  assert.match(template, /commit that creates the guide cites the ADR/)
 })

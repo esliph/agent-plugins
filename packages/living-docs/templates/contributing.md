@@ -1,39 +1,42 @@
 ---
-title: Como se contribui aqui
+title: How to contribute here
 owner: "{{OWNER}}"
 trigger: >
-  Quando muda como se trabalha aqui — e toda vez que uma pessoa ou um agente
-  errou por falta de contexto que caberia nesta página.
+  When how we work here changes — and every time a person or an agent went
+  wrong for lack of context that would have fit on this page.
 last-reviewed: {{TODAY}}
 ---
 
-# Como se contribui
+# How to contribute
 
-## O ciclo
+## The cycle
 
-1. **A regra antes do código.** Comportamento novo começa por um requisito com
-   ID em `docs/requirements/`. Se a regra não existe e ninguém sabe qual é, o
-   resultado é uma `DA-nnnn` em `docs/open-decisions.md` e a implementação para.
-2. **Teste citando o ID** do requisito que ele cobre — é a citação que `living-docs/citation-coverage`
-   procura.
-3. **Implementação mínima.** O que não tem requisito não é escopo.
-4. **Commit citando o ID afetado.**
-5. **A Definition of Done** (`docs/definition-of-done.md`) diz quando acabou.
+1. **The rule before the code.** New behavior starts with a requirement with an
+   ID in `docs/requirements/`. If the rule does not exist and nobody knows what
+   it is, the result is a `DA-nnnn` in `docs/open-decisions.md` and the
+   implementation stops.
+2. **A test citing the ID** of the requirement it covers — it is the citation
+   that `living-docs/citation-coverage` looks for.
+3. **Minimal implementation.** What has no requirement is not scope.
+4. **A commit citing the affected ID.**
+5. **The Definition of Done** (`docs/definition-of-done.md`) says when it is
+   finished.
 
-## Onde a verdade mora
+## Where the truth lives
 
-| Pergunta | Artefato |
+| Question | Artifact |
 | --- | --- |
-| Qual é a regra de X | `docs/requirements/` |
-| Por que foi feito assim | `docs/decisions/adr/` |
-| O que ainda não foi decidido | `docs/open-decisions.md` |
-| O que se aceitou dever | `docs/decisions/debt/` |
-| Quem é dono de cada caminho | `.ownership.yml` e `CODEOWNERS` |
-| Quando está pronto | `docs/definition-of-done.md` |
+| What is the rule for X | `docs/requirements/` |
+| Why was it done this way | `docs/decisions/adr/` |
+| What has not been decided yet | `docs/open-decisions.md` |
+| What we accepted to owe | `docs/decisions/debt/` |
+| Who owns each path | `.ownership.yml` and `CODEOWNERS` |
+| When it is done | `docs/definition-of-done.md` |
 
-Nenhuma dessas respostas é copiada para outro lugar.
+None of these answers is copied anywhere else.
 
-## Quando alguém erra por falta de contexto
+## When someone goes wrong for lack of context
 
-Falta uma linha em algum destes documentos. A correção é acrescentá-la — no
-contrato do agente se for política ou índice, no artefato dono se for regra.
+A line is missing in one of these documents. The fix is to add it — in the
+agent contract if it is policy or an index, in the owning artifact if it is a
+rule.

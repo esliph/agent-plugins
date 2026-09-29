@@ -1,14 +1,14 @@
 ---
-description: Prepara uma versão — deriva a release note do CHANGELOG e move as entradas de Unreleased.
-argument-hint: '[versão]'
+description: Prepares a version — derives the release note from the CHANGELOG and moves the Unreleased entries.
+argument-hint: '[version]'
 ---
 
-Acione a skill `release-historian` para preparar a versão `$ARGUMENTS`.
+Invoke the `release-historian` skill to prepare version `$ARGUMENTS`.
 
-A release note é **derivada** do `CHANGELOG.md`, nunca escrita de novo: as
-entradas de `## [Unreleased]` viram a seção da versão, e a nota fica com a
-moldura — destaques, o que exige atenção de quem atualiza, depreciações
-anunciadas.
+The release note is **derived** from `CHANGELOG.md`, never written anew: the
+entries under `## [Unreleased]` become the version's section, and the note
+keeps the frame — highlights, what needs the attention of whoever upgrades,
+announced deprecations.
 
-Ela nasce `status: draft`. Publicar é ato humano: `living-docs/state-promotion` intercepta a promoção
-e a resposta não é sua. Depois de `published`, `living-docs/append-only` congela o arquivo.
+It is born `status: draft`. Publishing is a human act: `living-docs/state-promotion` intercepts the promotion
+and the answer is not yours. After `published`, `living-docs/append-only` freezes the file.

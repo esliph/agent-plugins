@@ -2,16 +2,16 @@
 title: Glossary
 owner: "{{OWNER}}"
 trigger: >
-  Termo de domínio novo em código, spec ou conversa; termo com dois
-  significados; renomeação de conceito.
+  A new domain term in code, a spec or a conversation; a term with two
+  meanings; a concept rename.
 last-reviewed: {{TODAY}}
 ---
 
 # Glossary
 
-Cada termo tem um significado só. Um termo `banned` não se usa: a coluna "Não
-confundir com" aponta o substituto.
+Each term has a single meaning. A `banned` term is not used: the "Do not
+confuse with" column points to the replacement.
 
-| Termo | Definição | Nome no código | Não confundir com | Fonte | Status |
+| Term | Definition | Name in code | Do not confuse with | Source | Status |
 | --- | --- | --- | --- | --- | --- |
-| Termo exemplo | Substitua pela definição real | `nomeNoCodigo` | O que parece sinônimo mas não é | RN-nnnn | active |
+| Example term | Replace with the real definition | `nameInCode` | What looks like a synonym but is not | RN-nnnn | active |

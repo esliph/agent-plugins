@@ -1,10 +1,10 @@
-# Enforcement de documentação viva, instalado por `living-docs init`.
+# Living-documentation enforcement, installed by `living-docs init`.
 #
-# O modo de invocação é parâmetro de quem instala: `--invoke` e
-# `--invoke-ownership` escolhem como cada CLI é chamada neste CI.
+# The way to invoke each CLI is a parameter of whoever installs: `--invoke` and
+# `--invoke-ownership` choose how each CLI is called in this CI.
 #
-# Este arquivo é seu: o `init` só o cria quando ele não existe, e nunca o
-# reescreve.
+# This file is yours: `init` only creates it when it does not exist, and never
+# rewrites it.
 name: living-docs
 
 on:
@@ -17,12 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # O diff do PR compara <base>...HEAD, e um clone raso não tem a base.
+          # The PR diff compares <base>...HEAD, and a shallow clone lacks the base.
           fetch-depth: 0
 
-      - name: Dono, ciclo de vida e artefato gerado
+      - name: Owner, lifecycle and generated artifact
         run: {{INVOKE_OWNERSHIP}} validate
 
-      - name: Documentação viva — estado da árvore
+      - name: Living documentation — state of the tree
         run: {{INVOKE}} validate
 {{WORKFLOW_STEPS}}

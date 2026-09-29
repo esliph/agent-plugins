@@ -1,9 +1,9 @@
 ---
-description: Registra uma lacuna (Open Decision) e para a implementação até ela ser decidida
-argument-hint: '[a lacuna encontrada]'
+description: Records a gap (Open Decision) and stops the implementation until it is decided
+argument-hint: '[the gap found]'
 ---
 
-Use a skill `decision-recorder` para registrar uma Open Decision sobre: $ARGUMENTS
+Use the `decision-recorder` skill to record an Open Decision about: $ARGUMENTS
 
-A saída é o ID, não o código. Enquanto o item estiver aberto, ele não tem regra
-e **não deve ser implementado** — não invente a regra em silêncio.
+The way out is the ID, not the code. While the item is open, it has no rule
+and **must not be implemented** — do not invent the rule silently.
