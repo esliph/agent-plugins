@@ -1,7 +1,7 @@
 /**
- * O contrato público dos checks do núcleo. O `living-docs` o imprime junto do
- * dele em `docs/contracts/checks.gen.md`. Só tipos e dados, de propósito: um
- * gerador não precisa puxar YAML nem git para listar o que existe.
+ * The public contract of the core checks. `living-docs` prints it next to its
+ * own in `docs/contracts/checks.gen.md`. Only types and data, on purpose: a
+ * generator does not need to pull in YAML or git to list what exists.
  */
 export interface CatalogEntry {
   id: string

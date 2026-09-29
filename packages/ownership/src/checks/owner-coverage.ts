@@ -27,7 +27,7 @@ export function ownershipOwnerCoverage(): Check {
         )
       }
 
-      // Do repositório para o ownership: todo arquivo tem regra, ou está em `ignore`.
+      // From the repository to ownership: every file has a rule, or is in `ignore`.
       const ignored = config.ignore.length === 0 ? () => false : picomatch(config.ignore, { dot: true })
 
       for (const file of listFiles(root).sort()) {
@@ -36,7 +36,7 @@ export function ownershipOwnerCoverage(): Check {
         }
       }
 
-      // Do ownership para fora: a entrada existe e o CODEOWNERS a cobre.
+      // From ownership outward: the entry exists and CODEOWNERS covers it.
       for (const rule of config.owned) {
         if (!existsSync(join(root, rule.path))) {
           findings.push(error(rule.path, `"${rule.path}" is declared in \`owned[]\` (${rule.origin}) and does not exist in the repository.`, 'Create the path, or fix the entry.'))
@@ -47,7 +47,7 @@ export function ownershipOwnerCoverage(): Check {
         }
       }
 
-      // O doc de um `watches` precisa existir e ter dono — senão o lembrete aponta para o nada.
+      // The doc of a `watches` must exist and have an owner — otherwise the reminder points to nothing.
       const docs = new Map(config.watches.map(watch => [watch.doc, watch.origin]))
 
       for (const [doc, origin] of docs) {

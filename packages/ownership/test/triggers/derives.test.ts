@@ -15,7 +15,7 @@ const RULE = {
   origin: 'x',
 }
 
-test('instancesOf lê o campo declarado do frontmatter de cada arquivo sob o path', () => {
+test('instancesOf reads the declared field from the frontmatter of each file under the path', () => {
   withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n', 'docs/specs/s1.md': '# s1\n' }, root => {
     forgetTree(root)
     const [instance] = instancesOf(root, RULE)
@@ -25,46 +25,46 @@ test('instancesOf lê o campo declarado do frontmatter de cada arquivo sob o pat
   })
 })
 
-test('problemsFor: campo ausente é achado', () => {
-  withTempRepo({ 'docs/plans/a.md': '---\ntitle: sem spec\n---\n' }, root => {
+test('problemsFor: missing field is a finding', () => {
+  withTempRepo({ 'docs/plans/a.md': '---\ntitle: no spec\n---\n' }, root => {
     forgetTree(root)
-    assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['campo-ausente'])
+    assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['missing-field'])
   })
 })
 
-test('problemsFor: campo fora de source é achado', () => {
-  withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/outra-coisa/x.md\n---\n' }, root => {
+test('problemsFor: field outside source is a finding', () => {
+  withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/other-thing/x.md\n---\n' }, root => {
     forgetTree(root)
-    assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['fora-da-fonte'])
+    assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['outside-source'])
   })
 })
 
-test('problemsFor: prefix check respects directory boundary (source sem trailing slash)', () => {
+test('problemsFor: prefix check respects directory boundary (source without trailing slash)', () => {
   const ruleWithoutTrailingSlash = {
     ...RULE,
     derivesFrom: { source: 'docs/specs', field: 'spec' },
   }
   withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs-legacy/x.md\n---\n' }, root => {
     forgetTree(root)
-    assert.deepEqual(problemsFor(root, ruleWithoutTrailingSlash).map(p => p.reason), ['fora-da-fonte'])
+    assert.deepEqual(problemsFor(root, ruleWithoutTrailingSlash).map(p => p.reason), ['outside-source'])
   })
 })
 
-test('problemsFor: alvo que não existe é achado', () => {
-  withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/nao-existe.md\n---\n' }, root => {
+test('problemsFor: target that does not exist is a finding', () => {
+  withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/does-not-exist.md\n---\n' }, root => {
     forgetTree(root)
-    assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['alvo-inexistente'])
+    assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['missing-target'])
   })
 })
 
-test('problemsFor: campo correto não é achado', () => {
+test('problemsFor: correct field is not a finding', () => {
   withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n', 'docs/specs/s1.md': '# s1\n' }, root => {
     forgetTree(root)
     assert.deepEqual(problemsFor(root, RULE), [])
   })
 })
 
-test('derivedFilesOf acha só os arquivos que apontam para o alvo exato editado', () => {
+test('derivedFilesOf finds only the files that point to the exact edited target', () => {
   withTempRepo(
     {
       'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n',

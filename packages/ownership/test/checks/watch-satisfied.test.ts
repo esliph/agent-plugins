@@ -5,7 +5,7 @@ import { buildConfig } from '../helpers/config.ts'
 
 const config = buildConfig({ watches: [{ code: 'src/checks/**', doc: 'docs/requirements/rules.md', reason: 'x' }] })
 
-test('diff toca o código vigiado sem o doc dono: achado', () => {
+test('diff touches the watched code without the owning doc: finding', () => {
   const diff = { base: 'main', changed: ['src/checks/a.ts'], messages: [] }
   const findings = ownershipWatchSatisfied(diff).run({ root: '/repo', config, today: '2026-09-17' })
 
@@ -13,14 +13,14 @@ test('diff toca o código vigiado sem o doc dono: achado', () => {
   assert.match(findings[0]!.message, /rules\.md/)
 })
 
-test('diff traz os dois: sem achado', () => {
+test('diff brings both: no finding', () => {
   const diff = { base: 'main', changed: ['src/checks/a.ts', 'docs/requirements/rules.md'], messages: [] }
 
   assert.deepEqual(ownershipWatchSatisfied(diff).run({ root: '/repo', config, today: '2026-09-17' }), [])
 })
 
-test('Docs: none — razão na mensagem de commit libera', () => {
-  const diff = { base: 'main', changed: ['src/checks/a.ts'], messages: ['fix: x', 'Docs: none — não afeta nada'] }
+test('Docs: none — reason in the commit message releases', () => {
+  const diff = { base: 'main', changed: ['src/checks/a.ts'], messages: ['fix: x', 'Docs: none — affects nothing'] }
 
   assert.deepEqual(ownershipWatchSatisfied(diff).run({ root: '/repo', config, today: '2026-09-17' }), [])
 })

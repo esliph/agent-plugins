@@ -19,23 +19,23 @@ function rule(format: ResolvedOwnedRule['format']): ResolvedOwnedRule {
 const PER_FILE = rule({ collection: 'per-file', key: null, keyMode: null, stateField: 'status' })
 const TABLE = rule({ collection: 'table', key: 'ID', keyMode: null, stateField: 'status' })
 
-test('per-file: mudança de status no frontmatter é transição, com a chave sendo o arquivo', () => {
-  assert.deepEqual(findTransitions('---\nstatus: draft\n---\ncorpo\n', '---\nstatus: accepted\n---\ncorpo\n', PER_FILE, 'docs/x/a.md'), [
+test('per-file: a status change in the frontmatter is a transition, with the key being the file', () => {
+  assert.deepEqual(findTransitions('---\nstatus: draft\n---\nbody\n', '---\nstatus: accepted\n---\nbody\n', PER_FILE, 'docs/x/a.md'), [
     { key: 'docs/x/a.md', from: 'draft', to: 'accepted' },
   ])
 })
 
-test('per-file: editar o corpo sem mudar o status não é transição', () => {
-  assert.deepEqual(findTransitions('---\nstatus: draft\n---\ncorpo\n', '---\nstatus: draft\n---\noutro\n', PER_FILE, 'docs/x/a.md'), [])
+test('per-file: editing the body without changing the status is not a transition', () => {
+  assert.deepEqual(findTransitions('---\nstatus: draft\n---\nbody\n', '---\nstatus: draft\n---\nother\n', PER_FILE, 'docs/x/a.md'), [])
 })
 
-test('per-file: state-field customizado é o campo lido', () => {
-  const custom = rule({ collection: 'per-file', key: null, keyMode: null, stateField: 'situação' })
+test('per-file: a custom state-field is the field read', () => {
+  const custom = rule({ collection: 'per-file', key: null, keyMode: null, stateField: 'situation' })
 
-  assert.equal(findTransitions('---\nsituação: draft\n---\n', '---\nsituação: accepted\n---\n', custom, 'a.md').length, 1)
+  assert.equal(findTransitions('---\nsituation: draft\n---\n', '---\nsituation: accepted\n---\n', custom, 'a.md').length, 1)
 })
 
-test('table: pareia pela chave e devolve cada item que mudou', () => {
+test('table: pairs by key and returns each item that changed', () => {
   const before = '| ID | Status |\n| --- | ------ |\n| DA-01 | open |\n| DA-02 | open |\n'
   const after = '| ID | Status |\n| --- | ------ |\n| DA-02 | resolved |\n| DA-01 | resolved |\n'
 
@@ -45,7 +45,7 @@ test('table: pareia pela chave e devolve cada item que mudou', () => {
   )
 })
 
-test('item novo não é transição — não há antes com que parear', () => {
+test('a new item is not a transition — there is no before to pair with', () => {
   const before = '| ID | Status |\n| --- | ------ |\n| DA-01 | open |\n'
   const after = '| ID | Status |\n| --- | ------ |\n| DA-01 | open |\n| DA-02 | resolved |\n'
 

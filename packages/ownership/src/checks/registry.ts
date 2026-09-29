@@ -11,12 +11,12 @@ import { ownershipConsumerChangeLogged } from './consumer-change-logged.ts'
 
 export type { DiffFacts }
 
-/** Checks que não precisam do diff da branch — rodam sempre que `ownership validate` roda. */
+/** Checks that do not need the branch diff — they run whenever `ownership validate` runs. */
 export function coreChecks(exec: CommandRunner = runCommand): readonly Check[] {
   return [ownershipDeclaredState(), ownershipGeneratedDrift(exec), ownershipOwnerCoverage(), ownershipDerivationResolves()]
 }
 
-/** Checks que precisam do diff — só rodam com `ownership validate --base <ref>`. */
+/** Checks that need the diff — they only run with `ownership validate --base <ref>`. */
 export function diffChecks(diff: DiffFacts): readonly Check[] {
   return [ownershipWatchSatisfied(diff), ownershipConsumerChangeLogged(diff)]
 }

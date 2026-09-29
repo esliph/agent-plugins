@@ -7,7 +7,7 @@ import { join } from 'node:path'
 
 const PACKAGE_ROOT = join(import.meta.dirname, '..', '..')
 
-test('npm pack produz um tarball instalável cujo dist roda de verdade', { timeout: 120_000 }, () => {
+test('npm pack produces an installable tarball whose dist really runs', { timeout: 120_000 }, () => {
   const packResult = spawnSync('npm', ['pack', '--json'], { cwd: PACKAGE_ROOT, encoding: 'utf8', shell: true })
 
   assert.equal(packResult.status, 0, packResult.stderr)

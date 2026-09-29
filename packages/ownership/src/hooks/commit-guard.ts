@@ -44,8 +44,8 @@ export function decideCommitGuard(payload: HookPayload, env: HookEnv, run?: GitR
     return ALLOW
   }
 
-  // Os caminhos staged vêm antes da configuração: são eles que decidem o que
-  // a poda deixa de ler.
+  // The staged paths come before the configuration: they decide what
+  // the pruning stops reading.
   const staged = stagedPaths(env.root, run)
 
   if (staged.length === 0) {

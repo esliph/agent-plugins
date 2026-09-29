@@ -51,8 +51,8 @@ export function ownershipConsumerChangeLogged(diff: DiffFacts): Check {
       }
 
       const changed = diff.changed.map(normalize)
-      // Cada doc só é cobrado pelos caminhos das regras que apontam para ele:
-      // tocar `src/cli/**` não pode exigir o doc de outra regra visível.
+      // Each doc is only charged for the paths of the rules that point to it:
+      // touching `src/cli/**` must not demand the doc of another visible rule.
       const hitsByDoc = new Map<string, string[]>()
 
       for (const watch of visible) {

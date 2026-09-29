@@ -11,14 +11,14 @@ function packagesOf(lockfile: string): unknown {
   return (JSON.parse(readFileSync(lockfile, 'utf8')) as { packages: unknown }).packages
 }
 
-test('o package-lock.json do pacote está em dia com o package.json', { timeout: 120_000 }, () => {
+test('the package-lock.json of the package is in sync with package.json', { timeout: 120_000 }, () => {
   const isolated = mkdtempSync(join(tmpdir(), 'ownership-lock-'))
 
   try {
     copyFileSync(join(PACKAGE_ROOT, 'package.json'), join(isolated, 'package.json'))
-    // O lockfile entra junto: sem ele o npm resolve a versão mais nova de cada
-    // faixa, e o teste reprovaria a cada publicação no registro, com o
-    // package.json intocado. Com ele, o npm só muda o que o package.json pede.
+    // The lockfile goes along: without it npm resolves the newest version of each
+    // range, and the test would fail on every publication to the registry, with
+    // package.json untouched. With it, npm only changes what package.json asks for.
     copyFileSync(join(PACKAGE_ROOT, 'package-lock.json'), join(isolated, 'package-lock.json'))
     const result = spawnSync('npm', ['install', '--package-lock-only', '--ignore-scripts'], { cwd: isolated, encoding: 'utf8', shell: true })
 
@@ -26,7 +26,7 @@ test('o package-lock.json do pacote está em dia com o package.json', { timeout:
     assert.deepEqual(
       packagesOf(join(isolated, 'package-lock.json')),
       packagesOf(join(PACKAGE_ROOT, 'package-lock.json')),
-      'Lockfile desatualizado. Regere fora do workspace: copie package.json para um diretório temporário, rode `npm install --package-lock-only` e traga o package-lock.json de volta.',
+      'Lockfile out of date. Regenerate it outside the workspace: copy package.json to a temporary directory, run `npm install --package-lock-only` and bring package-lock.json back.',
     )
   } finally {
     rmSync(isolated, { recursive: true, force: true })

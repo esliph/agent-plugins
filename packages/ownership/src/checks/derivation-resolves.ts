@@ -9,10 +9,10 @@ function messageFor(rule: ResolvedOwnedRule, problem: DerivationProblem): string
   const source = rule.derivesFrom!.source
   const field = rule.derivesFrom!.field
 
-  if (problem.reason === 'campo-ausente') {
+  if (problem.reason === 'missing-field') {
     return `${problem.file} derives from \`${source}\` (declared in \`owned[]\`, ${rule.origin}) and does not declare the \`${field}\` field in its frontmatter.`
   }
-  if (problem.reason === 'fora-da-fonte') {
+  if (problem.reason === 'outside-source') {
     return `${problem.file}: the \`${field}\` field points to "${problem.field}", outside \`${source}\`.`
   }
 

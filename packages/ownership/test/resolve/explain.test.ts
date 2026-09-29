@@ -4,7 +4,7 @@ import { explainPath } from '../../src/resolve/explain.ts'
 import { resolveOwnership } from '../../src/resolve/hierarchy.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
-test('sem regra cobrindo o caminho, diz isso e aponta onde a entrada caberia', () => {
+test('with no rule covering the path, says so and points to where the entry would fit', () => {
   withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n' }, root => {
     const text = explainPath(resolveOwnership(root)!, 'x.md')
 
@@ -13,7 +13,7 @@ test('sem regra cobrindo o caminho, diz isso e aponta onde a entrada caberia', (
   })
 })
 
-test('o arquivo apontado é o de base mais profunda que contém o caminho', () => {
+test('the file pointed to is the one with the deepest base that contains the path', () => {
   withTempRepo(
     {
       '.ownership.yml': 'version: 2\ninclude: [packages/api/]\nowned: []\n',
@@ -25,24 +25,24 @@ test('o arquivo apontado é o de base mais profunda que contém o caminho', () =
   )
 })
 
-test('mostra a regra que cobre e o arquivo que a declarou', () => {
+test('shows the covering rule and the file that declared it', () => {
   withTempRepo(
     {
       '.ownership.yml': 'version: 2\ninclude: [packages/api/]\nowned: []\n',
-      'packages/api/.ownership.yml': 'version: 2\nowned:\n  - path: ./\n    owner: "@a"\n    skill: outro\n',
+      'packages/api/.ownership.yml': 'version: 2\nowned:\n  - path: ./\n    owner: "@a"\n    skill: other\n',
     },
     root => {
       const text = explainPath(resolveOwnership(root)!, 'packages/api/x.md')
 
       assert.match(text, /declared in: packages\/api\/\.ownership\.yml/)
       assert.match(text, /owner: @a/)
-      assert.match(text, /skill: outro/)
+      assert.match(text, /skill: other/)
       assert.match(text, /states: —/)
     },
   )
 })
 
-test('distingue "key mode" de "key" no formato sections', () => {
+test('distinguishes "key mode" from "key" in the sections format', () => {
   withTempRepo(
     {
       '.ownership.yml': 'version: 2\ninclude: [packages/docs/]\nowned: []\n',

@@ -3,7 +3,7 @@ import type { FormatBlock } from './types.ts'
 export interface DocItem {
   key: string
   state: string
-  /** Linha 1-indexed no arquivo inteiro. */
+  /** 1-indexed line in the whole file. */
   line: number
   fields: Record<string, string>
 }
@@ -20,7 +20,7 @@ export function isEmptyValue(value: string): boolean {
   return EMPTY.has(value.trim().toLowerCase())
 }
 
-/** Cada ocorrência depois da primeira de uma chave já vista. Não lança: quem chama decide (spec §3). */
+/** Each occurrence after the first of an already seen key. Does not throw: the caller decides (spec §3). */
 export function findDuplicateKeys(items: readonly DocItem[]): DocItem[] {
   const seen = new Set<string>()
   const duplicates: DocItem[] = []
@@ -104,9 +104,9 @@ export function parseItemsTable(source: string, startLine: number, format: Pick<
   return []
 }
 
-/** Só `##`: subtítulo é corpo do item, não item (ver a decisão no topo da tarefa). */
+/** Only `##`: a subheading is the item body, not an item (see the decision at the top of the task). */
 const SECTION_HEADING = /^##\s+(.*)$/
-/** Primeiro token é a chave; o resto, sem o travessão opcional, é o título. */
+/** The first token is the key; the rest, without the optional dash, is the title. */
 const FIRST_TOKEN = /^(\S+)(?:\s+(?:[—–-]\s*)?(.*))?$/
 const FIELD = /^[-*]\s+\*\*([^*]+?)\*\*\s*:?\s*(.*)$/
 const FENCE = /^(?:```|~~~)/

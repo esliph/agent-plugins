@@ -1,7 +1,7 @@
 import { findOwnedRule } from './hierarchy.ts'
 import type { ResolvedConfig } from './hierarchy.ts'
 
-/** O arquivo de base mais profunda que contém o caminho — onde a entrada que falta deveria ser escrita. */
+/** The file with the deepest base that contains the path — where the missing entry should be written. */
 function fileResponsibleFor(config: ResolvedConfig, repoPath: string): string | null {
   let best: { file: string; base: string } | null = null
 

@@ -15,7 +15,7 @@ function shipped(dir: string): string[] {
   })
 }
 
-test('código, hooks e manifesto do plugin não citam o rastro interno fora de comentário', () => {
+test('code, hooks and plugin manifest do not cite the internal trace outside a comment', () => {
   const found: string[] = []
   const files = [
     ...shipped(join(PACKAGE_ROOT, 'src')),

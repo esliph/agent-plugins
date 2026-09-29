@@ -33,7 +33,7 @@ export class GitError extends Error {
 
 const NUL = String.fromCharCode(0)
 
-/** Falha aberta: quem chama é hook, e lista vazia significa "não sei". */
+/** Fails open: the caller is a hook, and an empty list means "I don't know". */
 export function stagedPaths(root: string, run: GitRunner = runGitStaged): string[] {
   let output: string
 
@@ -57,7 +57,7 @@ function git(args: readonly string[], root: string, run: GitRunner, what: string
   }
 }
 
-/** Erro sobe: quem chama é check, e silêncio custa um contrato quebrado com CI verde. */
+/** The error propagates: the caller is a check, and silence costs a broken contract with a green CI. */
 export function changedPaths(root: string, base: string, run: GitRunner = runGitDiff): string[] {
   const output = git(['diff', '--name-only', '-z', `${base}...HEAD`], root, run, `git diff ${base}...HEAD`)
 

@@ -8,7 +8,7 @@ export type { Collection, DerivesFrom, FormatBlock, GeneratedRuleRaw, OwnedRuleR
 
 export interface ParseOptions {
   isRoot: boolean
-  /** Nomes de plugin válidos como bloco dentro de `owned[]` — vêm de `plugins:` na raiz. */
+  /** Plugin names valid as a block inside `owned[]` — they come from `plugins:` in the root. */
   pluginNames: readonly string[]
 }
 
@@ -31,7 +31,7 @@ function asStringList(value: unknown, where: string): string[] {
   return value as string[]
 }
 
-/** Ausente é lista vazia; presente e não-lista é erro — nunca vira `[]` em silêncio. */
+/** Absent is an empty list; present and not a list is an error — it never becomes `[]` in silence. */
 function asList(value: unknown, where: string): unknown[] {
   if (value === undefined || value === null) {
     return []
@@ -84,9 +84,9 @@ function parseFormat(raw: unknown, where: string): FormatBlock {
   }
   const stateField = normalizeKey(stateFieldRaw)
 
-  // per-file não tem chave a localizar (a identidade é o arquivo), mas o
-  // estado ainda mora num campo do frontmatter, e esse campo é configurável
-  // (spec §3, `state-field`). O bloco existe só para isso: `key` é erro.
+  // per-file has no key to locate (the identity is the file), but the
+  // state still lives in a frontmatter field, and that field is configurable
+  // (spec §3, `state-field`). The block exists only for that: `key` is an error.
   if (item.collection === 'per-file') {
     assertKnownKeys(item, new Set(['collection', 'state-field']), `${where}.format`, ' In per-file the identity is the file.')
 
@@ -127,8 +127,8 @@ function parseDerivesFrom(raw: unknown, where: string): DerivesFrom | null {
 }
 
 /**
- * O valor de um bloco de plugin é sempre um mapa: `x: {}` declara o vínculo sem
- * configuração, e qualquer outro valor é erro de carga (ADR-0020).
+ * The value of a plugin block is always a map: `x: {}` declares the binding with no
+ * configuration, and any other value is a load error (ADR-0020).
  */
 function asPluginBlock(value: unknown, where: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
@@ -212,7 +212,7 @@ function parseWatch(raw: unknown, index: number, file: string): WatchRuleRaw {
 const ROOT_KEYS = new Set(['version', 'plugins', 'basePath', 'owned', 'generated', 'watches', 'ignore', 'include'])
 const CHILD_KEYS = new Set(['version', 'basePath', 'owned', 'generated', 'watches', 'ignore', 'include'])
 
-/** Só desce: sem `..`, sem glob, sem caminho absoluto — é o que mantém a poda correta sem abrir o arquivo (spec §5). */
+/** Only descends: no `..`, no glob, no absolute path — what keeps the pruning correct without opening the file (spec §5). */
 function parseBasePath(value: unknown, file: string): string | null {
   if (value === undefined || value === null) {
     return null
@@ -244,9 +244,9 @@ export function parseOwnershipFile(source: string, file: string, opts: ParseOpti
   let pluginNames = opts.pluginNames
   let plugins: string[] | undefined
 
-  // A versão vem antes da checagem de chaves, e vale para todo arquivo, não só a
-  // raiz: um arquivo v1 tem `artifacts`/`documents`, e "chave desconhecida"
-  // esconderia o motivo real.
+  // The version comes before the key check, and applies to every file, not only the
+  // root: a v1 file has `artifacts`/`documents`, and "unknown key"
+  // would hide the real reason.
   if (root.version === 1) {
     throw new OwnershipError(
       `${file}: schema v1 — this file is not read. The core reads only v2 (an \`owned\` list, blocks per plugin); ` +
@@ -266,7 +266,7 @@ export function parseOwnershipFile(source: string, file: string, opts: ParseOpti
       }
     }
     pluginNames = plugins
-    // Bloco de topo: só a raiz, e só com nome listado em `plugins:` (ADR-0028).
+    // Top-level block: only the root, and only with a name listed in `plugins:` (ADR-0028).
     assertKnownKeys(root, new Set([...ROOT_KEYS, ...plugins]), file)
   } else {
     for (const key of Object.keys(root)) {

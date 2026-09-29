@@ -7,13 +7,13 @@ import { withTempRepo } from '../helpers/tmp.ts'
 const BASE = 'version: 2\nowned:\n  - path: docs/decisions/adr/\n    owner: "@a"\n    skill: decision-recorder\n'
 const CHILD = 'version: 2\nowned:\n  - path: docs/\n    owner: "@b"\n'
 
-test('sem arquivo de ownership, resolveOwnership devolve null', () => {
+test('without an ownership file, resolveOwnership returns null', () => {
   withTempRepo({}, root => {
     assert.equal(resolveOwnership(root), null)
   })
 })
 
-test('arquivo único: a entrada resolvida aponta o próprio arquivo como origem', () => {
+test('single file: the resolved entry points to its own file as origin', () => {
   withTempRepo({ '.ownership.yml': BASE }, root => {
     const config = resolveOwnership(root)
 
@@ -22,13 +22,13 @@ test('arquivo único: a entrada resolvida aponta o próprio arquivo como origem'
   })
 })
 
-test('a base da raiz é a raiz do repositório mesmo quando ela mora em docs/', () => {
+test('the root base is the repository root even when it lives in docs/', () => {
   withTempRepo({ 'docs/.ownership.yml': 'version: 2\nowned:\n  - path: CLAUDE.md\n    owner: "@a"\n' }, root => {
     assert.equal(resolveOwnership(root)?.owned[0]?.path, 'CLAUDE.md')
   })
 })
 
-test('include de diretório acha o único arquivo de ownership dentro dele', () => {
+test('directory include finds the only ownership file inside it', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -43,7 +43,7 @@ test('include de diretório acha o único arquivo de ownership dentro dele', () 
   )
 })
 
-test('include de arquivo explícito funciona quando há mais de um no diretório', () => {
+test('explicit file include works when there is more than one in the directory', () => {
   withTempRepo(
     { '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'version: 2\nowned:\n  - path: docs/specs/\n    owner: "@b"\n' },
     root => {
@@ -52,7 +52,7 @@ test('include de arquivo explícito funciona quando há mais de um no diretório
   )
 })
 
-test('include de diretório com mais de um arquivo de ownership é ambíguo', () => {
+test('directory include with more than one ownership file is ambiguous', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -65,13 +65,13 @@ test('include de diretório com mais de um arquivo de ownership é ambíguo', ()
   )
 })
 
-test('include apontando para arquivo que não existe é OwnershipError', () => {
+test('include pointing to a file that does not exist is OwnershipError', () => {
   withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n` }, root => {
     assert.throws(() => resolveOwnership(root), OwnershipError)
   })
 })
 
-test('include aninhado é lido', () => {
+test('nested include is read', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -84,7 +84,7 @@ test('include aninhado é lido', () => {
   )
 })
 
-test('ciclo de include é erro', () => {
+test('include cycle is an error', () => {
   withTempRepo(
     { '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'version: 2\nowned: []\ninclude: [.ownership.yml]\n' },
     root => {
@@ -93,7 +93,7 @@ test('ciclo de include é erro', () => {
   )
 })
 
-test('o mesmo arquivo incluído por dois é erro, e não se confunde com ciclo', () => {
+test('the same file included by two is an error, and is not confused with a cycle', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [ownership.a.yml, ownership.b.yml]\n`,
@@ -107,7 +107,7 @@ test('o mesmo arquivo incluído por dois é erro, e não se confunde com ciclo',
   )
 })
 
-test('caminho declarado fora da base do arquivo que o declara é erro', () => {
+test('path declared outside the base of the file that declares it is an error', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -119,7 +119,7 @@ test('caminho declarado fora da base do arquivo que o declara é erro', () => {
   )
 })
 
-test('include que sai da base também é erro', () => {
+test('include that leaves the base is also an error', () => {
   withTempRepo(
     { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'version: 2\nowned: []\ninclude: [../web/]\n' },
     root => {
@@ -128,7 +128,7 @@ test('include que sai da base também é erro', () => {
   )
 })
 
-test('derives-from.source fora da base é erro — senão a poda mata o lembrete', () => {
+test('derives-from.source outside the base is an error — otherwise pruning kills the reminder', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -141,7 +141,7 @@ test('derives-from.source fora da base é erro — senão a poda mata o lembrete
   )
 })
 
-test('watches[].doc pode sair da base; watches[].code não', () => {
+test('watches[].doc may leave the base; watches[].code may not', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -165,7 +165,7 @@ test('watches[].doc pode sair da base; watches[].code não', () => {
   )
 })
 
-test('basePath desloca a base para dentro', () => {
+test('basePath shifts the base inward', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [ownership.api.yml]\n`,
@@ -177,7 +177,7 @@ test('basePath desloca a base para dentro', () => {
   )
 })
 
-test('basePath que sobe é erro', () => {
+test('basePath that climbs is an error', () => {
   withTempRepo(
     { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'version: 2\nbasePath: ../web\nowned: []\n' },
     root => {
@@ -186,19 +186,19 @@ test('basePath que sobe é erro', () => {
   )
 })
 
-test('caminho igual declarado duas vezes no mesmo arquivo é colisão', () => {
+test('same path declared twice in the same file is a collision', () => {
   withTempRepo({ '.ownership.yml': `${BASE}  - path: docs/decisions/adr/\n    owner: "@b"\n` }, root => {
     assert.throws(() => resolveOwnership(root), /collides/)
   })
 })
 
-test('caminho contido em outro é colisão, mesmo entre arquivos diferentes', () => {
+test('path contained in another is a collision, even across different files', () => {
   withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': CHILD }, root => {
     assert.throws(() => resolveOwnership(root), /collides/)
   })
 })
 
-test('caminhos irmãos não colidem', () => {
+test('sibling paths do not collide', () => {
   withTempRepo(
     { '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'version: 2\nowned:\n  - path: docs/specs/\n    owner: "@b"\n' },
     root => {
@@ -207,7 +207,7 @@ test('caminhos irmãos não colidem', () => {
   )
 })
 
-test('caminho gerado dentro de caminho governado não é colisão; dois geradores para o mesmo arquivo são', () => {
+test('generated path inside a governed path is not a collision; two generators for the same file are', () => {
   withTempRepo({ '.ownership.yml': `${BASE}generated:\n  - path: docs/decisions/adr/index.gen.md\n    command: gen\n` }, root => {
     assert.equal(resolveOwnership(root)?.generated.length, 1)
   })
@@ -216,13 +216,13 @@ test('caminho gerado dentro de caminho governado não é colisão; dois geradore
   })
 })
 
-test('dois watches para o mesmo code convivem', () => {
+test('two watches for the same code coexist', () => {
   withTempRepo({ '.ownership.yml': `${BASE}watches:\n  - code: src/**\n    doc: a.md\n  - code: src/**\n    doc: b.md\n` }, root => {
     assert.equal(resolveOwnership(root)?.watches.length, 2)
   })
 })
 
-test('arquivo incluído sem version é erro, e com version divergente também', () => {
+test('included file without version is an error, and with a divergent version too', () => {
   withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'owned: []\n' }, root => {
     assert.throws(() => resolveOwnership(root), OwnershipError)
   })
@@ -231,13 +231,13 @@ test('arquivo incluído sem version é erro, e com version divergente também', 
   })
 })
 
-test('entrada sem owner é erro — não há de onde herdar', () => {
+test('entry without owner is an error — there is nowhere to inherit from', () => {
   withTempRepo({ '.ownership.yml': 'version: 2\nowned:\n  - path: docs/\n' }, root => {
     assert.throws(() => resolveOwnership(root), OwnershipError)
   })
 })
 
-test('watches, generated e ignore acumulam entre arquivos', () => {
+test('watches, generated and ignore accumulate across files', () => {
   withTempRepo(
     {
       '.ownership.yml': `${BASE}include: [packages/api/]\nwatches:\n  - code: src/**\n    doc: docs/decisions/adr/\nignore: ["node_modules/**"]\n`,
@@ -252,9 +252,9 @@ test('watches, generated e ignore acumulam entre arquivos', () => {
   )
 })
 
-test('poda: arquivo cujo diretório não alcança nenhum caminho não é lido', () => {
+test('pruning: a file whose directory reaches no path is not read', () => {
   withTempRepo(
-    { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'isto não é YAML válido: [\n' },
+    { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'this is not valid YAML: [\n' },
     root => {
       assert.doesNotThrow(() => resolveOwnership(root, { onlyFor: ['packages/web/x.ts'] }))
       assert.throws(() => resolveOwnership(root, { onlyFor: ['packages/api/x.ts'] }), OwnershipError)
@@ -262,7 +262,7 @@ test('poda: arquivo cujo diretório não alcança nenhum caminho não é lido', 
   )
 })
 
-test('findOwnedRule acha a única regra que cobre, e null quando nenhuma cobre', () => {
+test('findOwnedRule finds the only rule that covers, and null when none covers', () => {
   withTempRepo({ '.ownership.yml': BASE }, root => {
     const config = resolveOwnership(root)!
 
@@ -271,7 +271,7 @@ test('findOwnedRule acha a única regra que cobre, e null quando nenhuma cobre',
   })
 })
 
-test('os blocos de topo da raiz chegam em ResolvedConfig.pluginBlocks', () => {
+test('the root top-level blocks arrive in ResolvedConfig.pluginBlocks', () => {
   withTempRepo({ '.ownership.yml': 'version: 2\nplugins: [living-docs]\nliving-docs:\n  stale-after-months: 3\nowned: []\n' }, root => {
     assert.deepEqual(resolveOwnership(root)?.pluginBlocks, { 'living-docs': { 'stale-after-months': 3 } })
   })

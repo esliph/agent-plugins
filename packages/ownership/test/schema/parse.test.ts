@@ -6,70 +6,70 @@ import type { RootFile } from '../../src/schema/types.ts'
 const ROOT = { isRoot: true, pluginNames: [] }
 const CHILD = (pluginNames: string[] = []) => ({ isRoot: false, pluginNames })
 
-test('raiz exige version: 2', () => {
+test('root requires version: 2', () => {
   assert.throws(() => parseOwnershipFile('owned: []\n', '.ownership.yml', ROOT), /version.*2/)
 })
 
-test('raiz aceita version: 2 e plugins: vazio por padrão', () => {
+test('root accepts version: 2 and empty plugins by default', () => {
   const parsed = parseOwnershipFile('version: 2\nowned: []\n', '.ownership.yml', ROOT) as { plugins: string[] }
 
   assert.deepEqual(parsed.plugins, [])
 })
 
-test('arquivo filho exige version e recusa plugins', () => {
+test('child file requires version and refuses plugins', () => {
   assert.throws(() => parseOwnershipFile('owned: []\n', 'packages/api/.ownership.yml', CHILD()), /version/)
   assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nplugins: [x]\n', 'packages/api/.ownership.yml', CHILD()), /exclusive to the root file/)
 })
 
-test('chave de topo desconhecida é erro', () => {
+test('unknown top-level key is an error', () => {
   assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nfoo: 1\n', '.ownership.yml', ROOT), /"foo"/)
 })
 
-test('versão 1 é recusada em voz alta, dizendo que o esquema mudou', () => {
+test('version 1 is refused loudly, saying the schema changed', () => {
   assert.throws(() => parseOwnershipFile('version: 1\nartifacts: []\n', 'docs/.ownership.yml', ROOT), /schema v1.*not read.*rewrite/)
 })
 
-test('owned, generated e watches que não são lista são erro, não lista vazia', () => {
+test('owned, generated and watches that are not a list are an error, not an empty list', () => {
   assert.throws(() => parseOwnershipFile('version: 2\nowned: {}\n', '.ownership.yml', ROOT), /owned.*list/)
   assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nwatches: x\n', '.ownership.yml', ROOT), /watches.*list/)
 })
 
-test('owned exige owner começando com @', () => {
-  const source = 'version: 2\nowned:\n  - path: docs/x/\n    owner: sem-arroba\n'
+test('owned requires owner starting with @', () => {
+  const source = 'version: 2\nowned:\n  - path: docs/x/\n    owner: no-at-sign\n'
 
   assert.throws(() => parseOwnershipFile(source, '.ownership.yml', ROOT), /@/)
 })
 
-test('owner ausente é erro — não há de onde herdar', () => {
-  assert.throws(() => parseOwnershipFile('version: 2\nowned:\n  - path: ./\n    skill: outro\n', 'packages/api/.ownership.yml', CHILD()), /owner/)
+test('missing owner is an error — there is nowhere to inherit from', () => {
+  assert.throws(() => parseOwnershipFile('version: 2\nowned:\n  - path: ./\n    skill: other\n', 'packages/api/.ownership.yml', CHILD()), /owner/)
 })
 
-test('per-file aceita format só para state-field; key é erro', () => {
-  const ok = 'version: 2\nowned:\n  - path: docs/adr/\n    owner: "@a"\n    format:\n      collection: per-file\n      state-field: Situação\n'
+test('per-file accepts format only for state-field; key is an error', () => {
+  const ok = 'version: 2\nowned:\n  - path: docs/adr/\n    owner: "@a"\n    format:\n      collection: per-file\n      state-field: Situation\n'
   const parsed = parseOwnershipFile(ok, '.ownership.yml', ROOT) as { owned: { format: { collection: string; stateField: string } }[] }
 
   assert.equal(parsed.owned[0]?.format.collection, 'per-file')
-  assert.equal(parsed.owned[0]?.format.stateField, 'situação')
+  assert.equal(parsed.owned[0]?.format.stateField, 'situation')
 
   const bad = 'version: 2\nowned:\n  - path: docs/adr/\n    owner: "@a"\n    format:\n      collection: per-file\n      key: ID\n'
 
   assert.throws(() => parseOwnershipFile(bad, '.ownership.yml', ROOT), /"key"/)
 })
 
-test('owned per-file não declara format', () => {
+test('owned per-file does not declare format', () => {
   const source = 'version: 2\nowned:\n  - path: docs/decisions/adr/\n    owner: "@a"\n    skill: decision-recorder\n'
   const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { owned: { format: { collection: string } }[] }
 
   assert.equal(parsed.owned[0]?.format.collection, 'per-file')
 })
 
-test('owned com format: table exige key nomeando a coluna', () => {
+test('owned with format: table requires key naming the column', () => {
   const source = 'version: 2\nowned:\n  - path: docs/open-decisions.md\n    owner: "@a"\n    format:\n      collection: table\n'
 
   assert.throws(() => parseOwnershipFile(source, '.ownership.yml', ROOT), /format: needs a non-empty `key` field/)
 })
 
-test('owned com format: sections aceita key: first-token (padrão) ou heading', () => {
+test('owned with format: sections accepts key: first-token (default) or heading', () => {
   const source =
     'version: 2\nowned:\n  - path: docs/requirements/rules.md\n    owner: "@a"\n    format:\n      collection: sections\n'
   const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { owned: { format: { keyMode: string | null } }[] }
@@ -77,15 +77,15 @@ test('owned com format: sections aceita key: first-token (padrão) ou heading', 
   assert.equal(parsed.owned[0]?.format.keyMode, 'first-token')
 })
 
-test('state-field é opcional, default "status", normalizado', () => {
+test('state-field is optional, default "status", normalized', () => {
   const source =
-    'version: 2\nowned:\n  - path: docs/open-decisions.md\n    owner: "@a"\n    format:\n      collection: table\n      key: ID\n      state-field: Situação\n'
+    'version: 2\nowned:\n  - path: docs/open-decisions.md\n    owner: "@a"\n    format:\n      collection: table\n      key: ID\n      state-field: Situation\n'
   const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { owned: { format: { stateField: string } }[] }
 
-  assert.equal(parsed.owned[0]?.format.stateField, 'situação')
+  assert.equal(parsed.owned[0]?.format.stateField, 'situation')
 })
 
-test('derives-from exige source e field', () => {
+test('derives-from requires source and field', () => {
   const source =
     'version: 2\nowned:\n  - path: docs/superpowers/plans/\n    owner: "@a"\n    derives-from:\n      source: docs/superpowers/specs/\n      field: spec\n'
   const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { owned: { derivesFrom: { source: string; field: string } | null }[] }
@@ -93,7 +93,7 @@ test('derives-from exige source e field', () => {
   assert.deepEqual(parsed.owned[0]?.derivesFrom, { source: 'docs/superpowers/specs/', field: 'spec' })
 })
 
-test('bloco de plugin passa opaco quando o nome está em plugins:, e reprova quando não está', () => {
+test('plugin block passes opaque when the name is in plugins:, and fails when it is not', () => {
   const withBlock = 'version: 2\nplugins: [living-docs]\nowned:\n  - path: docs/decisions/adr/\n    owner: "@a"\n    living-docs:\n      id-prefix: ADR\n'
   const parsed = parseOwnershipFile(withBlock, '.ownership.yml', ROOT) as { owned: { pluginBlocks: Record<string, unknown> }[] }
 
@@ -104,7 +104,7 @@ test('bloco de plugin passa opaco quando o nome está em plugins:, e reprova qua
   assert.throws(() => parseOwnershipFile(withoutDeclared, '.ownership.yml', ROOT), /"living-docs"/)
 })
 
-test('generated e watches são estritos em chave desconhecida', () => {
+test('generated and watches are strict about unknown keys', () => {
   assert.throws(
     () => parseOwnershipFile('version: 2\nowned: []\ngenerated:\n  - path: a.md\n    command: x\n    extra: 1\n', '.ownership.yml', ROOT),
     /"extra"/,
@@ -115,7 +115,7 @@ test('generated e watches são estritos em chave desconhecida', () => {
   )
 })
 
-test('watches lê consumer-visible e reason opcionais', () => {
+test('watches reads optional consumer-visible and reason', () => {
   const source = 'version: 2\nowned: []\nwatches:\n  - code: "src/**"\n    doc: CHANGELOG.md\n    consumer-visible: true\n    reason: "x"\n'
   const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { watches: { consumerVisible: boolean; reason: string | null }[] }
 
@@ -123,7 +123,7 @@ test('watches lê consumer-visible e reason opcionais', () => {
   assert.equal(parsed.watches[0]?.reason, 'x')
 })
 
-test('ignore e include são listas de string', () => {
+test('ignore and include are lists of strings', () => {
   const source = 'version: 2\nowned: []\nignore: ["node_modules/**"]\ninclude: ["packages/api/"]\n'
   const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { ignore: string[]; include: string[] }
 
@@ -131,7 +131,7 @@ test('ignore e include são listas de string', () => {
   assert.deepEqual(parsed.include, ['packages/api/'])
 })
 
-test('dir do arquivo é derivado do próprio caminho', () => {
+test('file dir is derived from its own path', () => {
   const rootParsed = parseOwnershipFile('version: 2\nowned: []\n', '.ownership.yml', ROOT)
   const childParsed = parseOwnershipFile('version: 2\nowned: []\n', 'packages/api/.ownership.yml', CHILD())
 
@@ -139,7 +139,7 @@ test('dir do arquivo é derivado do próprio caminho', () => {
   assert.equal(childParsed.dir, 'packages/api')
 })
 
-test('basePath é normalizado, e só desce', () => {
+test('basePath is normalized, and only descends', () => {
   const parsed = parseOwnershipFile('version: 2\nbasePath: packages/api/\nowned: []\n', 'ownership.api.yml', ROOT) as { basePath: string | null }
 
   assert.equal(parsed.basePath, 'packages/api')
@@ -150,11 +150,11 @@ test('basePath é normalizado, e só desce', () => {
   }
 })
 
-test('YAML inválido é OwnershipError', () => {
+test('invalid YAML is OwnershipError', () => {
   assert.throws(() => parseOwnershipFile('version: [2\n', '.ownership.yml', ROOT), OwnershipError)
 })
 
-test('a raiz aceita bloco de topo com nome listado em plugins, e o repassa opaco', () => {
+test('the root accepts a top-level block with a name listed in plugins, and passes it on opaque', () => {
   const parsed = parseOwnershipFile(
     'version: 2\nplugins: [living-docs]\nliving-docs:\n  stale-after-months: 6\nowned: []\n',
     '.ownership.yml',
@@ -164,20 +164,20 @@ test('a raiz aceita bloco de topo com nome listado em plugins, e o repassa opaco
   assert.deepEqual(parsed.pluginBlocks, { 'living-docs': { 'stale-after-months': 6 } })
 })
 
-test('sem bloco de topo, pluginBlocks da raiz é vazio', () => {
+test('without a top-level block, the root pluginBlocks is empty', () => {
   const parsed = parseOwnershipFile('version: 2\nplugins: [living-docs]\nowned: []\n', '.ownership.yml', ROOT) as RootFile
 
   assert.deepEqual(parsed.pluginBlocks, {})
 })
 
-test('bloco de topo num arquivo filho é erro, mesmo com o nome listado na raiz', () => {
+test('top-level block in a child file is an error, even with the name listed in the root', () => {
   assert.throws(
     () => parseOwnershipFile('version: 2\nliving-docs:\n  stale-after-months: 6\nowned: []\n', 'pkg/.ownership.yml', CHILD(['living-docs'])),
     /pkg\/\.ownership\.yml.*living-docs.*exclusive to the root file/,
   )
 })
 
-test('bloco de plugin que não é mapa é erro, no topo e na entrada', () => {
+test('plugin block that is not a map is an error, at the top and in the entry', () => {
   assert.throws(
     () => parseOwnershipFile('version: 2\nplugins: [living-docs]\nliving-docs: true\nowned: []\n', '.ownership.yml', ROOT),
     /\.ownership\.yml\.living-docs.*must be a map/,
@@ -193,6 +193,6 @@ test('bloco de plugin que não é mapa é erro, no topo e na entrada', () => {
   )
 })
 
-test('plugin com o nome de uma core key é erro', () => {
+test('plugin named after a core key is an error', () => {
   assert.throws(() => parseOwnershipFile('version: 2\nplugins: [owned]\nowned: []\n', '.ownership.yml', ROOT), /plugins.*"owned".*core key/)
 })

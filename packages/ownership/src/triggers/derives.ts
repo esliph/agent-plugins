@@ -57,7 +57,7 @@ export function instancesOf(root: string, rule: ResolvedOwnedRule): DerivationIn
 export interface DerivationProblem {
   file: string
   line: number
-  reason: 'campo-ausente' | 'fora-da-fonte' | 'alvo-inexistente'
+  reason: 'missing-field' | 'outside-source' | 'missing-target'
   field: string | null
 }
 
@@ -71,22 +71,22 @@ export function problemsFor(root: string, rule: ResolvedOwnedRule): DerivationPr
 
   for (const instance of instancesOf(root, rule)) {
     if (instance.field === null) {
-      problems.push({ file: instance.file, line: instance.line, reason: 'campo-ausente', field: null })
+      problems.push({ file: instance.file, line: instance.line, reason: 'missing-field', field: null })
       continue
     }
     if (!instance.field.startsWith(normalizedSource)) {
-      problems.push({ file: instance.file, line: instance.line, reason: 'fora-da-fonte', field: instance.field })
+      problems.push({ file: instance.file, line: instance.line, reason: 'outside-source', field: instance.field })
       continue
     }
     if (readTextFile(root, instance.field) === null) {
-      problems.push({ file: instance.file, line: instance.line, reason: 'alvo-inexistente', field: instance.field })
+      problems.push({ file: instance.file, line: instance.line, reason: 'missing-target', field: instance.field })
     }
   }
 
   return problems
 }
 
-/** Só os arquivos governados por `rule` cujo campo aponta exatamente para `editedTarget` — precisão, não ruído (spec §4). */
+/** Only the files governed by `rule` whose field points exactly to `editedTarget` — precision, not noise (spec §4). */
 export function derivedFilesOf(root: string, rule: ResolvedOwnedRule, editedTarget: string): string[] {
   if (rule.derivesFrom === null) {
     return []

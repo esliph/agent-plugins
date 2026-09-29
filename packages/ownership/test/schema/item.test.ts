@@ -2,8 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { findDuplicateKeys, isEmptyValue, parseItemsSections, parseItemsTable } from '../../src/schema/item.ts'
 
-test('parseItemsTable lê pela coluna nomeada em format.key, chave opaca', () => {
-  const source = ['| ID | Lacuna | Status |', '| --- | ------ | ------ |', '| DA-01 | x | open |', '| T-9 | y | resolved |'].join('\n')
+test('parseItemsTable reads by the column named in format.key, opaque key', () => {
+  const source = ['| ID | Gap | Status |', '| --- | ------ | ------ |', '| DA-01 | x | open |', '| T-9 | y | resolved |'].join('\n')
   const items = parseItemsTable(source, 1, { key: 'ID', stateField: 'status' })
 
   assert.deepEqual(
@@ -11,10 +11,10 @@ test('parseItemsTable lê pela coluna nomeada em format.key, chave opaca', () =>
     ['DA-01', 'T-9'],
   )
   assert.equal(items[0]?.state, 'open')
-  assert.equal(items[0]?.fields.lacuna, 'x')
+  assert.equal(items[0]?.fields.gap, 'x')
 })
 
-test('parseItemsTable: célula vazia ou marcador de vazio não vira item', () => {
+test('parseItemsTable: an empty cell or empty marker does not become an item', () => {
   const source = ['| ID | Status |', '| --- | ------ |', '| - | open |', '| DA-01 | open |'].join('\n')
   const items = parseItemsTable(source, 1, { key: 'ID', stateField: 'status' })
 
@@ -24,13 +24,13 @@ test('parseItemsTable: célula vazia ou marcador de vazio não vira item', () =>
   )
 })
 
-test('parseItemsTable sem a coluna declarada devolve lista vazia', () => {
+test('parseItemsTable without the declared column returns an empty list', () => {
   const source = ['| Nome | Status |', '| ---- | ------ |', '| x | open |'].join('\n')
 
   assert.deepEqual(parseItemsTable(source, 1, { key: 'ID', stateField: 'status' }), [])
 })
 
-test('parseItemsTable devolve a chave duplicada, e findDuplicateKeys aponta a repetição', () => {
+test('parseItemsTable returns the duplicate key, and findDuplicateKeys points at the repetition', () => {
   const source = ['| ID | Status |', '| --- | ------ |', '| DA-01 | open |', '| DA-01 | resolved |'].join('\n')
   const items = parseItemsTable(source, 1, { key: 'ID', stateField: 'status' })
 
@@ -41,28 +41,28 @@ test('parseItemsTable devolve a chave duplicada, e findDuplicateKeys aponta a re
   )
 })
 
-test('parseItemsSections, keyMode first-token: primeiro token é a chave, resto é título', () => {
-  const source = '## RN-0001 — Título da regra\n\n- **status:** active\n- **relates-to:** ADR-0002\n\nCorpo.\n'
+test('parseItemsSections, keyMode first-token: first token is the key, the rest is the title', () => {
+  const source = '## RN-0001 — Rule title\n\n- **status:** active\n- **relates-to:** ADR-0002\n\nBody.\n'
   const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'status' })
 
   assert.equal(items[0]?.key, 'RN-0001')
-  assert.equal(items[0]?.fields.title, 'Título da regra')
+  assert.equal(items[0]?.fields.title, 'Rule title')
   assert.equal(items[0]?.state, 'active')
   assert.equal(items[0]?.fields['relates-to'], 'ADR-0002')
 })
 
-test('parseItemsSections, keyMode heading: a linha inteira do heading é a chave', () => {
-  const source = '## Contexto\n\nTexto.\n\n## Decisão\n\nOutro texto.\n'
+test('parseItemsSections, keyMode heading: the whole heading line is the key', () => {
+  const source = '## Context\n\nText.\n\n## Decision\n\nOther text.\n'
   const items = parseItemsSections(source, 1, { keyMode: 'heading', stateField: 'status' })
 
   assert.deepEqual(
     items.map(item => item.key),
-    ['Contexto', 'Decisão'],
+    ['Context', 'Decision'],
   )
 })
 
-test('parseItemsSections pula bloco de código cercado', () => {
-  const source = '```\n## RN-9999 — exemplo de formato\n```\n\n## RN-0001 — real\n\n- **status:** active\n'
+test('parseItemsSections skips a fenced code block', () => {
+  const source = '```\n## RN-9999 — format example\n```\n\n## RN-0001 — real\n\n- **status:** active\n'
   const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'status' })
 
   assert.deepEqual(
@@ -71,14 +71,14 @@ test('parseItemsSections pula bloco de código cercado', () => {
   )
 })
 
-test('parseItemsSections: chave duplicada aparece em findDuplicateKeys', () => {
-  const source = '## X — um\n\n- **status:** active\n\n## X — dois\n\n- **status:** active\n'
+test('parseItemsSections: duplicate key shows up in findDuplicateKeys', () => {
+  const source = '## X — one\n\n- **status:** active\n\n## X — two\n\n- **status:** active\n'
 
   assert.equal(findDuplicateKeys(parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'status' })).length, 1)
 })
 
-test('parseItemsSections: só heading de nível 2 é item; subtítulo é corpo', () => {
-  const source = '## RN-0001 — a\n\n### Exemplo\n\n## RN-0002 — b\n\n### Exemplo\n'
+test('parseItemsSections: only a level 2 heading is an item; a subheading is body', () => {
+  const source = '## RN-0001 — a\n\n### Example\n\n## RN-0002 — b\n\n### Example\n'
   const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'status' })
 
   assert.deepEqual(
@@ -87,14 +87,14 @@ test('parseItemsSections: só heading de nível 2 é item; subtítulo é corpo',
   )
 })
 
-test('state-field customizado é lido no lugar de status', () => {
-  const source = '## X — um\n\n- **situação:** aberta\n'
-  const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'situação' })
+test('custom state-field is read in place of status', () => {
+  const source = '## X — one\n\n- **situation:** open\n'
+  const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'situation' })
 
-  assert.equal(items[0]?.state, 'aberta')
+  assert.equal(items[0]?.state, 'open')
 })
 
-test('parseItemsTable para de ler na primeira linha que não é da tabela', () => {
+test('parseItemsTable stops reading at the first line that is not part of the table', () => {
   const items = parseItemsTable('| ID | Status |\n| --- | --- |\n| A-1 | open |\n\n| A-2 | open |\n', 1, { key: 'ID', stateField: 'status' })
 
   assert.deepEqual(
@@ -103,14 +103,14 @@ test('parseItemsTable para de ler na primeira linha que não é da tabela', () =
   )
 })
 
-test('parseItemsTable traz todas as colunas no item, pela chave normalizada', () => {
-  const items = parseItemsTable('| ID | Status | Resolvida por: |\n| --- | --- | --- |\n| A-1 | open | B-2 |\n', 1, { key: 'ID', stateField: 'status' })
+test('parseItemsTable brings all columns into the item, by normalized key', () => {
+  const items = parseItemsTable('| ID | Status | Resolved by: |\n| --- | --- | --- |\n| A-1 | open | B-2 |\n', 1, { key: 'ID', stateField: 'status' })
 
-  assert.deepEqual(items[0]?.fields, { id: 'A-1', status: 'open', 'resolvida por': 'B-2' })
+  assert.deepEqual(items[0]?.fields, { id: 'A-1', status: 'open', 'resolved by': 'B-2' })
 })
 
-test('parseItemsSections: a linha é deslocada por startLine, e seção sem estado devolve estado vazio', () => {
-  const items = parseItemsSections('## RN-0001 — Regra\n\nTexto.\n', 10, { keyMode: 'first-token', stateField: 'status' })
+test('parseItemsSections: the line is shifted by startLine, and a section with no state returns an empty state', () => {
+  const items = parseItemsSections('## RN-0001 — Rule\n\nText.\n', 10, { keyMode: 'first-token', stateField: 'status' })
 
   assert.equal(items[0]?.line, 10)
   assert.equal(items[0]?.state, '')
