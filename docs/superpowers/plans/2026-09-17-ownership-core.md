@@ -1,121 +1,120 @@
-# Núcleo de ownership de artefatos — plano de implementação
+# Artifact ownership core — implementation plan
 
-> **Para quem executar:** SUB-SKILL OBRIGATÓRIA: use superpowers:subagent-driven-development (recomendado) ou superpowers:executing-plans para executar este plano tarefa a tarefa. Os passos usam checkbox (`- [ ]`) para acompanhamento.
+> **For whoever executes:** REQUIRED SUB-SKILL: use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to execute this plan task by task. The steps use checkboxes (`- [ ]`) for tracking.
 
-**Objetivo:** extrair o mecanismo de ownership de artefatos do `@esliph/living-docs`
-e publicá-lo como `@esliph/ownership` — um novo pacote em `packages/ownership`,
-plugin e biblioteca ao mesmo tempo — cobrindo contrato, esquema v2, composição,
-identidade de item, gatilhos (código→doc e doc→doc), os hooks e checks que a
-spec atribui ao núcleo, e a distribuição (build só na publicação, execução sem
-build em desenvolvimento).
+**Goal:** extract the artifact ownership mechanism from `@esliph/living-docs`
+and publish it as `@esliph/ownership` — a new package in `packages/ownership`,
+plugin and library at the same time — covering contract, v2 schema, composition,
+item identity, triggers (code→doc and doc→doc), the hooks and checks that the
+spec assigns to the core, and distribution (build only at publication, execution without
+build in development).
 
-**Arquitetura:** pacote TypeScript autocontido (não importa nada de `src/` do
-`@esliph/living-docs` — a migração que faz `living-docs` depender dele é spec
-própria, posterior a esta). Roda sem build no checkout (Node 24 lê `.ts` direto,
-por type-stripping) e ganha `dist/` só no `prepack`, quando publicado ou quando
-outro plugin o instala via npm. O repositório-raiz vira workspace npm para que a
-condição `development` do `exports` resolva o pacote pelo symlink em
-desenvolvimento.
+**Architecture:** self-contained TypeScript package (it imports nothing from `src/` of
+`@esliph/living-docs` — the migration that makes `living-docs` depend on it is its own
+spec, later than this one). It runs without a build in the checkout (Node 24 reads `.ts` directly,
+by type-stripping) and gets `dist/` only in `prepack`, when published or when
+another plugin installs it via npm. The root repository becomes an npm workspace so that the
+`development` condition of `exports` resolves the package through the symlink in
+development.
 
-**Tech Stack:** Node ≥ 24, TypeScript sem passo de build, `node --test`, `yaml`,
-`picomatch`. Nenhuma dependência nova além das que `@esliph/living-docs` já usa.
+**Tech Stack:** Node ≥ 24, TypeScript with no build step, `node --test`, `yaml`,
+`picomatch`. No new dependency beyond those `@esliph/living-docs` already uses.
 
-**Spec:** `docs/superpowers/specs/2026-09-17-nucleo-de-ownership-design.md` — o
-plano argumenta a partir dela; quem executar lê as duas.
+**Spec:** `docs/superpowers/specs/2026-09-17-ownership-core-design.md` — the
+plan argues from it; whoever executes reads both.
 
-## Restrições globais
+## Global constraints
 
-- **Node ≥ 24, sem passo de build no checkout.** `RNF-0002`. O pacote roda `.ts`
-  direto; `dist/` só existe dentro do tarball, gerado no `prepack`.
-- **`@esliph/ownership` não importa de `src/` do `@esliph/living-docs`.** É o que
-  torna o pacote publicável e instalável por um segundo consumidor sem arrastar
-  o primeiro. Utilitário compartilhado é portado (copiado e adaptado), não
-  importado — a duplicação é o preço deliberado de dois pacotes independentes.
-- **O núcleo não conhece formato de ID, prefixo, padding, nem congelamento.**
-  Isso é `id-format`/`append-only`/`mutable-fields` e fica em `@esliph/living-docs`.
-  A chave de um item é opaca: string não vazia, única no arquivo, sem forma
-  exigida.
-- **O núcleo não inventa semântica de estado.** `states` é vocabulário do
-  projeto; o núcleo só compara contra a lista declarada, nunca contra uma
-  máquina embutida por prefixo.
-- **Todo caminho de uma entrada é relativo à base do arquivo que o declara.** A
-  base é o diretório do arquivo mais o `basePath`, que só desce; a base da
-  **raiz** é a raiz do repositório, more ela em `.ownership.yml` ou em
-  `docs/.ownership.yml` — é o que impede `docs/.ownership.yml` de ler `src/**`
-  como `docs/src/**`. `owned[].path`, `owned[].derives-from.source`,
-  `watches[].code`, `generated[].path`, `ignore[]` e `include[]` nunca escapam
-  da base; `watches[].doc` pode, porque é o único que nunca é caminho editado
+- **Node ≥ 24, no build step in the checkout.** `RNF-0002`. The package runs `.ts`
+  directly; `dist/` only exists inside the tarball, generated in `prepack`.
+- **`@esliph/ownership` does not import from `src/` of `@esliph/living-docs`.** This is what
+  makes the package publishable and installable by a second consumer without dragging in
+  the first. Shared utilities are ported (copied and adapted), not
+  imported — the duplication is the deliberate price of two independent packages.
+- **The core knows no ID format, prefix, padding, or freezing.**
+  That is `id-format`/`append-only`/`mutable-fields` and it stays in `@esliph/living-docs`.
+  An item's key is opaque: a non-empty string, unique in the file, with no required
+  form.
+- **The core does not invent state semantics.** `states` is the project's vocabulary; the core
+  only compares against the declared list, never against a machine embedded by prefix.
+- **Every path in an entry is relative to the base of the file that declares it.** The
+  base is the file's directory plus the `basePath`, which only goes down; the base of the
+  **root** is the repository root, whether it lives in `.ownership.yml` or in
+  `docs/.ownership.yml` — this is what keeps `docs/.ownership.yml` from reading `src/**`
+  as `docs/src/**`. `owned[].path`, `owned[].derives-from.source`,
+  `watches[].code`, `generated[].path`, `ignore[]` and `include[]` never escape
+  the base; `watches[].doc` may, because it is the only one that is never an edited path
   (spec §5).
-- **Caminhos governados são disjuntos.** Nenhum `owned[].path` resolvido é igual
-  a outro nem contém outro, venham do mesmo arquivo ou de arquivos diferentes.
-  Não há cascata, não há merge entre níveis e não há caminho mais específico
-  ganhando de menos específico: colisão é erro de carga.
-- **A regra vem antes do código, e o commit cita a regra.** A Tarefa 1 registra
-  as decisões e os requisitos que as tarefas seguintes implementam; todo commit
-  segue `tipo(ID): assunto` (`CONTRIBUTING.md`), com o ID da regra que a tarefa
-  implementa. Os IDs só existem depois da Tarefa 1 — as mensagens abaixo usam os
-  marcadores da tabela da Tarefa 1, Passo 5 (ex.: `<RN-esquema>`), que quem
-  executa troca pelo ID real.
-- **Type-check é `npm run typecheck`**, nunca `tsc` direto: o `tsc` só está no
-  PATH dentro de um script npm.
-- **`version:` é obrigatório em todo arquivo, e `plugins:` é exclusivo da raiz.**
-  Versão divergente entre dois arquivos é erro; um arquivo incluído que declarar `plugins:` é erro.
-- **Toda chave de primeiro nível e de entrada é validada estritamente.** Só
-  blocos cujo nome está em `plugins:` (ex.: `living-docs:`) são ignorados pelo
-  núcleo — e só dentro de uma entrada `owned[]`, nunca na raiz do arquivo.
-- **Falha aberta é política de hook, nunca de check.** Todo hook deste pacote
-  segue o padrão já estabelecido em `@esliph/living-docs`: erro de leitura,
-  configuração ausente ou parse inválido faz o hook devolver `allow`/silêncio,
-  nunca travar a edição.
-- **Identificador de check e hook é `ownership/nome-descritivo`**, não numerado.
-- **Todo achado (`Finding`) tem `ruleId`, `file`, `line` (0 se não há linha),
-  `severity`, `message` e `fix`** — a mesma forma que `@esliph/living-docs` já
-  usa, para que o formatador de saída (`report.ts`, portado na Tarefa 20) sirva
-  aos dois.
+- **Governed paths are disjoint.** No resolved `owned[].path` is equal
+  to another or contains another, whether they come from the same file or from different files.
+  There is no cascade, no merge between levels and no more specific path
+  winning over a less specific one: a collision is a load error.
+- **The rule comes before the code, and the commit cites the rule.** Task 1 records
+  the decisions and requirements that the following tasks implement; every commit
+  follows `type(ID): subject` (`CONTRIBUTING.md`), with the ID of the rule that the task
+  implements. The IDs only exist after Task 1 — the messages below use the
+  markers from the Task 1, Step 5 table (e.g. `<RN-schema>`), which whoever
+  executes swaps for the real ID.
+- **Type-check is `npm run typecheck`**, never `tsc` directly: `tsc` is only on the
+  PATH inside an npm script.
+- **`version:` is required in every file, and `plugins:` is exclusive to the root.**
+  A divergent version between two files is an error; an included file that declares `plugins:` is an error.
+- **Every top-level and entry key is strictly validated.** Only
+  blocks whose name is in `plugins:` (e.g. `living-docs:`) are ignored by the
+  core — and only inside an `owned[]` entry, never at the root of the file.
+- **Failing open is a hook policy, never a check policy.** Every hook in this package
+  follows the pattern already established in `@esliph/living-docs`: a read error,
+  missing configuration or invalid parse makes the hook return `allow`/silence,
+  never block the edit.
+- **A check and hook identifier is `ownership/descriptive-name`**, not numbered.
+- **Every finding (`Finding`) has `ruleId`, `file`, `line` (0 if there is no line),
+  `severity`, `message` and `fix`** — the same shape that `@esliph/living-docs` already
+  uses, so that the output formatter (`report.ts`, ported in Task 20) serves
+  both.
 
 ---
 
-## Estrutura de arquivos
+## File structure
 
 ```
 esliph/
-  package.json                        # ganha "workspaces": ["packages/*"]
-  docs/.ownership.yml                 # segue v1 — a migração é spec própria; não mexe
-  .claude-plugin/marketplace.json     # NÃO muda — ver Tarefa 2, "Fora do marketplace"
-  .github/workflows/living-docs.yml   # ganha os passos de teste do pacote novo
-  CHANGELOG.md                        # NÃO muda — nada chega ao consumidor (Tarefa 22)
-  docs/decisions/adr/                 # 8 ADRs novos (Tarefa 1)
-  docs/open-decisions.md              # 1 DA nova: quais transições exigem gente (Tarefa 1)
-  docs/requirements/                  # regras do núcleo e o RNF-0002 revisto (Tarefa 1)
+  package.json                        # gains "workspaces": ["packages/*"]
+  docs/.ownership.yml                 # stays v1 — the migration is its own spec; do not touch
+  .claude-plugin/marketplace.json     # does NOT change — see Task 2, "Outside the marketplace"
+  .github/workflows/living-docs.yml   # gains the test steps for the new package
+  CHANGELOG.md                        # does NOT change — nothing reaches the consumer (Task 22)
+  docs/decisions/adr/                 # 8 new ADRs (Task 1)
+  docs/open-decisions.md              # 1 new DA: which transitions require a person (Task 1)
+  docs/requirements/                  # core rules and the revised RNF-0002 (Task 1)
   packages/
-    ownership/                        # @esliph/ownership — plugin E biblioteca
+    ownership/                        # @esliph/ownership — plugin AND library
       package.json
-      package-lock.json               # instalável isolado, fora do workspace
+      package-lock.json               # installable in isolation, outside the workspace
       tsconfig.json
-      tsconfig.build.json             # só para o prepack
+      tsconfig.build.json             # only for the prepack
       .claude-plugin/plugin.json
       hooks/{hooks.json,run-hook.sh}
       src/
-        index.ts                      # API pública da biblioteca
+        index.ts                      # public API of the library
         core/
-          files.ts                    # varredura de árvore (portado de src/core/files.ts)
-          frontmatter.ts              # parse de frontmatter (portado de src/frontmatter/parse.ts)
-          exec.ts                     # GitRunner + CommandRunner (portado de src/git/*, src/exec/command.ts)
-          exception-label.ts          # `<Label>: none — <razão>` (portado de src/checks/exception-label.ts)
-          codeowners.ts               # parse de CODEOWNERS (portado de src/config/codeowners.ts)
+          files.ts                    # tree scan (ported from src/core/files.ts)
+          frontmatter.ts              # frontmatter parse (ported from src/frontmatter/parse.ts)
+          exec.ts                     # GitRunner + CommandRunner (ported from src/git/*, src/exec/command.ts)
+          exception-label.ts          # `<Label>: none — <reason>` (ported from src/checks/exception-label.ts)
+          codeowners.ts               # CODEOWNERS parse (ported from src/config/codeowners.ts)
         schema/
-          types.ts                    # tipos do esquema v2
-          item.ts                     # chave opaca: parseItemsTable / parseItemsSections
-          parse.ts                    # parseOwnershipFile — estrito, com passthrough de plugin
+          types.ts                    # v2 schema types
+          item.ts                     # opaque key: parseItemsTable / parseItemsSections
+          parse.ts                    # parseOwnershipFile — strict, with plugin passthrough
         resolve/
-          candidates.ts               # resolução do arquivo raiz (ordem de candidatos)
-          hierarchy.ts                # base, include, disjunção, ciclo, poda
-          explain.ts                  # qual regra cobre, e de qual arquivo
+          candidates.ts               # root file resolution (candidate order)
+          hierarchy.ts                # base, include, disjointness, cycle, pruning
+          explain.ts                  # which rule covers, and from which file
         lifecycle/
-          transitions.ts              # pareia antes/depois pela chave (o hook espera a DA)
+          transitions.ts              # pairs before/after by key (the hook waits for the DA)
         triggers/
-          watches.ts                  # watchesFor / pendingDocs (consumer-visible unificado)
-          derives.ts                  # resolução de derives-from
+          watches.ts                  # watchesFor / pendingDocs (unified consumer-visible)
+          derives.ts                  # derives-from resolution
         checks/
           types.ts                    # Check / CheckContext / Finding
           generated-drift.ts          # ownership/generated-drift
@@ -126,8 +125,8 @@ esliph/
           derivation-resolves.ts      # ownership/derivation-resolves
           registry.ts
         hooks/
-          lib/paths.ts                # toRepoPath (portado de src/hooks/lib/paths.ts)
-          lib/io.ts                   # readPayload/emit/askOutput/... (portado, env vars próprias)
+          lib/paths.ts                # toRepoPath (ported from src/hooks/lib/paths.ts)
+          lib/io.ts                   # readPayload/emit/askOutput/... (ported, own env vars)
           generated-guard.ts          # ownership/generated-guard
           watch-reminder.ts           # ownership/watch-reminder
           commit-guard.ts             # ownership/commit-guard
@@ -136,165 +135,165 @@ esliph/
           index.ts                   # `ownership validate|explain`
           validate.ts
           explain.ts
-          report.ts                  # formatFindings (portado de src/cli/report.ts)
-      test/                          # espelha src/
+          report.ts                  # formatFindings (ported from src/cli/report.ts)
+      test/                          # mirrors src/
 ```
 
 ---
 
-### Tarefa 1: Registrar decisões, a decisão aberta e os requisitos
+### Task 1: Record decisions, the open decision and the requirements
 
-Não é código. A spec §11 lista oito decisões que ela obriga a abrir como
-`draft`, para promoção humana — `CLAUDE.md`: "Você não aceita decisão. Skill
-escreve `draft`/`open`; promover é ato humano." Um ADR em `draft` não bloqueia
-implementação (o próprio repositório já tem `ADR-0002`, `ADR-0012` e `ADR-0015`
-em `draft` com código implementado sobre eles) — só uma *Open Decision* (`DA`)
-bloqueia. As oito não são lacuna: a spec já decidiu o mérito. Uma coisa a spec
-não decidiu — quais transições exigem gente — e essa vira `DA` (Passo 3).
+Not code. Spec §11 lists eight decisions that it requires to be opened as
+`draft`, for human promotion — `CLAUDE.md`: "You do not accept decisions. A skill
+writes `draft`/`open`; promoting is a human act." A `draft` ADR does not block
+implementation (the repository itself already has `ADR-0002`, `ADR-0012` and `ADR-0015`
+as `draft` with code implemented on top of them) — only an *Open Decision* (`DA`)
+blocks. The eight are not a gap: the spec already decided the merits. One thing the spec
+did not decide — which transitions require a person — and that becomes a `DA` (Step 3).
 
-**Arquivos:**
-- Create: oito arquivos em `docs/decisions/adr/ADR-00NN-<slug>.md` (o número
-  exato é atribuído pela skill `decision-recorder` no momento da execução —
-  hoje o próximo livre é `ADR-0019`; confira `docs/ids-retired.txt` e o
-  diretório antes de assumir isso).
-- Modify: `docs/open-decisions.md` (uma linha nova).
+**Files:**
+- Create: eight files in `docs/decisions/adr/ADR-00NN-<slug>.md` (the exact
+  number is assigned by the `decision-recorder` skill at execution time —
+  today the next free one is `ADR-0019`; check `docs/ids-retired.txt` and the
+  directory before assuming that).
+- Modify: `docs/open-decisions.md` (one new row).
 - Modify: `docs/requirements/rules.md`, `functional.md`, `non-functional.md`.
 
-- [ ] **Passo 1: Ler `docs/.ownership.yml` e `docs/decisions/adr/` para confirmar o próximo ID livre**
+- [ ] **Step 1: Read `docs/.ownership.yml` and `docs/decisions/adr/` to confirm the next free ID**
 
   ```bash
   ls docs/decisions/adr | sort | tail -5
   cat docs/ids-retired.txt
   ```
 
-- [ ] **Passo 2: Abrir os oito ADRs draft, um comando por decisão**
+- [ ] **Step 2: Open the eight draft ADRs, one command per decision**
 
-  Rode `/adr <assunto>` oito vezes, um por linha da tabela da spec §11. Para
-  cada um, cite a seção da spec correspondente no `## Contexto` (o próprio ADR
-  pode citar a spec — quem não pode é o que o toolkit *entrega*, `RN-0031`; um
-  ADR deste repositório não é entrega, é o repositório governando a si mesmo).
+  Run `/adr <subject>` eight times, one per row of the spec §11 table. For
+  each one, cite the corresponding spec section in `## Context` (the ADR itself
+  may cite the spec — what cannot is what the toolkit *ships*, `RN-0031`; an
+  ADR in this repository is not a deliverable, it is the repository governing itself).
 
-  1. `/adr fronteira do núcleo de ownership: dono, ciclo de vida e gatilho ficam no núcleo; família de IDs e congelamento ficam no living-docs (spec §1)` — no `## Consequências`, registrar que isso reabre `ADR-0002` (engine única, hoje `draft`) porque a engine se divide em duas.
-  2. `/adr esquema v2 do arquivo de ownership: lista owned única, blocos por nome de plugin, plugins: como allowlist, format: separado de governança, fim de consumer-visible-paths como lista duplicada (spec §2)`
-  3. `/adr identidade de item no núcleo: chave opaca por coleção (per-file/table/sections), state-field configurável, sem regex de ID (spec §3)`
-  4. `/adr gatilho doc-para-doc: derives-from declarado por tipo no arquivo de ownership e por instância no frontmatter do documento (spec §4)`
-  5. `/adr composição entre arquivos de ownership: base por arquivo com basePath só descendo, caminhos governados disjuntos, include explícito sem concessão de autoridade, confinamento pelo critério de gatilho (spec §5)`
-  6. `/adr resolução do arquivo de ownership: ordem de candidatos, ambiguidade é erro nomeando os dois (spec §8)`
-  7. `/adr distribuição do núcleo como pacote em packages/, build só no prepack, execução sem build no checkout via condição development do exports (spec §7)` — no `## Consequências`, registrar que isso supersede a metade de `ADR-0015` que dizia "sem passo de build" sem qualificação (agora "sem passo de build no checkout, com build no prepack"), reabre `ADR-0012` (hooks como peça única — viram dois plugins com hooks próprios) e obriga um ADR novo sobre o nome do projeto, porque `ADR-0014` (`@esliph/living-docs`) descrevia um repositório de um pacote só.
-  8. `/adr identificador nomeado para check e hook: plugin/nome-descritivo substitui numeração CI-n/HK-n para o que for novo (spec §6)`
+  1. `/adr ownership core boundary: owner, lifecycle and trigger stay in the core; ID family and freezing stay in living-docs (spec §1)` — in `## Consequences`, record that this reopens `ADR-0002` (single engine, today `draft`) because the engine splits in two.
+  2. `/adr v2 schema of the ownership file: single owned list, blocks by plugin name, plugins: as an allowlist, format: separate from governance, end of consumer-visible-paths as a duplicated list (spec §2)`
+  3. `/adr item identity in the core: opaque key per collection (per-file/table/sections), configurable state-field, no ID regex (spec §3)`
+  4. `/adr doc-to-doc trigger: derives-from declared by type in the ownership file and by instance in the document's frontmatter (spec §4)`
+  5. `/adr composition across ownership files: base per file with basePath only going down, disjoint governed paths, explicit include without granting authority, confinement by the trigger criterion (spec §5)`
+  6. `/adr ownership file resolution: candidate order, ambiguity is an error naming both (spec §8)`
+  7. `/adr distributing the core as a package in packages/, build only in prepack, execution without build in the checkout via the development condition of exports (spec §7)` — in `## Consequences`, record that this supersedes the half of `ADR-0015` that said "no build step" without qualification (now "no build step in the checkout, with a build in the prepack"), reopens `ADR-0012` (hooks as a single piece — they become two plugins with their own hooks) and requires a new ADR about the project name, because `ADR-0014` (`@esliph/living-docs`) described a one-package repository.
+  8. `/adr named identifier for check and hook: plugin/descriptive-name replaces CI-n/HK-n numbering for whatever is new (spec §6)`
 
-- [ ] **Passo 3: Abrir a decisão que a spec não tomou — quais transições exigem gente**
+- [ ] **Step 3: Open the decision the spec did not make — which transitions require a person**
 
-  A spec §1 diz que o núcleo "pergunta quando a transição exige gente", e o
-  esquema v2 não tem onde declarar **quais** transições exigem. No
-  `@esliph/living-docs` isso é uma lista fixa por prefixo de ID, que o núcleo
-  não tem. Perguntar em toda transição seria inventar a regra — e, com os dois
-  plugins instalados, faria perguntar em cada mudança de estado que uma skill
-  escreve. `CLAUDE.md`: "se a regra não existe, abra uma `DA` e pare".
+  Spec §1 says the core "asks when the transition requires a person", and the
+  v2 schema has nowhere to declare **which** transitions require it. In
+  `@esliph/living-docs` this is a fixed list by ID prefix, which the core
+  does not have. Asking on every transition would be inventing the rule — and, with both
+  plugins installed, it would ask on every state change that a skill
+  writes. `CLAUDE.md`: "if the rule does not exist, open a `DA` and stop".
 
   ```
-  /open-decision o núcleo de ownership não sabe quais transições de estado exigem ato humano: o esquema v2 declara `states` e não declara transições; opções — lista `human-transitions` por caminho, estados terminais marcados, ou perguntar em toda transição
+  /open-decision the ownership core does not know which state transitions require a human act: the v2 schema declares `states` and does not declare transitions; options — a `human-transitions` list per path, marked terminal states, or asking on every transition
   ```
 
-  Na coluna de bloqueio, a DA reivindica `packages/ownership/src/hooks/promotion-guard.ts`.
-  A Tarefa 17 constrói só o mecanismo (achar a transição) e **para** antes de
-  ligar o hook.
+  In the blocking column, the DA claims `packages/ownership/src/hooks/promotion-guard.ts`.
+  Task 17 builds only the mechanism (finding the transition) and **stops** before
+  wiring the hook.
 
-- [ ] **Passo 4: Registrar os requisitos que o código vai implementar**
+- [ ] **Step 4: Record the requirements the code will implement**
 
-  A regra vem antes do código. Pela skill `requirements-keeper`, em `draft`:
+  The rule comes before the code. Through the `requirements-keeper` skill, as `draft`:
 
-  - uma regra por responsabilidade do núcleo que ainda não tem regra
-    equivalente: esquema v2 estrito, identidade de item, composição entre
-    arquivos (base e disjunção), resolução do arquivo raiz, gatilho doc→doc, cobertura de
-    dono sobre o repositório inteiro com `ignore`;
-  - um requisito funcional para `ownership validate [--base]` e outro para
-    `ownership explain <caminho>`;
-  - a revisão de `RNF-0002`: hoje ele diz "sem passo de build", e a Tarefa 21
-    acrescenta build no `prepack`. A nova redação é "sem passo de build no
-    checkout; o pacote publicado é compilado no `prepack`". Se a skill
-    concluir que a mudança substitui a regra em vez de refiná-la, ela abre um
-    requisito novo e marca o antigo — a forma é da skill, não deste plano.
+  - one rule per core responsibility that does not yet have an equivalent
+    rule: strict v2 schema, item identity, composition across
+    files (base and disjointness), root file resolution, doc→doc trigger, owner
+    coverage over the whole repository with `ignore`;
+  - one functional requirement for `ownership validate [--base]` and another for
+    `ownership explain <path>`;
+  - the revision of `RNF-0002`: today it says "no build step", and Task 21
+    adds a build in `prepack`. The new wording is "no build step in the
+    checkout; the published package is compiled in the `prepack`". If the skill
+    concludes that the change replaces the rule instead of refining it, it opens a
+    new requirement and marks the old one — the form is the skill's, not this plan's.
 
-  Regras que já existem e continuam valendo (dono único, promoção humana,
-  gerado não se edita, vigiado viaja com o doc, CHANGELOG exigido) não ganham
-  cópia: as tarefas as citam pelo ID atual.
+  Rules that already exist and remain in force (single owner, human promotion,
+  generated is not edited, watched travels with the doc, CHANGELOG required) do not get a
+  copy: the tasks cite them by their current ID.
 
-- [ ] **Passo 5: Anotar os IDs atribuídos**
+- [ ] **Step 5: Note the assigned IDs**
 
   ```bash
   git status --short docs/decisions/adr/ docs/open-decisions.md docs/requirements/
   ```
 
-  Preencha esta tabela no início da execução da Tarefa 2 (comentário do PR ou
-  nota de execução). As mensagens de commit e os comentários
-  `// Regra de origem:` das tarefas seguintes usam os marcadores da esquerda:
+  Fill in this table at the start of Task 2's execution (PR comment or
+  execution note). The commit messages and the
+  `// Source rule:` comments of the following tasks use the markers on the left:
 
-  | Marcador            | O que é                                                    |
+  | Marker              | What it is                                                 |
   | ------------------- | ---------------------------------------------------------- |
-  | `<ADR-fronteira>`   | decisão 1                                                  |
-  | `<ADR-esquema>`     | decisão 2                                                  |
-  | `<ADR-identidade>`  | decisão 3                                                  |
-  | `<ADR-derivacao>`   | decisão 4                                                  |
-  | `<ADR-composicao>`  | decisão 5                                                  |
-  | `<ADR-resolucao>`   | decisão 6                                                  |
-  | `<ADR-distribuicao>`| decisão 7                                                  |
-  | `<ADR-nomeado>`     | decisão 8                                                  |
-  | `<DA-promocao>`     | a decisão aberta do Passo 3                                |
-  | `<RN-esquema>`      | regra do esquema v2                                        |
-  | `<RN-identidade>`   | regra de identidade de item                                |
-  | `<RN-composicao>`   | regra de composição entre arquivos                                       |
-  | `<RN-resolucao>`    | regra de resolução do arquivo raiz                         |
-  | `<RN-derivacao>`    | regra do gatilho doc→doc                                   |
-  | `<RN-cobertura>`    | regra de cobertura de dono com `ignore`                    |
-  | `<RF-validate>`     | requisito de `ownership validate`                          |
-  | `<RF-explain>`      | requisito de `ownership explain`                           |
-  | `<RNF-build>`       | `RNF-0002` revisto (ou o que o substituir)                 |
+  | `<ADR-boundary>`    | decision 1                                                 |
+  | `<ADR-schema>`      | decision 2                                                 |
+  | `<ADR-identity>`    | decision 3                                                 |
+  | `<ADR-derivation>`  | decision 4                                                 |
+  | `<ADR-composition>` | decision 5                                                 |
+  | `<ADR-resolution>`  | decision 6                                                 |
+  | `<ADR-distribution>`| decision 7                                                 |
+  | `<ADR-named>`       | decision 8                                                 |
+  | `<DA-promotion>`    | the open decision from Step 3                              |
+  | `<RN-schema>`       | v2 schema rule                                             |
+  | `<RN-identity>`     | item identity rule                                         |
+  | `<RN-composition>`  | composition across files rule                                       |
+  | `<RN-resolution>`   | root file resolution rule                                  |
+  | `<RN-derivation>`   | doc→doc trigger rule                                       |
+  | `<RN-coverage>`     | owner coverage rule with `ignore`                          |
+  | `<RF-validate>`     | `ownership validate` requirement                           |
+  | `<RF-explain>`      | `ownership explain` requirement                            |
+  | `<RNF-build>`       | revised `RNF-0002` (or whatever replaces it)               |
 
-  Checks e hooks portados citam também a regra que já existe: `RN-0001`
-  (dono), `RN-0005` (promoção), `RN-0008`/`RN-0009` (vigiado), `RN-0012`
-  (gerado), `RN-0013` (CHANGELOG), `RN-0016`/`RN-0021` (cobertura).
+  Ported checks and hooks also cite the rule that already exists: `RN-0001`
+  (owner), `RN-0005` (promotion), `RN-0008`/`RN-0009` (watched), `RN-0012`
+  (generated), `RN-0013` (CHANGELOG), `RN-0016`/`RN-0021` (coverage).
 
-- [ ] **Passo 6: Validar**
+- [ ] **Step 6: Validate**
 
   ```bash
   node src/cli/index.ts validate
   ```
 
-  Espera-se 0 erros. Os ADRs novos citam `relates-to` e `supersedes` uns dos
-  outros e das decisões que reabrem — `CI-2` e `CI-3` conferem que toda citação
-  resolve.
+  0 errors expected. The new ADRs cite each other and the decisions they reopen in `relates-to` and `supersedes` —
+  `CI-2` and `CI-3` check that every citation
+  resolves.
 
-- [ ] **Passo 7: Commit — um por artefato, citando o ID**
+- [ ] **Step 7: Commit — one per artifact, citing the ID**
 
-  `RN-0028`: commit que altera artefato cita o ID afetado. Um commit por ADR,
-  um pela DA e um por requisito:
+  `RN-0028`: a commit that changes an artifact cites the affected ID. One commit per ADR,
+  one for the DA and one per requirement:
 
   ```bash
   git add docs/decisions/adr/ADR-00NN-<slug>.md
-  git commit -m "docs(ADR-00NN): abre em draft <assunto da decisão>"
-  # … repetir para cada ADR, para a DA e para cada requisito
+  git commit -m "docs(ADR-00NN): opens in draft <decision subject>"
+  # … repeat for each ADR, for the DA and for each requirement
   ```
 
 ---
 
-### Tarefa 2: Scaffold do pacote `@esliph/ownership`
+### Task 2: Scaffold of the `@esliph/ownership` package
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/package.json`
 - Create: `packages/ownership/tsconfig.json`
 - Create: `packages/ownership/.gitignore`
-- Create: `packages/ownership/src/index.ts` (vazio por ora — placeholder real,
-  não comentário: um `export {}` que a Tarefa 20 substitui pela API pública)
+- Create: `packages/ownership/src/index.ts` (empty for now — a real placeholder,
+  not a comment: an `export {}` that Task 20 replaces with the public API)
 - Create: `packages/ownership/test/smoke.test.ts`
-- Modify: `package.json:1-19` (raiz) — acrescenta `workspaces`
+- Modify: `package.json:1-19` (root) — adds `workspaces`
 - Modify: `.github/workflows/living-docs.yml`
 
 **Interfaces:**
-- Produz: o layout de diretório que toda tarefa seguinte usa. Nenhuma tarefa
-  depois desta cria `packages/ownership/` — só acrescenta arquivos dentro dele.
+- Produces: the directory layout that every following task uses. No task
+  after this one creates `packages/ownership/` — they only add files inside it.
 
-- [ ] **Passo 1: Criar `packages/ownership/package.json`**
+- [ ] **Step 1: Create `packages/ownership/package.json`**
 
   ```json
   {
@@ -332,17 +331,17 @@ não decidiu — quais transições exigem gente — e essa vira `DA` (Passo 3).
   }
   ```
 
-  `private: true` por ora — publicar de verdade é decisão de quem aceitar o
-  ADR de distribuição da Tarefa 1, não algo que este scaffold decide sozinho.
-  `bin` aponta para `dist/`, que não existe no checkout: é isso que torna
-  `npm pack` (Tarefa 21) uma prova de verdade, e não teatro. Em desenvolvimento
-  o comando roda direto: `node packages/ownership/src/cli/index.ts …` — o mesmo
-  padrão que `bin/living-docs` já usa para `src/cli/index.ts` na raiz.
+  `private: true` for now — actually publishing is a decision for whoever accepts the
+  distribution ADR from Task 1, not something this scaffold decides on its own.
+  `bin` points to `dist/`, which does not exist in the checkout: that is what makes
+  `npm pack` (Task 21) real proof, and not theater. In development
+  the command runs directly: `node packages/ownership/src/cli/index.ts …` — the same
+  pattern that `bin/living-docs` already uses for `src/cli/index.ts` at the root.
 
-- [ ] **Passo 2: Criar `packages/ownership/tsconfig.json`**
+- [ ] **Step 2: Create `packages/ownership/tsconfig.json`**
 
-  Mesmas opções do `tsconfig.json` da raiz (mesma versão de TypeScript, mesmo
-  alvo), com `include` restrito ao próprio pacote:
+  Same options as the root `tsconfig.json` (same TypeScript version, same
+  target), with `include` restricted to the package itself:
 
   ```json
   {
@@ -364,10 +363,10 @@ não decidiu — quais transições exigem gente — e essa vira `DA` (Passo 3).
   }
   ```
 
-- [ ] **Passo 3: Criar `packages/ownership/tsconfig.build.json`**
+- [ ] **Step 3: Create `packages/ownership/tsconfig.build.json`**
 
-  Só para o `prepack` (Tarefa 21 volta a este arquivo). Por ora, o mínimo que
-  compila `src/` para `dist/` sem emitir os testes:
+  Only for the `prepack` (Task 21 comes back to this file). For now, the minimum that
+  compiles `src/` to `dist/` without emitting the tests:
 
   ```json
   {
@@ -382,23 +381,23 @@ não decidiu — quais transições exigem gente — e essa vira `DA` (Passo 3).
   }
   ```
 
-  `rewriteRelativeImportExtensions` (TypeScript ≥ 5.7) reescreve, na emissão,
-  os imports relativos que terminam em `.ts` para `.js` — é o que deixa o
-  código-fonte escrever `from './x.ts'` (exigido por `verbatimModuleSyntax` +
-  `allowImportingTsExtensions`, herdados de `tsconfig.json`) e o `dist/`
-  emitido apontar para `.js` de verdade. Se a versão do TypeScript instalada
-  (`package.json`, Tarefa 2) não tiver essa flag, o `prepack` (Tarefa 21) falha
-  cedo e de forma clara — não silenciosamente com imports quebrados no
+  `rewriteRelativeImportExtensions` (TypeScript ≥ 5.7) rewrites, on emit,
+  the relative imports that end in `.ts` to `.js` — this is what lets the
+  source code write `from './x.ts'` (required by `verbatimModuleSyntax` +
+  `allowImportingTsExtensions`, inherited from `tsconfig.json`) and the emitted `dist/`
+  point to a real `.js`. If the installed TypeScript version
+  (`package.json`, Task 2) does not have this flag, the `prepack` (Task 21) fails
+  early and clearly — not silently with broken imports in the
   tarball.
 
-- [ ] **Passo 4: Criar `packages/ownership/.gitignore`**
+- [ ] **Step 4: Create `packages/ownership/.gitignore`**
 
   ```
   dist/
   node_modules/
   ```
 
-- [ ] **Passo 5: Criar o placeholder de `src/index.ts` e o smoke test**
+- [ ] **Step 5: Create the `src/index.ts` placeholder and the smoke test**
 
   `packages/ownership/src/index.ts`:
 
@@ -412,106 +411,106 @@ não decidiu — quais transições exigem gente — e essa vira `DA` (Passo 3).
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
 
-  test('o pacote carrega sem erro de import', async () => {
+  test('the package loads without an import error', async () => {
     const mod = await import('../src/index.ts')
 
     assert.equal(typeof mod, 'object')
   })
   ```
 
-- [ ] **Passo 6: Rodar o smoke test**
+- [ ] **Step 6: Run the smoke test**
 
   ```bash
   cd packages/ownership && node --test "test/**/*.test.ts"
   ```
 
-  Esperado: PASS (1 teste).
+  Expected: PASS (1 test).
 
-- [ ] **Passo 7: Instalar as dependências do pacote isolado, para gerar seu próprio lockfile**
+- [ ] **Step 7: Install the isolated package's dependencies, to generate its own lockfile**
 
-  Antes de acrescentar o pacote ao workspace da raiz — para que o lockfile
-  reflita uma instalação autocontida, que é o que o spec §7 exige ("cada um
-  autocontido com `package.json` e lockfile próprios") e o que o mecanismo de
-  distribuição do plugin precisa quando `packages/ownership` é copiado sozinho
-  para o cache de um consumidor:
+  Before adding the package to the root workspace — so that the lockfile
+  reflects a self-contained install, which is what spec §7 requires ("each one
+  self-contained with its own `package.json` and lockfile") and what the plugin distribution
+  mechanism needs when `packages/ownership` is copied alone
+  into a consumer's cache:
 
   ```bash
   cd packages/ownership && npm install --package-lock-only
   ```
 
-  Confira que `packages/ownership/package-lock.json` foi criado.
+  Check that `packages/ownership/package-lock.json` was created.
 
-  Depois do Passo 8 este comando deixa de servir: dentro de um workspace, o npm
-  sobe até a raiz e escreve o lockfile de lá. Regerar o lockfile do pacote
-  passa a ser copiar `package.json` para um diretório temporário, rodar
-  `npm install --package-lock-only` ali e trazer o resultado de volta. O teste
-  da Tarefa 21 (`lockfile.test.ts`) faz exatamente isso e reprova quando o
-  lockfile versionado diverge — sem ele, o lockfile que o consumidor usa
-  envelheceria em silêncio a cada dependência nova.
+  After Step 8 this command stops working: inside a workspace, npm
+  goes up to the root and writes the lockfile there. Regenerating the package's lockfile
+  becomes copying `package.json` to a temporary directory, running
+  `npm install --package-lock-only` there and bringing the result back. The test
+  in Task 21 (`lockfile.test.ts`) does exactly that and fails when the
+  versioned lockfile diverges — without it, the lockfile the consumer uses
+  would silently go stale with every new dependency.
 
-- [ ] **Passo 8: Acrescentar `workspaces` ao `package.json` da raiz**
+- [ ] **Step 8: Add `workspaces` to the root `package.json`**
 
-  Em `package.json:1-19`, depois de `"engines"`:
+  In `package.json:1-19`, after `"engines"`:
 
   ```json
     "workspaces": ["packages/*"],
   ```
 
-  Rode `npm install` na raiz e confira que `node_modules/@esliph/ownership`
-  virou um symlink para `packages/ownership` (`ls -la node_modules/@esliph/`).
-  Isto é o que faz a condição `development` do `exports` (Tarefa 21) resolver
-  pelo código-fonte, não por um `dist` que ainda não existe.
+  Run `npm install` at the root and check that `node_modules/@esliph/ownership`
+  became a symlink to `packages/ownership` (`ls -la node_modules/@esliph/`).
+  This is what makes the `development` condition of `exports` (Task 21) resolve
+  through the source code, not through a `dist` that does not exist yet.
 
-- [ ] **Passo 9: Fora do marketplace — não registrar o plugin ainda**
+- [ ] **Step 9: Outside the marketplace — do not register the plugin yet**
 
-  Nenhuma mudança em `.claude-plugin/marketplace.json`. Os hooks importam
-  `yaml` e `picomatch`, e nada instala essas dependências na cópia do plugin
-  que vai para o cache de quem instala: registrado agora, o plugin falharia no
-  import e, por falha aberta, ficaria mudo sem ninguém perceber. Registrar
-  espera a prova de instalação remota da spec §9, que este plano não fecha
-  (seção final).
+  No change to `.claude-plugin/marketplace.json`. The hooks import
+  `yaml` and `picomatch`, and nothing installs those dependencies in the copy of the plugin
+  that goes to the installer's cache: registered now, the plugin would fail on
+  import and, because it fails open, would stay silent with no one noticing. Registering
+  waits for the remote install proof from spec §9, which this plan does not close
+  (final section).
 
-- [ ] **Passo 10: Acrescentar ao workflow de CI o teste do pacote novo**
+- [ ] **Step 10: Add the new package's test to the CI workflow**
 
-  Em `.github/workflows/living-docs.yml`, depois do passo "Testes" existente
-  (que continua rodando os testes de `@esliph/living-docs` na raiz):
+  In `.github/workflows/living-docs.yml`, after the existing "Tests" step
+  (which keeps running the `@esliph/living-docs` tests at the root):
 
   ```yaml
-        - name: Testes — @esliph/ownership
+        - name: Tests — @esliph/ownership
           run: npm test --workspace packages/ownership
 
         - name: Type-check — @esliph/ownership
           run: npm run typecheck --workspace packages/ownership
   ```
 
-  Este é o único passo de CI que este plano acrescenta para o pacote novo:
-  `ownership validate` contra `docs/.ownership.yml` deste próprio repositório
-  não roda ainda, porque esse arquivo continua em `version: 1` até a spec de
-  migração — rodar o CLI novo contra um esquema que ele rejeita reprovaria o
-  CI por desenho, não por bug.
+  This is the only CI step that this plan adds for the new package:
+  `ownership validate` against `docs/.ownership.yml` of this very repository does
+  not run yet, because that file stays at `version: 1` until the migration
+  spec — running the new CLI against a schema it rejects would fail
+  CI by design, not by bug.
 
-- [ ] **Passo 11: Rodar a suíte inteira da raiz para confirmar que nada quebrou**
+- [ ] **Step 11: Run the whole root suite to confirm nothing broke**
 
   ```bash
   npm test && npm run typecheck
   ```
 
-- [ ] **Passo 12: Commit**
+- [ ] **Step 12: Commit**
 
   ```bash
   git add package.json package-lock.json packages/ownership .github/workflows/living-docs.yml
-  git commit -m "feat(<ADR-distribuicao>): scaffold do pacote @esliph/ownership"
+  git commit -m "feat(<ADR-distribution>): scaffold of the @esliph/ownership package"
   ```
 
 ---
 
-### Tarefa 3: Utilitários portados
+### Task 3: Ported utilities
 
-Cinco módulos pequenos, copiados e adaptados de `@esliph/living-docs` (o núcleo
-não importa de lá — regra global). Nenhum conhece `.ownership.yml`; são a base
-que as tarefas seguintes usam.
+Five small modules, copied and adapted from `@esliph/living-docs` (the core
+does not import from there — global rule). None of them knows `.ownership.yml`; they are the base
+that the following tasks use.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/core/files.ts`
 - Create: `packages/ownership/src/core/frontmatter.ts`
 - Create: `packages/ownership/src/core/exec.ts`
@@ -524,20 +523,20 @@ que as tarefas seguintes usam.
 - Test: `packages/ownership/test/core/codeowners.test.ts`
 
 **Interfaces:**
-- Produz: `listFiles(root, globs?)`, `readTextFile(root, file)`,
+- Produces: `listFiles(root, globs?)`, `readTextFile(root, file)`,
   `forgetTree(root?)`; `parseFrontmatter(source)`; `type GitRunner`,
   `stagedPaths(root, run?)`, `changedPaths(root, base, run?)`,
   `commitMessages(root, base, run?)`, `type CommandRunner`, `runCommand`;
   `exceptionReasonFor(label, messages)`; `type Codeowners`, `loadCodeowners(root)`,
   `ownersOf(codeowners, repoPath)`.
 
-- [ ] **Passo 1: Portar `core/files.ts`**
+- [ ] **Step 1: Port `core/files.ts`**
 
-  Cópia de `src/core/files.ts` do `@esliph/living-docs`, sem nenhuma mudança de
-  comportamento — o algoritmo de varredura e memoização não é específico de
-  documentação viva. Ajustar só o comentário de topo para remover a citação a
-  `CI-4`/`CI-7`/`CI-8` (que não existem aqui) e falar em genérico "quem
-  precisar da árvore".
+  Copy of `src/core/files.ts` from `@esliph/living-docs`, with no change in
+  behavior — the scan and memoization algorithm is not specific to
+  living documentation. Adjust only the top comment to remove the citation to
+  `CI-4`/`CI-7`/`CI-8` (which do not exist here) and speak generically of "whoever
+  needs the tree".
 
   ```typescript
   import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -634,7 +633,7 @@ que as tarefas seguintes usam.
   }
   ```
 
-- [ ] **Passo 2: Teste de `files.ts`**
+- [ ] **Step 2: Test for `files.ts`**
 
   ```typescript
   import { test } from 'node:test'
@@ -642,7 +641,7 @@ que as tarefas seguintes usam.
   import { forgetTree, listFiles, readTextFile } from '../../src/core/files.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('listFiles sem globs devolve tudo, com globs filtra', () => {
+  test('listFiles without globs returns everything, with globs it filters', () => {
     withTempRepo({ 'a.md': 'x', 'docs/b.md': 'y', 'node_modules/c.md': 'z' }, root => {
       forgetTree(root)
       assert.deepEqual(listFiles(root).sort(), ['a.md', 'docs/b.md'])
@@ -651,20 +650,20 @@ que as tarefas seguintes usam.
     })
   })
 
-  test('readTextFile devolve null para arquivo ausente', () => {
+  test('readTextFile returns null for a missing file', () => {
     withTempRepo({}, root => {
       assert.equal(readTextFile(root, 'nope.md'), null)
     })
   })
   ```
 
-  Cria `packages/ownership/test/helpers/tmp.ts`, cópia de `test/helpers/tmp.ts`
-  (`withTempRepo`) sem alteração — mesma forma, `mkdtempSync`/`rmSync`.
+  Create `packages/ownership/test/helpers/tmp.ts`, a copy of `test/helpers/tmp.ts`
+  (`withTempRepo`) with no change — same shape, `mkdtempSync`/`rmSync`.
 
-- [ ] **Passo 3: Portar `core/frontmatter.ts`**
+- [ ] **Step 3: Port `core/frontmatter.ts`**
 
-  Cópia de `src/frontmatter/parse.ts`, sem alteração de comportamento — parse
-  de frontmatter YAML não é específico de documentação viva:
+  Copy of `src/frontmatter/parse.ts`, with no change in behavior — YAML
+  frontmatter parsing is not specific to living documentation:
 
   ```typescript
   import YAML from 'yaml'
@@ -718,7 +717,7 @@ que as tarefas seguintes usam.
     } catch (err) {
       const at = err instanceof YAML.YAMLParseError ? (err.linePos?.[0]?.line ?? 1) : 1
 
-      throw new FrontmatterSyntaxError(err instanceof Error ? err.message : 'YAML inválido', at + 1)
+      throw new FrontmatterSyntaxError(err instanceof Error ? err.message : 'invalid YAML', at + 1)
     }
 
     const keyLines: Record<string, number> = {}
@@ -741,33 +740,33 @@ que as tarefas seguintes usam.
   }
   ```
 
-- [ ] **Passo 4: Teste de `frontmatter.ts`**
+- [ ] **Step 4: Test for `frontmatter.ts`**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { parseFrontmatter } from '../../src/core/frontmatter.ts'
 
-  test('parseFrontmatter lê chaves de topo e linhas', () => {
-    const result = parseFrontmatter('---\nowner: "@x"\nstatus: draft\n---\ncorpo\n')
+  test('parseFrontmatter reads top-level keys and lines', () => {
+    const result = parseFrontmatter('---\nowner: "@x"\nstatus: draft\n---\nbody\n')
 
     assert.equal(result?.data.owner, '@x')
     assert.equal(result?.data.status, 'draft')
     assert.equal(result?.lines.status, 3)
-    assert.equal(result?.body, 'corpo\n')
+    assert.equal(result?.body, 'body\n')
   })
 
-  test('sem delimitador de abertura, devolve null', () => {
-    assert.equal(parseFrontmatter('# título\n'), null)
+  test('without an opening delimiter, it returns null', () => {
+    assert.equal(parseFrontmatter('# title\n'), null)
   })
   ```
 
-- [ ] **Passo 5: Portar `core/exec.ts`**
+- [ ] **Step 5: Port `core/exec.ts`**
 
-  Funde `src/git/staged.ts`, `src/git/diff.ts` (só o que os checks/hooks do
-  núcleo usam: `stagedPaths`, `changedPaths`, `commitMessages` — `changedLines`
-  fica em `@esliph/living-docs`, que é quem tem `CI-9`/bump em massa) e
-  `src/exec/command.ts`, num módulo só:
+  Merges `src/git/staged.ts`, `src/git/diff.ts` (only what the core's
+  checks/hooks use: `stagedPaths`, `changedPaths`, `commitMessages` — `changedLines`
+  stays in `@esliph/living-docs`, which is the one that has `CI-9`/bulk bump) and
+  `src/exec/command.ts`, into a single module:
 
   ```typescript
   import { execFileSync, execSync } from 'node:child_process'
@@ -805,7 +804,7 @@ que as tarefas seguintes usam.
 
   const NUL = String.fromCharCode(0)
 
-  /** Falha aberta: quem chama é hook, e lista vazia significa "não sei". */
+  /** Fails open: the caller is a hook, and an empty list means "I don't know". */
   export function stagedPaths(root: string, run: GitRunner = runGitStaged): string[] {
     let output: string
 
@@ -825,11 +824,11 @@ que as tarefas seguintes usam.
     try {
       return run(['-c', 'safe.directory=*', ...args], root)
     } catch (err) {
-      throw new GitError(`${what} falhou: ${reasonOf(err)}`)
+      throw new GitError(`${what} failed: ${reasonOf(err)}`)
     }
   }
 
-  /** Erro sobe: quem chama é check, e silêncio custa um contrato quebrado com CI verde. */
+  /** The error propagates: the caller is a check, and silence costs a broken contract with green CI. */
   export function changedPaths(root: string, base: string, run: GitRunner = runGitDiff): string[] {
     const output = git(['diff', '--name-only', '-z', `${base}...HEAD`], root, run, `git diff ${base}...HEAD`)
 
@@ -856,45 +855,45 @@ que as tarefas seguintes usam.
     execSync(command, { cwd, encoding: 'utf8', timeout: COMMAND_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] })
   ```
 
-- [ ] **Passo 6: Teste de `exec.ts`**
+- [ ] **Step 6: Test for `exec.ts`**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { changedPaths, commitMessages, stagedPaths, runCommand } from '../../src/core/exec.ts'
 
-  test('stagedPaths falha aberta: runner que lança devolve lista vazia', () => {
+  test('stagedPaths fails open: a runner that throws returns an empty list', () => {
     assert.deepEqual(
       stagedPaths('/repo', () => {
-        throw new Error('sem git')
+        throw new Error('no git')
       }),
       [],
     )
   })
 
-  test('changedPaths parseia saída NUL-separada', () => {
+  test('changedPaths parses NUL-separated output', () => {
     assert.deepEqual(
       changedPaths('/repo', 'main', () => 'a.md\0b/c.md\0'),
       ['a.md', 'b/c.md'],
     )
   })
 
-  test('commitMessages separa por NUL e apara espaço', () => {
+  test('commitMessages splits by NUL and trims whitespace', () => {
     assert.deepEqual(
-      commitMessages('/repo', 'main', () => ' msg um \0msg dois\n\ncorpo\0'),
-      ['msg um', 'msg dois\n\ncorpo'],
+      commitMessages('/repo', 'main', () => ' msg one \0msg two\n\nbody\0'),
+      ['msg one', 'msg two\n\nbody'],
     )
   })
 
-  test('runCommand executa e devolve stdout', () => {
+  test('runCommand executes and returns stdout', () => {
     assert.equal(runCommand('node -e "process.stdout.write(String(1+1))"', process.cwd()), '2')
   })
   ```
 
-- [ ] **Passo 7: Portar `core/exception-label.ts`**
+- [ ] **Step 7: Port `core/exception-label.ts`**
 
-  Cópia exata de `src/checks/exception-label.ts` — já é genérico por
-  `label`, sem nada específico de `@esliph/living-docs`:
+  Exact copy of `src/checks/exception-label.ts` — it is already generic by
+  `label`, with nothing specific to `@esliph/living-docs`:
 
   ```typescript
   export function exceptionReasonFor(label: string, messages: readonly string[]): string | null {
@@ -912,29 +911,29 @@ que as tarefas seguintes usam.
   }
   ```
 
-- [ ] **Passo 8: Teste de `exception-label.ts`**
+- [ ] **Step 8: Test for `exception-label.ts`**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { exceptionReasonFor } from '../../src/core/exception-label.ts'
 
-  test('reconhece o rótulo com razão e devolve a razão', () => {
-    assert.equal(exceptionReasonFor('Docs', ['fix: x', 'Docs: none — não afeta doc nenhum']), 'não afeta doc nenhum')
+  test('recognizes the label with a reason and returns the reason', () => {
+    assert.equal(exceptionReasonFor('Docs', ['fix: x', 'Docs: none — affects no doc at all']), 'affects no doc at all')
   })
 
-  test('rótulo sem razão não conta', () => {
+  test('a label without a reason does not count', () => {
     assert.equal(exceptionReasonFor('Docs', ['Docs: none —']), null)
   })
 
-  test('sem o rótulo, devolve null', () => {
+  test('without the label, it returns null', () => {
     assert.equal(exceptionReasonFor('Docs', ['fix: x']), null)
   })
   ```
 
-- [ ] **Passo 9: Portar `core/codeowners.ts`**
+- [ ] **Step 9: Port `core/codeowners.ts`**
 
-  Cópia de `src/config/codeowners.ts`, sem alteração:
+  Copy of `src/config/codeowners.ts`, with no change:
 
   ```typescript
   import { readFileSync } from 'node:fs'
@@ -1028,14 +1027,14 @@ que as tarefas seguintes usam.
   }
   ```
 
-- [ ] **Passo 10: Teste de `codeowners.ts`**
+- [ ] **Step 10: Test for `codeowners.ts`**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { ownersOf, parseCodeowners } from '../../src/core/codeowners.ts'
 
-  test('a última regra que casa ganha', () => {
+  test('the last matching rule wins', () => {
     const entries = parseCodeowners('docs/ @a\ndocs/x.md @b\n')
     const codeowners = { file: 'CODEOWNERS', entries }
 
@@ -1045,41 +1044,41 @@ que as tarefas seguintes usam.
   })
   ```
 
-- [ ] **Passo 11: Rodar a suíte do pacote**
+- [ ] **Step 11: Run the package suite**
 
   ```bash
   cd packages/ownership && node --test "test/**/*.test.ts" && npm run typecheck
   ```
 
-  Esperado: todos os testes passam, `tsc` sem erro.
+  Expected: all tests pass, `tsc` with no errors.
 
-- [ ] **Passo 12: Commit**
+- [ ] **Step 12: Commit**
 
   ```bash
   git add packages/ownership/src/core packages/ownership/test
-  git commit -m "feat(<ADR-fronteira>): porta utilitários de leitura (files, frontmatter, exec, exception-label, codeowners)"
+  git commit -m "feat(<ADR-boundary>): ports reading utilities (files, frontmatter, exec, exception-label, codeowners)"
   ```
 
 ---
 
-### Tarefa 4: Tipos e parser do esquema v2
+### Task 4: Types and parser of the v2 schema
 
-Regra de origem: `<RN-esquema>`; spec §2 e o ADR "esquema v2" da Tarefa 1. Este é o núcleo do
-pacote — todo o resto lê o resultado deste parser.
+Source rule: `<RN-schema>`; spec §2 and the "v2 schema" ADR from Task 1. This is the core of the
+package — everything else reads the result of this parser.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/schema/types.ts`
 - Create: `packages/ownership/src/schema/parse.ts`
 - Test: `packages/ownership/test/schema/parse.test.ts`
 
 **Interfaces:**
-- Consome: nada (é a base).
-- Produz: `type Collection`, `type SectionKeyMode`, `interface FormatBlock`,
+- Consumes: nothing (it is the base).
+- Produces: `type Collection`, `type SectionKeyMode`, `interface FormatBlock`,
   `interface DerivesFrom`, `interface OwnedRuleRaw`, `interface GeneratedRuleRaw`,
   `interface WatchRuleRaw`, `interface ParsedFile`, `interface RootFile`,
   `class OwnershipError`, `parseOwnershipFile(source, file, opts): ParsedFile | RootFile`.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   `packages/ownership/test/schema/parse.test.ts`:
 
@@ -1091,70 +1090,70 @@ pacote — todo o resto lê o resultado deste parser.
   const ROOT = { isRoot: true, pluginNames: [] }
   const CHILD = (pluginNames: string[] = []) => ({ isRoot: false, pluginNames })
 
-  test('raiz exige version: 2', () => {
+  test('root requires version: 2', () => {
     assert.throws(() => parseOwnershipFile('owned: []\n', '.ownership.yml', ROOT), /version.*2/)
   })
 
-  test('raiz aceita version: 2 e plugins: vazio por padrão', () => {
+  test('root accepts version: 2 and an empty plugins: by default', () => {
     const parsed = parseOwnershipFile('version: 2\nowned: []\n', '.ownership.yml', ROOT) as { plugins: string[] }
 
     assert.deepEqual(parsed.plugins, [])
   })
 
-  test('arquivo filho exige version e recusa plugins', () => {
+  test('child file requires version and refuses plugins', () => {
     assert.throws(() => parseOwnershipFile('owned: []\n', 'packages/api/.ownership.yml', CHILD()), /version/)
-    assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nplugins: [x]\n', 'packages/api/.ownership.yml', CHILD()), /exclusivo do arquivo raiz/)
+    assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nplugins: [x]\n', 'packages/api/.ownership.yml', CHILD()), /exclusive to the root file/)
   })
 
-  test('chave de topo desconhecida é erro', () => {
+  test('an unknown top-level key is an error', () => {
     assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nfoo: 1\n', '.ownership.yml', ROOT), /"foo"/)
   })
 
-  test('versão 1 é recusada em voz alta, dizendo que o esquema mudou', () => {
-    assert.throws(() => parseOwnershipFile('version: 1\nartifacts: []\n', 'docs/.ownership.yml', ROOT), /esquema v1/)
+  test('version 1 is refused loudly, saying the schema changed', () => {
+    assert.throws(() => parseOwnershipFile('version: 1\nartifacts: []\n', 'docs/.ownership.yml', ROOT), /schema v1/)
   })
 
-  test('owned, generated e watches que não são lista são erro, não lista vazia', () => {
-    assert.throws(() => parseOwnershipFile('version: 2\nowned: {}\n', '.ownership.yml', ROOT), /owned.*lista/)
-    assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nwatches: x\n', '.ownership.yml', ROOT), /watches.*lista/)
+  test('owned, generated and watches that are not a list are an error, not an empty list', () => {
+    assert.throws(() => parseOwnershipFile('version: 2\nowned: {}\n', '.ownership.yml', ROOT), /owned.*list/)
+    assert.throws(() => parseOwnershipFile('version: 2\nowned: []\nwatches: x\n', '.ownership.yml', ROOT), /watches.*list/)
   })
 
-  test('owned exige owner começando com @', () => {
-    const source = 'version: 2\nowned:\n  - path: docs/x/\n    owner: sem-arroba\n'
+  test('owned requires an owner starting with @', () => {
+    const source = 'version: 2\nowned:\n  - path: docs/x/\n    owner: no-at-sign\n'
 
     assert.throws(() => parseOwnershipFile(source, '.ownership.yml', ROOT), /@/)
   })
 
-  test('owner ausente é erro — não há de onde herdar', () => {
-    assert.throws(() => parseOwnershipFile('version: 2\nowned:\n  - path: ./\n    skill: outro\n', 'packages/api/.ownership.yml', CHILD()), /owner/)
+  test('missing owner is an error — there is nowhere to inherit from', () => {
+    assert.throws(() => parseOwnershipFile('version: 2\nowned:\n  - path: ./\n    skill: other\n', 'packages/api/.ownership.yml', CHILD()), /owner/)
   })
 
-  test('per-file aceita format só para state-field; key é erro', () => {
-    const ok = 'version: 2\nowned:\n  - path: docs/adr/\n    owner: "@a"\n    format:\n      collection: per-file\n      state-field: Situação\n'
+  test('per-file accepts format only for state-field; key is an error', () => {
+    const ok = 'version: 2\nowned:\n  - path: docs/adr/\n    owner: "@a"\n    format:\n      collection: per-file\n      state-field: State\n'
     const parsed = parseOwnershipFile(ok, '.ownership.yml', ROOT) as { owned: { format: { collection: string; stateField: string } }[] }
 
     assert.equal(parsed.owned[0]?.format.collection, 'per-file')
-    assert.equal(parsed.owned[0]?.format.stateField, 'situação')
+    assert.equal(parsed.owned[0]?.format.stateField, 'state')
 
     const bad = 'version: 2\nowned:\n  - path: docs/adr/\n    owner: "@a"\n    format:\n      collection: per-file\n      key: ID\n'
 
     assert.throws(() => parseOwnershipFile(bad, '.ownership.yml', ROOT), /"key"/)
   })
 
-  test('owned per-file não declara format', () => {
+  test('owned per-file does not declare format', () => {
     const source = 'version: 2\nowned:\n  - path: docs/decisions/adr/\n    owner: "@a"\n    skill: decision-recorder\n'
     const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { owned: { format: { collection: string } }[] }
 
     assert.equal(parsed.owned[0]?.format.collection, 'per-file')
   })
 
-  test('owned com format: table exige key nomeando a coluna', () => {
+  test('owned with format: table requires key naming the column', () => {
     const source = 'version: 2\nowned:\n  - path: docs/open-decisions.md\n    owner: "@a"\n    format:\n      collection: table\n'
 
-    assert.throws(() => parseOwnershipFile(source, '.ownership.yml', ROOT), /format: precisa do campo `key`/)
+    assert.throws(() => parseOwnershipFile(source, '.ownership.yml', ROOT), /format: needs the `key` field/)
   })
 
-  test('owned com format: sections aceita key: first-token (padrão) ou heading', () => {
+  test('owned with format: sections accepts key: first-token (default) or heading', () => {
     const source =
       'version: 2\nowned:\n  - path: docs/requirements/rules.md\n    owner: "@a"\n    format:\n      collection: sections\n'
     const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { owned: { format: { keyMode: string | null } }[] }
@@ -1162,15 +1161,15 @@ pacote — todo o resto lê o resultado deste parser.
     assert.equal(parsed.owned[0]?.format.keyMode, 'first-token')
   })
 
-  test('state-field é opcional, default "status", normalizado', () => {
+  test('state-field is optional, defaults to "status", normalized', () => {
     const source =
-      'version: 2\nowned:\n  - path: docs/open-decisions.md\n    owner: "@a"\n    format:\n      collection: table\n      key: ID\n      state-field: Situação\n'
+      'version: 2\nowned:\n  - path: docs/open-decisions.md\n    owner: "@a"\n    format:\n      collection: table\n      key: ID\n      state-field: State\n'
     const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { owned: { format: { stateField: string } }[] }
 
-    assert.equal(parsed.owned[0]?.format.stateField, 'situação')
+    assert.equal(parsed.owned[0]?.format.stateField, 'state')
   })
 
-  test('derives-from exige source e field', () => {
+  test('derives-from requires source and field', () => {
     const source =
       'version: 2\nowned:\n  - path: docs/superpowers/plans/\n    owner: "@a"\n    derives-from:\n      source: docs/superpowers/specs/\n      field: spec\n'
     const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { owned: { derivesFrom: { source: string; field: string } | null }[] }
@@ -1178,7 +1177,7 @@ pacote — todo o resto lê o resultado deste parser.
     assert.deepEqual(parsed.owned[0]?.derivesFrom, { source: 'docs/superpowers/specs/', field: 'spec' })
   })
 
-  test('bloco de plugin passa opaco quando o nome está em plugins:, e reprova quando não está', () => {
+  test('a plugin block passes through opaque when the name is in plugins:, and fails when it is not', () => {
     const withBlock = 'version: 2\nplugins: [living-docs]\nowned:\n  - path: docs/decisions/adr/\n    owner: "@a"\n    living-docs:\n      id-prefix: ADR\n'
     const parsed = parseOwnershipFile(withBlock, '.ownership.yml', ROOT) as { owned: { pluginBlocks: Record<string, unknown> }[] }
 
@@ -1189,7 +1188,7 @@ pacote — todo o resto lê o resultado deste parser.
     assert.throws(() => parseOwnershipFile(withoutDeclared, '.ownership.yml', ROOT), /"living-docs"/)
   })
 
-  test('generated e watches são estritos em chave desconhecida', () => {
+  test('generated and watches are strict on an unknown key', () => {
     assert.throws(
       () => parseOwnershipFile('version: 2\nowned: []\ngenerated:\n  - path: a.md\n    command: x\n    extra: 1\n', '.ownership.yml', ROOT),
       /"extra"/,
@@ -1200,7 +1199,7 @@ pacote — todo o resto lê o resultado deste parser.
     )
   })
 
-  test('watches lê consumer-visible e reason opcionais', () => {
+  test('watches reads optional consumer-visible and reason', () => {
     const source = 'version: 2\nowned: []\nwatches:\n  - code: "src/**"\n    doc: CHANGELOG.md\n    consumer-visible: true\n    reason: "x"\n'
     const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { watches: { consumerVisible: boolean; reason: string | null }[] }
 
@@ -1208,7 +1207,7 @@ pacote — todo o resto lê o resultado deste parser.
     assert.equal(parsed.watches[0]?.reason, 'x')
   })
 
-  test('ignore e include são listas de string', () => {
+  test('ignore and include are lists of strings', () => {
     const source = 'version: 2\nowned: []\nignore: ["node_modules/**"]\ninclude: ["packages/api/"]\n'
     const parsed = parseOwnershipFile(source, '.ownership.yml', ROOT) as { ignore: string[]; include: string[] }
 
@@ -1216,7 +1215,7 @@ pacote — todo o resto lê o resultado deste parser.
     assert.deepEqual(parsed.include, ['packages/api/'])
   })
 
-  test('dir do arquivo é derivado do próprio caminho', () => {
+  test('the file dir is derived from its own path', () => {
     const rootParsed = parseOwnershipFile('version: 2\nowned: []\n', '.ownership.yml', ROOT)
     const childParsed = parseOwnershipFile('version: 2\nowned: []\n', 'packages/api/.ownership.yml', CHILD())
 
@@ -1224,7 +1223,7 @@ pacote — todo o resto lê o resultado deste parser.
     assert.equal(childParsed.dir, 'packages/api')
   })
 
-  test('basePath é normalizado, e só desce', () => {
+  test('basePath is normalized, and only goes down', () => {
     const parsed = parseOwnershipFile('version: 2\nbasePath: packages/api/\nowned: []\n', 'ownership.api.yml', ROOT) as { basePath: string | null }
 
     assert.equal(parsed.basePath, 'packages/api')
@@ -1235,20 +1234,20 @@ pacote — todo o resto lê o resultado deste parser.
     }
   })
 
-  test('YAML inválido é OwnershipError', () => {
+  test('invalid YAML is an OwnershipError', () => {
     assert.throws(() => parseOwnershipFile('version: [2\n', '.ownership.yml', ROOT), OwnershipError)
   })
   ```
 
-- [ ] **Passo 2: Rodar e confirmar que falham**
+- [ ] **Step 2: Run and confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/schema/parse.test.ts
   ```
 
-  Esperado: FAIL — `Cannot find module '../../src/schema/parse.ts'`.
+  Expected: FAIL — `Cannot find module '../../src/schema/parse.ts'`.
 
-- [ ] **Passo 3: Escrever `schema/types.ts`**
+- [ ] **Step 3: Write `schema/types.ts`**
 
   ```typescript
   export type Collection = 'per-file' | 'table' | 'sections'
@@ -1256,11 +1255,11 @@ pacote — todo o resto lê o resultado deste parser.
 
   export interface FormatBlock {
     collection: Collection
-    /** Nome da coluna, quando `collection` é `table`. Null nos outros dois casos. */
+    /** Column name, when `collection` is `table`. Null in the other two cases. */
     key: string | null
-    /** Só quando `collection` é `sections`. */
+    /** Only when `collection` is `sections`. */
     keyMode: SectionKeyMode | null
-    /** Normalizado (minúsculo, sem espaço nas pontas). Default `'status'`. */
+    /** Normalized (lowercase, no surrounding whitespace). Default `'status'`. */
     stateField: string
   }
 
@@ -1271,16 +1270,16 @@ pacote — todo o resto lê o resultado deste parser.
 
   export interface OwnedRuleRaw {
     path: string
-    /** Obrigatório: sem cascata, nenhuma entrada herda dono de outro arquivo (spec §5). */
+    /** Required: no cascade, no entry inherits an owner from another file (spec §5). */
     owner: string
     skill: string | null
-    /** Vocabulário do projeto; `null` quando o caminho não declara ciclo de vida. */
+    /** The project's vocabulary; `null` when the path declares no lifecycle. */
     states: string[] | null
     format: FormatBlock
-    /** Se o arquivo escreveu `format:` — o default do parser não é declaração. */
+    /** Whether the file wrote `format:` — the parser's default is not a declaration. */
     formatDeclared: boolean
     derivesFrom: DerivesFrom | null
-    /** Por nome de plugin declarado em `plugins:`. Conteúdo opaco ao núcleo. */
+    /** By plugin name declared in `plugins:`. Content opaque to the core. */
     pluginBlocks: Record<string, unknown>
   }
 
@@ -1297,12 +1296,12 @@ pacote — todo o resto lê o resultado deste parser.
   }
 
   export interface ParsedFile {
-    /** Caminho deste arquivo de ownership, relativo à raiz do repositório. */
+    /** Path of this ownership file, relative to the repository root. */
     file: string
-    /** Diretório deste arquivo, relativo à raiz. `''` para a raiz do repositório. */
+    /** Directory of this file, relative to the root. `''` for the repository root. */
     dir: string
     version: 2
-    /** Desloca a base para dentro do diretório do arquivo; `null` quando a base é o próprio diretório. */
+    /** Shifts the base into the file's directory; `null` when the base is the directory itself. */
     basePath: string | null
     owned: OwnedRuleRaw[]
     generated: GeneratedRuleRaw[]
@@ -1323,7 +1322,7 @@ pacote — todo o resto lê o resultado deste parser.
   }
   ```
 
-- [ ] **Passo 4: Escrever `schema/parse.ts`**
+- [ ] **Step 4: Write `schema/parse.ts`**
 
   ```typescript
   import { posix } from 'node:path'
@@ -1336,13 +1335,13 @@ pacote — todo o resto lê o resultado deste parser.
 
   export interface ParseOptions {
     isRoot: boolean
-    /** Nomes de plugin válidos como bloco dentro de `owned[]` — vêm de `plugins:` na raiz. */
+    /** Plugin names valid as a block inside `owned[]` — they come from `plugins:` at the root. */
     pluginNames: readonly string[]
   }
 
   function asRecord(value: unknown, where: string): Record<string, unknown> {
     if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-      throw new OwnershipError(`${where}: precisa ser um mapa.`)
+      throw new OwnershipError(`${where}: must be a map.`)
     }
 
     return value as Record<string, unknown>
@@ -1353,19 +1352,19 @@ pacote — todo o resto lê o resultado deste parser.
       return []
     }
     if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
-      throw new OwnershipError(`${where}: precisa ser uma lista de strings.`)
+      throw new OwnershipError(`${where}: must be a list of strings.`)
     }
 
     return value as string[]
   }
 
-  /** Ausente é lista vazia; presente e não-lista é erro — nunca vira `[]` em silêncio. */
+  /** Absent is an empty list; present and not a list is an error — it never silently becomes `[]`. */
   function asList(value: unknown, where: string): unknown[] {
     if (value === undefined || value === null) {
       return []
     }
     if (!Array.isArray(value)) {
-      throw new OwnershipError(`${where}: precisa ser uma lista.`)
+      throw new OwnershipError(`${where}: must be a list.`)
     }
 
     return value
@@ -1375,7 +1374,7 @@ pacote — todo o resto lê o resultado deste parser.
     const value = source[key]
 
     if (typeof value !== 'string' || value.trim() === '') {
-      throw new OwnershipError(`${where}: precisa do campo \`${key}\` não vazio.`)
+      throw new OwnershipError(`${where}: needs the \`${key}\` field, non-empty.`)
     }
 
     return value
@@ -1394,7 +1393,7 @@ pacote — todo o resto lê o resultado deste parser.
   function assertKnownKeys(item: Record<string, unknown>, allowed: ReadonlySet<string>, where: string, hint = ''): void {
     for (const key of Object.keys(item)) {
       if (!allowed.has(key)) {
-        throw new OwnershipError(`${where}: chave "${key}" desconhecida.${hint}`)
+        throw new OwnershipError(`${where}: unknown key "${key}".${hint}`)
       }
     }
   }
@@ -1408,15 +1407,15 @@ pacote — todo o resto lê o resultado deste parser.
     const stateFieldRaw = item['state-field'] ?? 'status'
 
     if (typeof stateFieldRaw !== 'string' || stateFieldRaw.trim() === '') {
-      throw new OwnershipError(`${where}.format.state-field: precisa ser uma string não vazia.`)
+      throw new OwnershipError(`${where}.format.state-field: must be a non-empty string.`)
     }
     const stateField = normalizeKey(stateFieldRaw)
 
-    // per-file não tem chave a localizar (a identidade é o arquivo), mas o
-    // estado ainda mora num campo do frontmatter, e esse campo é configurável
-    // (spec §3, `state-field`). O bloco existe só para isso: `key` é erro.
+    // per-file has no key to locate (the identity is the file), but the
+    // state still lives in a frontmatter field, and that field is configurable
+    // (spec §3, `state-field`). The block exists only for that: `key` is an error.
     if (item.collection === 'per-file') {
-      assertKnownKeys(item, new Set(['collection', 'state-field']), `${where}.format`, ' Em per-file a identidade é o arquivo.')
+      assertKnownKeys(item, new Set(['collection', 'state-field']), `${where}.format`, ' In per-file the identity is the file.')
 
       return { collection: 'per-file', key: null, keyMode: null, stateField }
     }
@@ -1431,13 +1430,13 @@ pacote — todo o resto lê o resultado deste parser.
       const keyMode = item.key ?? 'first-token'
 
       if (keyMode !== 'first-token' && keyMode !== 'heading') {
-        throw new OwnershipError(`${where}.format.key: precisa ser "first-token" ou "heading" (recebido: ${String(keyMode)}).`)
+        throw new OwnershipError(`${where}.format.key: must be "first-token" or "heading" (received: ${String(keyMode)}).`)
       }
 
       return { collection: 'sections', key: null, keyMode, stateField }
     }
 
-    throw new OwnershipError(`${where}.format.collection: precisa ser "per-file", "table" ou "sections".`)
+    throw new OwnershipError(`${where}.format.collection: must be "per-file", "table" or "sections".`)
   }
 
   function parseDerivesFrom(raw: unknown, where: string): DerivesFrom | null {
@@ -1464,13 +1463,13 @@ pacote — todo o resto lê o resultado deste parser.
       if (OWNED_CORE_KEYS.has(key) || pluginNames.includes(key)) {
         continue
       }
-      throw new OwnershipError(`${where}: chave "${key}" desconhecida. Se é de um plugin, declare-o em \`plugins:\` na raiz.`)
+      throw new OwnershipError(`${where}: unknown key "${key}". If it belongs to a plugin, declare it in \`plugins:\` at the root.`)
     }
 
     const ownerRaw = item.owner
 
     if (typeof ownerRaw !== 'string' || !ownerRaw.startsWith('@')) {
-      throw new OwnershipError(`${where}.owner "${String(ownerRaw)}" precisa ser uma string começando com @. Toda entrada declara o próprio dono.`)
+      throw new OwnershipError(`${where}.owner "${String(ownerRaw)}" must be a string starting with @. Every entry declares its own owner.`)
     }
 
     const owner = ownerRaw
@@ -1478,7 +1477,7 @@ pacote — todo o resto lê o resultado deste parser.
     const skill = item.skill
 
     if (skill !== undefined && (typeof skill !== 'string' || skill.trim() === '')) {
-      throw new OwnershipError(`${where}.skill: precisa ser uma string não vazia, ou ficar ausente.`)
+      throw new OwnershipError(`${where}.skill: must be a non-empty string, or be absent.`)
     }
 
     const pluginBlocks: Record<string, unknown> = {}
@@ -1528,19 +1527,19 @@ pacote — todo o resto lê o resultado deste parser.
   const ROOT_KEYS = new Set(['version', 'plugins', 'basePath', 'owned', 'generated', 'watches', 'ignore', 'include'])
   const CHILD_KEYS = new Set(['version', 'basePath', 'owned', 'generated', 'watches', 'ignore', 'include'])
 
-  /** Só desce: sem `..`, sem glob, sem caminho absoluto — é o que mantém a poda correta sem abrir o arquivo (spec §5). */
+  /** It only goes down: no `..`, no glob, no absolute path — that is what keeps pruning correct without opening the file (spec §5). */
   function parseBasePath(value: unknown, file: string): string | null {
     if (value === undefined || value === null) {
       return null
     }
     if (typeof value !== 'string' || value.trim() === '') {
-      throw new OwnershipError(`${file}: \`basePath\` precisa ser uma string não vazia.`)
+      throw new OwnershipError(`${file}: \`basePath\` must be a non-empty string.`)
     }
 
     const normalized = value.replace(/\\/g, '/').replace(/\/$/, '')
 
     if (normalized.startsWith('/') || normalized === '..' || normalized.startsWith('../') || normalized.includes('/../') || normalized.includes('*')) {
-      throw new OwnershipError(`${file}: \`basePath\` "${value}" precisa apontar para dentro do diretório do arquivo — sem \`..\`, sem glob e sem caminho absoluto.`)
+      throw new OwnershipError(`${file}: \`basePath\` "${value}" must point inside the file's directory — no \`..\`, no glob and no absolute path.`)
     }
 
     return normalized
@@ -1552,7 +1551,7 @@ pacote — todo o resto lê o resultado deste parser.
     try {
       raw = YAML.parse(source)
     } catch (err) {
-      throw new OwnershipError(`${file}: YAML inválido — ${err instanceof Error ? err.message : String(err)}`)
+      throw new OwnershipError(`${file}: invalid YAML — ${err instanceof Error ? err.message : String(err)}`)
     }
 
     const root = asRecord(raw, file)
@@ -1560,20 +1559,20 @@ pacote — todo o resto lê o resultado deste parser.
     let pluginNames = opts.pluginNames
     let plugins: string[] | undefined
 
-    // A versão vem antes da checagem de chaves, e vale para todo arquivo, não só a
-    // raiz: um arquivo v1 tem `artifacts`/`documents`, e "chave desconhecida"
-    // esconderia o motivo real.
+    // The version comes before the key check, and applies to every file, not just
+    // the root: a v1 file has `artifacts`/`documents`, and "unknown key"
+    // would hide the real reason.
     if (root.version === 1) {
       throw new OwnershipError(
-        `${file}: esquema v1 — o núcleo só lê a v2 (lista \`owned\`, blocos por plugin). ` +
-          'Migre o arquivo antes de usar `ownership`; a migração ainda não tem comando próprio.',
+        `${file}: schema v1 — the core only reads v2 (\`owned\` list, blocks per plugin). ` +
+          'Migrate the file before using `ownership`; the migration does not yet have its own command.',
       )
     }
     if (root.version !== 2) {
-      throw new OwnershipError(`${file}: campo \`version\` precisa ser 2 (recebido: ${String(root.version)}).`)
+      throw new OwnershipError(`${file}: the \`version\` field must be 2 (received: ${String(root.version)}).`)
     }
 
-    assertKnownKeys(root, opts.isRoot ? ROOT_KEYS : CHILD_KEYS, file, opts.isRoot ? '' : ' `plugins` é exclusivo do arquivo raiz.')
+    assertKnownKeys(root, opts.isRoot ? ROOT_KEYS : CHILD_KEYS, file, opts.isRoot ? '' : ' `plugins` is exclusive to the root file.')
 
     if (opts.isRoot) {
       plugins = asStringList(root.plugins, `${file}.plugins`)
@@ -1600,69 +1599,69 @@ pacote — todo o resto lê o resultado deste parser.
   }
   ```
 
-- [ ] **Passo 5: Rodar os testes**
+- [ ] **Step 5: Run the tests**
 
   ```bash
   cd packages/ownership && node --test test/schema/parse.test.ts
   ```
 
-  Esperado: PASS em todos.
+  Expected: PASS on all.
 
-- [ ] **Passo 6: Type-check**
+- [ ] **Step 6: Type-check**
 
   ```bash
   cd packages/ownership && npm run typecheck
   ```
 
-- [ ] **Passo 7: Commit**
+- [ ] **Step 7: Commit**
 
   ```bash
   git add packages/ownership/src/schema/types.ts packages/ownership/src/schema/parse.ts packages/ownership/test/schema/parse.test.ts
-  git commit -m "feat(<RN-esquema>): parser estrito do esquema v2"
+  git commit -m "feat(<RN-schema>): strict parser of the v2 schema"
   ```
 
 ---
 
-### Tarefa 5: Identidade de item opaca
+### Task 5: Opaque item identity
 
-Regra de origem: `<RN-identidade>`; spec §3. Generaliza `src/docs/table.ts` e `src/docs/sections.ts`
-do `@esliph/living-docs`, removendo a dependência de `IdFormat`/regex de ID: a
-chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
+Source rule: `<RN-identity>`; spec §3. Generalizes `src/docs/table.ts` and `src/docs/sections.ts`
+from `@esliph/living-docs`, removing the dependency on `IdFormat`/ID regex: the
+key becomes whatever `format.key` (Task 4) says to read, with no required form.
 
-**Duas decisões de implementação que este plano toma:**
+**Two implementation decisions that this plan makes:**
 
-- **Chave duplicada não lança.** O parser devolve todos os itens e
-  `findDuplicateKeys` aponta as repetições. Quem decide o que fazer é quem
-  chama: o check `ownership/declared-state` (Tarefa 12) transforma em achado —
-  a spec §3 diz que o núcleo garante chave única, e garantia de check é achado,
-  não exceção que derruba o `validate` inteiro; o hook ignora, por falha aberta.
-- **Em `sections`, item é heading de nível 2 (`##`).** O parser de hoje aceita
-  `##` a `####` porque filtra pelo regex de ID. Sem esse filtro, todo
-  subtítulo (`### Exemplo` dentro de uma regra) viraria item — e item
-  duplicado. Os três arquivos de requisitos deste repositório só usam `##` para
-  item. Nível configurável fica para quando um consumidor pedir.
+- **A duplicate key does not throw.** The parser returns all the items and
+  `findDuplicateKeys` points out the repetitions. Whoever decides what to do is the
+  caller: the `ownership/declared-state` check (Task 12) turns it into a finding —
+  spec §3 says the core guarantees a unique key, and a check's guarantee is a finding,
+  not an exception that takes down the whole `validate`; the hook ignores it, by failing open.
+- **In `sections`, an item is a level-2 heading (`##`).** Today's parser accepts
+  `##` to `####` because it filters by the ID regex. Without that filter, every
+  subheading (`### Example` inside a rule) would become an item — and a
+  duplicate item. The three requirements files of this repository only use `##` for
+  items. A configurable level is left for when a consumer asks.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/schema/item.ts`
 - Test: `packages/ownership/test/schema/item.test.ts`
 
 **Interfaces:**
-- Consome: `FormatBlock` (Tarefa 4).
-- Produz: `interface DocItem { key: string; state: string; line: number; fields: Record<string, string> }`,
+- Consumes: `FormatBlock` (Task 4).
+- Produces: `interface DocItem { key: string; state: string; line: number; fields: Record<string, string> }`,
   `normalizeFieldKey(key: string): string`, `isEmptyValue(value: string): boolean`,
   `parseItemsTable(source: string, startLine: number, format: Pick<FormatBlock, 'key' | 'stateField'>): DocItem[]`,
   `parseItemsSections(source: string, startLine: number, format: Pick<FormatBlock, 'keyMode' | 'stateField'>): DocItem[]`,
   `findDuplicateKeys(items: readonly DocItem[]): DocItem[]`.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { findDuplicateKeys, parseItemsSections, parseItemsTable } from '../../src/schema/item.ts'
 
-  test('parseItemsTable lê pela coluna nomeada em format.key, chave opaca', () => {
-    const source = ['| ID | Lacuna | Status |', '| --- | ------ | ------ |', '| DA-01 | x | open |', '| T-9 | y | resolved |'].join('\n')
+  test('parseItemsTable reads by the column named in format.key, opaque key', () => {
+    const source = ['| ID | Gap | Status |', '| --- | ------ | ------ |', '| DA-01 | x | open |', '| T-9 | y | resolved |'].join('\n')
     const items = parseItemsTable(source, 1, { key: 'ID', stateField: 'status' })
 
     assert.deepEqual(
@@ -1670,10 +1669,10 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
       ['DA-01', 'T-9'],
     )
     assert.equal(items[0]?.state, 'open')
-    assert.equal(items[0]?.fields.lacuna, 'x')
+    assert.equal(items[0]?.fields.gap, 'x')
   })
 
-  test('parseItemsTable: célula vazia ou marcador de vazio não vira item', () => {
+  test('parseItemsTable: an empty cell or an empty marker does not become an item', () => {
     const source = ['| ID | Status |', '| --- | ------ |', '| - | open |', '| DA-01 | open |'].join('\n')
     const items = parseItemsTable(source, 1, { key: 'ID', stateField: 'status' })
 
@@ -1683,13 +1682,13 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
     )
   })
 
-  test('parseItemsTable sem a coluna declarada devolve lista vazia', () => {
-    const source = ['| Nome | Status |', '| ---- | ------ |', '| x | open |'].join('\n')
+  test('parseItemsTable without the declared column returns an empty list', () => {
+    const source = ['| Name | Status |', '| ---- | ------ |', '| x | open |'].join('\n')
 
     assert.deepEqual(parseItemsTable(source, 1, { key: 'ID', stateField: 'status' }), [])
   })
 
-  test('parseItemsTable devolve a chave duplicada, e findDuplicateKeys aponta a repetição', () => {
+  test('parseItemsTable returns the duplicate key, and findDuplicateKeys points out the repetition', () => {
     const source = ['| ID | Status |', '| --- | ------ |', '| DA-01 | open |', '| DA-01 | resolved |'].join('\n')
     const items = parseItemsTable(source, 1, { key: 'ID', stateField: 'status' })
 
@@ -1700,28 +1699,28 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
     )
   })
 
-  test('parseItemsSections, keyMode first-token: primeiro token é a chave, resto é título', () => {
-    const source = '## RN-0001 — Título da regra\n\n- **status:** active\n- **relates-to:** ADR-0002\n\nCorpo.\n'
+  test('parseItemsSections, keyMode first-token: the first token is the key, the rest is the title', () => {
+    const source = '## RN-0001 — Rule title\n\n- **status:** active\n- **relates-to:** ADR-0002\n\nBody.\n'
     const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'status' })
 
     assert.equal(items[0]?.key, 'RN-0001')
-    assert.equal(items[0]?.fields.title, 'Título da regra')
+    assert.equal(items[0]?.fields.title, 'Rule title')
     assert.equal(items[0]?.state, 'active')
     assert.equal(items[0]?.fields['relates-to'], 'ADR-0002')
   })
 
-  test('parseItemsSections, keyMode heading: a linha inteira do heading é a chave', () => {
-    const source = '## Contexto\n\nTexto.\n\n## Decisão\n\nOutro texto.\n'
+  test('parseItemsSections, keyMode heading: the whole heading line is the key', () => {
+    const source = '## Context\n\nText.\n\n## Decision\n\nOther text.\n'
     const items = parseItemsSections(source, 1, { keyMode: 'heading', stateField: 'status' })
 
     assert.deepEqual(
       items.map(item => item.key),
-      ['Contexto', 'Decisão'],
+      ['Context', 'Decision'],
     )
   })
 
-  test('parseItemsSections pula bloco de código cercado', () => {
-    const source = '```\n## RN-9999 — exemplo de formato\n```\n\n## RN-0001 — real\n\n- **status:** active\n'
+  test('parseItemsSections skips a fenced code block', () => {
+    const source = '```\n## RN-9999 — format example\n```\n\n## RN-0001 — real\n\n- **status:** active\n'
     const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'status' })
 
     assert.deepEqual(
@@ -1730,14 +1729,14 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
     )
   })
 
-  test('parseItemsSections: chave duplicada aparece em findDuplicateKeys', () => {
-    const source = '## X — um\n\n- **status:** active\n\n## X — dois\n\n- **status:** active\n'
+  test('parseItemsSections: a duplicate key shows up in findDuplicateKeys', () => {
+    const source = '## X — one\n\n- **status:** active\n\n## X — two\n\n- **status:** active\n'
 
     assert.equal(findDuplicateKeys(parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'status' })).length, 1)
   })
 
-  test('parseItemsSections: só heading de nível 2 é item; subtítulo é corpo', () => {
-    const source = '## RN-0001 — a\n\n### Exemplo\n\n## RN-0002 — b\n\n### Exemplo\n'
+  test('parseItemsSections: only a level-2 heading is an item; a subheading is body', () => {
+    const source = '## RN-0001 — a\n\n### Example\n\n## RN-0002 — b\n\n### Example\n'
     const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'status' })
 
     assert.deepEqual(
@@ -1746,21 +1745,21 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
     )
   })
 
-  test('state-field customizado é lido no lugar de status', () => {
-    const source = '## X — um\n\n- **situação:** aberta\n'
-    const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'situação' })
+  test('a custom state-field is read instead of status', () => {
+    const source = '## X — one\n\n- **state:** open\n'
+    const items = parseItemsSections(source, 1, { keyMode: 'first-token', stateField: 'state' })
 
-    assert.equal(items[0]?.state, 'aberta')
+    assert.equal(items[0]?.state, 'open')
   })
   ```
 
-- [ ] **Passo 2: Rodar e confirmar que falham**
+- [ ] **Step 2: Run and confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/schema/item.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `schema/item.ts`**
+- [ ] **Step 3: Write `schema/item.ts`**
 
   ```typescript
   import type { FormatBlock } from './types.ts'
@@ -1768,7 +1767,7 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
   export interface DocItem {
     key: string
     state: string
-    /** Linha 1-indexed no arquivo inteiro. */
+    /** 1-indexed line in the whole file. */
     line: number
     fields: Record<string, string>
   }
@@ -1777,13 +1776,13 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
     return key.trim().replace(/:$/, '').trim().toLowerCase()
   }
 
-  const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na', 'null', 'nenhum', 'nenhuma'])
+  const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na', 'null', 'none', 'nothing'])
 
   export function isEmptyValue(value: string): boolean {
     return EMPTY.has(value.trim().toLowerCase())
   }
 
-  /** Cada ocorrência depois da primeira de uma chave já vista. Não lança: quem chama decide (spec §3). */
+  /** Each occurrence after the first of an already-seen key. It does not throw: the caller decides (spec §3). */
   export function findDuplicateKeys(items: readonly DocItem[]): DocItem[] {
     const seen = new Set<string>()
     const duplicates: DocItem[] = []
@@ -1867,9 +1866,9 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
     return []
   }
 
-  /** Só `##`: subtítulo é corpo do item, não item (ver a decisão no topo da tarefa). */
+  /** Only `##`: a subheading is the item's body, not an item (see the decision at the top of the task). */
   const SECTION_HEADING = /^##\s+(.*)$/
-  /** Primeiro token é a chave; o resto, sem o travessão opcional, é o título. */
+  /** The first token is the key; the rest, without the optional dash, is the title. */
   const FIRST_TOKEN = /^(\S+)(?:\s+(?:[—–-]\s*)?(.*))?$/
   const FIELD = /^[-*]\s+\*\*([^*]+?)\*\*\s*:?\s*(.*)$/
   const FENCE = /^(?:```|~~~)/
@@ -1942,35 +1941,35 @@ chave passa a ser o que `format.key` (Tarefa 4) manda ler, sem forma exigida.
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes**
+- [ ] **Step 4: Run the tests**
 
   ```bash
   cd packages/ownership && node --test test/schema/item.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 5: Commit**
+- [ ] **Step 5: Commit**
 
   ```bash
   git add packages/ownership/src/schema/item.ts packages/ownership/test/schema/item.test.ts
-  git commit -m "feat(<RN-identidade>): identidade de item opaca — chave por format.key, sem regex de ID"
+  git commit -m "feat(<RN-identity>): opaque item identity — key by format.key, no ID regex"
   ```
 
 ---
 
-### Tarefa 6: Resolução do arquivo raiz
+### Task 6: Root file resolution
 
-Regra de origem: `<RN-resolucao>`; spec §8 e o ADR "resolução do arquivo" da Tarefa 1.
+Source rule: `<RN-resolution>`; spec §8 and the "file resolution" ADR from Task 1.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/resolve/candidates.ts`
 - Test: `packages/ownership/test/resolve/candidates.test.ts`
 
 **Interfaces:**
-- Consome: `OwnershipError` (Tarefa 4).
-- Produz: `interface LocateOptions { explicitPath?: string | null; env?: Record<string, string | undefined> }`,
+- Consumes: `OwnershipError` (Task 4).
+- Produces: `interface LocateOptions { explicitPath?: string | null; env?: Record<string, string | undefined> }`,
   `locateRootFile(root: string, opts?: LocateOptions): string | null`.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -1979,25 +1978,25 @@ Regra de origem: `<RN-resolucao>`; spec §8 e o ADR "resolução do arquivo" da 
   import { OwnershipError } from '../../src/schema/types.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('sem candidato nenhum, devolve null (silêncio)', () => {
+  test('with no candidate at all, it returns null (silence)', () => {
     withTempRepo({}, root => {
       assert.equal(locateRootFile(root), null)
     })
   })
 
-  test('acha ./.ownership.yml', () => {
+  test('finds ./.ownership.yml', () => {
     withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n' }, root => {
       assert.equal(locateRootFile(root), '.ownership.yml')
     })
   })
 
-  test('acha ./docs/.ownership.yml quando o primeiro não existe', () => {
+  test('finds ./docs/.ownership.yml when the first does not exist', () => {
     withTempRepo({ 'docs/.ownership.yml': 'version: 2\nowned: []\n' }, root => {
       assert.equal(locateRootFile(root), 'docs/.ownership.yml')
     })
   })
 
-  test('os dois candidatos presentes é erro que nomeia os dois', () => {
+  test('both candidates present is an error that names both', () => {
     withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n', 'docs/.ownership.yml': 'version: 2\nowned: []\n' }, root => {
       assert.throws(() => locateRootFile(root), (err: unknown) => {
         assert.ok(err instanceof OwnershipError)
@@ -2009,32 +2008,32 @@ Regra de origem: `<RN-resolucao>`; spec §8 e o ADR "resolução do arquivo" da 
     })
   })
 
-  test('--ownership explícito ganha de tudo, mesmo sem existir nos candidatos padrão', () => {
+  test('explicit --ownership beats everything, even without existing among the default candidates', () => {
     withTempRepo({ 'custom/o.yml': 'version: 2\nowned: []\n' }, root => {
       assert.equal(locateRootFile(root, { explicitPath: 'custom/o.yml' }), 'custom/o.yml')
     })
   })
 
-  test('--ownership explícito que não existe é erro', () => {
+  test('an explicit --ownership that does not exist is an error', () => {
     withTempRepo({}, root => {
       assert.throws(() => locateRootFile(root, { explicitPath: 'nope.yml' }), OwnershipError)
     })
   })
 
-  test('variável de ambiente OWNERSHIP_CONFIG tem a mesma prioridade que o explícito', () => {
+  test('the OWNERSHIP_CONFIG environment variable has the same priority as the explicit one', () => {
     withTempRepo({ 'custom/o.yml': 'version: 2\nowned: []\n' }, root => {
       assert.equal(locateRootFile(root, { env: { OWNERSHIP_CONFIG: 'custom/o.yml' } }), 'custom/o.yml')
     })
   })
   ```
 
-- [ ] **Passo 2: Rodar e confirmar que falham**
+- [ ] **Step 2: Run and confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/resolve/candidates.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `resolve/candidates.ts`**
+- [ ] **Step 3: Write `resolve/candidates.ts`**
 
   ```typescript
   import { existsSync } from 'node:fs'
@@ -2042,26 +2041,26 @@ Regra de origem: `<RN-resolucao>`; spec §8 e o ADR "resolução do arquivo" da 
   import { OwnershipError } from '../schema/types.ts'
 
   export interface LocateOptions {
-    /** Vem de `--ownership <caminho>` no CLI. */
+    /** Comes from `--ownership <path>` in the CLI. */
     explicitPath?: string | null
     env?: Record<string, string | undefined>
   }
 
-  /** Ordem de candidatos quando nada é explícito (spec §8). */
+  /** Candidate order when nothing is explicit (spec §8). */
   const CANDIDATES: readonly string[] = ['.ownership.yml', 'docs/.ownership.yml']
 
   /**
-   * O arquivo de ownership raiz, ou `null` — repositório sem o toolkit, e isso
-   * não é erro. Dois candidatos presentes é erro que nomeia os dois e nunca
-   * escolhe: um arquivo recém-migrado convivendo com um esquecido validaria
-   * pelo esquecido em silêncio.
+   * The root ownership file, or `null` — a repository without the toolkit, and this
+   * is not an error. Two candidates present is an error that names both and never
+   * chooses: a freshly migrated file living alongside a forgotten one would silently
+   * validate against the forgotten one.
    */
   export function locateRootFile(root: string, opts: LocateOptions = {}): string | null {
     const explicit = opts.explicitPath ?? opts.env?.OWNERSHIP_CONFIG ?? null
 
     if (explicit !== null) {
       if (!existsSync(join(root, explicit))) {
-        throw new OwnershipError(`${explicit}: não encontrado — indicado explicitamente e não existe no repositório.`)
+        throw new OwnershipError(`${explicit}: not found — explicitly indicated and does not exist in the repository.`)
       }
 
       return explicit
@@ -2071,8 +2070,8 @@ Regra de origem: `<RN-resolucao>`; spec §8 e o ADR "resolução do arquivo" da 
 
     if (found.length > 1) {
       throw new OwnershipError(
-        `Mais de um arquivo de ownership encontrado: ${found.join(', ')}. ` +
-          'A ambiguidade não se resolve sozinha — apague um dos dois, ou aponte o certo com `--ownership <caminho>`.',
+        `More than one ownership file found: ${found.join(', ')}. ` +
+          'The ambiguity does not resolve itself — delete one of the two, or point to the right one with `--ownership <path>`.',
       )
     }
 
@@ -2080,76 +2079,76 @@ Regra de origem: `<RN-resolucao>`; spec §8 e o ADR "resolução do arquivo" da 
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes e o type-check**
+- [ ] **Step 4: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/resolve/candidates.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 5: Commit**
+- [ ] **Step 5: Commit**
 
   ```bash
   git add packages/ownership/src/resolve/candidates.ts packages/ownership/test/resolve/candidates.test.ts
-  git commit -m "feat(<RN-resolucao>): resolução do arquivo raiz por ordem de candidatos"
+  git commit -m "feat(<RN-resolution>): root file resolution by candidate order"
   ```
 
 ---
 
-### Tarefa 7: Composição — base, include, disjunção, ciclo, poda
+### Task 7: Composition — base, include, disjointness, cycle, pruning
 
-Regra de origem: spec §5, `<ADR-composicao>` e `<RN-composicao>`. Resolve a
-árvore de arquivos de ownership num `ResolvedConfig` só, que todas as tarefas de
-gatilho/check/hook consomem daqui em diante.
+Source rule: spec §5, `<ADR-composition>` and `<RN-composition>`. It resolves the
+tree of ownership files into a single `ResolvedConfig`, which every
+trigger/check/hook task consumes from here on.
 
-**O que a spec fixa e esta tarefa implementa:**
+**What the spec fixes and this task implements:**
 
-- **Base de cada arquivo.** É o diretório do arquivo mais o `basePath`, que só
-  desce. A base da raiz é a raiz do repositório, more o arquivo raiz onde morar.
-- **Confinamento pelo critério de gatilho.** `owned[].path`,
-  `derives-from.source`, `generated[].path`, `watches[].code`, `ignore[]` e
-  `include[]` resolvem dentro da base; `watches[].doc` pode apontar para qualquer
-  lugar do repositório, porque nada dispara por editá-lo.
-- **Disjunção.** Nenhum `owned[].path` resolvido é igual a outro nem prefixo de
-  diretório de outro, venham do mesmo arquivo ou de arquivos diferentes. Colisão
-  é erro que nomeia os dois arquivos e o caminho. `generated[].path` só é cobrado
-  contra outro `generated[].path`; `watches` sobrepõe à vontade.
-- **`version` em todo arquivo, `plugins` só na raiz.** Versão divergente entre
-  dois arquivos é erro que nomeia os dois.
-- **Acúmulo.** `owned`, `watches`, `generated` e `ignore` concatenam. Não há
-  merge dentro de uma entrada, e por isso `owner` é obrigatório em todas elas.
-- **Poda.** `resolveOwnership(root, { onlyFor })` só lê um arquivo incluído cujo
-  diretório é ancestral de algum caminho em `onlyFor` — comparação de string, sem
-  abrir o arquivo. Hooks passam `onlyFor`; `validate` e `explain` não podam.
+- **Base of each file.** It is the file's directory plus the `basePath`, which only
+  goes down. The base of the root is the repository root, wherever the root file lives.
+- **Confinement by the trigger criterion.** `owned[].path`,
+  `derives-from.source`, `generated[].path`, `watches[].code`, `ignore[]` and
+  `include[]` resolve inside the base; `watches[].doc` may point anywhere
+  in the repository, because nothing fires from editing it.
+- **Disjointness.** No resolved `owned[].path` is equal to another or a directory
+  prefix of another, whether they come from the same file or from different files. A collision
+  is an error that names both files and the path. `generated[].path` is only checked
+  against another `generated[].path`; `watches` overlap freely.
+- **`version` in every file, `plugins` only at the root.** A divergent version between
+  two files is an error that names both.
+- **Accumulation.** `owned`, `watches`, `generated` and `ignore` concatenate. There is no
+  merge inside an entry, and that is why `owner` is required in all of them.
+- **Pruning.** `resolveOwnership(root, { onlyFor })` only reads an included file whose
+  directory is an ancestor of some path in `onlyFor` — string comparison, without
+  opening the file. Hooks pass `onlyFor`; `validate` and `explain` do not prune.
 
-**Decisões de implementação que este plano toma** (não estão na spec letra por
-letra; ficam aqui para quem revisar poder discordar):
+**Implementation decisions that this plan makes** (they are not in the spec letter for
+letter; they stay here so whoever reviews can disagree):
 
-- **A poda compara o diretório do arquivo, não a base.** Como o `basePath` só
-  desce, a base é sempre descendente do diretório, então um diretório que não
-  alcança nenhum caminho de `onlyFor` garante que a base também não alcança. É o
-  que permite podar sem abrir o arquivo para ler o `basePath` dele.
-- **Colisão é detectada por varredura par a par.** São dezenas de entradas, não
-  milhares; um índice ordenado economizaria comparação e custaria a mensagem de
-  erro, que precisa nomear os dois lados.
-- **`origin` é o arquivo, não o arquivo e a linha.** O caminho já identifica a
-  entrada sem ambiguidade — é a chave da disjunção —, e rastrear linha obrigaria
-  o parser a trocar `YAML.parse` por `parseDocument` e a carregar posição em toda
-  entrada, custo que a mensagem não paga.
-- **Nome de arquivo achado por include de diretório:** `.ownership.yml`,
-  `ownership.yml`, ou `ownership.<assunto>.yml` (com ou sem ponto inicial, e
+- **Pruning compares the file's directory, not the base.** Since `basePath` only
+  goes down, the base is always a descendant of the directory, so a directory that reaches
+  no path in `onlyFor` guarantees that the base does not reach one either. This is what
+  allows pruning without opening the file to read its `basePath`.
+- **Collision is detected by a pairwise scan.** There are dozens of entries, not
+  thousands; a sorted index would save comparisons and cost the error message,
+  which needs to name both sides.
+- **`origin` is the file, not the file and the line.** The path already identifies the
+  entry unambiguously — it is the disjointness key —, and tracking the line would force
+  the parser to swap `YAML.parse` for `parseDocument` and to carry a position in every
+  entry, a cost the message does not pay for.
+- **File name found by a directory include:** `.ownership.yml`,
+  `ownership.yml`, or `ownership.<subject>.yml` (with or without a leading dot, and
   `.yaml`).
-- **Um arquivo incluído duas vezes é erro**, com mensagem própria — distinta de
-  ciclo, que é um arquivo incluído por um descendente de si mesmo.
+- **A file included twice is an error**, with its own message — distinct from a
+  cycle, which is a file included by a descendant of itself.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/resolve/hierarchy.ts`
 - Test: `packages/ownership/test/resolve/hierarchy.test.ts`
 
 **Interfaces:**
-- Consome: `parseOwnershipFile`, `RootFile`, `ParsedFile`, `OwnedRuleRaw`,
-  `GeneratedRuleRaw`, `WatchRuleRaw`, `OwnershipError` (Tarefa 4);
-  `locateRootFile` (Tarefa 6).
-- Produz:
+- Consumes: `parseOwnershipFile`, `RootFile`, `ParsedFile`, `OwnedRuleRaw`,
+  `GeneratedRuleRaw`, `WatchRuleRaw`, `OwnershipError` (Task 4);
+  `locateRootFile` (Task 6).
+- Produces:
   ```typescript
   interface ResolvedOwnedRule {
     path: string
@@ -2159,12 +2158,12 @@ letra; ficam aqui para quem revisar poder discordar):
     format: FormatBlock
     derivesFrom: DerivesFrom | null
     pluginBlocks: Record<string, unknown>
-    /** Arquivo de ownership que declarou esta entrada. */
+    /** Ownership file that declared this entry. */
     origin: string
   }
   interface ResolvedGeneratedRule { path: string; command: string; origin: string }
   interface ResolvedWatchRule { code: string; doc: string; reason: string | null; consumerVisible: boolean; origin: string }
-  /** Cada arquivo lido e a base dele — é o que deixa o `explain` dizer quem deveria governar um caminho sem dono. */
+  /** Each file read and its base — this is what lets `explain` say who should govern a path with no owner. */
   interface ResolvedFile { file: string; base: string }
   interface ResolvedConfig {
     version: 2
@@ -2182,9 +2181,9 @@ letra; ficam aqui para quem revisar poder discordar):
   function findOwnedRule(config: ResolvedConfig, repoPath: string): ResolvedOwnedRule | null
   function findGeneratedRule(config: ResolvedConfig, repoPath: string): ResolvedGeneratedRule | null
   ```
-  Tarefas 8–20 consomem exatamente esses nomes e tipos.
+  Tasks 8–20 consume exactly these names and types.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -2196,13 +2195,13 @@ letra; ficam aqui para quem revisar poder discordar):
   const BASE = 'version: 2\nowned:\n  - path: docs/decisions/adr/\n    owner: "@a"\n    skill: decision-recorder\n'
   const CHILD = 'version: 2\nowned:\n  - path: docs/\n    owner: "@b"\n'
 
-  test('sem arquivo de ownership, resolveOwnership devolve null', () => {
+  test('without an ownership file, resolveOwnership returns null', () => {
     withTempRepo({}, root => {
       assert.equal(resolveOwnership(root), null)
     })
   })
 
-  test('arquivo único: a entrada resolvida aponta o próprio arquivo como origem', () => {
+  test('single file: the resolved entry points to its own file as origin', () => {
     withTempRepo({ '.ownership.yml': BASE }, root => {
       const config = resolveOwnership(root)
 
@@ -2211,13 +2210,13 @@ letra; ficam aqui para quem revisar poder discordar):
     })
   })
 
-  test('a base da raiz é a raiz do repositório mesmo quando ela mora em docs/', () => {
+  test('the root base is the repository root even when it lives in docs/', () => {
     withTempRepo({ 'docs/.ownership.yml': 'version: 2\nowned:\n  - path: CLAUDE.md\n    owner: "@a"\n' }, root => {
       assert.equal(resolveOwnership(root)?.owned[0]?.path, 'CLAUDE.md')
     })
   })
 
-  test('include de diretório acha o único arquivo de ownership dentro dele', () => {
+  test('a directory include finds the single ownership file inside it', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -2232,13 +2231,13 @@ letra; ficam aqui para quem revisar poder discordar):
     )
   })
 
-  test('include de arquivo explícito funciona quando há mais de um no diretório', () => {
+  test('an explicit file include works when there is more than one in the directory', () => {
     withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': CHILD }, root => {
       assert.equal(resolveOwnership(root)?.owned.length, 2)
     })
   })
 
-  test('include de diretório com mais de um arquivo de ownership é ambíguo', () => {
+  test('a directory include with more than one ownership file is ambiguous', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -2246,18 +2245,18 @@ letra; ficam aqui para quem revisar poder discordar):
         'packages/api/ownership.extra.yml': 'version: 2\nowned: []\n',
       },
       root => {
-        assert.throws(() => resolveOwnership(root), /ambíguo/)
+        assert.throws(() => resolveOwnership(root), /ambiguous/)
       },
     )
   })
 
-  test('include apontando para arquivo que não existe é OwnershipError', () => {
+  test('an include pointing to a file that does not exist is an OwnershipError', () => {
     withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n` }, root => {
       assert.throws(() => resolveOwnership(root), OwnershipError)
     })
   })
 
-  test('include aninhado é lido', () => {
+  test('a nested include is read', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -2270,16 +2269,16 @@ letra; ficam aqui para quem revisar poder discordar):
     )
   })
 
-  test('ciclo de include é erro', () => {
+  test('an include cycle is an error', () => {
     withTempRepo(
       { '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'version: 2\nowned: []\ninclude: [.ownership.yml]\n' },
       root => {
-        assert.throws(() => resolveOwnership(root), /Ciclo de include/)
+        assert.throws(() => resolveOwnership(root), /Include cycle/)
       },
     )
   })
 
-  test('o mesmo arquivo incluído por dois é erro, e não se confunde com ciclo', () => {
+  test('the same file included by two is an error, and is not confused with a cycle', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [ownership.a.yml, ownership.b.yml]\n`,
@@ -2288,33 +2287,33 @@ letra; ficam aqui para quem revisar poder discordar):
         'ownership.shared.yml': 'version: 2\nowned: []\n',
       },
       root => {
-        assert.throws(() => resolveOwnership(root), /incluído uma vez só/)
+        assert.throws(() => resolveOwnership(root), /included only once/)
       },
     )
   })
 
-  test('caminho declarado fora da base do arquivo que o declara é erro', () => {
+  test('a path declared outside the base of the file that declares it is an error', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [packages/api/]\n`,
         'packages/api/.ownership.yml': 'version: 2\nowned:\n  - path: ../web/docs/\n    owner: "@b"\n',
       },
       root => {
-        assert.throws(() => resolveOwnership(root), /fora da base/)
+        assert.throws(() => resolveOwnership(root), /outside the base/)
       },
     )
   })
 
-  test('include que sai da base também é erro', () => {
+  test('an include that leaves the base is also an error', () => {
     withTempRepo(
       { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'version: 2\nowned: []\ninclude: [../web/]\n' },
       root => {
-        assert.throws(() => resolveOwnership(root), /fora da base/)
+        assert.throws(() => resolveOwnership(root), /outside the base/)
       },
     )
   })
 
-  test('derives-from.source fora da base é erro — senão a poda mata o lembrete', () => {
+  test('derives-from.source outside the base is an error — otherwise pruning kills the reminder', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -2322,12 +2321,12 @@ letra; ficam aqui para quem revisar poder discordar):
           'version: 2\nowned:\n  - path: plans/\n    owner: "@b"\n    derives-from:\n      source: ../../docs/specs/\n      field: spec\n',
       },
       root => {
-        assert.throws(() => resolveOwnership(root), /fora da base/)
+        assert.throws(() => resolveOwnership(root), /outside the base/)
       },
     )
   })
 
-  test('watches[].doc pode sair da base; watches[].code não', () => {
+  test('watches[].doc may leave the base; watches[].code may not', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [packages/api/]\n`,
@@ -2346,12 +2345,12 @@ letra; ficam aqui para quem revisar poder discordar):
         'packages/api/.ownership.yml': 'version: 2\nowned: []\nwatches:\n  - code: ../../src/**\n    doc: CHANGELOG.md\n',
       },
       root => {
-        assert.throws(() => resolveOwnership(root), /fora da base/)
+        assert.throws(() => resolveOwnership(root), /outside the base/)
       },
     )
   })
 
-  test('basePath desloca a base para dentro', () => {
+  test('basePath shifts the base inward', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [ownership.api.yml]\n`,
@@ -2363,7 +2362,7 @@ letra; ficam aqui para quem revisar poder discordar):
     )
   })
 
-  test('basePath que sobe é erro', () => {
+  test('a basePath that goes up is an error', () => {
     withTempRepo(
       { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'version: 2\nbasePath: ../web\nowned: []\n' },
       root => {
@@ -2372,19 +2371,19 @@ letra; ficam aqui para quem revisar poder discordar):
     )
   })
 
-  test('caminho igual declarado duas vezes no mesmo arquivo é colisão', () => {
+  test('the same path declared twice in the same file is a collision', () => {
     withTempRepo({ '.ownership.yml': `${BASE}  - path: docs/decisions/adr/\n    owner: "@b"\n` }, root => {
-      assert.throws(() => resolveOwnership(root), /colide/)
+      assert.throws(() => resolveOwnership(root), /collides/)
     })
   })
 
-  test('caminho contido em outro é colisão, mesmo entre arquivos diferentes', () => {
+  test('a path contained in another is a collision, even across different files', () => {
     withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': CHILD }, root => {
-      assert.throws(() => resolveOwnership(root), /colide/)
+      assert.throws(() => resolveOwnership(root), /collides/)
     })
   })
 
-  test('caminhos irmãos não colidem', () => {
+  test('sibling paths do not collide', () => {
     withTempRepo(
       { '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'version: 2\nowned:\n  - path: docs/specs/\n    owner: "@b"\n' },
       root => {
@@ -2393,37 +2392,37 @@ letra; ficam aqui para quem revisar poder discordar):
     )
   })
 
-  test('caminho gerado dentro de caminho governado não é colisão; dois geradores para o mesmo arquivo são', () => {
+  test('a generated path inside a governed path is not a collision; two generators for the same file are', () => {
     withTempRepo({ '.ownership.yml': `${BASE}generated:\n  - path: docs/decisions/adr/index.gen.md\n    command: gen\n` }, root => {
       assert.equal(resolveOwnership(root)?.generated.length, 1)
     })
     withTempRepo({ '.ownership.yml': `${BASE}generated:\n  - path: x.gen.md\n    command: a\n  - path: x.gen.md\n    command: b\n` }, root => {
-      assert.throws(() => resolveOwnership(root), /colide/)
+      assert.throws(() => resolveOwnership(root), /collides/)
     })
   })
 
-  test('dois watches para o mesmo code convivem', () => {
+  test('two watches for the same code coexist', () => {
     withTempRepo({ '.ownership.yml': `${BASE}watches:\n  - code: src/**\n    doc: a.md\n  - code: src/**\n    doc: b.md\n` }, root => {
       assert.equal(resolveOwnership(root)?.watches.length, 2)
     })
   })
 
-  test('arquivo incluído sem version é erro, e com version divergente também', () => {
+  test('an included file without version is an error, and with a divergent version too', () => {
     withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'owned: []\n' }, root => {
       assert.throws(() => resolveOwnership(root), OwnershipError)
     })
     withTempRepo({ '.ownership.yml': `${BASE}include: [ownership.docs.yml]\n`, 'ownership.docs.yml': 'version: 3\nowned: []\n' }, root => {
-      assert.throws(() => resolveOwnership(root), /versão/)
+      assert.throws(() => resolveOwnership(root), /version/)
     })
   })
 
-  test('entrada sem owner é erro — não há de onde herdar', () => {
+  test('an entry without owner is an error — there is nowhere to inherit from', () => {
     withTempRepo({ '.ownership.yml': 'version: 2\nowned:\n  - path: docs/\n' }, root => {
       assert.throws(() => resolveOwnership(root), OwnershipError)
     })
   })
 
-  test('watches, generated e ignore acumulam entre arquivos', () => {
+  test('watches, generated and ignore accumulate across files', () => {
     withTempRepo(
       {
         '.ownership.yml': `${BASE}include: [packages/api/]\nwatches:\n  - code: src/**\n    doc: docs/decisions/adr/\nignore: ["node_modules/**"]\n`,
@@ -2438,9 +2437,9 @@ letra; ficam aqui para quem revisar poder discordar):
     )
   })
 
-  test('poda: arquivo cujo diretório não alcança nenhum caminho não é lido', () => {
+  test('pruning: a file whose directory reaches no path is not read', () => {
     withTempRepo(
-      { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'isto não é YAML válido: [\n' },
+      { '.ownership.yml': `${BASE}include: [packages/api/]\n`, 'packages/api/.ownership.yml': 'this is not valid YAML: [\n' },
       root => {
         assert.doesNotThrow(() => resolveOwnership(root, { onlyFor: ['packages/web/x.ts'] }))
         assert.throws(() => resolveOwnership(root, { onlyFor: ['packages/api/x.ts'] }), OwnershipError)
@@ -2448,7 +2447,7 @@ letra; ficam aqui para quem revisar poder discordar):
     )
   })
 
-  test('findOwnedRule acha a única regra que cobre, e null quando nenhuma cobre', () => {
+  test('findOwnedRule finds the single rule that covers, and null when none does', () => {
     withTempRepo({ '.ownership.yml': BASE }, root => {
       const config = resolveOwnership(root)!
 
@@ -2458,13 +2457,13 @@ letra; ficam aqui para quem revisar poder discordar):
   })
   ```
 
-- [ ] **Passo 2: Rodar e confirmar que falham**
+- [ ] **Step 2: Run and confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/resolve/hierarchy.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `resolve/hierarchy.ts`**
+- [ ] **Step 3: Write `resolve/hierarchy.ts`**
 
   ```typescript
   import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -2482,7 +2481,7 @@ letra; ficam aqui para quem revisar poder discordar):
     format: FormatBlock
     derivesFrom: DerivesFrom | null
     pluginBlocks: Record<string, unknown>
-    /** Arquivo de ownership que declarou esta entrada. */
+    /** Ownership file that declared this entry. */
     origin: string
   }
 
@@ -2494,7 +2493,7 @@ letra; ficam aqui para quem revisar poder discordar):
     origin: string
   }
 
-  /** Cada arquivo lido e a base dele — é o que deixa o `explain` dizer quem deveria governar um caminho sem dono. */
+  /** Each file read and its base — this is what lets `explain` say who should govern a path with no owner. */
   export interface ResolvedFile {
     file: string
     base: string
@@ -2515,7 +2514,7 @@ letra; ficam aqui para quem revisar poder discordar):
   export interface ResolveOptions {
     explicitPath?: string | null
     env?: Record<string, string | undefined>
-    /** Poda: só lê arquivos incluídos cujo diretório é ancestral de algum destes caminhos. */
+    /** Pruning: only reads included files whose directory is an ancestor of one of these paths. */
     onlyFor?: readonly string[]
   }
 
@@ -2534,7 +2533,7 @@ letra; ficam aqui para quem revisar poder discordar):
     return base === '' || resolvedPath === base || resolvedPath === `${base}/` || resolvedPath.startsWith(`${base}/`)
   }
 
-  /** Diretório do arquivo mais o `basePath` — que o parser já garantiu não subir nem ter glob. */
+  /** The file's directory plus the `basePath` — which the parser already guaranteed neither goes up nor has a glob. */
   function baseOf(file: ParsedFile): string {
     const base = file.basePath === null ? file.dir : joinRel(file.dir, file.basePath)
 
@@ -2542,8 +2541,8 @@ letra; ficam aqui para quem revisar poder discordar):
   }
 
   /**
-   * `watches[].doc` fica de fora: é o único campo que nunca é caminho editado, e é o
-   * que deixa um pacote apontar para o CHANGELOG da raiz (spec §5).
+   * `watches[].doc` is left out: it is the only field that is never an edited path, and it is
+   * what lets a package point to the root CHANGELOG (spec §5).
    */
   function assertConfinement(file: ParsedFile, base: string): void {
     const declared: string[] = [
@@ -2559,8 +2558,8 @@ letra; ficam aqui para quem revisar poder discordar):
 
       if (!withinBase(base, resolved)) {
         throw new OwnershipError(
-          `${file.file}: "${entry}" resolve para "${resolved}", fora da base do arquivo ("${base || '.'}"). ` +
-            'Caminho que pode ser editado nunca escapa da base de quem o declara.',
+          `${file.file}: "${entry}" resolves to "${resolved}", outside the base of the file ("${base || '.'}"). ` +
+            'A path that can be edited never escapes the base of whoever declares it.',
         )
       }
     }
@@ -2598,7 +2597,7 @@ letra; ficam aqui para quem revisar poder discordar):
     try {
       return readFileSync(join(repoRoot, file), 'utf8')
     } catch {
-      throw new OwnershipError(`${referencedBy}: include aponta para "${file}", que não existe ou não pode ser lido.`)
+      throw new OwnershipError(`${referencedBy}: include points to "${file}", which does not exist or cannot be read.`)
     }
   }
 
@@ -2609,8 +2608,8 @@ letra; ficam aqui para quem revisar poder discordar):
     function walk(file: ParsedFile, base: string, ancestors: readonly string[]): void {
       for (const entry of file.include) {
         const target = joinRel(base, entry)
-        // Poda pelo diretório: como `basePath` só desce, a base do incluído é
-        // descendente dele, e um diretório que não alcança também não alcança por ela.
+        // Pruning by directory: since `basePath` only goes down, the included file's base is
+        // a descendant of it, and a directory that does not reach also does not reach through it.
         const targetDir = entry.endsWith('/') ? target.replace(/\/$/, '') : dirOf(target)
 
         if (!isAncestorOfAny(targetDir, onlyFor)) {
@@ -2623,10 +2622,10 @@ letra; ficam aqui para quem revisar poder discordar):
           const candidates = listOwnershipFilesIn(repoRoot, target)
 
           if (candidates.length === 0) {
-            throw new OwnershipError(`${file.file}: include "${entry}" não tem nenhum arquivo de ownership dentro.`)
+            throw new OwnershipError(`${file.file}: include "${entry}" has no ownership file inside.`)
           }
           if (candidates.length > 1) {
-            throw new OwnershipError(`${file.file}: include "${entry}" é ambíguo — ${candidates.join(', ')}. Nomeie o arquivo explicitamente.`)
+            throw new OwnershipError(`${file.file}: include "${entry}" is ambiguous — ${candidates.join(', ')}. Name the file explicitly.`)
           }
           includedFile = candidates[0]!
         } else {
@@ -2634,17 +2633,17 @@ letra; ficam aqui para quem revisar poder discordar):
         }
 
         if (ancestors.includes(includedFile)) {
-          throw new OwnershipError(`Ciclo de include: ${[...ancestors, includedFile].join(' → ')}.`)
+          throw new OwnershipError(`Include cycle: ${[...ancestors, includedFile].join(' → ')}.`)
         }
         if (seen.has(includedFile)) {
-          throw new OwnershipError(`${file.file}: "${includedFile}" já foi incluído por outro arquivo. Um arquivo de ownership é incluído uma vez só.`)
+          throw new OwnershipError(`${file.file}: "${includedFile}" has already been included by another file. An ownership file is included only once.`)
         }
         seen.add(includedFile)
 
         const parsed = parseOwnershipFile(readOwnershipFile(repoRoot, includedFile, file.file), includedFile, { isRoot: false, pluginNames: root.plugins }) as ParsedFile
 
         if (parsed.version !== root.version) {
-          throw new OwnershipError(`${includedFile}: versão ${parsed.version} diverge de ${root.file} (versão ${root.version}). Um repositório, um esquema.`)
+          throw new OwnershipError(`${includedFile}: version ${parsed.version} diverges from ${root.file} (version ${root.version}). One repository, one schema.`)
         }
 
         const childBase = baseOf(parsed)
@@ -2660,7 +2659,7 @@ letra; ficam aqui para quem revisar poder discordar):
     return files
   }
 
-  /** Contenção de diretório: `docs/` contém `docs/adr/x.md`; dois arquivos só colidem se forem o mesmo. */
+  /** Directory containment: `docs/` contains `docs/adr/x.md`; two files only collide if they are the same. */
   function collides(a: string, b: string): boolean {
     if (a === b) {
       return true
@@ -2682,7 +2681,7 @@ letra; ficam aqui para quem revisar poder discordar):
 
         if (collides(a.path, b.path)) {
           throw new OwnershipError(
-            `${what}: "${a.path}" (${a.file}) colide com "${b.path}" (${b.file}). ` + 'Um caminho é governado por uma declaração só — nenhuma contém outra.',
+            `${what}: "${a.path}" (${a.file}) collides with "${b.path}" (${b.file}). ` + 'A path is governed by a single declaration — none contains another.',
           )
         }
       }
@@ -2725,7 +2724,7 @@ letra; ficam aqui para quem revisar poder discordar):
     }
 
     const parsedRoot = parseOwnershipFile(readFileSync(join(repoRoot, rootFile), 'utf8'), rootFile, { isRoot: true, pluginNames: [] }) as RootFile
-    // A base da raiz é a raiz do repositório, more o arquivo onde morar (spec §5).
+    // The root's base is the repository root, wherever the file lives (spec §5).
     const root: RootFile = { ...parsedRoot, dir: '' }
     const rootBase = baseOf(root)
 
@@ -2768,7 +2767,7 @@ letra; ficam aqui para quem revisar poder discordar):
     return target.endsWith('/') ? repoPath.startsWith(target) : repoPath === target
   }
 
-  /** A regra de `owned[]` que governa este caminho — a disjunção garante que é uma só. */
+  /** The `owned[]` rule that governs this path — disjointness guarantees there is only one. */
   export function findOwnedRule(config: ResolvedConfig, repoPath: string): ResolvedOwnedRule | null {
     const target = normalize(repoPath)
 
@@ -2782,45 +2781,45 @@ letra; ficam aqui para quem revisar poder discordar):
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes**
+- [ ] **Step 4: Run the tests**
 
   ```bash
   cd packages/ownership && node --test test/resolve/hierarchy.test.ts
   ```
 
-- [ ] **Passo 5: Type-check e suíte inteira do pacote**
+- [ ] **Step 5: Type-check and the whole package suite**
 
   ```bash
   cd packages/ownership && npm run typecheck && node --test "test/**/*.test.ts"
   ```
 
-- [ ] **Passo 6: Commit**
+- [ ] **Step 6: Commit**
 
   ```bash
   git add packages/ownership/src/resolve/hierarchy.ts packages/ownership/test/resolve/hierarchy.test.ts
-  git commit -m "feat(<RN-composicao>): composição — base, include, disjunção, ciclo, poda"
+  git commit -m "feat(<RN-composition>): composition — base, include, disjointness, cycle, pruning"
   ```
 
 ---
 
-### Tarefa 8: `ownership explain <caminho>`
+### Task 8: `ownership explain <path>`
 
-Regra de origem: `<RF-explain>` e spec §5 ("governança inauditável é pior que
-governança ausente"). A Tarefa 7 já entrega `origin` por entrada e `files` com a
-base de cada arquivo lido — esta tarefa só formata. Com disjunção, a pergunta
-difícil deixa de ser "qual regra ganhou" e passa a ser "por que este caminho não
-tem dono": a resposta é o arquivo cuja base o contém, que é onde a entrada que
-falta deveria ser escrita.
+Source rule: `<RF-explain>` and spec §5 ("unauditable governance is worse than
+absent governance"). Task 7 already delivers `origin` per entry and `files` with the
+base of each file read — this task only formats. With disjointness, the hard question
+stops being "which rule won" and becomes "why does this path have no
+owner": the answer is the file whose base contains it, which is where the entry that
+is missing should be written.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/resolve/explain.ts`
 - Test: `packages/ownership/test/resolve/explain.test.ts`
 
 **Interfaces:**
-- Consome: `ResolvedConfig`, `ResolvedOwnedRule`, `findOwnedRule` (Tarefa 7).
-- Produz: `explainPath(config: ResolvedConfig, repoPath: string): string`.
+- Consumes: `ResolvedConfig`, `ResolvedOwnedRule`, `findOwnedRule` (Task 7).
+- Produces: `explainPath(config: ResolvedConfig, repoPath: string): string`.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -2829,58 +2828,58 @@ falta deveria ser escrita.
   import { resolveOwnership } from '../../src/resolve/hierarchy.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('sem regra cobrindo o caminho, diz isso e aponta onde a entrada caberia', () => {
+  test('with no rule covering the path, it says so and points to where the entry would fit', () => {
     withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n' }, root => {
       const text = explainPath(resolveOwnership(root)!, 'x.md')
 
-      assert.match(text, /nenhuma regra/)
-      assert.match(text, /caberia em \.ownership\.yml/)
+      assert.match(text, /no rule/)
+      assert.match(text, /would fit in \.ownership\.yml/)
     })
   })
 
-  test('o arquivo apontado é o de base mais profunda que contém o caminho', () => {
+  test('the file pointed to is the one with the deepest base that contains the path', () => {
     withTempRepo(
       {
         '.ownership.yml': 'version: 2\ninclude: [packages/api/]\nowned: []\n',
         'packages/api/.ownership.yml': 'version: 2\nowned: []\n',
       },
       root => {
-        assert.match(explainPath(resolveOwnership(root)!, 'packages/api/x.md'), /caberia em packages\/api\/\.ownership\.yml/)
+        assert.match(explainPath(resolveOwnership(root)!, 'packages/api/x.md'), /would fit in packages\/api\/\.ownership\.yml/)
       },
     )
   })
 
-  test('mostra a regra que cobre e o arquivo que a declarou', () => {
+  test('shows the rule that covers and the file that declared it', () => {
     withTempRepo(
       {
         '.ownership.yml': 'version: 2\ninclude: [packages/api/]\nowned: []\n',
-        'packages/api/.ownership.yml': 'version: 2\nowned:\n  - path: ./\n    owner: "@a"\n    skill: outro\n',
+        'packages/api/.ownership.yml': 'version: 2\nowned:\n  - path: ./\n    owner: "@a"\n    skill: other\n',
       },
       root => {
         const text = explainPath(resolveOwnership(root)!, 'packages/api/x.md')
 
-        assert.match(text, /declarado em: packages\/api\/\.ownership\.yml/)
+        assert.match(text, /declared in: packages\/api\/\.ownership\.yml/)
         assert.match(text, /owner: @a/)
-        assert.match(text, /skill: outro/)
+        assert.match(text, /skill: other/)
         assert.match(text, /states: —/)
       },
     )
   })
   ```
 
-- [ ] **Passo 2: Rodar e confirmar que falham**
+- [ ] **Step 2: Run and confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/resolve/explain.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `resolve/explain.ts`**
+- [ ] **Step 3: Write `resolve/explain.ts`**
 
   ```typescript
   import { findOwnedRule } from './hierarchy.ts'
   import type { ResolvedConfig } from './hierarchy.ts'
 
-  /** O arquivo de base mais profunda que contém o caminho — onde a entrada que falta deveria ser escrita. */
+  /** The file with the deepest base that contains the path — where the missing entry should be written. */
   function fileResponsibleFor(config: ResolvedConfig, repoPath: string): string | null {
     let best: { file: string; base: string } | null = null
 
@@ -2902,14 +2901,14 @@ falta deveria ser escrita.
       const responsible = fileResponsibleFor(config, repoPath)
 
       return responsible === null
-        ? `${repoPath}: nenhuma regra de ownership cobre este caminho, e nenhum arquivo de ownership tem base que o contenha.`
-        : `${repoPath}: nenhuma regra de ownership cobre este caminho. A entrada caberia em ${responsible}.`
+        ? `${repoPath}: no ownership rule covers this path, and no ownership file has a base that contains it.`
+        : `${repoPath}: no ownership rule covers this path. The entry would fit in ${responsible}.`
     }
 
     const lines = [
       `${repoPath}`,
-      `  declarado em: ${rule.origin}`,
-      `  regra: ${rule.path}`,
+      `  declared in: ${rule.origin}`,
+      `  rule: ${rule.path}`,
       `  owner: ${rule.owner}`,
       `  skill: ${rule.skill ?? '—'}`,
       `  states: ${rule.states ? rule.states.join(', ') : '—'}`,
@@ -2918,51 +2917,51 @@ falta deveria ser escrita.
     ]
 
     for (const name of Object.keys(rule.pluginBlocks)) {
-      lines.push(`  plugin ${name}: declarado`)
+      lines.push(`  plugin ${name}: declared`)
     }
 
     return lines.join('\n')
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes e o type-check**
+- [ ] **Step 4: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/resolve/explain.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 5: Commit**
+- [ ] **Step 5: Commit**
 
   ```bash
   git add packages/ownership/src/resolve/explain.ts packages/ownership/test/resolve/explain.test.ts
-  git commit -m "feat(<RF-explain>): ownership explain — proveniência por propriedade"
+  git commit -m "feat(<RF-explain>): ownership explain — provenance per property"
   ```
 
 ---
 
-### Tarefa 9: Gatilho código→doc unificado (`watches`)
+### Task 9: Unified code→doc trigger (`watches`)
 
-Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir") e §7
-(mecanismo 1). Porta `src/config/watches.ts` do `@esliph/living-docs`, trocando
-`OwnershipConfig`/`findArtifactRule` (v1) por `ResolvedConfig`/`findOwnedRule`
-(Tarefa 7) — sem lista separada de caminhos visíveis ao consumidor: o conjunto
-**é** as regras de `watches` marcadas `consumer-visible: true`.
+Source rule: `RN-0008`; spec §2 ("`consumer-visible-paths` ceases to exist") and §7
+(mechanism 1). Ports `src/config/watches.ts` from `@esliph/living-docs`, swapping
+`OwnershipConfig`/`findArtifactRule` (v1) for `ResolvedConfig`/`findOwnedRule`
+(Task 7) — with no separate list of consumer-visible paths: the set
+**is** the `watches` rules marked `consumer-visible: true`.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/triggers/watches.ts`
 - Test: `packages/ownership/test/triggers/watches.test.ts`
 
 **Interfaces:**
-- Consome: `ResolvedConfig`, `findOwnedRule` (Tarefa 7).
-- Produz: `interface WatchMatch { doc: string; reason: string | null; consumerVisible: boolean; matched: string[]; skill: string | null; owner: string | null }`,
+- Consumes: `ResolvedConfig`, `findOwnedRule` (Task 7).
+- Produces: `interface WatchMatch { doc: string; reason: string | null; consumerVisible: boolean; matched: string[]; skill: string | null; owner: string | null }`,
   `coversDoc(doc: string, paths: readonly string[]): boolean`,
   `watchesFor(config: ResolvedConfig, paths: readonly string[]): WatchMatch[]`,
   `pendingDocs(config: ResolvedConfig, paths: readonly string[]): WatchMatch[]`.
 
-- [ ] **Passo 1: Escrever um construtor de `ResolvedConfig` de teste**
+- [ ] **Step 1: Write a test `ResolvedConfig` builder**
 
-  As tarefas 9 a 15 precisam de um `ResolvedConfig` mínimo sem passar pelo
-  parser YAML inteiro. Criar `packages/ownership/test/helpers/config.ts`:
+  Tasks 9 to 15 need a minimal `ResolvedConfig` without going through the
+  whole YAML parser. Create `packages/ownership/test/helpers/config.ts`:
 
   ```typescript
   import type { ResolvedConfig, ResolvedOwnedRule, ResolvedGeneratedRule, ResolvedWatchRule } from '../../src/resolve/hierarchy.ts'
@@ -3007,7 +3006,7 @@ Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir
   }
   ```
 
-- [ ] **Passo 2: Escrever os testes que falham**
+- [ ] **Step 2: Write the failing tests**
 
   ```typescript
   import { test } from 'node:test'
@@ -3015,7 +3014,7 @@ Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir
   import { coversDoc, pendingDocs, watchesFor } from '../../src/triggers/watches.ts'
   import { buildConfig } from '../helpers/config.ts'
 
-  test('watchesFor agrupa por doc e acumula os caminhos que bateram', () => {
+  test('watchesFor groups by doc and accumulates the paths that matched', () => {
     const config = buildConfig({
       owned: [{ path: 'docs/requirements/rules.md', owner: '@a', skill: 'requirements-keeper' }],
       watches: [
@@ -3024,7 +3023,7 @@ Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir
       ],
     })
 
-    const matches = watchesFor(config, ['src/checks/a.ts', 'src/hooks/b.ts', 'src/outro.ts'])
+    const matches = watchesFor(config, ['src/checks/a.ts', 'src/hooks/b.ts', 'src/other.ts'])
 
     assert.equal(matches.length, 1)
     assert.equal(matches[0]?.doc, 'docs/requirements/rules.md')
@@ -3034,7 +3033,7 @@ Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir
     assert.equal(matches[0]?.owner, '@a')
   })
 
-  test('consumerVisible é true se QUALQUER regra que aponta pro doc trouxer a marca', () => {
+  test('consumerVisible is true if ANY rule that points to the doc carries the mark', () => {
     const config = buildConfig({
       watches: [
         { code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true },
@@ -3045,7 +3044,7 @@ Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir
     assert.equal(watchesFor(config, ['src/cli/a.ts', 'plugin/b.md'])[0]?.consumerVisible, true)
   })
 
-  test('doc sem owned declarado ainda é doc dono — skill e owner ficam null', () => {
+  test('a doc with no declared owned is still an owned doc — skill and owner stay null', () => {
     const config = buildConfig({ watches: [{ code: 'src/**', doc: 'README.md' }] })
     const matches = watchesFor(config, ['src/a.ts'])
 
@@ -3053,13 +3052,13 @@ Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir
     assert.equal(matches[0]?.owner, null)
   })
 
-  test('coversDoc: diretório por prefixo, arquivo por igualdade', () => {
+  test('coversDoc: directory by prefix, file by equality', () => {
     assert.equal(coversDoc('docs/', ['docs/x.md']), true)
     assert.equal(coversDoc('docs/x.md', ['docs/x.md']), true)
     assert.equal(coversDoc('docs/x.md', ['docs/y.md']), false)
   })
 
-  test('pendingDocs tira o que já foi tocado no mesmo conjunto de caminhos', () => {
+  test('pendingDocs removes what was already touched in the same set of paths', () => {
     const config = buildConfig({ watches: [{ code: 'src/**', doc: 'docs/x.md', reason: 'r' }] })
 
     assert.equal(pendingDocs(config, ['src/a.ts']).length, 1)
@@ -3067,13 +3066,13 @@ Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir
   })
   ```
 
-- [ ] **Passo 3: Confirmar que falham**
+- [ ] **Step 3: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/triggers/watches.test.ts
   ```
 
-- [ ] **Passo 4: Escrever `triggers/watches.ts`**
+- [ ] **Step 4: Write `triggers/watches.ts`**
 
   ```typescript
   import picomatch from 'picomatch'
@@ -3149,37 +3148,37 @@ Regra de origem: `RN-0008`; spec §2 ("`consumer-visible-paths` deixa de existir
   }
   ```
 
-- [ ] **Passo 5: Rodar os testes e o type-check**
+- [ ] **Step 5: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/triggers/watches.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 6: Commit**
+- [ ] **Step 6: Commit**
 
   ```bash
   git add packages/ownership/src/triggers/watches.ts packages/ownership/test/triggers/watches.test.ts packages/ownership/test/helpers/config.ts
-  git commit -m "feat(RN-0008): gatilho código→doc unificado, sem lista duplicada de consumer-visible"
+  git commit -m "feat(RN-0008): unified code→doc trigger, with no duplicated consumer-visible list"
   ```
 
 ---
 
-### Tarefa 10: Gatilho doc→doc (`derives-from`) — resolução
+### Task 10: Doc→doc trigger (`derives-from`) — resolution
 
-Regra de origem: `<RN-derivacao>`; spec §4. Tipo no `.ownership.yml` (Tarefa 4: `derivesFrom` em
-`OwnedRuleRaw`), instância no frontmatter do documento. Esta tarefa lê as
-instâncias reais no disco e decide se cada uma resolve — é a base tanto do
-check `ownership/derivation-resolves` (Tarefa 15) quanto do hook
-`ownership/derivation-reminder` (Tarefa 19).
+Source rule: `<RN-derivation>`; spec §4. Type in `.ownership.yml` (Task 4: `derivesFrom` in
+`OwnedRuleRaw`), instance in the document's frontmatter. This task reads the
+real instances on disk and decides whether each one resolves — it is the basis of both the
+`ownership/derivation-resolves` check (Task 15) and the
+`ownership/derivation-reminder` hook (Task 19).
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/triggers/derives.ts`
 - Test: `packages/ownership/test/triggers/derives.test.ts`
 
 **Interfaces:**
-- Consome: `listFiles`, `readTextFile` (Tarefa 3), `parseFrontmatter`
-  (Tarefa 3), `ResolvedOwnedRule` (Tarefa 7).
-- Produz:
+- Consumes: `listFiles`, `readTextFile` (Task 3), `parseFrontmatter`
+  (Task 3), `ResolvedOwnedRule` (Task 7).
+- Produces:
   ```typescript
   interface DerivationInstance { file: string; field: string | null; line: number }
   interface DerivationProblem { file: string; line: number; reason: 'campo-ausente' | 'fora-da-fonte' | 'alvo-inexistente'; field: string | null }
@@ -3188,7 +3187,7 @@ check `ownership/derivation-resolves` (Tarefa 15) quanto do hook
   function derivedFilesOf(root: string, rule: ResolvedOwnedRule, editedTarget: string): string[]
   ```
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -3208,7 +3207,7 @@ check `ownership/derivation-resolves` (Tarefa 15) quanto do hook
     origin: 'x',
   }
 
-  test('instancesOf lê o campo declarado do frontmatter de cada arquivo sob o path', () => {
+  test('instancesOf reads the declared frontmatter field of each file under the path', () => {
     withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n', 'docs/specs/s1.md': '# s1\n' }, root => {
       forgetTree(root)
       const [instance] = instancesOf(root, RULE)
@@ -3218,35 +3217,35 @@ check `ownership/derivation-resolves` (Tarefa 15) quanto do hook
     })
   })
 
-  test('problemsFor: campo ausente é achado', () => {
-    withTempRepo({ 'docs/plans/a.md': '---\ntitle: sem spec\n---\n' }, root => {
+  test('problemsFor: a missing field is a finding', () => {
+    withTempRepo({ 'docs/plans/a.md': '---\ntitle: no spec\n---\n' }, root => {
       forgetTree(root)
       assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['campo-ausente'])
     })
   })
 
-  test('problemsFor: campo fora de source é achado', () => {
-    withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/outra-coisa/x.md\n---\n' }, root => {
+  test('problemsFor: a field outside source is a finding', () => {
+    withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/other-thing/x.md\n---\n' }, root => {
       forgetTree(root)
       assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['fora-da-fonte'])
     })
   })
 
-  test('problemsFor: alvo que não existe é achado', () => {
-    withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/nao-existe.md\n---\n' }, root => {
+  test('problemsFor: a target that does not exist is a finding', () => {
+    withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/does-not-exist.md\n---\n' }, root => {
       forgetTree(root)
       assert.deepEqual(problemsFor(root, RULE).map(p => p.reason), ['alvo-inexistente'])
     })
   })
 
-  test('problemsFor: campo correto não é achado', () => {
+  test('problemsFor: a correct field is not a finding', () => {
     withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n', 'docs/specs/s1.md': '# s1\n' }, root => {
       forgetTree(root)
       assert.deepEqual(problemsFor(root, RULE), [])
     })
   })
 
-  test('derivedFilesOf acha só os arquivos que apontam para o alvo exato editado', () => {
+  test('derivedFilesOf finds only the files that point to the exact edited target', () => {
     withTempRepo(
       {
         'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n',
@@ -3262,13 +3261,13 @@ check `ownership/derivation-resolves` (Tarefa 15) quanto do hook
   })
   ```
 
-- [ ] **Passo 2: Confirmar que falham**
+- [ ] **Step 2: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/triggers/derives.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `triggers/derives.ts`**
+- [ ] **Step 3: Write `triggers/derives.ts`**
 
   ```typescript
   import { listFiles, readTextFile } from '../core/files.ts'
@@ -3358,7 +3357,7 @@ check `ownership/derivation-resolves` (Tarefa 15) quanto do hook
     return problems
   }
 
-  /** Só os arquivos governados por `rule` cujo campo aponta exatamente para `editedTarget` — precisão, não ruído (spec §4). */
+  /** Only the files governed by `rule` whose field points exactly to `editedTarget` — precision, not noise (spec §4). */
   export function derivedFilesOf(root: string, rule: ResolvedOwnedRule, editedTarget: string): string[] {
     if (rule.derivesFrom === null) {
       return []
@@ -3372,44 +3371,44 @@ check `ownership/derivation-resolves` (Tarefa 15) quanto do hook
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes e o type-check**
+- [ ] **Step 4: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/triggers/derives.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 5: Commit**
+- [ ] **Step 5: Commit**
 
   ```bash
   git add packages/ownership/src/triggers/derives.ts packages/ownership/test/triggers/derives.test.ts
-  git commit -m "feat(<RN-derivacao>): resolução do gatilho doc→doc (derives-from)"
+  git commit -m "feat(<RN-derivation>): resolution of the doc→doc trigger (derives-from)"
   ```
 
 ---
 
-### Tarefa 11: Tipos de check e `ownership/generated-drift`
+### Task 11: Check types and `ownership/generated-drift`
 
-Regra de origem: `RN-0012`; spec §6 (tabela de checks — "drift de gerado... núcleo,
-inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
-`src/checks/ci5-contract-drift.ts` do `@esliph/living-docs`, trocando
-`OwnershipConfig` por `ResolvedConfig` e `context.config.generated` (v1) por
-`ResolvedGeneratedRule[]` (Tarefa 7).
+Source rule: `RN-0012`; spec §6 (check table — "drift of generated... core,
+whole"). Ports `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) and
+`src/checks/ci5-contract-drift.ts` from `@esliph/living-docs`, swapping
+`OwnershipConfig` for `ResolvedConfig` and `context.config.generated` (v1) for
+`ResolvedGeneratedRule[]` (Task 7).
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/checks/types.ts`
 - Create: `packages/ownership/src/checks/generated-drift.ts`
 - Test: `packages/ownership/test/checks/generated-drift.test.ts`
 
 **Interfaces:**
-- Consome: `ResolvedConfig` (Tarefa 7), `CommandRunner` (Tarefa 3).
-- Produz: `type Severity`, `interface Finding`, `interface CheckContext { root: string; config: ResolvedConfig; today: string }`,
+- Consumes: `ResolvedConfig` (Task 7), `CommandRunner` (Task 3).
+- Produces: `type Severity`, `interface Finding`, `interface CheckContext { root: string; config: ResolvedConfig; today: string }`,
   `interface Check { id: string; name: string; run(context: CheckContext): Finding[] }`,
   `ownershipGeneratedDrift(exec: CommandRunner): Check`.
 
-- [ ] **Passo 1: Escrever `checks/types.ts`**
+- [ ] **Step 1: Write `checks/types.ts`**
 
-  (Não tem teste próprio — só tipos, iguais aos que `@esliph/living-docs` já
-  usa, com `config: ResolvedConfig` no lugar de `OwnershipConfig`.)
+  (It has no test of its own — only types, the same as the ones `@esliph/living-docs` already
+  uses, with `config: ResolvedConfig` in place of `OwnershipConfig`.)
 
   ```typescript
   import type { ResolvedConfig } from '../resolve/hierarchy.ts'
@@ -3438,7 +3437,7 @@ inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
   }
   ```
 
-- [ ] **Passo 2: Escrever os testes de `generated-drift` que falham primeiro**
+- [ ] **Step 2: Write the `generated-drift` failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -3447,7 +3446,7 @@ inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
   import { buildConfig } from '../helpers/config.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('sem generated declarado, nenhum achado', () => {
+  test('with no generated declared, no finding', () => {
     withTempRepo({}, root => {
       const findings = ownershipGeneratedDrift(() => '').run({ root, config: buildConfig({}), today: '2026-09-17' })
 
@@ -3455,17 +3454,17 @@ inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
     })
   })
 
-  test('artefato ausente é achado', () => {
+  test('a missing artifact is a finding', () => {
     withTempRepo({}, root => {
       const config = buildConfig({ generated: [{ path: 'out.md', command: 'gen' }] })
       const findings = ownershipGeneratedDrift(() => 'x').run({ root, config, today: '2026-09-17' })
 
       assert.equal(findings.length, 1)
-      assert.match(findings[0]!.message, /ausente/)
+      assert.match(findings[0]!.message, /missing/)
     })
   })
 
-  test('divergência entre o gerador e o arquivo é achado, com a linha certa', () => {
+  test('a divergence between the generator and the file is a finding, with the right line', () => {
     withTempRepo({ 'out.md': 'a\nb\nc\n' }, root => {
       const config = buildConfig({ generated: [{ path: 'out.md', command: 'gen' }] })
       const findings = ownershipGeneratedDrift(() => 'a\nX\nc\n').run({ root, config, today: '2026-09-17' })
@@ -3474,18 +3473,18 @@ inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
     })
   })
 
-  test('gerador que falha é achado, sem travar o check', () => {
+  test('a generator that fails is a finding, without blocking the check', () => {
     withTempRepo({ 'out.md': 'x' }, root => {
       const config = buildConfig({ generated: [{ path: 'out.md', command: 'gen' }] })
       const findings = ownershipGeneratedDrift(() => {
         throw new Error('boom')
       }).run({ root, config, today: '2026-09-17' })
 
-      assert.match(findings[0]!.message, /falhou/)
+      assert.match(findings[0]!.message, /failed/)
     })
   })
 
-  test('igual, sem achado', () => {
+  test('equal, no finding', () => {
     withTempRepo({ 'out.md': 'a\nb\n' }, root => {
       const config = buildConfig({ generated: [{ path: 'out.md', command: 'gen' }] })
 
@@ -3494,13 +3493,13 @@ inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
   })
   ```
 
-- [ ] **Passo 3: Confirmar que falham**
+- [ ] **Step 3: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/checks/generated-drift.test.ts
   ```
 
-- [ ] **Passo 4: Escrever `checks/generated-drift.ts`**
+- [ ] **Step 4: Write `checks/generated-drift.ts`**
 
   ```typescript
   import { readFileSync } from 'node:fs'
@@ -3553,7 +3552,7 @@ inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
             expected = exec(rule.command, context.root)
           } catch (err) {
             findings.push(
-              error(rule.path, 0, `O gerador falhou: \`${rule.command}\` — ${reasonOf(err)}`, `Conserte o comando declarado em \`generated[].command\` (${rule.origin}).`),
+              error(rule.path, 0, `The generator failed: \`${rule.command}\` — ${reasonOf(err)}`, `Fix the command declared in \`generated[].command\` (${rule.origin}).`),
             )
             continue
           }
@@ -3563,14 +3562,14 @@ inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
           try {
             actual = readFileSync(join(context.root, rule.path), 'utf8')
           } catch {
-            findings.push(error(rule.path, 0, 'Artefato gerado declarado e ausente do repositório.', `Gere-o e versione o resultado: \`${rule.command} > ${rule.path}\`.`))
+            findings.push(error(rule.path, 0, 'Generated artifact declared and missing from the repository.', `Generate it and version the result: \`${rule.command} > ${rule.path}\`.`))
             continue
           }
 
           const line = firstDifferentLine(actual, expected)
 
           if (line !== 0) {
-            findings.push(error(rule.path, line, 'O artefato gerado diverge da saída do gerador.', `Regenere: \`${rule.command} > ${rule.path}\`. Não edite o arquivo à mão.`))
+            findings.push(error(rule.path, line, 'The generated artifact diverges from the generator output.', `Regenerate: \`${rule.command} > ${rule.path}\`. Do not edit the file by hand.`))
           }
         }
 
@@ -3580,49 +3579,49 @@ inteiros"). Porta `src/core/types.ts` (`Check`/`CheckContext`/`Finding`) e
   }
   ```
 
-- [ ] **Passo 5: Rodar os testes e o type-check**
+- [ ] **Step 5: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/checks/generated-drift.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 6: Commit**
+- [ ] **Step 6: Commit**
 
   ```bash
   git add packages/ownership/src/checks/types.ts packages/ownership/src/checks/generated-drift.ts packages/ownership/test/checks/generated-drift.test.ts
-  git commit -m "feat(RN-0012): check ownership/generated-drift"
+  git commit -m "feat(RN-0012): ownership/generated-drift check"
   ```
 
 ---
 
-### Tarefa 12: Check `ownership/declared-state`
+### Task 12: `ownership/declared-state` check
 
-Regra de origem: spec §1 ("Ciclo de vida... O núcleo acha os itens... Não sabe
-o que os estados significam") e §6 (tabela — "owner válido, status dentro de
+Source rule: spec §1 ("Lifecycle... The core finds the items... It does not know
+what the states mean") and §6 (table — "valid owner, status within
 `states`" → `ownership/declared-state`).
 
-**Decisão de implementação:** a validade do `owner` (`@handle`) já é exigida
-pelo parser da Tarefa 4, que lança `OwnershipError` — um `.ownership.yml` com
-`owner` mal formado nunca chega a virar `ResolvedConfig`, então nunca chega
-neste check. Este check cobre só a segunda metade: o estado de cada item, sob
-cada caminho que declara `states`, precisa estar na lista declarada. Caminho
-sem `states` não é validado — o núcleo não inventa vocabulário.
+**Implementation decision:** the validity of `owner` (`@handle`) is already required
+by the Task 4 parser, which throws `OwnershipError` — an `.ownership.yml` with a
+malformed `owner` never becomes a `ResolvedConfig`, so it never reaches
+this check. This check covers only the second half: the state of each item, under
+each path that declares `states`, must be in the declared list. A path
+without `states` is not validated — the core does not invent vocabulary.
 
-Cobre também a garantia de identidade da spec §3: em `table` e `sections`,
-chave repetida dentro do arquivo é achado (a Tarefa 5 aponta, este check
-reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
+It also covers the identity guarantee from spec §3: in `table` and `sections`,
+a repeated key within the file is a finding (Task 5 points it out, this check
+reports it), with or without `states` declared. Rules cited: `<RN-identity>` and
 `RN-0001`.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/checks/declared-state.ts`
 - Test: `packages/ownership/test/checks/declared-state.test.ts`
 
 **Interfaces:**
-- Consome: `listFiles`, `readTextFile` (Tarefa 3), `parseFrontmatter` (Tarefa 3),
-  `parseItemsTable`, `parseItemsSections` (Tarefa 5), `Check`/`CheckContext`/`Finding` (Tarefa 11).
-- Produz: `ownershipDeclaredState(): Check`.
+- Consumes: `listFiles`, `readTextFile` (Task 3), `parseFrontmatter` (Task 3),
+  `parseItemsTable`, `parseItemsSections` (Task 5), `Check`/`CheckContext`/`Finding` (Task 11).
+- Produces: `ownershipDeclaredState(): Check`.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -3632,18 +3631,18 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
   import { buildConfig } from '../helpers/config.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('per-file: status fora dos states declarados é achado', () => {
-    withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: inventado\n---\n' }, root => {
+  test('per-file: a status outside the declared states is a finding', () => {
+    withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: invented\n---\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/decisions/adr/', owner: '@a', states: ['draft', 'accepted', 'superseded'] }] })
       const findings = ownershipDeclaredState().run({ root, config, today: '2026-09-17' })
 
       assert.equal(findings.length, 1)
-      assert.match(findings[0]!.message, /inventado/)
+      assert.match(findings[0]!.message, /invented/)
     })
   })
 
-  test('per-file: status dentro dos states declarados não é achado', () => {
+  test('per-file: a status within the declared states is not a finding', () => {
     withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: draft\n---\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/decisions/adr/', owner: '@a', states: ['draft', 'accepted'] }] })
@@ -3652,8 +3651,8 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
     })
   })
 
-  test('sem states declarado, nenhuma validação — o núcleo não inventa vocabulário', () => {
-    withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: qualquer-coisa\n---\n' }, root => {
+  test('with no states declared, no validation — the core does not invent vocabulary', () => {
+    withTempRepo({ 'docs/decisions/adr/x.md': '---\nstatus: anything\n---\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/decisions/adr/', owner: '@a' }] })
 
@@ -3661,8 +3660,8 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
     })
   })
 
-  test('table: item com status fora dos states é achado, com a linha certa', () => {
-    const content = '| ID | Status |\n| --- | ------ |\n| DA-01 | inventado |\n'
+  test('table: an item with a status outside the states is a finding, with the right line', () => {
+    const content = '| ID | Status |\n| --- | ------ |\n| DA-01 | invented |\n'
 
     withTempRepo({ 'docs/open-decisions.md': content }, root => {
       forgetTree(root)
@@ -3675,8 +3674,8 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
     })
   })
 
-  test('sections: item com status fora dos states é achado', () => {
-    const content = '## RN-0001 — x\n\n- **status:** inventado\n'
+  test('sections: an item with a status outside the states is a finding', () => {
+    const content = '## RN-0001 — x\n\n- **status:** invented\n'
 
     withTempRepo({ 'docs/requirements/rules.md': content }, root => {
       forgetTree(root)
@@ -3690,7 +3689,7 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
     })
   })
 
-  test('chave duplicada é achado, mesmo sem states declarado', () => {
+  test('a duplicate key is a finding, even with no states declared', () => {
     const content = '| ID | Status |\n| --- | ------ |\n| DA-01 | open |\n| DA-01 | open |\n'
 
     withTempRepo({ 'docs/open-decisions.md': content }, root => {
@@ -3706,11 +3705,11 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
     })
   })
 
-  test('state-field customizado é lido no lugar de status', () => {
-    withTempRepo({ 'docs/decisions/adr/x.md': '---\nsituação: inventado\n---\n' }, root => {
+  test('a custom state-field is read instead of status', () => {
+    withTempRepo({ 'docs/decisions/adr/x.md': '---\nstate: invented\n---\n' }, root => {
       forgetTree(root)
       const config = buildConfig({
-        owned: [{ path: 'docs/decisions/adr/', owner: '@a', states: ['draft'], format: { collection: 'per-file', key: null, keyMode: null, stateField: 'situação' } }],
+        owned: [{ path: 'docs/decisions/adr/', owner: '@a', states: ['draft'], format: { collection: 'per-file', key: null, keyMode: null, stateField: 'state' } }],
       })
 
       assert.equal(ownershipDeclaredState().run({ root, config, today: '2026-09-17' }).length, 1)
@@ -3718,13 +3717,13 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
   })
   ```
 
-- [ ] **Passo 2: Confirmar que falham**
+- [ ] **Step 2: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/checks/declared-state.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `checks/declared-state.ts`**
+- [ ] **Step 3: Write `checks/declared-state.ts`**
 
   ```typescript
   import { listFiles, readTextFile } from '../core/files.ts'
@@ -3798,8 +3797,8 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
                 error(
                   file,
                   duplicate.line,
-                  `A chave "${duplicate.key}" aparece mais de uma vez neste arquivo — a chave identifica o item dentro do arquivo.`,
-                  'Dê a este item uma chave própria, ou funda as duas entradas.',
+                  `The key "${duplicate.key}" appears more than once in this file — the key identifies the item within the file.`,
+                  'Give this item a key of its own, or merge the two entries.',
                 ),
               )
             }
@@ -3812,8 +3811,8 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
                   error(
                     file,
                     line,
-                    `"${state}" não está entre os estados declarados para \`${rule.path}\`: ${rule.states.join(', ')}.`,
-                    `Use um dos estados declarados, ou acrescente "${state}" a \`states\` em \`owned[]\` (${rule.origin}), se ele for legítimo.`,
+                    `"${state}" is not among the states declared for \`${rule.path}\`: ${rule.states.join(', ')}.`,
+                    `Use one of the declared states, or add "${state}" to \`states\` in \`owned[]\` (${rule.origin}), if it is legitimate.`,
                   ),
                 )
               }
@@ -3827,55 +3826,55 @@ reporta), com ou sem `states` declarado. Regras citadas: `<RN-identidade>` e
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes e o type-check**
+- [ ] **Step 4: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/checks/declared-state.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 5: Commit**
+- [ ] **Step 5: Commit**
 
   ```bash
   git add packages/ownership/src/checks/declared-state.ts packages/ownership/test/checks/declared-state.test.ts
-  git commit -m "feat(<RN-identidade>): check ownership/declared-state"
+  git commit -m "feat(<RN-identity>): ownership/declared-state check"
   ```
 
 ---
 
-### Tarefa 13: Check `ownership/owner-coverage`
+### Task 13: `ownership/owner-coverage` check
 
-Regra de origem: spec §1 ("cobertura de dono contra o CODEOWNERS"), §2
-("`ignore:` tira caminhos da governança"), §5 ("o arquivo de ownership incluído
-é ele próprio um caminho governado") e §6 — a cobertura de propriedade
-parte-se, e vão para o núcleo: entrada no ownership, linha no CODEOWNERS e
-`watches` com `doc` existente e com dono. Regras citadas: `<RN-cobertura>`,
+Source rule: spec §1 ("owner coverage against CODEOWNERS"), §2
+("`ignore:` takes paths out of governance"), §5 ("the included ownership file
+is itself a governed path") and §6 — ownership coverage
+is split, and goes to the core: an entry in the ownership, a line in CODEOWNERS and
+`watches` with an existing `doc` that has an owner. Rules cited: `<RN-coverage>`,
 `RN-0001`, `RN-0016`, `RN-0021`.
 
-O check olha nas duas direções:
+The check looks in both directions:
 
-- **Do repositório para o ownership.** Todo arquivo que a varredura enxerga
-  (`listFiles` já pula `.git`, `node_modules`, `dist`…) precisa de uma regra em
-  `owned[]` que o cubra, a menos que case com `ignore[]`. É por isso que
-  `ignore` existe: sem ele, a cobertura cobraria dono de `vendor/` e de
-  diretório gerado. Os próprios arquivos de ownership entram aqui sem caso
-  especial — são arquivos como os outros.
-- **Do ownership para fora.** Cada entrada de `owned[]` existe no disco e tem
-  linha no CODEOWNERS; cada `watches[].doc` existe e tem regra em `owned[]`.
+- **From the repository to the ownership.** Every file the scan sees
+  (`listFiles` already skips `.git`, `node_modules`, `dist`…) needs a rule in
+  `owned[]` that covers it, unless it matches `ignore[]`. This is why
+  `ignore` exists: without it, coverage would demand an owner for `vendor/` and for
+  a generated directory. The ownership files themselves come in here with no special case
+  — they are files like the others.
+- **From the ownership outward.** Each `owned[]` entry exists on disk and has a
+  line in CODEOWNERS; each `watches[].doc` exists and has a rule in `owned[]`.
 
-Ao contrário do `CI-7` do `@esliph/living-docs`, não há "raiz da
-documentação": o núcleo governa o repositório inteiro, e `ignore` é o único
-jeito de tirar algo da governança.
+Unlike `CI-7` of `@esliph/living-docs`, there is no "documentation
+root": the core governs the whole repository, and `ignore` is the only
+way to take something out of governance.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/checks/owner-coverage.ts`
 - Test: `packages/ownership/test/checks/owner-coverage.test.ts`
 
 **Interfaces:**
-- Consome: `listFiles` (Tarefa 3), `loadCodeowners`, `ownersOf` (Tarefa 3),
-  `findOwnedRule` (Tarefa 7), `Check`/`CheckContext`/`Finding` (Tarefa 11).
-- Produz: `ownershipOwnerCoverage(): Check`.
+- Consumes: `listFiles` (Task 3), `loadCodeowners`, `ownersOf` (Task 3),
+  `findOwnedRule` (Task 7), `Check`/`CheckContext`/`Finding` (Task 11).
+- Produces: `ownershipOwnerCoverage(): Check`.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -3887,34 +3886,34 @@ jeito de tirar algo da governança.
 
   const today = '2026-09-17'
 
-  test('CODEOWNERS ausente é achado', () => {
+  test('missing CODEOWNERS is a finding', () => {
     withTempRepo({ 'docs/x.md': 'x' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/x.md', owner: '@a' }] })
 
-      assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /CODEOWNERS ausente/.test(f.message)))
+      assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /CODEOWNERS missing/.test(f.message)))
     })
   })
 
-  test('caminho declarado que não existe no repositório é achado', () => {
+  test('a declared path that does not exist in the repository is a finding', () => {
     withTempRepo({ CODEOWNERS: 'docs/x.md @a\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/x.md', owner: '@a' }], ignore: ['CODEOWNERS'] })
 
-      assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /não existe/.test(f.message)))
+      assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /does not exist/.test(f.message)))
     })
   })
 
-  test('caminho existente sem linha no CODEOWNERS é achado', () => {
+  test('an existing path with no line in CODEOWNERS is a finding', () => {
     withTempRepo({ 'docs/x.md': 'x', CODEOWNERS: 'docs/y.md @a\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/x.md', owner: '@a' }], ignore: ['CODEOWNERS'] })
 
-      assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /não tem linha/.test(f.message)))
+      assert.ok(ownershipOwnerCoverage().run({ root, config, today }).some(f => /has no line/.test(f.message)))
     })
   })
 
-  test('arquivo sem regra em owned[] é achado; o que casa com ignore não é', () => {
+  test('a file with no rule in owned[] is a finding; one that matches ignore is not', () => {
     withTempRepo({ 'src/a.ts': 'x', 'vendor/lib.js': 'x', CODEOWNERS: '* @a\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ ignore: ['vendor/**', 'CODEOWNERS'] })
@@ -3927,7 +3926,7 @@ jeito de tirar algo da governança.
     })
   })
 
-  test('o próprio arquivo de ownership precisa de dono como qualquer outro', () => {
+  test('the ownership file itself needs an owner like any other', () => {
     withTempRepo({ '.ownership.yml': 'x', CODEOWNERS: '* @a\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ ignore: ['CODEOWNERS'] })
@@ -3936,13 +3935,13 @@ jeito de tirar algo da governança.
     })
   })
 
-  test('watches com doc inexistente ou sem regra em owned[] é achado', () => {
+  test('watches with a nonexistent doc or with no rule in owned[] is a finding', () => {
     withTempRepo({ 'src/a.ts': 'x', 'README.md': 'x', CODEOWNERS: '* @a\n' }, root => {
       forgetTree(root)
       const config = buildConfig({
         owned: [{ path: 'src/', owner: '@a' }],
         watches: [
-          { code: 'src/**', doc: 'docs/nao-existe.md' },
+          { code: 'src/**', doc: 'docs/does-not-exist.md' },
           { code: 'src/**', doc: 'README.md' },
         ],
         ignore: ['CODEOWNERS', 'README.md'],
@@ -3951,12 +3950,12 @@ jeito de tirar algo da governança.
         .run({ root, config, today })
         .map(f => f.message)
 
-      assert.ok(messages.some(m => /docs\/nao-existe\.md.*não existe/.test(m)))
-      assert.ok(messages.some(m => /README\.md.*sem regra/.test(m)))
+      assert.ok(messages.some(m => /docs\/does-not-exist\.md.*does not exist/.test(m)))
+      assert.ok(messages.some(m => /README\.md.*no rule/.test(m)))
     })
   })
 
-  test('tudo coberto: nenhum achado', () => {
+  test('everything covered: no finding', () => {
     withTempRepo({ 'docs/decisions/adr/x.md': 'x', CODEOWNERS: 'docs/decisions/adr/ @a\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/decisions/adr/', owner: '@a' }], ignore: ['CODEOWNERS'] })
@@ -3966,13 +3965,13 @@ jeito de tirar algo da governança.
   })
   ```
 
-- [ ] **Passo 2: Confirmar que falham**
+- [ ] **Step 2: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/checks/owner-coverage.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `checks/owner-coverage.ts`**
+- [ ] **Step 3: Write `checks/owner-coverage.ts`**
 
   ```typescript
   import { existsSync } from 'node:fs'
@@ -4000,38 +3999,38 @@ jeito de tirar algo da governança.
 
         if (codeowners === null) {
           findings.push(
-            error(config.rootFile, 'CODEOWNERS ausente: nenhum caminho governado tem dono declarado do lado de quem revisa.', 'Crie `CODEOWNERS` na raiz (ou em `.github/`), espelhando o `owner` de cada entrada de `owned[]`.'),
+            error(config.rootFile, 'CODEOWNERS missing: no governed path has a declared owner on the reviewer side.', 'Create `CODEOWNERS` at the root (or in `.github/`), mirroring the `owner` of each `owned[]` entry.'),
           )
         }
 
-        // Do repositório para o ownership: todo arquivo tem regra, ou está em `ignore`.
+        // From the repository to the ownership: every file has a rule, or is in `ignore`.
         const ignored = config.ignore.length === 0 ? () => false : picomatch(config.ignore, { dot: true })
 
         for (const file of listFiles(root).sort()) {
           if (!ignored(file) && findOwnedRule(config, file) === null) {
-            findings.push(error(file, `"${file}" não é coberto por nenhuma regra de \`owned[]\` nem por \`ignore\`.`, 'Declare um dono para o caminho em `owned[]`, ou tire-o da governança em `ignore`.'))
+            findings.push(error(file, `"${file}" is covered by no \`owned[]\` rule nor by \`ignore\`.`, 'Declare an owner for the path in `owned[]`, or take it out of governance in `ignore`.'))
           }
         }
 
-        // Do ownership para fora: a entrada existe e o CODEOWNERS a cobre.
+        // From the ownership outward: the entry exists and CODEOWNERS covers it.
         for (const rule of config.owned) {
           if (!existsSync(join(root, rule.path))) {
-            findings.push(error(rule.path, `"${rule.path}" está declarado em \`owned[]\` (${rule.origin}) e não existe no repositório.`, 'Crie o caminho, ou corrija a entrada.'))
+            findings.push(error(rule.path, `"${rule.path}" is declared in \`owned[]\` (${rule.origin}) and does not exist in the repository.`, 'Create the path, or fix the entry.'))
             continue
           }
           if (codeowners !== null && ownersOf(codeowners, rule.path) === null) {
-            findings.push(error(rule.path, `"${rule.path}" não tem linha em \`${codeowners.file}\`.`, `Acrescente \`${rule.path}    ${rule.owner}\` em \`${codeowners.file}\`.`))
+            findings.push(error(rule.path, `"${rule.path}" has no line in \`${codeowners.file}\`.`, `Add \`${rule.path}    ${rule.owner}\` to \`${codeowners.file}\`.`))
           }
         }
 
-        // O doc de um `watches` precisa existir e ter dono — senão o lembrete aponta para o nada.
+        // The doc of a `watches` must exist and have an owner — otherwise the reminder points to nothing.
         const docs = new Map(config.watches.map(watch => [watch.doc, watch.origin]))
 
         for (const [doc, origin] of docs) {
           if (!existsSync(join(root, doc))) {
-            findings.push(error(doc, `"${doc}" é o doc de \`watches\` (${origin}) e não existe no repositório.`, 'Crie o documento, ou corrija `watches[].doc`.'))
+            findings.push(error(doc, `"${doc}" is the doc of \`watches\` (${origin}) and does not exist in the repository.`, 'Create the document, or fix `watches[].doc`.'))
           } else if (findOwnedRule(config, doc) === null) {
-            findings.push(error(doc, `"${doc}" é o doc de \`watches\` (${origin}) e está sem regra em \`owned[]\`.`, 'Declare o dono do documento em `owned[]`.'))
+            findings.push(error(doc, `"${doc}" is the doc of \`watches\` (${origin}) and has no rule in \`owned[]\`.`, 'Declare the document\'s owner in `owned[]`.'))
           }
         }
 
@@ -4041,44 +4040,44 @@ jeito de tirar algo da governança.
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes e o type-check**
+- [ ] **Step 4: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/checks/owner-coverage.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 5: Commit**
+- [ ] **Step 5: Commit**
 
   ```bash
   git add packages/ownership/src/checks/owner-coverage.ts packages/ownership/test/checks/owner-coverage.test.ts
-  git commit -m "feat(<RN-cobertura>): check ownership/owner-coverage"
+  git commit -m "feat(<RN-coverage>): ownership/owner-coverage check"
   ```
 
 ---
 
-### Tarefa 14: Checks `ownership/watch-satisfied` e `ownership/consumer-change-logged`
+### Task 14: Checks `ownership/watch-satisfied` and `ownership/consumer-change-logged`
 
-Regra de origem: `RN-0021` e `RN-0013`; spec §6 ("vigiado alterado sem o doc dono... vão para o
-núcleo", "mudança visível a quem consome... núcleo, inteiros") e §2 (fim de
-`consumer-visible-paths` como lista separada — os alvos e os globos vêm
-diretamente de `watches[].consumer-visible`). Os dois recebem o diff por
-injeção, como `CI-6`/`CI-7` já faziam em `@esliph/living-docs` — o diff não é
-parte do `CheckContext` compartilhado.
+Source rule: `RN-0021` and `RN-0013`; spec §6 ("watched changed without the owning doc... go to the
+core", "change visible to whoever consumes... core, whole") and §2 (end of
+`consumer-visible-paths` as a separate list — the targets and the globs come
+directly from `watches[].consumer-visible`). Both receive the diff by
+injection, as `CI-6`/`CI-7` already did in `@esliph/living-docs` — the diff is not
+part of the shared `CheckContext`.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/checks/watch-satisfied.ts`
 - Create: `packages/ownership/src/checks/consumer-change-logged.ts`
 - Test: `packages/ownership/test/checks/watch-satisfied.test.ts`
 - Test: `packages/ownership/test/checks/consumer-change-logged.test.ts`
 
 **Interfaces:**
-- Consome: `pendingDocs` (Tarefa 9), `exceptionReasonFor` (Tarefa 3),
-  `Check`/`CheckContext`/`Finding` (Tarefa 11).
-- Produz: `interface DiffFacts { base: string; changed: readonly string[]; messages: readonly string[] }`,
+- Consumes: `pendingDocs` (Task 9), `exceptionReasonFor` (Task 3),
+  `Check`/`CheckContext`/`Finding` (Task 11).
+- Produces: `interface DiffFacts { base: string; changed: readonly string[]; messages: readonly string[] }`,
   `ownershipWatchSatisfied(diff: DiffFacts): Check`,
   `ownershipConsumerChangeLogged(diff: DiffFacts): Check`.
 
-- [ ] **Passo 1: Escrever os testes de `watch-satisfied` que falham primeiro**
+- [ ] **Step 1: Write the `watch-satisfied` failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -4088,7 +4087,7 @@ parte do `CheckContext` compartilhado.
 
   const config = buildConfig({ watches: [{ code: 'src/checks/**', doc: 'docs/requirements/rules.md', reason: 'x' }] })
 
-  test('diff toca o código vigiado sem o doc dono: achado', () => {
+  test('diff touches the watched code without the owning doc: finding', () => {
     const diff = { base: 'main', changed: ['src/checks/a.ts'], messages: [] }
     const findings = ownershipWatchSatisfied(diff).run({ root: '/repo', config, today: '2026-09-17' })
 
@@ -4096,20 +4095,20 @@ parte do `CheckContext` compartilhado.
     assert.match(findings[0]!.message, /rules\.md/)
   })
 
-  test('diff traz os dois: sem achado', () => {
+  test('diff brings both: no finding', () => {
     const diff = { base: 'main', changed: ['src/checks/a.ts', 'docs/requirements/rules.md'], messages: [] }
 
     assert.deepEqual(ownershipWatchSatisfied(diff).run({ root: '/repo', config, today: '2026-09-17' }), [])
   })
 
-  test('Docs: none — razão na mensagem de commit libera', () => {
-    const diff = { base: 'main', changed: ['src/checks/a.ts'], messages: ['fix: x', 'Docs: none — não afeta nada'] }
+  test('Docs: none — reason in the commit message releases it', () => {
+    const diff = { base: 'main', changed: ['src/checks/a.ts'], messages: ['fix: x', 'Docs: none — affects nothing'] }
 
     assert.deepEqual(ownershipWatchSatisfied(diff).run({ root: '/repo', config, today: '2026-09-17' }), [])
   })
   ```
 
-- [ ] **Passo 2: Escrever `checks/watch-satisfied.ts`**
+- [ ] **Step 2: Write `checks/watch-satisfied.ts`**
 
   ```typescript
   import { exceptionReasonFor } from '../core/exception-label.ts'
@@ -4142,8 +4141,8 @@ parte do `CheckContext` compartilhado.
 
           return error(
             pending.doc,
-            `O diff \`${diff.base}...HEAD\` toca caminho vigiado (${trigger}) e \`${pending.doc}\` não está entre os caminhos alterados.`,
-            `Atualize \`${pending.doc}\`${pending.skill === null ? '' : ` (skill dona: ${pending.skill})`} no mesmo PR — ou escreva \`Docs: none — <razão>\` numa mensagem de commit.`,
+            `The diff \`${diff.base}...HEAD\` touches a watched path (${trigger}) and \`${pending.doc}\` is not among the changed paths.`,
+            `Update \`${pending.doc}\`${pending.skill === null ? '' : ` (owning skill: ${pending.skill})`} in the same PR — or write \`Docs: none — <reason>\` in a commit message.`,
           )
         })
       },
@@ -4151,13 +4150,13 @@ parte do `CheckContext` compartilhado.
   }
   ```
 
-- [ ] **Passo 3: Rodar os testes de `watch-satisfied`**
+- [ ] **Step 3: Run the `watch-satisfied` tests**
 
   ```bash
   cd packages/ownership && node --test test/checks/watch-satisfied.test.ts
   ```
 
-- [ ] **Passo 4: Escrever os testes de `consumer-change-logged` que falham primeiro**
+- [ ] **Step 4: Write the `consumer-change-logged` failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -4166,7 +4165,7 @@ parte do `CheckContext` compartilhado.
   import { buildConfig } from '../helpers/config.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('sem watches consumer-visible, nenhum achado mesmo com diff grande', () => {
+  test('without consumer-visible watches, no finding even with a large diff', () => {
     const config = buildConfig({})
 
     assert.deepEqual(
@@ -4175,7 +4174,7 @@ parte do `CheckContext` compartilhado.
     )
   })
 
-  test('diff toca caminho consumer-visible e o changelog não veio junto: achado', () => {
+  test('diff touches a consumer-visible path and the changelog did not come along: finding', () => {
     withTempRepo({}, root => {
       const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
       const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts'], messages: [] }).run({ root, config, today: '2026-09-17' })
@@ -4184,7 +4183,7 @@ parte do `CheckContext` compartilhado.
     })
   })
 
-  test('changelog veio junto mas sem item em Unreleased: achado', () => {
+  test('changelog came along but with no item in Unreleased: finding', () => {
     withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n' }, root => {
       const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
       const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts', 'CHANGELOG.md'], messages: [] }).run({
@@ -4197,7 +4196,7 @@ parte do `CheckContext` compartilhado.
     })
   })
 
-  test('changelog veio junto com item em Unreleased: sem achado', () => {
+  test('changelog came along with an item in Unreleased: no finding', () => {
     withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n\n- x\n' }, root => {
       const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
 
@@ -4208,7 +4207,7 @@ parte do `CheckContext` compartilhado.
     })
   })
 
-  test('cada doc visível só é cobrado pelos caminhos da própria regra', () => {
+  test('each visible doc is only charged for the paths of its own rule', () => {
     withTempRepo({ 'CHANGELOG.md': '## [Unreleased]\n\n### Added\n\n- x\n' }, root => {
       const config = buildConfig({
         watches: [
@@ -4226,10 +4225,10 @@ parte do `CheckContext` compartilhado.
     })
   })
 
-  test('Changelog: none — razão libera', () => {
+  test('Changelog: none — reason releases it', () => {
     withTempRepo({}, root => {
       const config = buildConfig({ watches: [{ code: 'src/cli/**', doc: 'CHANGELOG.md', consumerVisible: true }] })
-      const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts'], messages: ['Changelog: none — interno'] }).run({
+      const findings = ownershipConsumerChangeLogged({ base: 'main', changed: ['src/cli/a.ts'], messages: ['Changelog: none — internal'] }).run({
         root,
         config,
         today: '2026-09-17',
@@ -4240,7 +4239,7 @@ parte do `CheckContext` compartilhado.
   })
   ```
 
-- [ ] **Passo 5: Escrever `checks/consumer-change-logged.ts`**
+- [ ] **Step 5: Write `checks/consumer-change-logged.ts`**
 
   ```typescript
   import { readFileSync } from 'node:fs'
@@ -4296,8 +4295,8 @@ parte do `CheckContext` compartilhado.
         }
 
         const changed = diff.changed.map(normalize)
-        // Cada doc só é cobrado pelos caminhos das regras que apontam para ele:
-        // tocar `src/cli/**` não pode exigir o doc de outra regra visível.
+        // Each doc is only charged for the paths of the rules that point to it:
+        // touching `src/cli/**` cannot demand the doc of another visible rule.
         const hitsByDoc = new Map<string, string[]>()
 
         for (const watch of visible) {
@@ -4326,8 +4325,8 @@ parte do `CheckContext` compartilhado.
             findings.push(
               error(
                 target,
-                `O diff \`${diff.base}...HEAD\` toca caminho visível ao consumidor (${trigger}) e \`${target}\` não está entre os caminhos alterados.`,
-                `Acrescente a entrada em \`## [Unreleased]\` de \`${target}\` — ou escreva \`Changelog: none — <razão>\` na mensagem de commit.`,
+                `The diff \`${diff.base}...HEAD\` touches a consumer-visible path (${trigger}) and \`${target}\` is not among the changed paths.`,
+                `Add the entry under \`## [Unreleased]\` of \`${target}\` — or write \`Changelog: none — <reason>\` in the commit message.`,
               ),
             )
             continue
@@ -4338,7 +4337,7 @@ parte do `CheckContext` compartilhado.
           try {
             source = readFileSync(join(context.root, target), 'utf8')
           } catch {
-            findings.push(error(target, `\`${target}\` está declarado como doc de mudança visível e está ausente do repositório.`, `Crie \`${target}\` no formato Keep a Changelog.`))
+            findings.push(error(target, `\`${target}\` is declared as a visible-change doc and is missing from the repository.`, `Create \`${target}\` in the Keep a Changelog format.`))
             continue
           }
 
@@ -4346,8 +4345,8 @@ parte do `CheckContext` compartilhado.
             findings.push(
               error(
                 target,
-                `O diff toca caminho visível ao consumidor (${trigger}) e \`## [Unreleased]\` de \`${target}\` não tem nenhum item.`,
-                'Escreva a entrada sob a subseção certa (Added, Changed, Deprecated, Removed, Fixed, Security).',
+                `The diff touches a consumer-visible path (${trigger}) and \`## [Unreleased]\` of \`${target}\` has no items.`,
+                'Write the entry under the right subsection (Added, Changed, Deprecated, Removed, Fixed, Security).',
               ),
             )
           }
@@ -4359,40 +4358,40 @@ parte do `CheckContext` compartilhado.
   }
   ```
 
-- [ ] **Passo 6: Rodar todos os testes da tarefa e o type-check**
+- [ ] **Step 6: Run all the task's tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/checks/watch-satisfied.test.ts test/checks/consumer-change-logged.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 7: Commit**
+- [ ] **Step 7: Commit**
 
   ```bash
   git add packages/ownership/src/checks/watch-satisfied.ts packages/ownership/src/checks/consumer-change-logged.ts packages/ownership/test/checks/watch-satisfied.test.ts packages/ownership/test/checks/consumer-change-logged.test.ts
-  git commit -m "feat(RN-0021): checks ownership/watch-satisfied e ownership/consumer-change-logged"
+  git commit -m "feat(RN-0021): ownership/watch-satisfied and ownership/consumer-change-logged checks"
   ```
 
 ---
 
-### Tarefa 15: Check `ownership/derivation-resolves` e o registro de checks
+### Task 15: `ownership/derivation-resolves` check and the check registry
 
-Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolve" →
+Source rule: `<RN-derivation>`; spec §4 and §6 ("declared derivation resolves" →
 `ownership/derivation-resolves`).
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/checks/derivation-resolves.ts`
 - Create: `packages/ownership/src/checks/registry.ts`
 - Test: `packages/ownership/test/checks/derivation-resolves.test.ts`
 - Test: `packages/ownership/test/checks/registry.test.ts`
 
 **Interfaces:**
-- Consome: `problemsFor` (Tarefa 10), todos os `ownership*` checks das Tarefas
-  11–14, `CommandRunner`/`runCommand` (Tarefa 3).
-- Produz: `ownershipDerivationResolves(): Check`,
+- Consumes: `problemsFor` (Task 10), all the `ownership*` checks from Tasks
+  11–14, `CommandRunner`/`runCommand` (Task 3).
+- Produces: `ownershipDerivationResolves(): Check`,
   `coreChecks(exec?: CommandRunner): readonly Check[]`,
   `diffChecks(diff: DiffFacts): readonly Check[]`.
 
-- [ ] **Passo 1: Escrever os testes de `derivation-resolves` que falham primeiro**
+- [ ] **Step 1: Write the `derivation-resolves` failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -4402,12 +4401,12 @@ Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolv
   import { buildConfig } from '../helpers/config.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('campo ausente, fora da fonte e alvo inexistente viram achados distintos', () => {
+  test('missing field, outside the source and nonexistent target become distinct findings', () => {
     withTempRepo(
       {
-        'docs/plans/a.md': '---\ntitle: sem spec\n---\n',
-        'docs/plans/b.md': '---\nspec: docs/outro/x.md\n---\n',
-        'docs/plans/c.md': '---\nspec: docs/specs/nao-existe.md\n---\n',
+        'docs/plans/a.md': '---\ntitle: no spec\n---\n',
+        'docs/plans/b.md': '---\nspec: docs/other/x.md\n---\n',
+        'docs/plans/c.md': '---\nspec: docs/specs/does-not-exist.md\n---\n',
       },
       root => {
         forgetTree(root)
@@ -4421,7 +4420,7 @@ Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolv
     )
   })
 
-  test('derivação que resolve não gera achado', () => {
+  test('a derivation that resolves generates no finding', () => {
     withTempRepo({ 'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n', 'docs/specs/s1.md': '# s1\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/plans/', owner: '@a', derivesFrom: { source: 'docs/specs/', field: 'spec' } }] })
@@ -4430,7 +4429,7 @@ Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolv
     })
   })
 
-  test('caminho sem derives-from não é examinado', () => {
+  test('a path without derives-from is not examined', () => {
     withTempRepo({ 'docs/plans/a.md': '---\ntitle: x\n---\n' }, root => {
       forgetTree(root)
       const config = buildConfig({ owned: [{ path: 'docs/plans/', owner: '@a' }] })
@@ -4440,7 +4439,7 @@ Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolv
   })
   ```
 
-- [ ] **Passo 2: Escrever `checks/derivation-resolves.ts`**
+- [ ] **Step 2: Write `checks/derivation-resolves.ts`**
 
   ```typescript
   import { problemsFor } from '../triggers/derives.ts'
@@ -4455,13 +4454,13 @@ Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolv
     const field = rule.derivesFrom!.field
 
     if (problem.reason === 'campo-ausente') {
-      return `${problem.file} deriva de \`${source}\` (declarado em \`owned[]\`, ${rule.origin}) e não declara o campo \`${field}\` no frontmatter.`
+      return `${problem.file} derives from \`${source}\` (declared in \`owned[]\`, ${rule.origin}) and does not declare the \`${field}\` field in the frontmatter.`
     }
     if (problem.reason === 'fora-da-fonte') {
-      return `${problem.file}: o campo \`${field}\` aponta para "${problem.field}", fora de \`${source}\`.`
+      return `${problem.file}: the \`${field}\` field points to "${problem.field}", outside \`${source}\`.`
     }
 
-    return `${problem.file}: o campo \`${field}\` aponta para "${problem.field}", que não existe no repositório.`
+    return `${problem.file}: the \`${field}\` field points to "${problem.field}", which does not exist in the repository.`
   }
 
   export function ownershipDerivationResolves(): Check {
@@ -4482,7 +4481,7 @@ Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolv
               line: problem.line,
               severity: 'error',
               message: messageFor(rule, problem),
-              fix: `Declare \`${rule.derivesFrom.field}: <caminho sob ${rule.derivesFrom.source}>\` no frontmatter de ${problem.file}, apontando para um arquivo que existe.`,
+              fix: `Declare \`${rule.derivesFrom.field}: <path under ${rule.derivesFrom.source}>\` in the frontmatter of ${problem.file}, pointing to a file that exists.`,
             })
           }
         }
@@ -4493,33 +4492,33 @@ Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolv
   }
   ```
 
-- [ ] **Passo 3: Rodar os testes de `derivation-resolves`**
+- [ ] **Step 3: Run the `derivation-resolves` tests**
 
   ```bash
   cd packages/ownership && node --test test/checks/derivation-resolves.test.ts
   ```
 
-- [ ] **Passo 4: Escrever o teste de `registry.ts` que falha primeiro**
+- [ ] **Step 4: Write the `registry.ts` failing test first**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { coreChecks, diffChecks } from '../../src/checks/registry.ts'
 
-  test('coreChecks devolve os quatro checks que não dependem de diff', () => {
+  test('coreChecks returns the four checks that do not depend on a diff', () => {
     const ids = coreChecks(() => '').map(check => check.id)
 
     assert.deepEqual(ids.sort(), ['ownership/declared-state', 'ownership/derivation-resolves', 'ownership/generated-drift', 'ownership/owner-coverage'].sort())
   })
 
-  test('diffChecks devolve os dois que dependem de diff', () => {
+  test('diffChecks returns the two that depend on a diff', () => {
     const ids = diffChecks({ base: 'main', changed: [], messages: [] }).map(check => check.id)
 
     assert.deepEqual(ids.sort(), ['ownership/consumer-change-logged', 'ownership/watch-satisfied'].sort())
   })
   ```
 
-- [ ] **Passo 5: Escrever `checks/registry.ts`**
+- [ ] **Step 5: Write `checks/registry.ts`**
 
   ```typescript
   import type { CommandRunner } from '../core/exec.ts'
@@ -4535,43 +4534,43 @@ Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("derivação declarada resolv
 
   export type { DiffFacts }
 
-  /** Checks que não precisam do diff da branch — rodam sempre que `ownership validate` roda. */
+  /** Checks that do not need the branch diff — they run whenever `ownership validate` runs. */
   export function coreChecks(exec: CommandRunner = runCommand): readonly Check[] {
     return [ownershipDeclaredState(), ownershipGeneratedDrift(exec), ownershipOwnerCoverage(), ownershipDerivationResolves()]
   }
 
-  /** Checks que precisam do diff — só rodam com `ownership validate --base <ref>`. */
+  /** Checks that need the diff — they only run with `ownership validate --base <ref>`. */
   export function diffChecks(diff: DiffFacts): readonly Check[] {
     return [ownershipWatchSatisfied(diff), ownershipConsumerChangeLogged(diff)]
   }
   ```
 
-- [ ] **Passo 6: Rodar toda a suíte do pacote e o type-check**
+- [ ] **Step 6: Run the whole package suite and the type-check**
 
   ```bash
   cd packages/ownership && node --test "test/**/*.test.ts" && npm run typecheck
   ```
 
-- [ ] **Passo 7: Commit**
+- [ ] **Step 7: Commit**
 
   ```bash
   git add packages/ownership/src/checks/derivation-resolves.ts packages/ownership/src/checks/registry.ts packages/ownership/test/checks/derivation-resolves.test.ts packages/ownership/test/checks/registry.test.ts
-  git commit -m "feat(<RN-derivacao>): check ownership/derivation-resolves e registro dos checks"
+  git commit -m "feat(<RN-derivation>): ownership/derivation-resolves check and the check registry"
   ```
 
 ---
 
-### Tarefa 16: Infraestrutura de hook e `ownership/generated-guard`
+### Task 16: Hook infrastructure and `ownership/generated-guard`
 
-Regra de origem: `RN-0012`; spec §6 ("artefato gerado (hook)" → `ownership/generated-guard`).
-Porta `src/hooks/lib/{paths,io,edit}.ts` e `src/hooks/hk2-generated-artifact.ts`
-do `@esliph/living-docs`. Duas variáveis de ambiente novas e próprias deste
-plugin — `OWNERSHIP_REPO_ROOT`/`OWNERSHIP_HOST_ROOT` —, distintas de
-`LIVING_DOCS_REPO_ROOT`/`LIVING_DOCS_HOST_ROOT`: os dois plugins podem estar
-instalados ao mesmo tempo, e cada um lê o repositório que julga pela variável
-que é sua.
+Source rule: `RN-0012`; spec §6 ("generated artifact (hook)" → `ownership/generated-guard`).
+Ports `src/hooks/lib/{paths,io,edit}.ts` and `src/hooks/hk2-generated-artifact.ts`
+from `@esliph/living-docs`. Two new environment variables of this
+plugin's own — `OWNERSHIP_REPO_ROOT`/`OWNERSHIP_HOST_ROOT` —, distinct from
+`LIVING_DOCS_REPO_ROOT`/`LIVING_DOCS_HOST_ROOT`: the two plugins may be
+installed at the same time, and each reads the repository it considers its own through the variable
+that is its own.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/hooks/lib/paths.ts`
 - Create: `packages/ownership/src/hooks/lib/io.ts`
 - Create: `packages/ownership/src/hooks/generated-guard.ts`
@@ -4580,17 +4579,17 @@ que é sua.
 - Test: `packages/ownership/test/hooks/generated-guard.test.ts`
 
 **Interfaces:**
-- Consome: `resolveOwnership`, `findGeneratedRule` (Tarefa 7).
-- Produz: `toRepoPath(filePath, roots): string | null`,
+- Consumes: `resolveOwnership`, `findGeneratedRule` (Task 7).
+- Produces: `toRepoPath(filePath, roots): string | null`,
   `interface HookEnv { root: string; hostRoots: readonly string[] }`,
   `interface HookPayload { tool_name?: string; tool_input?: Record<string, unknown> }`,
   `hookEnv(): HookEnv`, `readPayload(): Promise<HookPayload | null>`,
   `denyOutput`, `askOutput`, `contextOutput`, `emit`,
   `decideGeneratedGuard(payload, env): { action: 'allow' } | { action: 'deny'; reason: string }`.
 
-- [ ] **Passo 1: Portar `hooks/lib/paths.ts`**
+- [ ] **Step 1: Port `hooks/lib/paths.ts`**
 
-  Cópia exata de `src/hooks/lib/paths.ts` — já é genérico:
+  Exact copy of `src/hooks/lib/paths.ts` — it is already generic:
 
   ```typescript
   function normalize(path: string): string {
@@ -4617,27 +4616,26 @@ que é sua.
   }
   ```
 
-- [ ] **Passo 2: Teste de `paths.ts`**
+- [ ] **Step 2: Test for `paths.ts`**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { toRepoPath } from '../../../src/hooks/lib/paths.ts'
 
-  test('caminho relativo passa direto', () => {
+  test('a relative path passes straight through', () => {
     assert.equal(toRepoPath('./src/a.ts', ['/repo']), 'src/a.ts')
   })
-
-  test('caminho absoluto sob uma das raízes vira relativo', () => {
+  test('an absolute path under one of the roots becomes relative', () => {
     assert.equal(toRepoPath('/repo/src/a.ts', ['/repo']), 'src/a.ts')
   })
 
-  test('caminho absoluto fora de toda raiz devolve null', () => {
-    assert.equal(toRepoPath('/outro/src/a.ts', ['/repo']), null)
+  test('an absolute path outside every root returns null', () => {
+    assert.equal(toRepoPath('/other/src/a.ts', ['/repo']), null)
   })
   ```
 
-- [ ] **Passo 3: Portar `hooks/lib/io.ts`, com as variáveis de ambiente próprias**
+- [ ] **Step 3: Port `hooks/lib/io.ts`, with its own environment variables**
 
   ```typescript
   import { resolve } from 'node:path'
@@ -4702,19 +4700,19 @@ que é sua.
   }
   ```
 
-- [ ] **Passo 4: Teste de `io.ts`**
+- [ ] **Step 4: Test for `io.ts`**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { askOutput, contextOutput, denyOutput } from '../../../src/hooks/lib/io.ts'
 
-  test('denyOutput e askOutput trazem hookEventName PreToolUse e a razão', () => {
+  test('denyOutput and askOutput carry hookEventName PreToolUse and the reason', () => {
     assert.match(denyOutput('x'), /"permissionDecision":"deny"/)
     assert.match(askOutput('y'), /"permissionDecision":"ask"/)
   })
 
-  test('contextOutput não decide permissão', () => {
+  test('contextOutput does not decide permission', () => {
     const parsed = JSON.parse(contextOutput('PostToolUse', 'z')) as { hookSpecificOutput: Record<string, unknown> }
 
     assert.equal(parsed.hookSpecificOutput.additionalContext, 'z')
@@ -4722,13 +4720,13 @@ que é sua.
   })
   ```
 
-- [ ] **Passo 5: Não portar `hooks/lib/edit.ts` ainda**
+- [ ] **Step 5: Do not port `hooks/lib/edit.ts` yet**
 
-  `applyToolInput` só serve para o `promotion-guard` simular a edição antes de
-  ela acontecer, e esse hook espera a decisão aberta (Tarefa 17). Portado agora,
-  seria código sem chamador. Vem junto com a tarefa que ligar o hook.
+  `applyToolInput` only serves the `promotion-guard` to simulate the edit before
+  it happens, and that hook waits for the open decision (Task 17). Ported now,
+  it would be code with no caller. It comes along with the task that wires the hook.
 
-- [ ] **Passo 6: Escrever os testes de `generated-guard` que falham primeiro**
+- [ ] **Step 6: Write the `generated-guard` failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -4738,7 +4736,7 @@ que é sua.
 
   const env = (root: string) => ({ root, hostRoots: [root] })
 
-  test('caminho declarado em generated[] é negado, mesmo se o arquivo ainda não existe', () => {
+  test('a path declared in generated[] is denied, even if the file does not exist yet', () => {
     withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\ngenerated:\n  - path: out.md\n    command: gen\n' }, root => {
       const decision = decideGeneratedGuard({ tool_input: { file_path: 'out.md' } }, env(root))
 
@@ -4746,34 +4744,34 @@ que é sua.
     })
   })
 
-  test('arquivo com o marcador na primeira linha é negado', () => {
-    withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n', 'x.md': 'generated: do not edit\ncorpo\n' }, root => {
+  test('a file with the marker on the first line is denied', () => {
+    withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n', 'x.md': 'generated: do not edit\nbody\n' }, root => {
       const decision = decideGeneratedGuard({ tool_input: { file_path: 'x.md' } }, env(root))
 
       assert.equal(decision.action, 'deny')
     })
   })
 
-  test('arquivo comum é permitido', () => {
-    withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n', 'x.md': 'corpo comum\n' }, root => {
+  test('an ordinary file is allowed', () => {
+    withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\n', 'x.md': 'ordinary body\n' }, root => {
       assert.equal(decideGeneratedGuard({ tool_input: { file_path: 'x.md' } }, env(root)).action, 'allow')
     })
   })
 
-  test('sem .ownership.yml, falha aberta', () => {
+  test('without .ownership.yml, fails open', () => {
     withTempRepo({}, root => {
       assert.equal(decideGeneratedGuard({ tool_input: { file_path: 'x.md' } }, env(root)).action, 'allow')
     })
   })
   ```
 
-- [ ] **Passo 7: Confirmar que falham**
+- [ ] **Step 7: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/hooks/generated-guard.test.ts
   ```
 
-- [ ] **Passo 8: Escrever `hooks/generated-guard.ts`**
+- [ ] **Step 8: Write `hooks/generated-guard.ts`**
 
   ```typescript
   #!/usr/bin/env node
@@ -4820,9 +4818,9 @@ que é sua.
       return {
         action: 'deny',
         reason:
-          `ownership/generated-guard bloqueou: \`${repoPath}\` é artefato gerado, declarado em \`generated[]\` (${rule.origin}). ` +
-          `Mude a fonte anotada e rode \`${rule.command} > ${rule.path}\`. ` +
-          '`ownership validate` (ownership/generated-drift) verifica a deriva.',
+          `ownership/generated-guard blocked: \`${repoPath}\` is a generated artifact, declared in \`generated[]\` (${rule.origin}). ` +
+          `Change the annotated source and run \`${rule.command} > ${rule.path}\`. ` +
+          '`ownership validate` (ownership/generated-drift) checks the drift.',
       }
     }
 
@@ -4842,9 +4840,9 @@ que é sua.
     return {
       action: 'deny',
       reason:
-        `ownership/generated-guard bloqueou: \`${repoPath}\` abre com o marcador \`generated: do not edit\`. ` +
-        'Mude a fonte e rode o gerador. Este arquivo não está em `generated[]` — declare-o lá, com o comando do gerador, ' +
-        'para que `ownership/generated-drift` também o cubra.',
+        `ownership/generated-guard blocked: \`${repoPath}\` opens with the \`generated: do not edit\` marker. ` +
+        'Change the source and run the generator. This file is not in `generated[]` — declare it there, with the generator command, ' +
+        'so that `ownership/generated-drift` also covers it.',
     }
   }
 
@@ -4864,50 +4862,50 @@ que é sua.
   }
   ```
 
-- [ ] **Passo 9: Rodar os testes e o type-check**
+- [ ] **Step 9: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test "test/hooks/**/*.test.ts" && npm run typecheck
   ```
 
-- [ ] **Passo 10: Commit**
+- [ ] **Step 10: Commit**
 
   ```bash
   git add packages/ownership/src/hooks packages/ownership/test/hooks
-  git commit -m "feat(RN-0012): infraestrutura de hook e ownership/generated-guard"
+  git commit -m "feat(RN-0012): hook infrastructure and ownership/generated-guard"
   ```
 
 ---
 
-### Tarefa 17: Mecanismo de transição de estado — o `promotion-guard` espera a DA
+### Task 17: State transition mechanism — the `promotion-guard` waits for the DA
 
-Regra de origem: `RN-0005` e spec §1 ("o núcleo acha os itens, pareia antes e
-depois pela chave e pergunta quando a transição exige gente").
+Source rule: `RN-0005` and spec §1 ("the core finds the items, pairs before and
+after by key and asks when the transition requires a person").
 
-**Esta tarefa para no meio, de propósito.** A spec fixa o mecanismo — achar
-os itens, parear antes e depois pela chave, detectar a transição — e não fixa
-**quais** transições exigem gente: o esquema v2 declara `states` e não
-declara transições. Essa lacuna é a `<DA-promocao>` aberta na Tarefa 1.
-Perguntar em toda transição seria inventar a regra, e com os dois plugins
-instalados faria perguntar em cada mudança de estado que uma skill escreve.
+**This task stops halfway, on purpose.** The spec fixes the mechanism — finding
+the items, pairing before and after by key, detecting the transition — and does not fix
+**which** transitions require a person: the v2 schema declares `states` and does not
+declare transitions. That gap is the `<DA-promotion>` opened in Task 1.
+Asking on every transition would be inventing the rule, and with both plugins
+installed it would ask on every state change that a skill writes.
 
-Por isso esta tarefa entrega só `findTransitions`, puro e testado, que qualquer
-resposta da DA vai usar. O hook `ownership/promotion-guard` — o arquivo
-`src/hooks/promotion-guard.ts`, a entrada em `hooks.json` e a linha no
-CHANGELOG — **não** é escrito neste plano. Quando uma pessoa resolver a DA, a
-resolução diz o que o hook pergunta, e a ligação vira tarefa própria.
+So this task delivers only `findTransitions`, pure and tested, which any
+answer to the DA will use. The `ownership/promotion-guard` hook — the file
+`src/hooks/promotion-guard.ts`, the entry in `hooks.json` and the line in the
+CHANGELOG — is **not** written in this plan. When a person resolves the DA, the
+resolution says what the hook asks, and the wiring becomes its own task.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/lifecycle/transitions.ts`
 - Test: `packages/ownership/test/lifecycle/transitions.test.ts`
 
 **Interfaces:**
-- Consome: `ResolvedOwnedRule` (Tarefa 7), `parseItemsTable`,
-  `parseItemsSections` (Tarefa 5), `parseFrontmatter` (Tarefa 3).
-- Produz: `interface Transition { key: string; from: string; to: string }`,
+- Consumes: `ResolvedOwnedRule` (Task 7), `parseItemsTable`,
+  `parseItemsSections` (Task 5), `parseFrontmatter` (Task 3).
+- Produces: `interface Transition { key: string; from: string; to: string }`,
   `findTransitions(before: string, after: string, rule: ResolvedOwnedRule, repoPath: string): Transition[]`.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -4931,23 +4929,23 @@ resolução diz o que o hook pergunta, e a ligação vira tarefa própria.
   const PER_FILE = rule({ collection: 'per-file', key: null, keyMode: null, stateField: 'status' })
   const TABLE = rule({ collection: 'table', key: 'ID', keyMode: null, stateField: 'status' })
 
-  test('per-file: mudança de status no frontmatter é transição, com a chave sendo o arquivo', () => {
-    assert.deepEqual(findTransitions('---\nstatus: draft\n---\ncorpo\n', '---\nstatus: accepted\n---\ncorpo\n', PER_FILE, 'docs/x/a.md'), [
+  test('per-file: a status change in the frontmatter is a transition, with the file as the key', () => {
+    assert.deepEqual(findTransitions('---\nstatus: draft\n---\nbody\n', '---\nstatus: accepted\n---\nbody\n', PER_FILE, 'docs/x/a.md'), [
       { key: 'docs/x/a.md', from: 'draft', to: 'accepted' },
     ])
   })
 
-  test('per-file: editar o corpo sem mudar o status não é transição', () => {
-    assert.deepEqual(findTransitions('---\nstatus: draft\n---\ncorpo\n', '---\nstatus: draft\n---\noutro\n', PER_FILE, 'docs/x/a.md'), [])
+  test('per-file: editing the body without changing the status is not a transition', () => {
+    assert.deepEqual(findTransitions('---\nstatus: draft\n---\nbody\n', '---\nstatus: draft\n---\nother\n', PER_FILE, 'docs/x/a.md'), [])
   })
 
-  test('per-file: state-field customizado é o campo lido', () => {
-    const custom = rule({ collection: 'per-file', key: null, keyMode: null, stateField: 'situação' })
+  test('per-file: a custom state-field is the field read', () => {
+    const custom = rule({ collection: 'per-file', key: null, keyMode: null, stateField: 'state' })
 
-    assert.equal(findTransitions('---\nsituação: draft\n---\n', '---\nsituação: accepted\n---\n', custom, 'a.md').length, 1)
+    assert.equal(findTransitions('---\nstate: draft\n---\n', '---\nstate: accepted\n---\n', custom, 'a.md').length, 1)
   })
 
-  test('table: pareia pela chave e devolve cada item que mudou', () => {
+  test('table: pairs by key and returns each item that changed', () => {
     const before = '| ID | Status |\n| --- | ------ |\n| DA-01 | open |\n| DA-02 | open |\n'
     const after = '| ID | Status |\n| --- | ------ |\n| DA-02 | resolved |\n| DA-01 | resolved |\n'
 
@@ -4957,7 +4955,7 @@ resolução diz o que o hook pergunta, e a ligação vira tarefa própria.
     )
   })
 
-  test('item novo não é transição — não há antes com que parear', () => {
+  test('a new item is not a transition — there is no before to pair with', () => {
     const before = '| ID | Status |\n| --- | ------ |\n| DA-01 | open |\n'
     const after = '| ID | Status |\n| --- | ------ |\n| DA-01 | open |\n| DA-02 | resolved |\n'
 
@@ -4965,13 +4963,13 @@ resolução diz o que o hook pergunta, e a ligação vira tarefa própria.
   })
   ```
 
-- [ ] **Passo 2: Confirmar que falham**
+- [ ] **Step 2: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/lifecycle/transitions.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `lifecycle/transitions.ts`**
+- [ ] **Step 3: Write `lifecycle/transitions.ts`**
 
   ```typescript
   import { parseFrontmatter } from '../core/frontmatter.ts'
@@ -4998,8 +4996,8 @@ resolução diz o que o hook pergunta, e a ligação vira tarefa própria.
   }
 
   /**
-   * Toda mudança de estado de um item que existe antes e depois, pareado pela
-   * chave. Não decide se a mudança exige gente: isso não é deste módulo.
+   * Every state change of an item that exists before and after, paired by
+   * key. It does not decide whether the change requires a person: that is not this module's job.
    */
   export function findTransitions(before: string, after: string, rule: ResolvedOwnedRule, repoPath: string): Transition[] {
     const { format } = rule
@@ -5031,50 +5029,50 @@ resolução diz o que o hook pergunta, e a ligação vira tarefa própria.
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes e o type-check**
+- [ ] **Step 4: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/lifecycle/transitions.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 5: Commit**
+- [ ] **Step 5: Commit**
 
   ```bash
   git add packages/ownership/src/lifecycle packages/ownership/test/lifecycle
-  git commit -m "feat(RN-0005): mecanismo de transição de estado para o promotion-guard, sem ligar o hook"
+  git commit -m "feat(RN-0005): state transition mechanism for the promotion-guard, without wiring the hook"
   ```
 
-- [ ] **Passo 6: PARE aqui no que toca ao hook**
+- [ ] **Step 6: STOP here as far as the hook is concerned**
 
-  Não crie `src/hooks/promotion-guard.ts`. Confira o estado da `<DA-promocao>`
-  em `docs/open-decisions.md`: se continua `open`, siga para a Tarefa 18. Se uma
-  pessoa já a resolveu, a resolução define a regra, e ligar o hook é uma tarefa
-  nova — escrita a partir da resolução, não deste plano.
+  Do not create `src/hooks/promotion-guard.ts`. Check the state of `<DA-promotion>`
+  in `docs/open-decisions.md`: if it is still `open`, go on to Task 18. If a
+  person has already resolved it, the resolution defines the rule, and wiring the hook is a new
+  task — written from the resolution, not from this plan.
 
 ---
 
-### Tarefa 18: Hooks `ownership/watch-reminder` e `ownership/commit-guard`
+### Task 18: Hooks `ownership/watch-reminder` and `ownership/commit-guard`
 
-Regra de origem: `RN-0008` e `RN-0009`; spec §6 ("lembrete de vigiado" e "guarda de commit" →
-núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
-`watchesFor`/`pendingDocs` unificado da Tarefa 9.
+Source rule: `RN-0008` and `RN-0009`; spec §6 ("watched reminder" and "commit guard" →
+core). Ports `hk4-watch-reminder.ts` and `hk5-commit-guard.ts`, using the
+unified `watchesFor`/`pendingDocs` from Task 9.
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/hooks/watch-reminder.ts`
 - Create: `packages/ownership/src/hooks/commit-guard.ts`
 - Test: `packages/ownership/test/hooks/watch-reminder.test.ts`
 - Test: `packages/ownership/test/hooks/commit-guard.test.ts`
 
 **Interfaces:**
-- Consome: `resolveOwnership` (Tarefa 7), `coversDoc`, `watchesFor`,
-  `pendingDocs`, `WatchMatch` (Tarefa 9), `stagedPaths`, `GitRunner`
-  (Tarefa 3), `contextOutput`, `askOutput`, `emit`, `hookEnv`, `readPayload`
-  (Tarefa 16).
-- Produz: `decideWatchReminder(payload, env): { action: 'silent' } | { action: 'remind'; context: string }`,
+- Consumes: `resolveOwnership` (Task 7), `coversDoc`, `watchesFor`,
+  `pendingDocs`, `WatchMatch` (Task 9), `stagedPaths`, `GitRunner`
+  (Task 3), `contextOutput`, `askOutput`, `emit`, `hookEnv`, `readPayload`
+  (Task 16).
+- Produces: `decideWatchReminder(payload, env): { action: 'silent' } | { action: 'remind'; context: string }`,
   `isGitCommit(command: string): boolean`,
   `decideCommitGuard(payload, env, run?): { action: 'allow' } | { action: 'ask'; reason: string }`.
 
-- [ ] **Passo 1: Escrever os testes de `watch-reminder` que falham primeiro**
+- [ ] **Step 1: Write the `watch-reminder` failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -5085,7 +5083,7 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
   const env = (root: string) => ({ root, hostRoots: [root] })
   const CONFIG = 'version: 2\nowned: []\nwatches:\n  - code: "src/checks/**"\n    doc: docs/requirements/rules.md\n    reason: x\n'
 
-  test('editar caminho vigiado lembra do doc dono', () => {
+  test('editing a watched path reminds of the owning doc', () => {
     withTempRepo({ '.ownership.yml': CONFIG }, root => {
       const decision = decideWatchReminder({ tool_input: { file_path: 'src/checks/a.ts' } }, env(root))
 
@@ -5093,7 +5091,7 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
     })
   })
 
-  test('editar o próprio doc dono não lembra dele mesmo', () => {
+  test('editing the owning doc itself does not remind of itself', () => {
     withTempRepo({ '.ownership.yml': CONFIG }, root => {
       const decision = decideWatchReminder({ tool_input: { file_path: 'docs/requirements/rules.md' } }, env(root))
 
@@ -5101,20 +5099,20 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
     })
   })
 
-  test('caminho não vigiado, silêncio', () => {
+  test('an unwatched path, silence', () => {
     withTempRepo({ '.ownership.yml': CONFIG }, root => {
-      assert.equal(decideWatchReminder({ tool_input: { file_path: 'src/outro.ts' } }, env(root)).action, 'silent')
+      assert.equal(decideWatchReminder({ tool_input: { file_path: 'src/other.ts' } }, env(root)).action, 'silent')
     })
   })
 
-  test('sem arquivo de ownership, o hook se cala (falha aberta)', () => {
+  test('without an ownership file, the hook keeps quiet (fails open)', () => {
     withTempRepo({}, root => {
       assert.equal(decideWatchReminder({ tool_input: { file_path: 'src/checks/a.ts' } }, env(root)).action, 'silent')
     })
   })
   ```
 
-- [ ] **Passo 2: Escrever `hooks/watch-reminder.ts`**
+- [ ] **Step 2: Write `hooks/watch-reminder.ts`**
 
   ```typescript
   #!/usr/bin/env node
@@ -5133,12 +5131,12 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
     const parts = [`- \`${match.doc}\``]
 
     if (match.owner !== null) {
-      parts.push(`(dono: ${match.owner})`)
+      parts.push(`(owner: ${match.owner})`)
     }
     if (match.reason !== null) {
       parts.push(`— ${match.reason}`)
     }
-    parts.push(match.skill !== null ? `Skill dona: ${match.skill}.` : 'Sem skill declarada — o dono está no CODEOWNERS.')
+    parts.push(match.skill !== null ? `Owning skill: ${match.skill}.` : 'No skill declared — the owner is in CODEOWNERS.')
 
     return parts.join(' ')
   }
@@ -5176,10 +5174,10 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
     return {
       action: 'remind',
       context:
-        `ownership/watch-reminder: \`${repoPath}\` é caminho vigiado em \`watches\`. ` +
-        'A atualização do doc dono cabe no mesmo PR; se não couber, ela não acontece.\n' +
-        `Doc dono a atualizar:\n${pending.map(describe).join('\n')}\n` +
-        'Isto é lembrete, não é bloqueio: se a mudança realmente não afeta o doc, siga em frente.',
+        `ownership/watch-reminder: \`${repoPath}\` is a watched path in \`watches\`. ` +
+        'Updating the owning doc belongs in the same PR; if it does not fit there, it does not happen.\n' +
+        `Owning doc to update:\n${pending.map(describe).join('\n')}\n` +
+        'This is a reminder, not a block: if the change really does not affect the doc, carry on.',
     }
   }
 
@@ -5199,13 +5197,13 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
   }
   ```
 
-- [ ] **Passo 3: Rodar os testes de `watch-reminder`**
+- [ ] **Step 3: Run the `watch-reminder` tests**
 
   ```bash
   cd packages/ownership && node --test test/hooks/watch-reminder.test.ts
   ```
 
-- [ ] **Passo 4: Escrever os testes de `commit-guard` que falham primeiro**
+- [ ] **Step 4: Write the `commit-guard` failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -5216,19 +5214,19 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
   const env = (root: string) => ({ root, hostRoots: [root] })
   const CONFIG = 'version: 2\nowned: []\nwatches:\n  - code: "src/checks/**"\n    doc: docs/requirements/rules.md\n    reason: x\n'
 
-  test('isGitCommit reconhece "git commit" no início e depois de separador', () => {
+  test('isGitCommit recognizes "git commit" at the start and after a separator', () => {
     assert.equal(isGitCommit('git commit -m "x"'), true)
     assert.equal(isGitCommit('npm test && git commit -m "x"'), true)
     assert.equal(isGitCommit('git status'), false)
   })
 
-  test('não é Bash, allow', () => {
+  test('not Bash, allow', () => {
     withTempRepo({ '.ownership.yml': CONFIG }, root => {
       assert.equal(decideCommitGuard({ tool_name: 'Edit', tool_input: { command: 'git commit -m x' } }, env(root)).action, 'allow')
     })
   })
 
-  test('staged toca vigiado sem o doc: pergunta', () => {
+  test('staged touches a watched path without the doc: asks', () => {
     withTempRepo({ '.ownership.yml': CONFIG }, root => {
       const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => 'src/checks/a.ts\0')
 
@@ -5236,7 +5234,7 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
     })
   })
 
-  test('staged traz os dois: allow', () => {
+  test('staged brings both: allow', () => {
     withTempRepo({ '.ownership.yml': CONFIG }, root => {
       const decision = decideCommitGuard(
         { tool_name: 'Bash', tool_input: { command: 'git commit -m x' } },
@@ -5248,17 +5246,17 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
     })
   })
 
-  test('git runner falha (sem git): falha aberta, allow', () => {
+  test('git runner fails (no git): fails open, allow', () => {
     withTempRepo({ '.ownership.yml': CONFIG }, root => {
       const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => {
-        throw new Error('sem git')
+        throw new Error('no git')
       })
 
       assert.equal(decision.action, 'allow')
     })
   })
 
-  test('sem arquivo de ownership, o hook se cala (falha aberta)', () => {
+  test('without an ownership file, the hook keeps quiet (fails open)', () => {
     withTempRepo({}, root => {
       const decision = decideCommitGuard({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' } }, env(root), () => 'src/checks/a.ts\0')
 
@@ -5267,7 +5265,7 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
   })
   ```
 
-- [ ] **Passo 5: Escrever `hooks/commit-guard.ts`**
+- [ ] **Step 5: Write `hooks/commit-guard.ts`**
 
   ```typescript
   #!/usr/bin/env node
@@ -5292,14 +5290,14 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
     const parts = [`- \`${match.doc}\``]
 
     if (match.owner !== null) {
-      parts.push(`(dono: ${match.owner})`)
+      parts.push(`(owner: ${match.owner})`)
     }
-    parts.push(`— exigido por: ${match.matched.join(', ')}`)
+    parts.push(`— required by: ${match.matched.join(', ')}`)
     if (match.reason !== null) {
-      parts.push(`Motivo: ${match.reason}`)
+      parts.push(`Reason: ${match.reason}`)
     }
     if (match.skill !== null) {
-      parts.push(`Skill dona: ${match.skill}.`)
+      parts.push(`Owning skill: ${match.skill}.`)
     }
 
     return parts.join(' ')
@@ -5316,8 +5314,8 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
       return ALLOW
     }
 
-    // Os caminhos staged vêm antes da configuração: são eles que decidem o que
-    // a poda deixa de ler.
+    // The staged paths come before the configuration: they are what decides what
+    // pruning stops reading.
     const staged = stagedPaths(env.root, run)
 
     if (staged.length === 0) {
@@ -5344,10 +5342,10 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
     return {
       action: 'ask',
       reason:
-        'ownership/commit-guard: este commit leva código de caminho vigiado sem o doc dono. ' +
-        'Se a atualização não cabe neste PR, ela não acontece.\n' +
-        `Pendente:\n${pending.map(describe).join('\n')}\n` +
-        'Atualize o doc agora e refaça o `git add` — ou, se a mudança realmente não afeta o doc, diga que é uma decisão humana e siga.',
+        'ownership/commit-guard: this commit carries code from a watched path without the owning doc. ' +
+        'If the update does not fit in this PR, it does not happen.\n' +
+        `Pending:\n${pending.map(describe).join('\n')}\n` +
+        'Update the doc now and redo the `git add` — or, if the change really does not affect the doc, say it is a human decision and carry on.',
     }
   }
 
@@ -5367,39 +5365,39 @@ núcleo). Porta `hk4-watch-reminder.ts` e `hk5-commit-guard.ts`, usando o
   }
   ```
 
-- [ ] **Passo 6: Rodar os testes e o type-check**
+- [ ] **Step 6: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/hooks/watch-reminder.test.ts test/hooks/commit-guard.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 7: Commit**
+- [ ] **Step 7: Commit**
 
   ```bash
   git add packages/ownership/src/hooks/watch-reminder.ts packages/ownership/src/hooks/commit-guard.ts packages/ownership/test/hooks/watch-reminder.test.ts packages/ownership/test/hooks/commit-guard.test.ts
-  git commit -m "feat(RN-0009): hooks ownership/watch-reminder e ownership/commit-guard"
+  git commit -m "feat(RN-0009): ownership/watch-reminder and ownership/commit-guard hooks"
   ```
 
 ---
 
-### Tarefa 19: Hook `ownership/derivation-reminder`
+### Task 19: `ownership/derivation-reminder` hook
 
-Regra de origem: `<RN-derivacao>`; spec §4 e §6 ("novo — lembrete de derivação" → núcleo). É o
-único hook novo, sem equivalente em `@esliph/living-docs`: editar a fonte de
-uma derivação lembra só dos documentos que **de fato** apontam para o arquivo
-editado — não todo o diretório (`derivedFilesOf`, Tarefa 10, já faz a
-precisão).
+Source rule: `<RN-derivation>`; spec §4 and §6 ("new — derivation reminder" → core). It is the
+only new hook, with no equivalent in `@esliph/living-docs`: editing the source of
+a derivation reminds only of the documents that **actually** point to the edited
+file — not the whole directory (`derivedFilesOf`, Task 10, already does the
+precision).
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/hooks/derivation-reminder.ts`
 - Test: `packages/ownership/test/hooks/derivation-reminder.test.ts`
 
 **Interfaces:**
-- Consome: `resolveOwnership` (Tarefa 7), `derivedFilesOf` (Tarefa 10),
-  `toRepoPath`, `contextOutput`, `emit`, `hookEnv`, `readPayload` (Tarefa 16).
-- Produz: `decideDerivationReminder(payload, env): { action: 'silent' } | { action: 'remind'; context: string }`.
+- Consumes: `resolveOwnership` (Task 7), `derivedFilesOf` (Task 10),
+  `toRepoPath`, `contextOutput`, `emit`, `hookEnv`, `readPayload` (Task 16).
+- Produces: `decideDerivationReminder(payload, env): { action: 'silent' } | { action: 'remind'; context: string }`.
 
-- [ ] **Passo 1: Escrever os testes que falham primeiro**
+- [ ] **Step 1: Write the failing tests first**
 
   ```typescript
   import { test } from 'node:test'
@@ -5411,7 +5409,7 @@ precisão).
   const env = (root: string) => ({ root, hostRoots: [root] })
   const CONFIG = 'version: 2\nowned:\n  - path: docs/plans/\n    owner: "@a"\n    derives-from:\n      source: docs/specs/\n      field: spec\n'
 
-  test('editar a fonte lembra só o documento que aponta exatamente para ela', () => {
+  test('editing the source reminds only of the document that points exactly to it', () => {
     withTempRepo(
       {
         '.ownership.yml': CONFIG,
@@ -5433,21 +5431,21 @@ precisão).
     )
   })
 
-  test('editar um documento que não é fonte de derivação nenhuma: silêncio', () => {
+  test('editing a document that is the source of no derivation: silence', () => {
     withTempRepo({ '.ownership.yml': CONFIG, 'docs/plans/a.md': '---\nspec: docs/specs/s1.md\n---\n' }, root => {
       forgetTree(root)
       assert.equal(decideDerivationReminder({ tool_input: { file_path: 'docs/plans/a.md' } }, env(root)).action, 'silent')
     })
   })
 
-  test('sem nenhum documento apontando para a fonte editada: silêncio', () => {
+  test('with no document pointing to the edited source: silence', () => {
     withTempRepo({ '.ownership.yml': CONFIG, 'docs/specs/s1.md': '# s1\n' }, root => {
       forgetTree(root)
       assert.equal(decideDerivationReminder({ tool_input: { file_path: 'docs/specs/s1.md' } }, env(root)).action, 'silent')
     })
   })
 
-  test('sem arquivo de ownership, o hook se cala (falha aberta)', () => {
+  test('without an ownership file, the hook keeps quiet (fails open)', () => {
     withTempRepo({ 'docs/specs/s1.md': '# s1\n' }, root => {
       forgetTree(root)
       assert.equal(decideDerivationReminder({ tool_input: { file_path: 'docs/specs/s1.md' } }, env(root)).action, 'silent')
@@ -5455,13 +5453,13 @@ precisão).
   })
   ```
 
-- [ ] **Passo 2: Confirmar que falham**
+- [ ] **Step 2: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/hooks/derivation-reminder.test.ts
   ```
 
-- [ ] **Passo 3: Escrever `hooks/derivation-reminder.ts`**
+- [ ] **Step 3: Write `hooks/derivation-reminder.ts`**
 
   ```typescript
   #!/usr/bin/env node
@@ -5507,7 +5505,7 @@ precisão).
       }
 
       for (const derived of derivedFilesOf(env.root, rule, repoPath)) {
-        reminders.push(`- \`${derived}\` (declara \`${rule.derivesFrom.field}: ${repoPath}\`, sob \`${rule.path}\`${rule.skill === null ? '' : `, skill dona: ${rule.skill}`})`)
+        reminders.push(`- \`${derived}\` (declares \`${rule.derivesFrom.field}: ${repoPath}\`, under \`${rule.path}\`${rule.skill === null ? '' : `, owning skill: ${rule.skill}`})`)
       }
     }
 
@@ -5518,9 +5516,9 @@ precisão).
     return {
       action: 'remind',
       context:
-        `ownership/derivation-reminder: \`${repoPath}\` é fonte de derivação — os documentos abaixo declaram derivar dela:\n` +
+        `ownership/derivation-reminder: \`${repoPath}\` is a derivation source — the documents below declare that they derive from it:\n` +
         `${reminders.join('\n')}\n` +
-        'Confira se eles ainda descrevem o que a fonte diz agora. Isto é lembrete, não é bloqueio.',
+        'Check that they still describe what the source says now. This is a reminder, not a block.',
     }
   }
 
@@ -5540,35 +5538,35 @@ precisão).
   }
   ```
 
-- [ ] **Passo 4: Rodar os testes e o type-check**
+- [ ] **Step 4: Run the tests and the type-check**
 
   ```bash
   cd packages/ownership && node --test test/hooks/derivation-reminder.test.ts && npm run typecheck
   ```
 
-- [ ] **Passo 5: Commit**
+- [ ] **Step 5: Commit**
 
   ```bash
   git add packages/ownership/src/hooks/derivation-reminder.ts packages/ownership/test/hooks/derivation-reminder.test.ts
-  git commit -m "feat(<RN-derivacao>): hook ownership/derivation-reminder"
+  git commit -m "feat(<RN-derivation>): ownership/derivation-reminder hook"
   ```
 
 ---
 
-### Tarefa 20: CLI, API pública e wiring do plugin
+### Task 20: CLI, public API and plugin wiring
 
-Regra de origem: `<RF-validate>`; spec §7 ("`ownership validate` cobre dono, ciclo de vida,
-gatilho e gerado"). Fecha o pacote: `ownership validate [--base <ref>]`,
-`ownership explain <caminho>`, a API pública em `src/index.ts`, e os arquivos
-que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
+Source rule: `<RF-validate>`; spec §7 ("`ownership validate` covers owner, lifecycle,
+trigger and generated"). It closes the package: `ownership validate [--base <ref>]`,
+`ownership explain <path>`, the public API in `src/index.ts`, and the files
+that make it an installable plugin (`plugin.json`, `hooks.json`,
 `run-hook.sh`).
 
-**Arquivos:**
+**Files:**
 - Create: `packages/ownership/src/cli/report.ts`
 - Create: `packages/ownership/src/cli/validate.ts`
 - Create: `packages/ownership/src/cli/explain.ts`
 - Create: `packages/ownership/src/cli/index.ts`
-- Modify: `packages/ownership/src/index.ts` (API pública — substitui o `export {}` da Tarefa 2)
+- Modify: `packages/ownership/src/index.ts` (public API — replaces the `export {}` from Task 2)
 - Create: `packages/ownership/.claude-plugin/plugin.json`
 - Create: `packages/ownership/hooks/hooks.json`
 - Create: `packages/ownership/hooks/run-hook.sh`
@@ -5577,34 +5575,34 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
 - Test: `packages/ownership/test/cli/report.test.ts`
 
 **Interfaces:**
-- Consome: `resolveOwnership` (Tarefa 7), `explainPath` (Tarefa 8),
-  `coreChecks`/`diffChecks` (Tarefa 15), `changedPaths`/`commitMessages`
-  (Tarefa 3), `forgetTree` (Tarefa 3), `OwnershipError` (Tarefa 4).
-- Produz: `formatFindings(findings): string`,
+- Consumes: `resolveOwnership` (Task 7), `explainPath` (Task 8),
+  `coreChecks`/`diffChecks` (Task 15), `changedPaths`/`commitMessages`
+  (Task 3), `forgetTree` (Task 3), `OwnershipError` (Task 4).
+- Produces: `formatFindings(findings): string`,
   `interface ValidateResult { findings: Finding[]; errors: number; warnings: number; exitCode: number; installed: boolean }`,
   `runValidate(root, base?, run?): ValidateResult`, `runExplain(root, target): string`.
 
-- [ ] **Passo 1: Escrever o teste de `report.ts` que falha primeiro**
+- [ ] **Step 1: Write the `report.ts` failing test first**
 
   ```typescript
   import { test } from 'node:test'
   import assert from 'node:assert/strict'
   import { formatFindings } from '../../src/cli/report.ts'
 
-  test('sem achados, mensagem única', () => {
-    assert.equal(formatFindings([]), 'ownership: nenhuma violação encontrada.')
+  test('with no findings, a single message', () => {
+    assert.equal(formatFindings([]), 'ownership: no violations found.')
   })
 
-  test('com achados, lista local, regra, severidade, mensagem e correção, com o total no fim', () => {
+  test('with findings, lists location, rule, severity, message and fix, with the total at the end', () => {
     const text = formatFindings([{ ruleId: 'ownership/x', file: 'a.md', line: 3, severity: 'error', message: 'm', fix: 'f' }])
 
     assert.match(text, /a\.md:3/)
     assert.match(text, /ownership\/x/)
-    assert.match(text, /1 erro/)
+    assert.match(text, /1 error/)
   })
   ```
 
-- [ ] **Passo 2: Escrever `cli/report.ts`**
+- [ ] **Step 2: Write `cli/report.ts`**
 
   ```typescript
   import type { Finding } from '../checks/types.ts'
@@ -5615,7 +5613,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
 
   export function formatFindings(findings: readonly Finding[]): string {
     if (findings.length === 0) {
-      return 'ownership: nenhuma violação encontrada.'
+      return 'ownership: no violations found.'
     }
 
     const lines: string[] = []
@@ -5631,13 +5629,13 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
     const warnings = findings.length - errors
 
     lines.push('')
-    lines.push(`ownership: ${plural(errors, 'erro', 'erros')}, ${plural(warnings, 'aviso', 'avisos')}.`)
+    lines.push(`ownership: ${plural(errors, 'error', 'errors')}, ${plural(warnings, 'warning', 'warnings')}.`)
 
     return lines.join('\n')
   }
   ```
 
-- [ ] **Passo 3: Escrever os testes de `validate.ts` e `explain.ts` que falham primeiro**
+- [ ] **Step 3: Write the `validate.ts` and `explain.ts` failing tests first**
 
   ```typescript
   // test/cli/validate.test.ts
@@ -5646,7 +5644,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   import { runValidate } from '../../src/cli/validate.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('sem arquivo de ownership, installed: false e exitCode 0', () => {
+  test('without an ownership file, installed: false and exitCode 0', () => {
     withTempRepo({}, root => {
       const result = runValidate(root)
 
@@ -5655,16 +5653,16 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
     })
   })
 
-  test('com achado de erro, exitCode 1', () => {
+  test('with an error finding, exitCode 1', () => {
     withTempRepo({ '.ownership.yml': 'version: 2\nowned:\n  - path: docs/x.md\n    owner: "@a"\n' }, root => {
       const result = runValidate(root)
 
-      assert.equal(result.exitCode, 1) // ownership/owner-coverage: CODEOWNERS ausente e caminho inexistente
+      assert.equal(result.exitCode, 1) // ownership/owner-coverage: CODEOWNERS missing and nonexistent path
       assert.ok(result.errors > 0)
     })
   })
 
-  test('sem --base, os checks de diff não rodam', () => {
+  test('without --base, the diff checks do not run', () => {
     withTempRepo({ '.ownership.yml': 'version: 2\nowned: []\nwatches:\n  - code: "src/**"\n    doc: docs/x.md\n' }, root => {
       const result = runValidate(root)
 
@@ -5680,26 +5678,26 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   import { runExplain } from '../../src/cli/explain.ts'
   import { withTempRepo } from '../helpers/tmp.ts'
 
-  test('sem arquivo de ownership, diz isso', () => {
+  test('without an ownership file, says so', () => {
     withTempRepo({}, root => {
-      assert.match(runExplain(root, 'x.md'), /nenhum arquivo de ownership/)
+      assert.match(runExplain(root, 'x.md'), /no ownership file/)
     })
   })
 
-  test('com arquivo, delega para explainPath', () => {
+  test('with a file, delegates to explainPath', () => {
     withTempRepo({ '.ownership.yml': 'version: 2\nowned:\n  - path: docs/x.md\n    owner: "@a"\n' }, root => {
       assert.match(runExplain(root, 'docs/x.md'), /@a/)
     })
   })
   ```
 
-- [ ] **Passo 4: Confirmar que falham**
+- [ ] **Step 4: Confirm they fail**
 
   ```bash
   cd packages/ownership && node --test test/cli/report.test.ts test/cli/validate.test.ts test/cli/explain.test.ts
   ```
 
-- [ ] **Passo 5: Escrever `cli/validate.ts`**
+- [ ] **Step 5: Write `cli/validate.ts`**
 
   ```typescript
   import { changedPaths, commitMessages } from '../core/exec.ts'
@@ -5714,7 +5712,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
     errors: number
     warnings: number
     exitCode: number
-    /** `false` quando não há arquivo de ownership — repositório sem o toolkit. */
+    /** `false` when there is no ownership file — a repository without the toolkit. */
     installed: boolean
   }
 
@@ -5744,7 +5742,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   }
   ```
 
-- [ ] **Passo 6: Escrever `cli/explain.ts`**
+- [ ] **Step 6: Write `cli/explain.ts`**
 
   ```typescript
   import { resolveOwnership } from '../resolve/hierarchy.ts'
@@ -5754,20 +5752,20 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
     const config = resolveOwnership(root)
 
     if (config === null) {
-      return 'ownership: nenhum arquivo de ownership encontrado neste repositório.'
+      return 'ownership: no ownership file found in this repository.'
     }
 
     return explainPath(config, target)
   }
   ```
 
-- [ ] **Passo 7: Rodar os testes**
+- [ ] **Step 7: Run the tests**
 
   ```bash
   cd packages/ownership && node --test test/cli/report.test.ts test/cli/validate.test.ts test/cli/explain.test.ts
   ```
 
-- [ ] **Passo 8: Escrever `cli/index.ts`**
+- [ ] **Step 8: Write `cli/index.ts`**
 
   ```typescript
   #!/usr/bin/env node
@@ -5777,13 +5775,13 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   import { formatFindings } from './report.ts'
   import { OwnershipError } from '../schema/types.ts'
 
-  const USAGE = `ownership <comando>
+  const USAGE = `ownership <command>
 
-    validate [--base <ref>]   Roda os checks de dono, ciclo de vida, gatilho e gerado
-    explain <caminho>         Mostra a regra resolvida e de onde veio cada propriedade
+    validate [--base <ref>]   Runs the owner, lifecycle, trigger and generated checks
+    explain <path>            Shows the resolved rule and where each property came from
 
-  Opções de validate:
-    --base <ref>   Base do diff — liga os checks que dependem do diff da branch
+  validate options:
+    --base <ref>   Diff base — enables the checks that depend on the branch diff
   `
 
   function repoRoot(): string {
@@ -5806,7 +5804,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
         const base = baseIndex === -1 ? null : (argv[baseIndex + 1] ?? '')
 
         if (baseIndex !== -1 && base === '') {
-          process.stderr.write('ownership: `--base` precisa de uma ref.\n')
+          process.stderr.write('ownership: `--base` needs a ref.\n')
 
           return 2
         }
@@ -5814,7 +5812,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
         const result = runValidate(root, base)
 
         if (!result.installed) {
-          process.stdout.write('ownership: nenhum arquivo de ownership encontrado — nada a validar.\n')
+          process.stdout.write('ownership: no ownership file found — nothing to validate.\n')
 
           return 0
         }
@@ -5827,7 +5825,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
         const target = argv[1]
 
         if (target === undefined) {
-          process.stderr.write('ownership: `explain` precisa de um caminho.\n')
+          process.stderr.write('ownership: `explain` needs a path.\n')
 
           return 2
         }
@@ -5844,7 +5842,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
       throw err
     }
 
-    process.stderr.write(`ownership: comando desconhecido "${command}".\n\n${USAGE}`)
+    process.stderr.write(`ownership: unknown command "${command}".\n\n${USAGE}`)
 
     return 2
   }
@@ -5852,7 +5850,7 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   process.exitCode = main(process.argv.slice(2))
   ```
 
-- [ ] **Passo 9: Testar o CLI manualmente**
+- [ ] **Step 9: Test the CLI manually**
 
   ```bash
   cd packages/ownership && node src/cli/index.ts --help
@@ -5866,11 +5864,11 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   rm -rf /tmp/ownership-manual /tmp/o.yml
   ```
 
-  Espera-se: `validate` reporta 2 erros — a falta de CODEOWNERS e o próprio
-  `.ownership.yml` sem regra em `owned[]` (ele é arquivo governado como
-  qualquer outro); `explain` mostra `owner: @a`.
+  Expected: `validate` reports 2 errors — the missing CODEOWNERS and the
+  `.ownership.yml` itself with no rule in `owned[]` (it is a governed file like
+  any other); `explain` shows `owner: @a`.
 
-- [ ] **Passo 10: Escrever a API pública em `src/index.ts`**
+- [ ] **Step 10: Write the public API in `src/index.ts`**
 
   ```typescript
   export { resolveOwnership, findOwnedRule, findGeneratedRule } from './resolve/hierarchy.ts'
@@ -5885,17 +5883,17 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   export type { Collection, DerivesFrom, FormatBlock, SectionKeyMode } from './schema/types.ts'
   ```
 
-- [ ] **Passo 11: Criar `.claude-plugin/plugin.json`**
+- [ ] **Step 11: Create `.claude-plugin/plugin.json`**
 
   ```json
   {
     "name": "ownership",
     "version": "0.1.0",
-    "description": "Núcleo de ownership de artefatos: dono, ciclo de vida e gatilho código→doc e doc→doc."
+    "description": "Artifact ownership core: owner, lifecycle and the code→doc and doc→doc triggers."
   }
   ```
 
-- [ ] **Passo 12: Criar `hooks/hooks.json`**
+- [ ] **Step 12: Create `hooks/hooks.json`**
 
   ```json
   {
@@ -5925,17 +5923,17 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   }
   ```
 
-- [ ] **Passo 13: Criar `hooks/run-hook.sh`**
+- [ ] **Step 13: Create `hooks/run-hook.sh`**
 
   ```bash
   #!/usr/bin/env bash
-  # Wrapper dos hooks do núcleo de ownership: executa no node do host.
-  # Falha aberta por contrato — node ausente, timeout ou erro de execução
-  # resultam em saída vazia e exit 0.
+  # Wrapper for the ownership core hooks: runs on the host's node.
+  # Fails open by contract — missing node, timeout or execution error
+  # result in empty output and exit 0.
   #
-  # TOOLKIT_ROOT é a raiz DESTE plugin (um nível acima de hooks/, porque
-  # hooks/ e src/ moram lado a lado em packages/ownership/). REPO_ROOT é o
-  # repositório que este plugin julga, vindo de CLAUDE_PROJECT_DIR.
+  # TOOLKIT_ROOT is the root of THIS plugin (one level above hooks/, because
+  # hooks/ and src/ live side by side in packages/ownership/). REPO_ROOT is the
+  # repository this plugin judges, coming from CLAUDE_PROJECT_DIR.
 
   HOOK="${1:-}"
   TOOLKIT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -5955,47 +5953,47 @@ que fazem dele um plugin instalável (`plugin.json`, `hooks.json`,
   exit 0
   ```
 
-  Dar permissão de execução:
+  Give it execute permission:
 
   ```bash
   chmod +x packages/ownership/hooks/run-hook.sh
   ```
 
-- [ ] **Passo 14: Rodar a suíte inteira do pacote e o type-check**
+- [ ] **Step 14: Run the whole package suite and the type-check**
 
   ```bash
   cd packages/ownership && node --test "test/**/*.test.ts" && npm run typecheck
   ```
 
-- [ ] **Passo 15: Commit**
+- [ ] **Step 15: Commit**
 
   ```bash
   git add packages/ownership/src/cli packages/ownership/src/index.ts packages/ownership/.claude-plugin packages/ownership/hooks packages/ownership/test/cli
-  git commit -m "feat(<RF-validate>): CLI (validate, explain), API pública e wiring do plugin"
+  git commit -m "feat(<RF-validate>): CLI (validate, explain), public API and plugin wiring"
   ```
 
 ---
 
-### Tarefa 21: Distribuição — build no prepack e prova de empacotamento
+### Task 21: Distribution — build in prepack and packaging proof
 
-Regra de origem: `<RNF-build>`; spec §7 ("build só na publicação") e §9 ("empacotamento —
-`npm pack`, instalar o tarball num diretório temporário, importar e afirmar
-que funciona. Fecha a lacuna da condição `development`."). Esta é a prova que
-fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
-["dist"]` são afirmação, não fato observado.
+Source rule: `<RNF-build>`; spec §7 ("build only at publication") and §9 ("packaging —
+`npm pack`, install the tarball in a temporary directory, import and assert
+that it works. Closes the gap of the `development` condition."). This is the proof that
+closes the gap the spec names: without it, `exports.development` and `files:
+["dist"]` are assertion, not observed fact.
 
-**Arquivos:**
-- Modify: `packages/ownership/.gitignore` (acrescenta `*.tgz`)
+**Files:**
+- Modify: `packages/ownership/.gitignore` (adds `*.tgz`)
 - Test: `packages/ownership/test/distribution/packaging.test.ts`
 - Test: `packages/ownership/test/distribution/dev-resolution.test.ts`
 - Test: `packages/ownership/test/distribution/lockfile.test.ts`
 - Test: `packages/ownership/test/distribution/no-internal-trace.test.ts`
 
 **Interfaces:**
-- Consome: tudo que o pacote já expõe (Tarefas 2–20) — esta tarefa não
-  acrescenta código de produção, só prova que o empacotado funciona.
+- Consumes: everything the package already exposes (Tasks 2–20) — this task does not
+  add production code, it only proves that the packaged result works.
 
-- [ ] **Passo 1: Acrescentar `*.tgz` ao `.gitignore` do pacote**
+- [ ] **Step 1: Add `*.tgz` to the package's `.gitignore`**
 
   `packages/ownership/.gitignore`:
 
@@ -6005,7 +6003,7 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
   *.tgz
   ```
 
-- [ ] **Passo 2: Escrever o teste de empacotamento**
+- [ ] **Step 2: Write the packaging test**
 
   `packages/ownership/test/distribution/packaging.test.ts`:
 
@@ -6019,7 +6017,7 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
 
   const PACKAGE_ROOT = join(import.meta.dirname, '..', '..')
 
-  test('npm pack produz um tarball instalável cujo dist roda de verdade', { timeout: 120_000 }, () => {
+  test('npm pack produces an installable tarball whose dist really runs', { timeout: 120_000 }, () => {
     const packResult = spawnSync('npm', ['pack', '--json'], { cwd: PACKAGE_ROOT, encoding: 'utf8', shell: true })
 
     assert.equal(packResult.status, 0, packResult.stderr)
@@ -6035,7 +6033,7 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
       const run = spawnSync('node', ['node_modules/@esliph/ownership/dist/cli/index.js', '--help'], { cwd: installDir, encoding: 'utf8' })
 
       assert.equal(run.status, 0, run.stderr)
-      assert.match(run.stdout, /ownership <comando>/)
+      assert.match(run.stdout, /ownership <command>/)
     } finally {
       rmSync(installDir, { recursive: true, force: true })
       rmSync(tarball, { force: true })
@@ -6043,22 +6041,22 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
   })
   ```
 
-- [ ] **Passo 3: Rodar o teste de empacotamento**
+- [ ] **Step 3: Run the packaging test**
 
   ```bash
   cd packages/ownership && node --test test/distribution/packaging.test.ts
   ```
 
-  Se falhar em "Cannot find module dist/cli/index.js", confira o `prepack` do
-  `package.json` (Tarefa 2) e o `tsconfig.build.json` — `npm pack` roda o
-  `prepack` sozinho, antes de empacotar.
+  If it fails on "Cannot find module dist/cli/index.js", check the `prepack` in
+  `package.json` (Task 2) and the `tsconfig.build.json` — `npm pack` runs
+  `prepack` on its own, before packing.
 
-  Se falhar porque o `bin` do `package.json` não bate com o caminho gerado,
-  ajuste o `tsconfig.build.json` para preservar a estrutura de diretórios
-  (`outDir: "dist"` já faz isso, mas confira que `dist/cli/index.js` existe de
-  verdade depois do `prepack`: `cd packages/ownership && npm run prepack --if-present && ls dist/cli/`).
+  If it fails because the `bin` in `package.json` does not match the generated path,
+  adjust `tsconfig.build.json` to preserve the directory structure
+  (`outDir: "dist"` already does that, but check that `dist/cli/index.js` really exists
+  after the `prepack`: `cd packages/ownership && npm run prepack --if-present && ls dist/cli/`).
 
-- [ ] **Passo 4: Escrever o teste de resolução em desenvolvimento**
+- [ ] **Step 4: Write the development resolution test**
 
   `packages/ownership/test/distribution/dev-resolution.test.ts`:
 
@@ -6070,8 +6068,8 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
 
   const REPO_ROOT = join(import.meta.dirname, '..', '..', '..', '..')
 
-  test('com a condição development, @esliph/ownership resolve pelo código-fonte, sem dist', { timeout: 30_000 }, () => {
-    const script = 'import("@esliph/ownership").then(m => { if (typeof m.resolveOwnership !== "function") throw new Error("não resolveu pelo source"); console.log("ok") })'
+  test('with the development condition, @esliph/ownership resolves from the source code, without dist', { timeout: 30_000 }, () => {
+    const script = 'import("@esliph/ownership").then(m => { if (typeof m.resolveOwnership !== "function") throw new Error("did not resolve from the source"); console.log("ok") })'
     const result = spawnSync('node', ['--input-type=module', '-e', script], {
       cwd: REPO_ROOT,
       encoding: 'utf8',
@@ -6083,21 +6081,21 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
   })
   ```
 
-  Este teste depende do `workspaces` da raiz (Tarefa 2, Passo 8) já ter criado
-  o symlink `node_modules/@esliph/ownership → packages/ownership`. Se o
-  symlink não existir, rode `npm install` na raiz do repositório antes.
+  This test depends on the root `workspaces` (Task 2, Step 8) having already created
+  the `node_modules/@esliph/ownership → packages/ownership` symlink. If the
+  symlink does not exist, run `npm install` at the repository root first.
 
-- [ ] **Passo 5: Rodar o teste de resolução em desenvolvimento**
+- [ ] **Step 5: Run the development resolution test**
 
   ```bash
   cd packages/ownership && node --test test/distribution/dev-resolution.test.ts
   ```
 
-- [ ] **Passo 6: Escrever o teste do lockfile próprio**
+- [ ] **Step 6: Write the own-lockfile test**
 
-  `packages/ownership/test/distribution/lockfile.test.ts`. Dentro do
-  workspace, `npm install` no pacote escreve o lockfile da raiz, e o do pacote
-  envelheceria sem aviso. O teste regera o lockfile fora do workspace e compara:
+  `packages/ownership/test/distribution/lockfile.test.ts`. Inside the
+  workspace, `npm install` in the package writes the root lockfile, and the package's own
+  would go stale without warning. The test regenerates the lockfile outside the workspace and compares:
 
   ```typescript
   import { test } from 'node:test'
@@ -6113,7 +6111,7 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
     return (JSON.parse(readFileSync(lockfile, 'utf8')) as { packages: unknown }).packages
   }
 
-  test('o package-lock.json do pacote está em dia com o package.json', { timeout: 120_000 }, () => {
+  test("the package's package-lock.json is up to date with package.json", { timeout: 120_000 }, () => {
     const isolated = mkdtempSync(join(tmpdir(), 'ownership-lock-'))
 
     try {
@@ -6124,7 +6122,7 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
       assert.deepEqual(
         packagesOf(join(isolated, 'package-lock.json')),
         packagesOf(join(PACKAGE_ROOT, 'package-lock.json')),
-        'Lockfile desatualizado. Regere fora do workspace: copie package.json para um diretório temporário, rode `npm install --package-lock-only` e traga o package-lock.json de volta.',
+        'Lockfile out of date. Regenerate it outside the workspace: copy package.json to a temporary directory, run `npm install --package-lock-only` and bring the package-lock.json back.',
       )
     } finally {
       rmSync(isolated, { recursive: true, force: true })
@@ -6132,13 +6130,13 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
   })
   ```
 
-- [ ] **Passo 7: Escrever o teste de rastro interno**
+- [ ] **Step 7: Write the internal trail test**
 
-  `packages/ownership/test/distribution/no-internal-trace.test.ts`. O
-  `CLAUDE.md` diz que o que o toolkit entrega não aponta para dentro dele, e o
-  teste de distribuição da raiz só varre o `src/` do `living-docs`. Este cobre o
-  pacote novo: fora de comentário, nenhum ID de artefato deste repositório nem
-  seção de spec:
+  `packages/ownership/test/distribution/no-internal-trace.test.ts`. The
+  `CLAUDE.md` says that what the toolkit ships does not point inside itself, and the
+  root distribution test only scans the `src/` of `living-docs`. This one covers the
+  new package: outside of comments, no artifact ID of this repository and no
+  spec section:
 
   ```typescript
   import { test } from 'node:test'
@@ -6158,7 +6156,7 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
     })
   }
 
-  test('código, hooks e manifesto do plugin não citam o rastro interno fora de comentário', () => {
+  test('code, hooks and plugin manifest do not cite the internal trail outside of comments', () => {
     const found: string[] = []
 
     for (const file of [...shipped(join(PACKAGE_ROOT, 'src')), ...shipped(join(PACKAGE_ROOT, 'hooks'))]) {
@@ -6175,132 +6173,132 @@ fecha a lacuna que a spec nomeia: sem ela, `exports.development` e `files:
   })
   ```
 
-- [ ] **Passo 8: Rodar a suíte inteira do pacote e o type-check**
+- [ ] **Step 8: Run the whole package suite and the type-check**
 
   ```bash
   cd packages/ownership && node --test "test/**/*.test.ts" && npm run typecheck
   ```
 
-- [ ] **Passo 9: Confirmar que nenhum `dist/` ou `.tgz` foi commitado por engano**
+- [ ] **Step 9: Confirm that no `dist/` or `.tgz` was committed by mistake**
 
   ```bash
   git status --short packages/ownership
   ```
 
-  Esperado: só os quatro arquivos de teste e o `.gitignore` — `dist/` e `*.tgz`
-  não aparecem.
+  Expected: only the four test files and the `.gitignore` — `dist/` and `*.tgz`
+  do not appear.
 
-- [ ] **Passo 10: Commit**
+- [ ] **Step 10: Commit**
 
   ```bash
   git add packages/ownership/.gitignore packages/ownership/test/distribution
-  git commit -m "test(<RNF-build>): prova de empacotamento, lockfile e resolução em desenvolvimento"
+  git commit -m "test(<RNF-build>): packaging, lockfile and development resolution proof"
   ```
 
 ---
 
-### Tarefa 22: Revisão final — e por que não há entrada de CHANGELOG
+### Task 22: Final review — and why there is no CHANGELOG entry
 
-Regra de origem: `RN-0013` — mudança visível a quem consome viaja com a
-entrada de `CHANGELOG.md`, **ou com a razão escrita no commit**.
+Source rule: `RN-0013` — a change visible to whoever consumes travels with the
+`CHANGELOG.md` entry, **or with the reason written in the commit**.
 
-Nada deste plano chega a quem consome: `@esliph/ownership` é `private`, não
-vai ao npm, e o plugin fica fora do marketplace até a prova de instalação
-remota (Tarefa 2, Passo 9). Uma entrada agora anunciaria um plugin que ninguém
-consegue instalar — e `CHANGELOG.md` é `audience: external`. A entrada nasce na
-tarefa que registrar o plugin no marketplace; aqui, a razão vai escrita no
-commit que fecha o plano.
+Nothing in this plan reaches whoever consumes: `@esliph/ownership` is `private`, does not
+go to npm, and the plugin stays outside the marketplace until the remote install
+proof (Task 2, Step 9). An entry now would announce a plugin that no one
+can install — and `CHANGELOG.md` is `audience: external`. The entry is born in the
+task that registers the plugin in the marketplace; here, the reason is written in the
+commit that closes the plan.
 
-**Arquivos:**
-- Nenhum arquivo novo; só verificação e o commit de fechamento, se houver algo
-  a commitar.
+**Files:**
+- No new files; only verification and the closing commit, if there is anything
+  to commit.
 
 **Interfaces:**
-- Consome: nada — última tarefa do plano.
+- Consumes: nothing — last task of the plan.
 
-- [ ] **Passo 1: Confirmar que nada visível ao consumidor mudou**
+- [ ] **Step 1: Confirm that nothing visible to the consumer changed**
 
   ```bash
   git diff --name-only master...HEAD -- .claude-plugin/ plugin/ src/cli/ templates/
   ```
 
-  Esperado: saída vazia. Se aparecer algo, o plano saiu do escopo — pare e
-  descubra por quê antes de seguir.
+  Expected: empty output. If anything shows up, the plan went out of scope — stop and
+  find out why before going on.
 
-- [ ] **Passo 2: Rodar a suíte de `@esliph/living-docs` na raiz**
+- [ ] **Step 2: Run the `@esliph/living-docs` suite at the root**
 
   ```bash
   npm test && npm run typecheck && node src/cli/index.ts validate
   ```
 
-  Esperado: tudo passa — `docs/.ownership.yml` continua em `version: 1` e
-  `@esliph/living-docs` não foi tocado por este plano.
+  Expected: everything passes — `docs/.ownership.yml` stays at `version: 1` and
+  `@esliph/living-docs` was not touched by this plan.
 
-- [ ] **Passo 3: Rodar a suíte inteira de `@esliph/ownership`**
+- [ ] **Step 3: Run the whole `@esliph/ownership` suite**
 
   ```bash
   cd packages/ownership && node --test "test/**/*.test.ts" && npm run typecheck
   ```
 
-- [ ] **Passo 4: Conferir o `git status` da árvore inteira**
+- [ ] **Step 4: Check the `git status` of the whole tree**
 
   ```bash
   git status --short
   ```
 
-  Nada além do que as 22 tarefas tocaram deveria aparecer — sem `dist/`, sem
-  `.tgz`, sem lockfile de um `npm install` esquecido em diretório errado.
+  Nothing beyond what the 22 tasks touched should appear — no `dist/`, no
+  `.tgz`, no lockfile from a forgotten `npm install` in the wrong directory.
 
-- [ ] **Passo 5: Registrar a razão da ausência de entrada**
+- [ ] **Step 5: Record the reason for the absent entry**
 
-  Se sobrou algo a commitar, o commit leva o rótulo. Se não sobrou, acrescente
-  o rótulo ao corpo da descrição do PR — o check de CHANGELOG lê as mensagens
-  de commit, então prefira um commit vazio a deixar a razão só no PR:
+  If there is anything left to commit, the commit carries the label. If there is not, add
+  the label to the body of the PR description — the CHANGELOG check reads the commit
+  messages, so prefer an empty commit to leaving the reason only in the PR:
 
   ```bash
-  git commit --allow-empty -m "chore(<ADR-distribuicao>): fecha o plano do núcleo de ownership" -m "Changelog: none — o pacote é privado e o plugin fica fora do marketplace até a prova de instalação remota; nada chega a quem consome."
+  git commit --allow-empty -m "chore(<ADR-distribution>): closes the ownership core plan" -m "Changelog: none — the package is private and the plugin stays outside the marketplace until the remote install proof; nothing reaches whoever consumes."
   ```
 
 ---
 
-## Depois deste plano
+## After this plan
 
-Por ordem:
+In order:
 
-1. **Ligar o `promotion-guard`**, quando uma pessoa resolver a
-   `<DA-promocao>`. A resolução diz quais transições perguntam; a tarefa porta
-   `applyToolInput`, escreve o hook sobre `findTransitions` (Tarefa 17) e o
-   acrescenta a `hooks.json`.
-2. **Migração do `@esliph/living-docs`** — spec própria (spec §12): renomeia
-   os checks (`CI-n` → `living-docs/nome-descritivo`), ajusta o glossário
-   (`Artefato`/`Documento` discriminados por `living-docs.id-prefix`, não pela
-   lista), move `docs/.ownership.yml` para o esquema v2 e faz
-   `@esliph/living-docs` depender de `@esliph/ownership` como biblioteca. É
-   aqui que o núcleo ganha o consumidor real que a spec exige antes do segundo.
-3. **Registrar o plugin no marketplace**, com a entrada de CHANGELOG, depois da
-   prova de instalação remota.
-4. **Plugin SDD** — spec própria, depois da migração.
+1. **Wire the `promotion-guard`**, when a person resolves the
+   `<DA-promotion>`. The resolution says which transitions ask; the task ports
+   `applyToolInput`, writes the hook on top of `findTransitions` (Task 17) and
+   adds it to `hooks.json`.
+2. **Migration of `@esliph/living-docs`** — its own spec (spec §12): renames
+   the checks (`CI-n` → `living-docs/descriptive-name`), adjusts the glossary
+   (`Artifact`/`Document` discriminated by `living-docs.id-prefix`, not by the
+   list), moves `docs/.ownership.yml` to the v2 schema and makes
+   `@esliph/living-docs` depend on `@esliph/ownership` as a library. This is
+   where the core gains the real consumer that the spec requires before the second.
+3. **Register the plugin in the marketplace**, with the CHANGELOG entry, after the
+   remote install proof.
+4. **SDD plugin** — its own spec, after the migration.
 
-## O que a spec pede e este plano não fecha, por decisão
+## What the spec asks for and this plan does not close, by decision
 
-Dizer isso aqui vale mais do que deixar a lacuna implícita.
+Saying this here is worth more than leaving the gap implicit.
 
-- **Comando de migração v1→v2 (spec §10) e a prova contra as 23 entradas reais
-  (spec §9).** A spec os coloca nesta spec, e a §12 põe "mover o arquivo" na
-  spec de migração. Este plano lê a §12 como dona do assunto: a migração só tem
-  consumidor quando o `living-docs` passar a usar o núcleo, e um comando sem
-  consumidor envelhece sem ninguém exercitar. O que fica aqui é a outra metade
-  da §10 — o núcleo recusa v1 em voz alta (Tarefa 4). A mensagem ainda não pode
-  nomear o comando, porque ele não existe; quando existir, a mensagem muda com
-  ele. **Se quem revisar ler a spec do outro jeito, esta é a decisão a
-  reverter.**
-- **`ownership/promotion-guard`.** Só o mecanismo é entregue; o hook espera a
-  `<DA-promocao>` (Tarefa 17).
-- **Instalação remota de verdade** ("instalar o marketplace de um repositório
-  remoto e observar os hooks rodarem do cache"). Exige resolver como as
-  dependências do plugin chegam ao cache — e é por isso que o plugin fica fora
-  do marketplace até lá (Tarefa 2, Passo 9).
-- **Regra única** ("as duas CLIs não reportam a mesma coisa duas vezes").
-  Pressupõe as duas CLIs lendo o mesmo arquivo, o que só acontece depois da
-  migração: hoje `docs/.ownership.yml` está em `version: 1`, e
-  `ownership validate` recusa lê-lo.
+- **v1→v2 migration command (spec §10) and the proof against the 23 real entries
+  (spec §9).** The spec puts them in this spec, and §12 puts "moving the file" in the
+  migration spec. This plan reads §12 as owning the subject: the migration only has a
+  consumer when `living-docs` starts using the core, and a command with no
+  consumer goes stale with no one exercising it. What stays here is the other half
+  of §10 — the core refuses v1 loudly (Task 4). The message cannot yet
+  name the command, because it does not exist; when it exists, the message changes with
+  it. **If whoever reviews reads the spec the other way, this is the decision to
+  reverse.**
+- **`ownership/promotion-guard`.** Only the mechanism is delivered; the hook waits for the
+  `<DA-promotion>` (Task 17).
+- **Real remote installation** ("install the marketplace from a remote
+  repository and watch the hooks run from the cache"). It requires solving how the plugin's
+  dependencies reach the cache — and that is why the plugin stays outside
+  the marketplace until then (Task 2, Step 9).
+- **Single rule** ("the two CLIs do not report the same thing twice").
+  It presupposes both CLIs reading the same file, which only happens after the
+  migration: today `docs/.ownership.yml` is at `version: 1`, and
+  `ownership validate` refuses to read it.
