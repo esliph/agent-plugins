@@ -309,6 +309,15 @@ test('RN-0039: a resolved decision in a table without the canonical column point
   })
 })
 
+test('RN-0039: a revoked rule in a sections file without the bullet gets no field-map hint', () => {
+  withTempRepo({ ...BASE, 'docs/requirements/rules.md': rules(rn('RN-0001', 'revoked')) }, root => {
+    const finding = ci3(root).find(f => /revoked-by/.test(f.message))
+
+    assert.ok(finding, JSON.stringify(ci3(root), null, 2))
+    assert.doesNotMatch(finding.fix, /field-map/)
+  })
+})
+
 test('RN-0039: an existing but empty column is an empty value, with no field-map hint', () => {
   const tree = {
     [OWNERSHIP_FILE]: CONFIG,

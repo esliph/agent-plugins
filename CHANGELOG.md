@@ -242,7 +242,10 @@ An entry is born in the PR that causes the change, not on the eve of the release
 - The seeded open-decisions table uses the canonical column names
   (`Resolved-by`, `Blocks`, `Gap`), so a new ownership file needs no
   `field-map`. A table without a canonical column now says so and points to
-  `field-map`.
+  `field-map`. An existing open-decisions table whose columns are named in
+  another language must keep or declare its `field-map`, including `blocks`:
+  the `Blocks` column is optional, so a missing one is not reported and the
+  paths it lists stop being guarded.
 
 ### Removed
 

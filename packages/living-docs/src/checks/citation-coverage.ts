@@ -23,7 +23,7 @@ interface Entry {
   rule: ArtifactRule
   /** Reading of a canonical field, be it frontmatter or a collection item. */
   read(canonical: string): string | null
-  /** True when a collection item has no such field at all; per-file entries never lack one here. */
+  /** True when a table row has no such column at all; per-file and sections entries never lack one here. */
   lacks(canonical: string): boolean
 }
 
@@ -102,7 +102,9 @@ function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
         line: item.line,
         status: item.state,
         rule: doc.rule,
-        lacks: canonical => !hasField(doc.rule, item, canonical),
+        // Only a table header defines a field for every row; in a `sections`
+        // file an absent bullet is the ordinary way to leave a value out.
+        lacks: canonical => doc.rule.collection === 'table' && !hasField(doc.rule, item, canonical),
         read: canonical => fieldOf(doc.rule, item, canonical),
       })
     }
