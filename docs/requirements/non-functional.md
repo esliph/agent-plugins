@@ -68,7 +68,7 @@ measures is an intention, and the first slow run discovers it in production.
 
 ## RNF-0006 — There is a containerized execution path, optional and in parity with the host
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0016
 - **out of scope:** the hooks, which always run on the host (`RNF-0001`)
 
