@@ -32,10 +32,10 @@ test('omite a linha quando ela é 0', () => {
 test('resume a contagem por severidade', () => {
   const output = formatFindings([FINDING, { ...FINDING, severity: 'warning' }])
 
-  assert.match(output, /1 erro/)
-  assert.match(output, /1 aviso/)
+  assert.match(output, /1 error/)
+  assert.match(output, /1 warning/)
 })
 
 test('sem findings, informa que está tudo certo', () => {
-  assert.match(formatFindings([]), /nenhuma/i)
+  assert.match(formatFindings([]), /no violation/i)
 })

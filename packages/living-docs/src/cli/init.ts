@@ -45,9 +45,9 @@ export const DEFAULT_PATHS: Readonly<Record<Kind, string>> = Object.freeze({
 })
 
 const REQUIREMENT_TITLES: Readonly<Record<'RF' | 'RNF' | 'RN', string>> = Object.freeze({
-  RF: 'Requisitos funcionais',
-  RNF: 'Requisitos não funcionais',
-  RN: 'Regras de negócio',
+  RF: 'Functional requirements',
+  RNF: 'Non-functional requirements',
+  RN: 'Business rules',
 })
 
 /** Caminhos varridos por `cited-by` para provar cobertura de requisito (living-docs/citation-coverage). */
@@ -173,9 +173,9 @@ function documentsBlock(root: string, owner: string, stage: Stage): string {
 
   return [
     // Regra de origem: ADR-0008 e ADR-0029.
-    '  # Documento: bloco `living-docs:` sem `id-prefix`. Tem dono e não tem família de IDs.',
-    '  # `role` é vocabulário fechado: agent-contract, definition-of-done.',
-    '  # `audience` diz quem lê: ausente é internal; external reprova ID de artefato no texto.',
+    '  # Document: a `living-docs:` block without `id-prefix`. It has an owner and no ID family.',
+    '  # `role` is a closed vocabulary: agent-contract, definition-of-done.',
+    '  # `audience` says who reads it: absent means internal; external rejects artifact IDs in the text.',
     ...entries,
   ].join('\n')
 }
@@ -260,7 +260,7 @@ function workflowSteps(stage: Stage, invoke: string, invokeOwnership: string): s
     steps.push(
       [
         '',
-        '      - name: Vínculo código→doc e entrada de CHANGELOG no diff do PR',
+        '      - name: Code→doc link and CHANGELOG entry in the PR diff',
         "        if: github.event_name == 'pull_request'",
         `        run: ${invokeOwnership} validate --base \${{ github.event.pull_request.base.sha }}`,
       ].join('\n'),
@@ -271,7 +271,7 @@ function workflowSteps(stage: Stage, invoke: string, invokeOwnership: string): s
     steps.push(
       [
         '',
-        '      - name: Documentação viva no diff do PR',
+        '      - name: Living documentation in the PR diff',
         "        if: github.event_name == 'pull_request'",
         `        run: ${invoke} validate --base \${{ github.event.pull_request.base.sha }}`,
       ].join('\n'),
@@ -400,9 +400,9 @@ function releasesBlock(owner: string, path: string, stage: Stage): string {
       `    owner: "${owner}"`,
       '    skill: release-historian',
       '    states: [draft, published]',
-      '    # A release note é lida por quem consome: o texto não cita ID de artefato.',
-      // Regra de origem: spec §5, SK-7, regra 4.
-      '    # Release note publicada é congelada.',
+      '    # A release note is read by whoever consumes it: the text cites no artifact ID.',
+      // Rule of origin: spec §5, SK-7, rule 4.
+      '    # A published release note is frozen.',
       '    living-docs: { id-prefix: REL, audience: external, append-only: true, mutable-fields: [status, last-reviewed] }',
     ].join('\n') +
     '\n'
@@ -430,8 +430,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
       existing = loadLivingDocsConfig(root)
     } catch (err) {
       result.notInstalled.push(
-        `${existingFile} — o arquivo existe e não lê como v2 (${err instanceof Error ? err.message : String(err)}); ` +
-          'reescreva-o na v2 à mão, guiado pelo CHANGELOG. O init não o sobrescreve nem cria outro ao lado',
+        `${existingFile} — the file exists and does not read as v2 (${err instanceof Error ? err.message : String(err)}); ` +
+          'rewrite it as v2 by hand, guided by the CHANGELOG. init neither overwrites it nor creates another next to it',
       )
     }
   }
@@ -491,8 +491,8 @@ export function runInit(root: string, options: InitOptions): InitResult {
     // O init não sabe onde mora o código de quem instala, e `ownership validate`
     // exige dono para todo arquivo do repositório: dizer é o que resta a fazer.
     result.notInstalled.push(
-      `o resto do repositório em \`owned\` de ${OWNERSHIP_FILE} — \`ownership validate\` exige dono para todo arquivo, ` +
-        'e o init não sabe onde mora o seu código; declare-o (ou tire-o da governança em `ignore`) antes de rodá-lo',
+      `the rest of the repository in \`owned\` of ${OWNERSHIP_FILE} — \`ownership validate\` requires an owner for every file, ` +
+        'and init does not know where your code lives; declare it (or take it out of governance under `ignore`) before running it',
     )
   } else {
     result.skipped.push(existingFile)
@@ -592,8 +592,8 @@ function declarePlugin(root: string, options: InitOptions, result: InitResult): 
   if (options.marketplace === null) {
     result.notInstalled.push(
       // Regra de origem: DA-0003.
-      `registro do plugin em ${SETTINGS_PATH} — sem \`--marketplace <owner/repo>\` a fonte não se ` +
-        'adivinha; os hooks não sobem na sessão até ele ser declarado',
+      `plugin registration in ${SETTINGS_PATH} — without \`--marketplace <owner/repo>\` the source cannot be ` +
+        'guessed; the hooks do not come up in the session until it is declared',
     )
 
     return
@@ -608,8 +608,8 @@ function declarePlugin(root: string, options: InitOptions, result: InitResult): 
     merged = mergeSettings(current, options.marketplace)
   } catch (err) {
     result.notInstalled.push(
-      `registro do plugin em ${SETTINGS_PATH} — ${err instanceof SettingsError ? err.message : String(err)}; ` +
-        'declare-o à mão para não perder o que já está lá',
+      `plugin registration in ${SETTINGS_PATH} — ${err instanceof SettingsError ? err.message : String(err)}; ` +
+        'declare it by hand so as not to lose what is already there',
     )
 
     return
@@ -648,7 +648,7 @@ function declareArtifacts(root: string, options: InitOptions, result: InitResult
   const next = insertAfterOwned(source, block)
 
   if (next === null) {
-    result.notInstalled.push(`${what} em ${file} — âncora \`owned:\` não encontrada; ` + 'declare-os à mão para que os artefatos tenham dono')
+    result.notInstalled.push(`${what} in ${file} — \`owned:\` anchor not found; ` + 'declare them by hand so the artifacts have an owner')
 
     return
   }
@@ -716,7 +716,7 @@ function declareDocuments(root: string, options: InitOptions, result: InitResult
   const next = insertAfterOwned(source, entries)
 
   if (next === null) {
-    result.notInstalled.push(`documentos em ${file} — âncora \`owned:\` não encontrada; ` + 'declare os documentos à mão para que eles tenham dono')
+    result.notInstalled.push(`documents in ${file} — \`owned:\` anchor not found; ` + 'declare the documents by hand so they have an owner')
 
     return
   }
@@ -758,7 +758,7 @@ function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, 
 
 function unmarkedExternal(what: string, file: string): string {
   return (
-    `audience: external para ${what}, em ${file} — a entrada já estava declarada sem a marca, ` +
-    'e o init não reescreve linha já escrita; marcá-la é o que liga a checagem de texto externo para ela'
+    `audience: external for ${what}, in ${file} — the entry was already declared without the mark, ` +
+    'and init does not rewrite a line already written; marking it is what turns on the external-text check for it'
   )
 }

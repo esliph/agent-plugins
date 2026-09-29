@@ -24,5 +24,5 @@ test('RN-0012: o artefato gerado se declara gerado, e não finge ser artefato ed
   assert.match(source.split('\n')[0] ?? '', /generated: do not edit/, 'o marcador abre o arquivo (spec §2)')
   assert.doesNotMatch(source, /^---$/m, 'artefato gerado não tem frontmatter editável (spec §2)')
   assert.match(source, /src\/checks\/catalog\.ts/, 'o arquivo precisa nomear a própria fonte')
-  assert.match(source, /catálogo do núcleo/, 'e a fonte do núcleo')
+  assert.match(source, /core catalog/, 'e a fonte do núcleo')
 })

@@ -1,15 +1,15 @@
 <!-- generated: do not edit -->
-<!-- fonte: src/checks/catalog.ts (CHECK_CATALOG) e o catálogo do núcleo (CORE_CHECK_CATALOG) — regerar: rode este arquivo com node --conditions=development -->
+<!-- source: src/checks/catalog.ts (CHECK_CATALOG) and the core catalog (CORE_CHECK_CATALOG) — regenerate: run this file with node --conditions=development -->
 
-# Contrato dos checks
+# Checks contract
 
-Os identificadores abaixo são públicos e estáveis: aparecem na saída do CLI, são
-citados pela Definition of Done de quem usa o toolkit, e não mudam de significado
-(`docs/contracts/versioning-policy.md`). Cada regra roda num plugin só.
+The identifiers below are public and stable: they appear in the CLI output, are
+cited by the Definition of Done of whoever uses the toolkit, and do not change
+meaning (`docs/contracts/versioning-policy.md`). Each rule runs in a single plugin.
 
 ## living-docs
 
-| ID | Check | Falha quando | Comando |
+| ID | Check | Fails when | Command |
 | --- | --- | --- | --- |
 | living-docs/frontmatter | structure lint | Frontmatter missing or invalid; empty required field; `id` outside the format or the territory of the artifact; `status` in an artifact with no declared `states`; collection item without `status`; `trigger` missing or empty; `last-reviewed` outside the ISO format. | `living-docs validate` |
 | living-docs/id-integrity | ID lint | Duplicate ID, out of sequence, or reused from `docs/ids-retired.txt`; citation that does not resolve to an existing item. | `living-docs validate` |
@@ -25,7 +25,7 @@ citados pela Definition of Done de quem usa o toolkit, e não mudam de significa
 
 ## ownership
 
-| ID | Check | Falha quando | Comando |
+| ID | Check | Fails when | Command |
 | --- | --- | --- | --- |
 | ownership/declared-state | declared state | O estado de um arquivo ou item (o campo de `state-field`, `status` por padrão) está fora de `states` declarado para o caminho; a mesma chave aparece duas vezes no mesmo arquivo; ou o `owner` do frontmatter não começa com `@`. | `ownership validate` |
 | ownership/generated-drift | generated drift | A saída do comando declarado em `generated[]` difere do arquivo versionado; o comando falha; ou o arquivo declarado não existe. | `ownership validate` |

@@ -120,7 +120,7 @@ test('RN-0022: é injeção de contexto, nunca decisão de permissão', () => {
 
     assert.doesNotMatch(context, /\bdeny\b/)
     assert.doesNotMatch(context, /permissionDecision/)
-    assert.match(context, /não bloqueia|contexto/i)
+    assert.match(context, /blocks|context/i)
   })
 })
 

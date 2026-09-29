@@ -140,13 +140,13 @@ export function decideShortcutDebt(payload: HookPayload, env: HookEnv): Shortcut
   return {
     action: 'remind',
     context:
-      `living-docs/shortcut-debt: \`${repoPath}\` ganhou marcador de atalho sem dívida registrada por perto.\n` +
+      `living-docs/shortcut-debt: \`${repoPath}\` gained a shortcut marker with no debt recorded nearby.\n` +
       `${novos.map(line => `- \`${line}\``).join('\n')}\n` +
-      // Regra de origem: spec §7 e RN-0014.
-      'Atalho consciente vira `TDR-nnnn` ' +
-      'com gatilho de pagamento observável, não `TODO` órfão. Caminho válido: `/debt <o atalho>` ' +
-      '(skill dona: decision-recorder), e cite o `TDR-nnnn` na linha do marcador.\n' +
-      'Isto é lembrete e devolve o controle: um atalho legítimo existe, e a decisão de registrá-lo ou não é humana.',
+      // Rule of origin: spec §7 and RN-0014.
+      'A conscious shortcut becomes a `TDR-nnnn` ' +
+      'with an observable payment trigger, not an orphan `TODO`. Valid path: `/debt <the shortcut>` ' +
+      '(owning skill: decision-recorder), and cite the `TDR-nnnn` on the marker line.\n' +
+      'This is a reminder and hands control back: a legitimate shortcut exists, and whether to record it is a human decision.',
   }
 }
 

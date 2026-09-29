@@ -16,13 +16,13 @@ import type { CatalogEntry } from '@esliph/ownership'
 import { CHECK_CATALOG } from '../checks/catalog.ts'
 
 const HEADER = `<!-- generated: do not edit -->
-<!-- fonte: src/checks/catalog.ts (CHECK_CATALOG) e o catálogo do núcleo (CORE_CHECK_CATALOG) — regerar: rode este arquivo com node --conditions=development -->
+<!-- source: src/checks/catalog.ts (CHECK_CATALOG) and the core catalog (CORE_CHECK_CATALOG) — regenerate: run this file with node --conditions=development -->
 
-# Contrato dos checks
+# Checks contract
 
-Os identificadores abaixo são públicos e estáveis: aparecem na saída do CLI, são
-citados pela Definition of Done de quem usa o toolkit, e não mudam de significado
-(\`docs/contracts/versioning-policy.md\`). Cada regra roda num plugin só.
+The identifiers below are public and stable: they appear in the CLI output, are
+cited by the Definition of Done of whoever uses the toolkit, and do not change
+meaning (\`docs/contracts/versioning-policy.md\`). Each rule runs in a single plugin.
 `
 
 /** `|` numa célula quebraria a tabela — escapar é do gerador, não de quem escreve. */
@@ -33,7 +33,7 @@ function cell(value: string): string {
 function section(plugin: string, catalog: readonly CatalogEntry[]): string {
   const rows = catalog.map(entry => `| ${cell(entry.id)} | ${cell(entry.name)} | ${cell(entry.failsWhen)} | \`${cell(entry.command)}\` |`)
 
-  return [`## ${plugin}`, '', '| ID | Check | Falha quando | Comando |', '| --- | --- | --- | --- |', ...rows].join('\n')
+  return [`## ${plugin}`, '', '| ID | Check | Fails when | Command |', '| --- | --- | --- | --- |', ...rows].join('\n')
 }
 
 process.stdout.write(`${HEADER}\n${section('living-docs', CHECK_CATALOG)}\n\n${section('ownership', CORE_CHECK_CATALOG)}\n`)

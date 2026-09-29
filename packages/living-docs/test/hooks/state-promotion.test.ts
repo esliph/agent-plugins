@@ -86,7 +86,7 @@ test('RN-0005: pergunta ao promover ADR de draft para accepted', () => {
 
   assertAsk(decision)
   assert.match(decision.reason, /ADR-0001/)
-  assert.match(decision.reason, /humano/i)
+  assert.match(decision.reason, /human/i)
   assert.match(decision.reason, /decision-recorder/)
 })
 

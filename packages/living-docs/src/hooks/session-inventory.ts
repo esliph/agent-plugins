@@ -91,35 +91,35 @@ export function decideSessionInventory(env: HookEnv, today: string): SessionInve
     const velhos = staleDocs(context)
 
     const lines = [
-      `living-docs/session-inventory: inventário da documentação viva (fonte: \`${config.rootFile}\`).`,
-      `Declarados: ${config.artifacts.length} artefato(s) e ${config.documents.length} documento(s).`,
+      `living-docs/session-inventory: inventory of the living documentation (source: \`${config.rootFile}\`).`,
+      `Declared: ${config.artifacts.length} artifact(s) and ${config.documents.length} document(s).`,
     ]
 
     if (ausentes.length > 0) {
-      lines.push(`Declarado e ausente (${ausentes.length}): ${shorten(ausentes)}.`)
+      lines.push(`Declared and missing (${ausentes.length}): ${shorten(ausentes)}.`)
     }
     if (abertas.length > 0) {
       lines.push(
-        `Decisão aberta (${abertas.length}): ${shorten(abertas)}. Enquanto está aberta, a regra não existe e a ` + 'implementação para (`/open-decision`).',
+        `Open decision (${abertas.length}): ${shorten(abertas)}. While it is open, the rule does not exist and the ` + 'implementation stops (`/open-decision`).',
       )
     }
     if (vencidas.length > 0) {
       lines.push(
-        // Regra de origem: spec §12, critério 7.
-        `Dívida com gatilho de pagamento cumprido (${vencidas.length}): ${shorten(
+        // Rule of origin: spec §12, criterion 7.
+        `Debt with its payment trigger met (${vencidas.length}): ${shorten(
           vencidas.map(payment => `${payment.id} — ${payment.evidence}`),
-        )}. \`living-docs validate\` reprova até pagar ou reclassificar.`,
+        )}. \`living-docs validate\` fails until it is paid or reclassified.`,
       )
     }
     if (velhos.length > 0) {
       lines.push(
-        `Documento vencido (${velhos.length}): ${shorten(
-          velhos.map(stale => `${stale.file} (${stale.months} meses)`),
-        )}. É aviso: releia antes de tocar em \`last-reviewed\`.`,
+        `Expired document (${velhos.length}): ${shorten(
+          velhos.map(stale => `${stale.file} (${stale.months} months)`),
+        )}. This is a warning: re-read before touching \`last-reviewed\`.`,
       )
     }
 
-    lines.push('Nada aqui bloqueia — é contexto. O enforcement é `living-docs validate` e os hooks living-docs/append-only a ownership/commit-guard e living-docs/shortcut-debt.')
+    lines.push('Nothing here blocks — it is context. Enforcement is `living-docs validate` and the hooks living-docs/append-only to ownership/commit-guard and living-docs/shortcut-debt.')
 
     inventory = { lines }
   } catch {

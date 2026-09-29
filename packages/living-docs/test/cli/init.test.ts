@@ -767,7 +767,7 @@ test('RF-0012: sem âncora no .ownership.yml, o init diz o que falta em vez de a
       marketplace: 'time/living-docs',
     })
 
-    assert.ok(result.notInstalled.some(item => /documentos.*owned/.test(item)))
+    assert.ok(result.notInstalled.some(item => /documents.*owned/.test(item)))
   })
 })
 
@@ -847,7 +847,7 @@ test('arquivo de ownership v1 existente: o init não cria outro na raiz, e diz q
 
     assert.equal(existsSync(join(root, '.ownership.yml')), false)
     assert.ok(result.skipped.includes('docs/.ownership.yml'))
-    assert.ok(result.notInstalled.some(item => /docs\/\.ownership\.yml.*não lê como v2.*reescreva/.test(item)))
+    assert.ok(result.notInstalled.some(item => /docs\/\.ownership\.yml.*does not read as v2.*rewrite/.test(item)))
   })
 })
 

@@ -54,14 +54,14 @@ export function decideOpenDecisionGuard(payload: HookPayload, env: HookEnv): Ope
   return {
     action: 'ask',
     reason:
-      `living-docs/open-decision-guard: \`${repoPath}\` está reivindicado por ${claim.id}, uma decisão **aberta** em ${claim.doc}` +
+      `living-docs/open-decision-guard: \`${repoPath}\` is claimed by ${claim.id}, an **open** decision in ${claim.doc}` +
       `${claim.gap === null ? '' : ` — "${claim.gap}"`}. ` +
-      `Ela bloqueia: ${claim.paths.join(', ')}. ` +
-      // Regra de origem: RN-0026 e o critério de aceite 4 da spec §12.
-      'Comportamento sem regra escrita vira ' +
-      'decisão aberta, e a implementação não acontece enquanto ela estiver aberta. ' +
-      `Resolva a decisão primeiro (skill dona: ${claim.skill}; dono: ${claim.owner}), ou confirme que esta edição ` +
-      'não é a implementação da regra que falta.',
+      `It blocks: ${claim.paths.join(', ')}. ` +
+      // Rule of origin: RN-0026 and acceptance criterion 4 of spec §12.
+      'Behavior with no written rule becomes ' +
+      'an open decision, and the implementation does not happen while it is open. ' +
+      `Resolve the decision first (owning skill: ${claim.skill}; owner: ${claim.owner}), or confirm that this edit ` +
+      'is not the implementation of the missing rule.',
   }
 }
 

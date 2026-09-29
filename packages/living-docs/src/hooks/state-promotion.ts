@@ -122,12 +122,12 @@ export function decideStatePromotion(payload: HookPayload, env: HookEnv): StateP
   return {
     action: 'ask',
     reason:
-      `living-docs/state-promotion: esta edição promove ${promotion.id} de \`${promotion.from}\` para \`${promotion.to}\`. ` +
-      // Regra de origem: spec §4.
-      'Nenhum agente promove estado sozinho: ' +
-      'o máximo que uma skill escreve é `draft`/`open`, e a aceitação é ato humano. ' +
-      `Confirme se a decisão foi realmente tomada por uma pessoa. Artefato dono: ${rule.path} (${rule.owner}); ` +
-      `skill dona: ${rule.skill}.`,
+      `living-docs/state-promotion: this edit promotes ${promotion.id} from \`${promotion.from}\` to \`${promotion.to}\`. ` +
+      // Rule of origin: spec §4.
+      'No agent promotes a state on its own: ' +
+      'the most a skill writes is `draft`/`open`, and acceptance is a human act. ' +
+      `Confirm the decision was really made by a person. Owning artifact: ${rule.path} (${rule.owner}); ` +
+      `owning skill: ${rule.skill}.`,
   }
 }
 
