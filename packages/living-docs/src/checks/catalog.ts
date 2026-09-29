@@ -84,7 +84,7 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     name: 'trigger routing',
     command: 'living-docs validate',
     failsWhen:
-      'O `trigger` de um documento e a `description` da skill declarada como dona dele compartilham menos raízes de palavra do que o piso declarado. Skill dona ausente da raiz do toolkit produz aviso, não falha; e o `trigger` de um item de coleção não é comparado.',
+      'Never fails. Warns when a document with a `trigger` declares an owning skill that the toolkit root does not have; the `trigger` of a collection item is not examined.',
   },
   {
     id: 'living-docs/external-audience',

@@ -1,44 +1,10 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Check, CheckContext, Finding } from '../core/types.ts'
-import { normalizeProse } from '../docs/markdown.ts'
 import { parseFrontmatter } from '../frontmatter/parse.ts'
 import { toolkitRoot } from '../core/roots.ts'
 
 const RULE = 'living-docs/trigger-routing'
-
-/** Palavra curta não é raiz: "toda", "com" e "que" casariam com tudo (`ADR-0009`). */
-export const ROOT_FLOOR = 5
-
-/**
- * O truncamento é o que faz "alterada" encontrar "alterar" sem que o toolkit
- * aprenda português (`ADR-0013`).
- */
-export const ROOT_LENGTH = 6
-
-/**
- * Quantas raízes o `trigger` e a `description` precisam compartilhar
- * (`ADR-0013`). Escrito aqui, e não escondido numa comparação, porque é número
- * calibrado: a correção de um falso positivo é um ADR novo, nunca uma exceção
- * local.
- */
-export const SHARED_ROOTS_FLOOR = 2
-
-export function rootsOf(text: string): Set<string> {
-  return new Set(
-    normalizeProse(text)
-      .split(' ')
-      .filter(word => word.length >= ROOT_FLOOR)
-      .map(word => word.slice(0, ROOT_LENGTH)),
-  )
-}
-
-/** As raízes que os dois textos têm em comum, na ordem do primeiro. */
-export function sharedRoots(trigger: string, description: string): string[] {
-  const other = rootsOf(description)
-
-  return [...rootsOf(trigger)].filter(root => other.has(root))
-}
 
 /**
  * A `description` de cada skill da raiz do **toolkit** (`ADR-0003`).
@@ -142,16 +108,14 @@ export function routedDocs(context: CheckContext): RoutedDoc[] {
 }
 
 /**
- * `living-docs/trigger-routing` — trigger routing. O `trigger:` de um documento e a `description:` da
- * skill declarada como dona dele descrevem o mesmo evento (`RN-0029`). Se
- * divergirem, o documento declara um gatilho que nada dispara: o mecanismo de
- * gatilho e o roteamento de skill deixam de se encontrar (spec §11).
+ * `living-docs/trigger-routing` — trigger routing. A document with a `trigger`
+ * names an owning skill; when the toolkit root has no skill by that name, the
+ * trigger cannot be routed and the check warns. It never compares the wording
+ * of the `trigger` with the skill `description`: that would tie the result to
+ * the language both are written in (ADR-0034, RN-0038).
  *
- * Não conta documento, linha nem cobertura: conta **divergência entre duas
- * coisas que deveriam concordar** (spec §13).
- *
- * As descrições entram por injeção, como o executor em `ownership/generated-drift` e o diff em
- * `living-docs/open-decision-claim`: o padrão lê a raiz do toolkit, e o teste passa um mapa.
+ * Descriptions are injected, like the runner in `ownership/generated-drift`:
+ * the default reads the toolkit root, and the test passes a map.
  */
 export function livingDocsTriggerRouting(descriptions: ReadonlyMap<string, string> = loadSkillDescriptions()): Check {
   return {
@@ -161,47 +125,23 @@ export function livingDocsTriggerRouting(descriptions: ReadonlyMap<string, strin
       const findings: Finding[] = []
 
       for (const routed of routedDocs(context)) {
-        const description = descriptions.get(routed.skill)
-
-        // Aviso, não falha: um projeto pode declarar skill própria, e reprovar
-        // por isso seria exigir que todo dono fosse do plugin (`RN-0029`).
-        if (description === undefined) {
-          findings.push({
-            ruleId: RULE,
-            file: routed.file,
-            line: routed.line,
-            severity: 'warning',
-            message:
-              `\`${routed.file}\` declara \`${routed.skill}\` como skill dona, e a raiz do toolkit não tem uma ` +
-              'skill com esse nome — o gatilho deste documento não pôde ser cruzado com o roteamento.',
-            fix:
-              `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
-              // Regra de origem: RN-0029.
-              'confira o nome em `skills/`, na raiz do toolkit.',
-          })
+        if (descriptions.has(routed.skill)) {
           continue
         }
 
-        const shared = sharedRoots(routed.trigger, description)
-
-        if (shared.length >= SHARED_ROOTS_FLOOR) {
-          continue
-        }
-
+        // A warning, not a failure: a project may declare its own skill, and
+        // failing on that would demand that every owner come from the plugin.
         findings.push({
           ruleId: RULE,
           file: routed.file,
           line: routed.line,
-          severity: 'error',
+          severity: 'warning',
           message:
-            `O \`trigger\` de \`${routed.file}\` ("${routed.trigger.trim().replace(/\s+/g, ' ').slice(0, 120)}") e a ` +
-            `\`description\` de \`${routed.skill}\` falam de eventos diferentes: ` +
-            `${shared.length} raiz(es) em comum, mínimo ${SHARED_ROOTS_FLOOR}.`,
+            `\`${routed.file}\` declara \`${routed.skill}\` como skill dona, e a raiz do toolkit não tem uma ` +
+            'skill com esse nome — o gatilho deste documento não pôde ser cruzado com o roteamento.',
           fix:
-            'Reescreva um dos dois para nomear o mesmo evento — quem mantém o documento e quem roteia a skill ' +
-            'precisam estar falando da mesma coisa, senão o documento declara um gatilho que nada dispara ' +
-            // Regra de origem: RN-0029, ADR-0013.
-            `(skill dona: ${routed.skill}).`,
+            `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
+            'confira o nome em `skills/`, na raiz do toolkit.',
         })
       }
 

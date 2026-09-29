@@ -588,7 +588,7 @@ test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () 
   })
 })
 
-test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI', () => {
+test('ADR-0034: the owning skill of a trigger is checked in CI, its wording is not', () => {
   const ownership = [
     'version: 2',
     'plugins: [living-docs]',
@@ -620,7 +620,8 @@ test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI'
       '',
     ].join('\n')
 
-  // Divergente: reprova nomeando os dois.
+  // A trigger that shares no word with the skill description is no finding: the
+  // check never compares wording (ADR-0034, RN-0038).
   withTempRepo(
     {
       [OWNERSHIP_FILE]: ownership,
@@ -628,12 +629,12 @@ test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI'
     },
     root => {
       const result = runValidate(root)
-      const finding = result.findings.find(f => f.ruleId === 'living-docs/trigger-routing')
 
-      assert.ok(finding, JSON.stringify(result.findings, null, 2))
-      assert.equal(finding?.severity, 'error')
-      assert.match(finding?.message ?? '', /decision-recorder/)
-      assert.equal(result.exitCode, 1)
+      assert.equal(
+        result.findings.find(f => f.ruleId === 'living-docs/trigger-routing'),
+        undefined,
+        JSON.stringify(result.findings, null, 2),
+      )
     },
   )
 
