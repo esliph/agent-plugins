@@ -88,14 +88,14 @@ function rn(id: string, status: string, extra: readonly string[] = []): string {
   return [`## ${id} — Regra ${id}`, '', `- **status:** ${status}`, ...extra, '', 'Enunciado.', ''].join('\n')
 }
 
-/** Só os achados de CI-3: o repositório de teste é mínimo de propósito. */
+/** Só os achados de living-docs/citation-coverage: o repositório de teste é mínimo de propósito. */
 function ci3(root: string): Finding[] {
-  return runValidate(root).findings.filter(finding => finding.ruleId === 'CI-3')
+  return runValidate(root).findings.filter(finding => finding.ruleId === 'living-docs/citation-coverage')
 }
 
 const BASE = { [OWNERSHIP_FILE]: CONFIG, [RETIRED_IDS_PATH]: '' }
 
-test('CI-3: par supersedes/superseded-by aberto falha nomeando os dois lados', () => {
+test('living-docs/citation-coverage: par supersedes/superseded-by aberto falha nomeando os dois lados', () => {
   withTempRepo(
     {
       ...BASE,
@@ -114,7 +114,7 @@ test('CI-3: par supersedes/superseded-by aberto falha nomeando os dois lados', (
   )
 })
 
-test('CI-3: par fechado nos dois lados passa', () => {
+test('living-docs/citation-coverage: par fechado nos dois lados passa', () => {
   withTempRepo(
     {
       ...BASE,
@@ -127,13 +127,13 @@ test('CI-3: par fechado nos dois lados passa', () => {
   )
 })
 
-test('CI-3: supersedes apontando ID inexistente falha', () => {
+test('living-docs/citation-coverage: supersedes apontando ID inexistente falha', () => {
   withTempRepo({ ...BASE, 'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'draft', ['supersedes: ADR-0009']) }, root => {
     assert.ok(ci3(root).some(f => /ADR-0009.*não existe/.test(f.message)))
   })
 })
 
-test('CI-3: DA resolved sem resolved-by falha', () => {
+test('living-docs/citation-coverage: DA resolved sem resolved-by falha', () => {
   withTempRepo({ ...BASE, 'docs/open-decisions.md': decisions('| DA-0001 | X | resolved | — | 2026-08-24 |') }, root => {
     const finding = ci3(root).find(f => /sem dizer o que a resolveu/.test(f.message))
 
@@ -142,7 +142,7 @@ test('CI-3: DA resolved sem resolved-by falha', () => {
   })
 })
 
-test('CI-3: DA resolved cujo ADR não a cita de volta falha, e a finding aponta o ADR', () => {
+test('living-docs/citation-coverage: DA resolved cujo ADR não a cita de volta falha, e a finding aponta o ADR', () => {
   withTempRepo(
     {
       ...BASE,
@@ -158,7 +158,7 @@ test('CI-3: DA resolved cujo ADR não a cita de volta falha, e a finding aponta 
   )
 })
 
-test('CI-3: DA resolved com o ADR citando de volta passa', () => {
+test('living-docs/citation-coverage: DA resolved com o ADR citando de volta passa', () => {
   withTempRepo(
     {
       ...BASE,
@@ -171,7 +171,7 @@ test('CI-3: DA resolved com o ADR citando de volta passa', () => {
   )
 })
 
-test('CI-3: ADR accepted sem relates-to falha', () => {
+test('living-docs/citation-coverage: ADR accepted sem relates-to falha', () => {
   withTempRepo({ ...BASE, 'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'accepted', ['relates-to: []']) }, root => {
     const finding = ci3(root).find(f => /accepted.*sem/.test(f.message))
 
@@ -180,7 +180,7 @@ test('CI-3: ADR accepted sem relates-to falha', () => {
   })
 })
 
-test('CI-3: RN active sem citação em cited-by falha nomeando os globs', () => {
+test('living-docs/citation-coverage: RN active sem citação em cited-by falha nomeando os globs', () => {
   withTempRepo({ ...BASE, 'docs/requirements/rules.md': rules(rn('RN-0001', 'active')) }, root => {
     const finding = ci3(root).find(f => /não é citada/.test(f.message))
 
@@ -189,7 +189,7 @@ test('CI-3: RN active sem citação em cited-by falha nomeando os globs', () => 
   })
 })
 
-test('CI-3: RN active citada por um teste passa', () => {
+test('living-docs/citation-coverage: RN active citada por um teste passa', () => {
   withTempRepo(
     {
       ...BASE,
@@ -202,13 +202,13 @@ test('CI-3: RN active citada por um teste passa', () => {
   )
 })
 
-test('CI-3: RN draft não é cobrada por citação — a cobrança começa em active', () => {
+test('living-docs/citation-coverage: RN draft não é cobrada por citação — a cobrança começa em active', () => {
   withTempRepo({ ...BASE, 'docs/requirements/rules.md': rules(rn('RN-0001', 'draft')) }, root => {
     assert.deepEqual(ci3(root), [])
   })
 })
 
-test('CI-3: RN active em artefato sem cited-by não é cobrada', () => {
+test('living-docs/citation-coverage: RN active em artefato sem cited-by não é cobrada', () => {
   withTempRepo(
     {
       [OWNERSHIP_FILE]: CONFIG_SEM_CITED_BY,
@@ -221,7 +221,7 @@ test('CI-3: RN active em artefato sem cited-by não é cobrada', () => {
   )
 })
 
-test('CI-3: citação dentro do próprio arquivo do artefato não conta como cobertura', () => {
+test('living-docs/citation-coverage: citação dentro do próprio arquivo do artefato não conta como cobertura', () => {
   withTempRepo(
     {
       ...BASE,
@@ -235,7 +235,7 @@ test('CI-3: citação dentro do próprio arquivo do artefato não conta como cob
   )
 })
 
-test('CI-3: RN-014 e RN-0014 são o mesmo ID para efeito de cobertura', () => {
+test('living-docs/citation-coverage: RN-014 e RN-0014 são o mesmo ID para efeito de cobertura', () => {
   withTempRepo(
     {
       ...BASE,
@@ -251,7 +251,7 @@ test('CI-3: RN-014 e RN-0014 são o mesmo ID para efeito de cobertura', () => {
   )
 })
 
-test('CI-3: RN revoked sem revoked-by falha', () => {
+test('living-docs/citation-coverage: RN revoked sem revoked-by falha', () => {
   withTempRepo({ ...BASE, 'docs/requirements/rules.md': rules(rn('RN-0001', 'revoked')) }, root => {
     const finding = ci3(root).find(f => /revoked-by/.test(f.message))
 
@@ -260,7 +260,7 @@ test('CI-3: RN revoked sem revoked-by falha', () => {
   })
 })
 
-test('CI-3: revogação com par fechado nos dois lados passa', () => {
+test('living-docs/citation-coverage: revogação com par fechado nos dois lados passa', () => {
   withTempRepo(
     {
       ...BASE,
@@ -272,7 +272,7 @@ test('CI-3: revogação com par fechado nos dois lados passa', () => {
   )
 })
 
-test('CI-3: toda finding é error, nunca warning', () => {
+test('living-docs/citation-coverage: toda finding é error, nunca warning', () => {
   withTempRepo(
     {
       ...BASE,
@@ -285,7 +285,7 @@ test('CI-3: toda finding é error, nunca warning', () => {
 
       assert.ok(findings.length >= 4, JSON.stringify(findings, null, 2))
       for (const finding of findings) {
-        assert.equal(finding.severity, 'error', `CI-3 não avisa, falha: ${finding.message}`)
+        assert.equal(finding.severity, 'error', `living-docs/citation-coverage não avisa, falha: ${finding.message}`)
       }
     },
   )

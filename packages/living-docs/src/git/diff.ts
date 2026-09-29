@@ -3,7 +3,7 @@ import type { GitRunner } from './staged.ts'
 
 /**
  * Teto de um comando git de leitura. Generoso perto dos 3 s de `staged.ts`:
- * `CI-6` roda no PR, não dentro do orçamento de 5 s de um hook (spec §7).
+ * `ownership/consumer-change-logged` roda no PR, não dentro do orçamento de 5 s de um hook (spec §7).
  */
 export const TIMEOUT_MS = 10_000
 

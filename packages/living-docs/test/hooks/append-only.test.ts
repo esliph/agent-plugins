@@ -1,10 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { decideHk1 } from '../../src/hooks/hk1-append-only.ts'
+import { decideAppendOnly } from '../../src/hooks/append-only.ts'
 import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import type { HookEnv } from '../../src/hooks/lib/io.ts'
-import type { HookDecision } from '../../src/hooks/hk1-append-only.ts'
+import type { HookDecision } from '../../src/hooks/append-only.ts'
 
 /** Narrowing tipado: sem isto, `decision.reason` não existe para o TypeScript. */
 function assertDeny(decision: HookDecision): asserts decision is { action: 'deny'; reason: string } {
@@ -56,7 +56,7 @@ function decide(files: Record<string, string>, toolInput: Record<string, unknown
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
     const env: HookEnv = { root, hostRoots: [root] }
 
-    decision = decideHk1({ tool_name: 'Edit', tool_input: toolInput }, env)
+    decision = decideAppendOnly({ tool_name: 'Edit', tool_input: toolInput }, env)
   })
 
   return decision
@@ -127,7 +127,7 @@ test('RNF-0001: falha aberta — .ownership.yml ilegível permite', () => {
   let decision: HookDecision = { action: 'deny', reason: 'não deveria' }
 
   withTempRepo({ [FILE]: adr('accepted') }, root => {
-    decision = decideHk1({ tool_name: 'Edit', tool_input: { file_path: FILE, old_string: 'texto original', new_string: 'x' } }, { root, hostRoots: [root] })
+    decision = decideAppendOnly({ tool_name: 'Edit', tool_input: { file_path: FILE, old_string: 'texto original', new_string: 'x' } }, { root, hostRoots: [root] })
   })
   assert.equal(decision.action, 'allow')
 })
@@ -153,7 +153,7 @@ test('aceita file_path absoluto do host', () => {
   let decision: HookDecision = { action: 'allow' }
 
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [FILE]: adr('accepted') }, root => {
-    decision = decideHk1(
+    decision = decideAppendOnly(
       {
         tool_name: 'Edit',
         tool_input: { file_path: `${root}/${FILE}`, old_string: 'texto original', new_string: 'x' },

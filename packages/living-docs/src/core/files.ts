@@ -6,7 +6,7 @@ import picomatch from 'picomatch'
  * Diretórios que nunca contêm documento nem citação escrita por gente.
  *
  * Vieram de `src/ids/coverage.ts`, que era o único a caminhar pela árvore até
- * `CI-4`, `CI-7` e `CI-8` também precisarem. Uma quarta cópia da mesma varredura
+ * `living-docs/staleness`, `ownership/owner-coverage` e `living-docs/links` também precisarem. Uma quarta cópia da mesma varredura
  * é como as três divergem.
  */
 export const SKIP_DIRS: ReadonlySet<string> = new Set(['.git', 'node_modules', 'dist', 'coverage', '.next', '.cache'])
@@ -46,8 +46,8 @@ function walk(root: string, relative: string, out: string[]): void {
 /**
  * A varredura crua, memoizada por raiz.
  *
- * Uma execução faz a mesma pergunta muitas vezes: `CI-4` consulta a árvore uma
- * vez por dívida `open`, `CI-7` e `CI-8` mais uma cada, e `HK-6` chama `CI-4`
+ * Uma execução faz a mesma pergunta muitas vezes: `living-docs/staleness` consulta a árvore uma
+ * vez por dívida `open`, `ownership/owner-coverage` e `living-docs/links` mais uma cada, e `living-docs/session-inventory` chama `living-docs/staleness`
  * no início de **toda** sessão, dentro dos 5 segundos que `RNF-0001` dá ao
  * hook. Sem memória, isso é uma travessia de disco por pergunta.
  *
@@ -57,7 +57,7 @@ function walk(root: string, relative: string, out: string[]): void {
  *
  * A memória vale por processo, e o processo do CLI e do hook roda um comando e
  * morre. Quem muda a árvore e volta a perguntar dentro do mesmo processo chama
- * `forgetTree` — é o que `runValidate` e `decideHk6` fazem ao começar, para que
+ * `forgetTree` — é o que `runValidate` e `decideSessionInventory` fazem ao começar, para que
  * duas execuções seguidas nunca leiam a árvore de antes.
  */
 const TREES = new Map<string, string[]>()
@@ -95,7 +95,7 @@ function treeOf(root: string): string[] {
  *
  * `dot: true` não é gosto: sem ele, `docs/**` **não casa** `docs/.ownership.yml`
  * nem `docs/decisions/adr/.gitkeep`, porque o padrão do picomatch é ignorar
- * arquivo que começa com ponto. O corpus de `CI-7` começa justamente pelo mapa de
+ * arquivo que começa com ponto. O corpus de `ownership/owner-coverage` começa justamente pelo mapa de
  * propriedade, e um caminhador que o esconde faria o check aprovar por vacuidade
  * o único arquivo que ele não pode deixar sem dono. O que se pula de verdade é a
  * lista `SKIP_DIRS`, e ela é explícita.

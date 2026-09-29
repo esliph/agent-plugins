@@ -74,7 +74,7 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
    - **Toda dívida nasce com o gatilho de pagamento nas duas formas:** a prosa, em
      `## Gatilho de pagamento`, que explica o porquê; e `pay-when` no frontmatter,
      com `pattern` (regex em aspas simples) e `paths` (onde procurá-lo), que é o
-     que `CI-4` avalia. Se você não consegue escrever a segunda, o gatilho não é
+     que `living-docs/staleness` avalia. Se você não consegue escrever a segunda, o gatilho não é
      observável — e aí a dívida não está pronta para ser registrada. Não invente um
      padrão que casa nada só para o check passar: isso é a caixinha marcada.
 7. **Feche os dois lados da referência.** DA resolvida aponta o ADR que a fechou;
@@ -85,7 +85,7 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
    checklist fixo, e o veredito ajuda a decidir se falta alternativa
    considerada ou consequência omitida antes de gastar o tempo de quem aceita.
 9. **Pare em `draft`/`open`.** Diga qual decisão falta e a quem ela cabe. Se
-   você tentar promover, `HK-3` vai perguntar — e a resposta não é sua.
+   você tentar promover, `living-docs/state-promotion` vai perguntar — e a resposta não é sua.
 10. **Rode `living-docs validate`** antes de encerrar.
 11. **Cite o ID na mensagem de commit.**
 
@@ -102,14 +102,14 @@ exatamente o "vinte documentos de quatrocentas linhas" que mata a documentação
 ## Checklist
 
 - [ ] O artefato certo para a natureza do item (ADR / DA / TDR) — verificação humana
-- [ ] Frontmatter completo, com `trigger` nomeando um evento e não uma cadência — `CI-1`
-- [ ] ID sequencial, não reciclado, conferido contra `docs/ids-retired.txt` — `CI-2`
-- [ ] Toda citação a outro ID resolve — `CI-2`
-- [ ] `status` é `draft` ou `open`; promoção deixada para uma pessoa — `HK-3`
-- [ ] Nenhum ADR aceito foi editado; o caminho usado foi supersedir — `HK-1`
+- [ ] Frontmatter completo, com `trigger` nomeando um evento e não uma cadência — `living-docs/frontmatter`
+- [ ] ID sequencial, não reciclado, conferido contra `docs/ids-retired.txt` — `living-docs/id-integrity`
+- [ ] Toda citação a outro ID resolve — `living-docs/id-integrity`
+- [ ] `status` é `draft` ou `open`; promoção deixada para uma pessoa — `living-docs/state-promotion`
+- [ ] Nenhum ADR aceito foi editado; o caminho usado foi supersedir — `living-docs/append-only`
 - [ ] ADR declara alternativas consideradas e o que se aceita perder — verificação humana
 - [ ] TDR tem gatilho de pagamento observável, não uma data vaga — verificação humana
 - [ ] A implementação **não** avançou enquanto havia DA aberta sobre ela — verificação humana
 - [ ] Para decisão de peso, `decision-adversary` foi considerado antes de pedir aceitação — verificação humana
-- [ ] Toda dívida `open` declara `pay-when` verificável — verificação: `CI-4`.
+- [ ] Toda dívida `open` declara `pay-when` verificável — verificação: `living-docs/staleness`.
 - [ ] Nenhum comentário do template sobreviveu ao preenchimento do ADR ou do TDR — verificação humana

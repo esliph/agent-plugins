@@ -16,15 +16,15 @@ artefato dono e é lida de lá.
   `docs/requirements/`; se a regra não existe, abra uma `DA` (`/open-decision`)
   e pare. Não invente a regra que falta.
 - **Você não aceita decisão.** Skill escreve `draft`/`open`; promover é ato
-  humano — `HK-3` pergunta.
+  humano — `living-docs/state-promotion` pergunta.
 - **Você não corrige item congelado.** ADR aceito ganha `superseded` e um ADR
-  novo — `HK-1` bloqueia o resto.
+  novo — `living-docs/append-only` bloqueia o resto.
 - **Documento e código viajam juntos.** Caminho vigiado em `watches` tem doc
-  dono; `HK-4` lembra e `HK-5` pergunta.
+  dono; `ownership/watch-reminder` lembra e `ownership/commit-guard` pergunta.
 - **Atalho consciente vira `TDR`** (`/debt`) com gatilho de pagamento observável.
 - **Texto para quem lê de fora não carrega ID de artefato.** O que está marcado
   `audience: external` explica em texto corrido; o vínculo fica no artefato ou
-  no commit — `CI-11` cobra.
+  no commit — `living-docs/external-audience` cobra.
 
 ## O que nunca fazer
 

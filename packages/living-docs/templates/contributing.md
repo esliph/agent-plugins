@@ -14,7 +14,7 @@ last-reviewed: {{TODAY}}
 1. **A regra antes do código.** Comportamento novo começa por um requisito com
    ID em `docs/requirements/`. Se a regra não existe e ninguém sabe qual é, o
    resultado é uma `DA-nnnn` em `docs/open-decisions.md` e a implementação para.
-2. **Teste citando o ID** do requisito que ele cobre — é a citação que `CI-3`
+2. **Teste citando o ID** do requisito que ele cobre — é a citação que `living-docs/citation-coverage`
    procura.
 3. **Implementação mínima.** O que não tem requisito não é escopo.
 4. **Commit citando o ID afetado.**

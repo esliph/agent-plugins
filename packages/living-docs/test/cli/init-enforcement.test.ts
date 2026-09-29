@@ -114,7 +114,7 @@ test('critério 5: multi-team instala o enforcement da Fase 7', () => {
 
     const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
 
-    assert.match(yaml, /npx living-docs validate --base/, 'a metade de CI-7 que lê o diff é a Fase 7')
+    assert.match(yaml, /npx living-docs validate --base/, 'a metade de living-docs/open-decision-claim que lê o diff é a Fase 7')
     assert.doesNotMatch(yaml, /npx living-docs drift/)
     assert.doesNotMatch(yaml, /npx living-docs changelog/)
     assert.ok(
@@ -139,7 +139,7 @@ test('RN-0025/ADR-0012: production instala o diff do núcleo (Fase 6), mas não 
     const yaml = readFileSync(join(root, WORKFLOW), 'utf8')
 
     assert.match(yaml, /npx ownership validate --base/, 'a decisão de ADR-0012/ADR-0030 liga as regras de diff do núcleo já em production')
-    assert.doesNotMatch(yaml, /npx living-docs validate --base/, 'a metade de CI-7 que ficou no living-docs só entra na Fase 7 (multi-team)')
+    assert.doesNotMatch(yaml, /npx living-docs validate --base/, 'a metade de living-docs/open-decision-claim que ficou no living-docs só entra na Fase 7 (multi-team)')
   })
 })
 

@@ -2,7 +2,7 @@
  * A única fonte de data do toolkit (`ADR-0007`, `RNF-0004`).
  *
  * Nenhum check e nenhum hook lê o relógio por dentro: quem lê é a borda — o CLI,
- * o hook, ou o teste — e a data entra por valor. Sem isso, o resultado de `CI-4`
+ * o hook, ou o teste — e a data entra por valor. Sem isso, o resultado de `living-docs/staleness`
  * mudaria sozinho com o passar do tempo, e o único teste possível seria o que
  * passa hoje e reprova em seis meses.
  */
@@ -20,7 +20,7 @@ const ISO = /^(\d{4})-(\d{2})-(\d{2})$/
  *
  * `Date` entra porque o YAML de alguns projetos declara timestamp de verdade e o
  * parser o materializa. `null` significa "não sei", e quem não sabe se cala:
- * `CI-1` já cobra o formato de `last-reviewed`, e dois checks reclamando do mesmo
+ * `living-docs/frontmatter` já cobra o formato de `last-reviewed`, e dois checks reclamando do mesmo
  * campo é ruído.
  */
 export function asIsoDate(value: unknown): string | null {

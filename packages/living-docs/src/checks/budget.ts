@@ -3,7 +3,7 @@
  *
  * Do conjunto, e não de cada check: é o conjunto que roda no PR, e um teto por
  * check aprovaria oito checks lentos. Os três candidatos conhecidos a estourá-lo
- * são `CI-5` (executa subprocesso), `CI-7` (compara frase com frase) e `CI-8`
+ * são `ownership/generated-drift` (executa subprocesso), `living-docs/agent-contract-duplication` (compara frase com frase) e `living-docs/links`
  * (varre o corpus inteiro).
  *
  * Dois minutos é "minutos, no PR" com uma ordem de grandeza de folga sobre a

@@ -6,7 +6,7 @@
  * ninguém lê, não está vivo' na origem". A saída é `additionalContext`, e este
  * arquivo não conhece `deny` nem `ask`.
  *
- * Não reimplementa `CI-4`: chama `staleDocs` e `duePayments`. Um inventário que
+ * Não reimplementa `living-docs/staleness`: chama `staleDocs` e `duePayments`. Um inventário que
  * discordasse do check faria dois números diferentes sobre a mesma pergunta, e
  * ninguém saberia qual acreditar.
  */
@@ -15,15 +15,15 @@ import { join } from 'node:path'
 import { loadLivingDocsConfig } from '../config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../docs/collect.ts'
 import type { ArtifactDoc } from '../docs/collect.ts'
-import { duePayments, staleDocs } from '../checks/ci4-staleness.ts'
+import { duePayments, staleDocs } from '../checks/staleness.ts'
 import { todayIso } from '../core/dates.ts'
 import { forgetTree } from '../core/files.ts'
 import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv } from './lib/io.ts'
 
-export type Hk6Decision = { action: 'silent' } | { action: 'inform'; context: string }
+export type SessionInventoryDecision = { action: 'silent' } | { action: 'inform'; context: string }
 
-const SILENT: Hk6Decision = { action: 'silent' }
+const SILENT: SessionInventoryDecision = { action: 'silent' }
 
 /**
  * Quantos itens de cada lista entram no contexto. O inventário é lido em toda
@@ -68,7 +68,7 @@ function openDecisions(docs: readonly ArtifactDoc[]): string[] {
   return found
 }
 
-export function decideHk6(env: HookEnv, today: string): Hk6Decision {
+export function decideSessionInventory(env: HookEnv, today: string): SessionInventoryDecision {
   let inventory: { lines: string[] }
 
   try {
@@ -91,7 +91,7 @@ export function decideHk6(env: HookEnv, today: string): Hk6Decision {
     const velhos = staleDocs(context)
 
     const lines = [
-      `HK-6: inventário da documentação viva (fonte: \`${config.rootFile}\`).`,
+      `living-docs/session-inventory: inventário da documentação viva (fonte: \`${config.rootFile}\`).`,
       `Declarados: ${config.artifacts.length} artefato(s) e ${config.documents.length} documento(s).`,
     ]
 
@@ -119,7 +119,7 @@ export function decideHk6(env: HookEnv, today: string): Hk6Decision {
       )
     }
 
-    lines.push('Nada aqui bloqueia — é contexto. O enforcement é `living-docs validate` e os hooks HK-1 a HK-5 e HK-7.')
+    lines.push('Nada aqui bloqueia — é contexto. O enforcement é `living-docs validate` e os hooks living-docs/append-only a ownership/commit-guard e living-docs/shortcut-debt.')
 
     inventory = { lines }
   } catch {
@@ -138,11 +138,11 @@ async function main(): Promise<void> {
     return
   }
 
-  const decision = decideHk6(hookEnv(), todayIso())
+  const decision = decideSessionInventory(hookEnv(), todayIso())
 
   emit(decision.action === 'inform' ? contextOutput('SessionStart', decision.context) : null)
 }
 
-if (process.argv[1]?.endsWith('hk6-session-inventory.ts')) {
+if (process.argv[1]?.endsWith('session-inventory.ts')) {
   main().catch(() => process.exit(0)) // falha aberta, sempre
 }

@@ -114,6 +114,11 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- Os checks e hooks do `living-docs` passam a ser identificados por nome
+  (`living-docs/frontmatter`, …) em vez de número; o mapa completo está na
+  entrada de renomeação desta versão. O antigo `CI-7` vira três checks:
+  `living-docs/agent-contract-duplication`, `living-docs/done-verifiable` e
+  `living-docs/open-decision-claim`.
 - O plugin `living-docs` passa a depender do plugin `ownership`, e deixa de
   registrar os hooks de artefato gerado, de lembrete de caminho vigiado e de
   guarda de commit — eles moram no `ownership`.

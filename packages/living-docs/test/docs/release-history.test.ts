@@ -93,7 +93,7 @@ test('RN-0001: o rastro histórico tem dono no CODEOWNERS, como todo artefato', 
   }
 })
 
-test('REL está declarado, para que HK-1 congele release note publicada', () => {
+test('REL está declarado, para que living-docs/append-only congele release note publicada', () => {
   const rel = config.artifacts.find(artifact => artifact.idPrefix === 'REL')
 
   assert.ok(rel)

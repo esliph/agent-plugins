@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { coreChecks, resolveOwnership } from '@esliph/ownership'
 import { OWNERSHIP_FILE, runInit, WORKFLOW_PATH } from '../../src/cli/init.ts'
 import { runValidate } from '../../src/cli/validate.ts'
-import { decideHk1 } from '../../src/hooks/hk1-append-only.ts'
+import { decideAppendOnly } from '../../src/hooks/append-only.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
 import { SETTINGS_PATH } from '../../src/config/claude-settings.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
@@ -37,7 +37,7 @@ const REGRAS_DO_CONSUMIDOR = [
     const id = `RN${String(i + 1).padStart(3, '0')}`
 
     // `draft`: o que este fixture exerce e a forma escrita e a contagem de IDs,
-    // nao a maquina de estados. `active` so traria o ruido de CI-3 (regra sem
+    // nao a maquina de estados. `active` so traria o ruido de living-docs/citation-coverage (regra sem
     // teste que a cite), que nao e o assunto do criterio 12.
     return [`## ${id} — Regra numero ${i + 1}`, '', '- **status:** draft', '', 'Prosa da regra.', ''].join('\n')
   }),
@@ -202,7 +202,7 @@ test('DA-0001/RNF-0003: o hook decide pela configuração do repositório valida
       'utf8',
     )
 
-    const decision = decideHk1(
+    const decision = decideAppendOnly(
       { tool_name: 'Edit', tool_input: { file_path: file, old_string: 'corpo original', new_string: 'outro' } },
       { root, hostRoots: [root] },
     )
@@ -324,9 +324,9 @@ test('criterio 12: a camada 4 entra com dono e sem skill, sem que nenhum check m
       'a camada 4 exigiu mais do que dono e linha no CODEOWNERS',
     )
 
-    // Sem skill dona, CI-10 nao tem par a cruzar: documento sem skill nao e achado.
+    // Sem skill dona, living-docs/trigger-routing nao tem par a cruzar: documento sem skill nao e achado.
     assert.deepEqual(
-      result.findings.filter(f => f.ruleId === 'CI-10'),
+      result.findings.filter(f => f.ruleId === 'living-docs/trigger-routing'),
       [],
     )
 

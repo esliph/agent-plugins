@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ci2Ids } from '../../src/checks/ci2-ids.ts'
+import { livingDocsIdIntegrity } from '../../src/checks/id-integrity.ts'
 import { collectArtifacts } from '../../src/docs/collect.ts'
 import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { RETIRED_IDS_PATH } from '../../src/ids/citations.ts'
@@ -50,7 +50,7 @@ function run(files: Record<string, string>): Finding[] {
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
     const config = loadLivingDocsConfig(root)
 
-    findings = ci2Ids.run({ root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-27' })
+    findings = livingDocsIdIntegrity.run({ root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-27' })
   })
 
   return findings
@@ -75,7 +75,7 @@ test('ID duplicado falha nomeando os dois arquivos', () => {
   })
 
   assert.equal(findings.length, 1)
-  assert.equal(findings[0]?.ruleId, 'CI-2')
+  assert.equal(findings[0]?.ruleId, 'living-docs/id-integrity')
   assert.match(findings[0]?.message ?? '', /ADR-0001/)
   assert.match(findings[0]?.message ?? '', /ADR-0001-a\.md/)
 })
@@ -99,7 +99,7 @@ test('RN-0003: ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não do
   })
 
   assert.equal(findings.length, 1)
-  assert.equal(findings[0]?.ruleId, 'CI-2')
+  assert.equal(findings[0]?.ruleId, 'living-docs/id-integrity')
   assert.match(findings[0]?.message ?? '', /duplicado/)
   // A mensagem mostra o ID como a pessoa escreveu, não a forma canônica.
   assert.match(findings[0]?.message ?? '', /ID ADR-001 duplicado/)
@@ -202,7 +202,7 @@ test('RN-0024: a mensagem de buraco de sequência sai na forma escrita do projet
     root => {
       const parsed = loadLivingDocsConfig(root)
 
-      findings = ci2Ids.run({
+      findings = livingDocsIdIntegrity.run({
         root,
         config: parsed,
         docs: collectArtifacts(root, parsed),

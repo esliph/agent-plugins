@@ -7,7 +7,7 @@ import { findCitations } from '../ids/citations.ts'
 import { scanCitations } from '../ids/coverage.ts'
 import type { CitationSite } from '../ids/coverage.ts'
 
-const RULE = 'CI-3'
+const RULE = 'living-docs/citation-coverage'
 
 /** Pares que precisam fechar dos dois lados (spec §8). */
 const PAIRS: readonly { from: string; to: string }[] = Object.freeze([
@@ -44,7 +44,7 @@ function idsIn(value: string | null, format: IdFormat): string[] {
 /**
  * Todo item rastreável do repositório, com uma leitura uniforme de campo.
  * Frontmatter de arquivo e item de coleção respondem à mesma pergunta canônica,
- * e é isso que permite a `CI-3` não conhecer nome de campo nenhum.
+ * e é isso que permite a `living-docs/citation-coverage` não conhecer nome de campo nenhum.
  */
 function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
   const entries: Entry[] = []
@@ -92,7 +92,7 @@ function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
   return entries
 }
 
-export const ci3Traceability: Check = {
+export const livingDocsCitationCoverage: Check = {
   id: RULE,
   name: 'traceability',
   run(context: CheckContext): Finding[] {
@@ -179,7 +179,7 @@ export const ci3Traceability: Check = {
                 resolver.line,
                 `${resolver.id} resolve ${entry.id}, mas não a cita em \`relates-to\`.`,
                 // Regra de origem: spec §5, SK-3, regra 7.
-                `Acrescente ${entry.id} a \`relates-to\` — CI-3 verifica os dois lados.`,
+                `Acrescente ${entry.id} a \`relates-to\` — living-docs/citation-coverage verifica os dois lados.`,
               ),
             )
           }

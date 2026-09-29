@@ -3,11 +3,11 @@ import assert from 'node:assert/strict'
 import { normalizeProse, sentencesOf, stripCode, stripFences } from '../../src/docs/markdown.ts'
 
 test('stripFences apaga só o bloco cercado — o código inline fica', () => {
-  const source = ['item — verificação: `CI-4`.', '```markdown', 'exemplo com `CI-n`', '```', 'depois'].join('\n')
+  const source = ['item — verificação: `living-docs/staleness`.', '```markdown', 'exemplo com `CI-n`', '```', 'depois'].join('\n')
   const stripped = stripFences(source)
 
   assert.equal(stripped.split('\n').length, source.split('\n').length, 'a linha do achado depende disto')
-  assert.ok(stripped.includes('`CI-4`'), 'o ID entre crases é o que quem procura verificação precisa ver')
+  assert.ok(stripped.includes('`living-docs/staleness`'), 'o ID entre crases é o que quem procura verificação precisa ver')
   assert.equal(stripped.includes('CI-n'), false, 'o exemplo dentro da cerca é exemplo')
   assert.ok(stripped.includes('depois'))
 })

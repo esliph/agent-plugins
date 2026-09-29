@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ci4Staleness, duePayments, debtsWithoutTrigger, payWhenOf, staleDocs } from '../../src/checks/ci4-staleness.ts'
+import { livingDocsStaleness, duePayments, debtsWithoutTrigger, payWhenOf, staleDocs } from '../../src/checks/staleness.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
@@ -115,11 +115,11 @@ test('RN-0018: documento além do limite avisa, e aviso não é erro', () => {
       'docs/requirements/rules.md': RULES_ATIVA,
     },
     root => {
-      const findings = ci4Staleness.run(contextFor(root))
+      const findings = livingDocsStaleness.run(contextFor(root))
       const aviso = findings.find(finding => finding.file === 'docs/decisions/adr/ADR-0001-a.md')
 
       assert.ok(aviso, 'ADR revisado em janeiro deveria vencer em agosto')
-      assert.equal(aviso.ruleId, 'CI-4')
+      assert.equal(aviso.ruleId, 'living-docs/staleness')
       assert.equal(aviso.severity, 'warning')
       assert.match(aviso.message, /7 meses/)
       assert.match(aviso.message, /stale-after-months/)
@@ -164,7 +164,7 @@ test('RN-0018: documento de `documents:` vence; sem frontmatter, não tem o que 
   )
 })
 
-test('RN-0018: `last-reviewed` fora do formato ISO não vence — CI-1 já cobra o formato', () => {
+test('RN-0018: `last-reviewed` fora do formato ISO não vence — living-docs/frontmatter já cobra o formato', () => {
   withTempRepo(
     {
       'docs/requirements/rules.md': RULES_ATIVA,
@@ -197,7 +197,7 @@ test('RN-0019: dívida `open` sem `pay-when` é erro, com o problema nomeado', (
         [['TDR-0001', 'ausente']],
       )
 
-      const findings = ci4Staleness.run(contextFor(root))
+      const findings = livingDocsStaleness.run(contextFor(root))
       const erro = findings.find(finding => finding.severity === 'error')
 
       assert.ok(erro)
@@ -243,7 +243,7 @@ test('critério 7: dívida com gatilho cumprido reprova, e a evidência aparece'
       assert.equal(due[0]?.id, 'TDR-0001')
       assert.match(due[0]?.evidence ?? '', /^docs\/requirements\/rules\.md:\d+$/)
 
-      const findings = ci4Staleness.run(contextFor(root))
+      const findings = livingDocsStaleness.run(contextFor(root))
       const erro = findings.find(finding => finding.severity === 'error')
 
       assert.ok(erro)
@@ -311,14 +311,14 @@ test('payWhenOf distingue ausente, incompleto e válido', () => {
   })
 })
 
-test('CI-4 é o único check que avisa: nada aqui reprova por documento vencido', () => {
+test('living-docs/staleness é o único check que avisa: nada aqui reprova por documento vencido', () => {
   withTempRepo(
     {
       'docs/decisions/adr/ADR-0001-a.md': adr('draft', '2019-01-01'),
       'docs/requirements/rules.md': RULES_ATIVA,
     },
     root => {
-      const findings = ci4Staleness.run(contextFor(root))
+      const findings = livingDocsStaleness.run(contextFor(root))
 
       assert.ok(findings.length > 0)
       assert.ok(findings.every(finding => finding.severity === 'warning'))

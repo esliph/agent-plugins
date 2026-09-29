@@ -3,7 +3,7 @@ import type { ArtifactDoc } from '../docs/collect.ts'
 import type { IdFormat } from '../docs/schema.ts'
 import { REQUIRED_FIELDS, CONTAINER_REQUIRED_FIELDS, findCadence, isIsoDate, parseId, writeId } from '../docs/schema.ts'
 
-const RULE = 'CI-1'
+const RULE = 'living-docs/frontmatter'
 
 function error(file: string, line: number, message: string, fix: string): Finding {
   return { ruleId: RULE, file, line, severity: 'error', message, fix }
@@ -148,7 +148,7 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
   return findings
 }
 
-export const ci1Structure: Check = {
+export const livingDocsFrontmatter: Check = {
   id: RULE,
   name: 'structure lint',
   run(context: CheckContext): Finding[] {

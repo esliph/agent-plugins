@@ -6,14 +6,14 @@ import { join } from 'node:path'
 import { coreChecks, diffChecks, resolveOwnership } from '@esliph/ownership'
 import { runInit } from '../../src/cli/init.ts'
 import { runValidate } from '../../src/cli/validate.ts'
-import { decideHk1 } from '../../src/hooks/hk1-append-only.ts'
-import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts'
+import { decideAppendOnly } from '../../src/hooks/append-only.ts'
+import { decideStatePromotion } from '../../src/hooks/state-promotion.ts'
 import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
-import { decideHk7 } from '../../src/hooks/hk7-shortcut-debt.ts'
-import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts'
-import { decideHk8 } from '../../src/hooks/hk8-open-decision-guard.ts'
+import { decideShortcutDebt } from '../../src/hooks/shortcut-debt.ts'
+import { decideSessionInventory } from '../../src/hooks/session-inventory.ts'
+import { decideOpenDecisionGuard } from '../../src/hooks/open-decision-guard.ts'
 
 const ROOT = checkoutRoot()
 const OPTIONS = {
@@ -57,13 +57,13 @@ test('critério 1: SK-0 num repositório sem documentação viva não duplica na
   })
 })
 
-test('critério 2: HK-1 nega alterar o corpo de um ADR accepted e permite supersedir', () => {
+test('critério 2: living-docs/append-only nega alterar o corpo de um ADR accepted e permite supersedir', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'accepted')
     const env = { root, hostRoots: [root] }
 
-    const negado = decideHk1({ tool_name: 'Edit', tool_input: { file_path: file, old_string: 'corpo original', new_string: 'corpo novo' } }, env)
+    const negado = decideAppendOnly({ tool_name: 'Edit', tool_input: { file_path: file, old_string: 'corpo original', new_string: 'corpo novo' } }, env)
 
     assert.equal(negado.action, 'deny')
 
@@ -71,7 +71,7 @@ test('critério 2: HK-1 nega alterar o corpo de um ADR accepted e permite supers
     const supersedido = atual
       .replace('status: accepted', 'status: superseded')
       .replace('last-reviewed: 2026-08-24', 'last-reviewed: 2026-08-24\nsuperseded-by: ADR-0002')
-    const permitido = decideHk1({ tool_name: 'Write', tool_input: { file_path: file, content: supersedido } }, env)
+    const permitido = decideAppendOnly({ tool_name: 'Write', tool_input: { file_path: file, content: supersedido } }, env)
 
     assert.equal(permitido.action, 'allow')
   })
@@ -91,18 +91,18 @@ test('critério 3: trigger com cadência falha no CI nomeando o campo', () => {
     const result = runValidate(root)
 
     assert.equal(result.exitCode, 1)
-    const finding = result.findings.find(f => f.ruleId === 'CI-1' && /trigger/.test(f.message))
+    const finding = result.findings.find(f => f.ruleId === 'living-docs/frontmatter' && /trigger/.test(f.message))
 
-    assert.ok(finding, 'CI-1 deveria acusar o campo trigger')
+    assert.ok(finding, 'living-docs/frontmatter deveria acusar o campo trigger')
     assert.match(finding.message, /trimestral/i)
   })
 })
 
-test('HK-3 pergunta ao promover uma decisão sem ato humano (mecanismo do spec §4)', () => {
+test('living-docs/state-promotion pergunta ao promover uma decisão sem ato humano (mecanismo do spec §4)', () => {
   withTempRepo({}, root => {
     runInit(root, OPTIONS)
     const file = seedAdr(root, 'draft')
-    const decision = decideHk3(
+    const decision = decideStatePromotion(
       { tool_name: 'Edit', tool_input: { file_path: file, old_string: 'status: draft', new_string: 'status: accepted' } },
       { root, hostRoots: [root] },
     )
@@ -231,7 +231,7 @@ test('mecanismo da Fase 6: atalho novo sem TDR é lembrado, nunca bloqueado', ()
     mkdirSync(join(root, 'src'), { recursive: true })
     writeFileSync(join(root, 'src/cobranca.ts'), 'export const taxa = 0.05;\n', 'utf8')
 
-    const decision = decideHk7(
+    const decision = decideShortcutDebt(
       {
         tool_name: 'Edit',
         tool_input: {
@@ -243,7 +243,7 @@ test('mecanismo da Fase 6: atalho novo sem TDR é lembrado, nunca bloqueado', ()
       { root, hostRoots: [root] },
     )
 
-    assert.equal(decision.action, 'remind', 'HK-7 é additionalContext: lembra e devolve o controle')
+    assert.equal(decision.action, 'remind', 'living-docs/shortcut-debt é additionalContext: lembra e devolve o controle')
     assert.match(decision.action === 'remind' ? decision.context : '', /TDR/)
   })
 })
@@ -326,7 +326,7 @@ test('critério 7: dívida com gatilho cumprido reprova até ser paga ou reclass
 
     assert.equal(result.exitCode, 1)
 
-    const finding = result.findings.find(f => f.ruleId === 'CI-4' && f.severity === 'error')
+    const finding = result.findings.find(f => f.ruleId === 'living-docs/staleness' && f.severity === 'error')
 
     assert.ok(finding, JSON.stringify(result.findings, null, 2))
     assert.match(finding.message, /TDR-0001/)
@@ -347,7 +347,7 @@ test('critério 8: no início da sessão, o inventário e as pendências chegam 
       'docs/requirements/rules.md': regras('revoked'),
     },
     root => {
-      const decision = decideHk6({ root, hostRoots: [root] }, '2026-08-27')
+      const decision = decideSessionInventory({ root, hostRoots: [root] }, '2026-08-27')
 
       assert.equal(decision.action, 'inform', 'ninguém precisa procurar: o inventário chega')
       const context = decision.action === 'inform' ? decision.context : ''
@@ -465,8 +465,8 @@ test('critério 4 da spec §12: comportamento sem regra é perguntado na ediçã
       args.includes('diff') ? changed.join(NUL) + NUL : messages.join(`${NUL}\n`) + NUL + '\n'
 
   withTempRepo(arvore, root => {
-    // Metade 1 — na edição, HK-8 pergunta nomeando a decisão.
-    const pergunta = decideHk8(
+    // Metade 1 — na edição, living-docs/open-decision-guard pergunta nomeando a decisão.
+    const pergunta = decideOpenDecisionGuard(
       { tool_name: 'Edit', tool_input: { file_path: 'src/cobranca/taxa.ts', old_string: 'a', new_string: 'b' } },
       { root, hostRoots: [root] },
     )
@@ -474,9 +474,9 @@ test('critério 4 da spec §12: comportamento sem regra é perguntado na ediçã
     assert.equal(pergunta.action, 'ask')
     assert.match(pergunta.action === 'ask' ? pergunta.reason : '', /DA-0001/)
 
-    // Metade 2 — no diff, CI-7 reprova.
+    // Metade 2 — no diff, living-docs/open-decision-claim reprova.
     const reprovado = runValidate(root, 'origin/master', git(['src/cobranca/taxa.ts'], ['feat: centavos']))
-    const finding = reprovado.findings.find(f => f.ruleId === 'CI-7' && /DA-0001/.test(f.message))
+    const finding = reprovado.findings.find(f => f.ruleId === 'living-docs/open-decision-claim' && /DA-0001/.test(f.message))
 
     assert.ok(finding, JSON.stringify(reprovado.findings, null, 2))
     assert.equal(reprovado.exitCode, 1)
@@ -559,7 +559,7 @@ test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () 
     // Criterio 7 — tres documentos que so mudaram a data.
     const bumps = ['docs/a.md', 'docs/b.md', 'docs/c.md']
     const massa = runValidate(root, 'origin/master', fakeGit(bumps, ['chore: revisao geral'], bumpPatch(bumps)))
-    const bumpFinding = massa.findings.find(f => f.ruleId === 'CI-9' && /last-reviewed/.test(f.message))
+    const bumpFinding = massa.findings.find(f => f.ruleId === 'living-docs/commit-discipline' && /last-reviewed/.test(f.message))
 
     assert.ok(bumpFinding, JSON.stringify(massa.findings, null, 2))
     assert.equal(massa.exitCode, 1)
@@ -568,7 +568,7 @@ test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () 
     const semCitacao = runValidate(root, 'origin/master', fakeGit(['docs/requirements/rules.md'], ['docs: ajusta a prosa']))
 
     assert.ok(
-      semCitacao.findings.some(f => f.ruleId === 'CI-9' && /RN-0001/.test(f.message)),
+      semCitacao.findings.some(f => f.ruleId === 'living-docs/commit-discipline' && /RN-0001/.test(f.message)),
       JSON.stringify(semCitacao.findings, null, 2),
     )
 
@@ -576,13 +576,13 @@ test('criterios 7 e 8 da spec §12: a disciplina do commit e cobrada no CI', () 
     const comCitacao = runValidate(root, 'origin/master', fakeGit(['docs/requirements/rules.md'], ['docs(RN-0001): o caso do negativo']))
 
     assert.deepEqual(
-      comCitacao.findings.filter(f => f.ruleId === 'CI-9'),
+      comCitacao.findings.filter(f => f.ruleId === 'living-docs/commit-discipline'),
       [],
     )
 
-    // Sem base, CI-9 nao roda.
+    // Sem base, living-docs/commit-discipline nao roda.
     assert.deepEqual(
-      runValidate(root).findings.filter(f => f.ruleId === 'CI-9'),
+      runValidate(root).findings.filter(f => f.ruleId === 'living-docs/commit-discipline'),
       [],
     )
   })
@@ -628,7 +628,7 @@ test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI'
     },
     root => {
       const result = runValidate(root)
-      const finding = result.findings.find(f => f.ruleId === 'CI-10')
+      const finding = result.findings.find(f => f.ruleId === 'living-docs/trigger-routing')
 
       assert.ok(finding, JSON.stringify(result.findings, null, 2))
       assert.equal(finding?.severity, 'error')
@@ -645,7 +645,7 @@ test('criterio 9 da spec de fechamento: gatilho e roteamento sao cruzados no CI'
     },
     root => {
       const result = runValidate(root)
-      const finding = result.findings.find(f => f.ruleId === 'CI-10')
+      const finding = result.findings.find(f => f.ruleId === 'living-docs/trigger-routing')
 
       assert.equal(finding?.severity, 'warning')
       assert.equal(result.exitCode, 0)

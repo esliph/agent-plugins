@@ -5,7 +5,7 @@ import { readTextFile } from '../core/files.ts'
 import { documentationFiles } from '../docs/corpus.ts'
 import { stripCode } from '../docs/markdown.ts'
 
-const RULE = 'CI-8'
+const RULE = 'living-docs/links'
 
 /**
  * Formatos que não se leem em diff nem se revisam em PR (spec §13).
@@ -171,13 +171,13 @@ function extensionOf(file: string): string | null {
 }
 
 /**
- * `CI-8` — links. Regra de origem: `RN-0023`.
+ * `living-docs/links` — links. Regra de origem: `RN-0023`.
  *
  * Começa apagando código, e essa ordem é o check: a primeira coisa que um
  * varredor de links ingênuo pega é o exemplo de link dentro de um bloco de
  * TypeScript — e cobrar exemplo ensina a não escrever exemplo.
  */
-export const ci8Links: Check = {
+export const livingDocsLinks: Check = {
   id: RULE,
   name: 'links',
   run(context: CheckContext): Finding[] {

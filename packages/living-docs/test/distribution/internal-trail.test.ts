@@ -19,7 +19,7 @@ import { withTempRepo } from '../helpers/tmp.ts'
  * Rastro interno é o `id-prefix` declarado no `.ownership.yml` do
  * toolkit, mais `spec §<n>` e o caminho `docs/superpowers/`. Nenhuma lista de
  * prefixos mora aqui: `CI-n`, `HK-n`, `SK-n`, `CM-n` e `EXIT-n` ficam de fora
- * porque ninguém os declara como família de artefato — o mesmo desenho de CI-11.
+ * porque ninguém os declara como família de artefato — o mesmo desenho de living-docs/external-audience.
  */
 const ROOT = toolkitRoot()
 const CONFIG = loadLivingDocsConfig(checkoutRoot())
@@ -69,7 +69,7 @@ function toolkitPath(absolute: string): string {
 test('RN-0031: o detector acha o rastro interno e deixa a interface pública e o placeholder', () => {
   const texto = [
     'Regra de origem: ADR-0011 e spec §3, em docs/superpowers/research/x.md.',
-    'CI-7 reprova, HK-2 bloqueia, SK-7 e EXIT-2 são públicos.',
+    'living-docs/done-verifiable reprova, ownership/generated-guard bloqueia, SK-7 e EXIT-2 são públicos.',
     '| Termo | Fonte | RN-nnnn |',
   ].join('\n')
 

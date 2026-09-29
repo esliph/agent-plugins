@@ -51,7 +51,7 @@ teste novo e ajuste de mensagem não têm entrada — o caminho ali é o rótulo
 
 **O custo de usar à toa** é a entrada que ninguém consegue ler: um CHANGELOG
 com trinta linhas de detalhe interno esconde a única linha que importava, e o
-consumidor para de ler. `CI-6` cobra a existência da entrada; que ela seja
+consumidor para de ler. `ownership/consumer-change-logged` cobra a existência da entrada; que ela seja
 legível é humano.
 
 ## Procedimento
@@ -75,8 +75,8 @@ legível é humano.
    caminho é `/adr` antes.
 6. **Release note é derivada do CHANGELOG**, não escrita de novo: mova as
    entradas de `Unreleased` para a seção da versão, e escreva só a moldura.
-7. **Nasce `draft`.** Publicar é ato humano — `HK-3` intercepta, e a resposta
-   não é sua. Depois de `published`, `HK-1` congela o arquivo.
+7. **Nasce `draft`.** Publicar é ato humano — `living-docs/state-promotion` intercepta, e a resposta
+   não é sua. Depois de `published`, `living-docs/append-only` congela o arquivo.
 
 ## Fronteiras
 
@@ -86,19 +86,19 @@ legível é humano.
 | A release note e o congelamento dela     | Promover para `published` (é humano)                                 |
 | A tabela de depreciações                 | A política de versionamento (é `contract-keeper`)                    |
 | O guia de migração                       | O ADR que decidiu a quebra (é `decision-recorder`)                   |
-| Recusar depreciação incompleta           | Bloquear a mudança que não tem entrada (`CI-6` falha, você não nega) |
+| Recusar depreciação incompleta           | Bloquear a mudança que não tem entrada (`ownership/consumer-change-logged` falha, você não nega) |
 | Apontar `Changelog: none` como saída     | Escrever a razão no lugar de quem decidiu                            |
 
 ## Checklist
 
-- [ ] A entrada nasceu no PR que causou a mudança, não depois — verificação: `CI-6`.
-- [ ] O doc marcado `consumer-visible: true` viajou no mesmo diff — verificação: `CI-6` (e `HK-5` pergunta antes).
+- [ ] A entrada nasceu no PR que causou a mudança, não depois — verificação: `ownership/consumer-change-logged`.
+- [ ] O doc marcado `consumer-visible: true` viajou no mesmo diff — verificação: `ownership/consumer-change-logged` (e `ownership/commit-guard` pergunta antes).
 - [ ] A entrada é legível por quem consome, e não narra o código — verificação: humana.
-- [ ] Quando não há entrada, existe `Changelog: none — <razão>` com razão escrita — verificação: `CI-6`.
+- [ ] Quando não há entrada, existe `Changelog: none — <razão>` com razão escrita — verificação: `ownership/consumer-change-logged`.
 - [ ] Toda depreciação registrada tem as quatro coisas — verificação: humana.
 - [ ] Toda quebra de compatibilidade tem guia de migração que diz em texto corrido por que foi decidida, e o commit que o cria cita o ADR — verificação: humana.
 - [ ] Nenhum comentário do template sobreviveu ao preenchimento da release note ou do guia de migração — verificação: humana.
-- [ ] Nenhum documento externo cita ID de artefato — verificação: `CI-11`.
-- [ ] A release note nasceu `draft` e foi promovida por uma pessoa — verificação: `HK-3`.
-- [ ] Nenhuma release note publicada foi editada no corpo — verificação: `HK-1`.
-- [ ] Nenhum atalho novo ficou sem `TDR-nnnn` — verificação: `HK-7` lembra; registrar é humano.
+- [ ] Nenhum documento externo cita ID de artefato — verificação: `living-docs/external-audience`.
+- [ ] A release note nasceu `draft` e foi promovida por uma pessoa — verificação: `living-docs/state-promotion`.
+- [ ] Nenhuma release note publicada foi editada no corpo — verificação: `living-docs/append-only`.
+- [ ] Nenhum atalho novo ficou sem `TDR-nnnn` — verificação: `living-docs/shortcut-debt` lembra; registrar é humano.

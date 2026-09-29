@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { decideHk6 } from '../../src/hooks/hk6-session-inventory.ts'
+import { decideSessionInventory } from '../../src/hooks/session-inventory.ts'
 import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
 
@@ -99,13 +99,13 @@ const ARVORE = {
 
 test('critério 8: o inventário chega ao contexto sem ninguém procurar', () => {
   withTempRepo(ARVORE, root => {
-    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const decision = decideSessionInventory({ root, hostRoots: [root] }, HOJE)
 
     assert.equal(decision.action, 'inform')
 
     const context = decision.action === 'inform' ? decision.context : ''
 
-    assert.match(context, /HK-6/)
+    assert.match(context, /living-docs\/session-inventory/)
     assert.match(context, /DA-0001/, 'decisão aberta')
     assert.match(context, /TDR-0001/, 'dívida com gatilho cumprido')
     assert.match(context, /CONTRIBUTING\.md/, 'documento vencido')
@@ -115,7 +115,7 @@ test('critério 8: o inventário chega ao contexto sem ninguém procurar', () =>
 
 test('RN-0022: é injeção de contexto, nunca decisão de permissão', () => {
   withTempRepo(ARVORE, root => {
-    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const decision = decideSessionInventory({ root, hostRoots: [root] }, HOJE)
     const context = decision.action === 'inform' ? decision.context : ''
 
     assert.doesNotMatch(context, /\bdeny\b/)
@@ -132,7 +132,7 @@ test('RN-0022: o inventário é curto — lista longa aparece truncada com a con
   ].join('\n')
 
   withTempRepo({ ...ARVORE, 'docs/open-decisions.md': muitas }, root => {
-    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const decision = decideSessionInventory({ root, hostRoots: [root] }, HOJE)
     const context = decision.action === 'inform' ? decision.context : ''
 
     assert.match(context, /\(10\)/, 'a contagem total aparece')
@@ -142,21 +142,21 @@ test('RN-0022: o inventário é curto — lista longa aparece truncada com a con
 
 test('RNF-0001: configuração ilegível cala o hook em vez de estourar', () => {
   withTempRepo({ [OWNERSHIP_FILE]: 'version: 99\n' }, root => {
-    assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
+    assert.deepEqual(decideSessionInventory({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
   })
   withTempRepo({ 'README.md': '' }, root => {
-    assert.deepEqual(decideHk6({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
+    assert.deepEqual(decideSessionInventory({ root, hostRoots: [root] }, HOJE), { action: 'silent' })
   })
 })
 
-test('HK-6 não reimplementa CI-4: sem dívida vencida e sem doc velho, as duas linhas não aparecem', () => {
+test('living-docs/session-inventory não reimplementa living-docs/staleness: sem dívida vencida e sem doc velho, as duas linhas não aparecem', () => {
   const semDivida = { ...ARVORE }
 
   delete (semDivida as Record<string, string>)['docs/decisions/debt/TDR-0001-x.md']
   semDivida['CONTRIBUTING.md'] = '---\ntitle: Como\nowner: "@time"\ntrigger: quando muda o processo\nlast-reviewed: 2026-08-20\n---\n\n# Como\n'
 
   withTempRepo(semDivida, root => {
-    const decision = decideHk6({ root, hostRoots: [root] }, HOJE)
+    const decision = decideSessionInventory({ root, hostRoots: [root] }, HOJE)
     const context = decision.action === 'inform' ? decision.context : ''
 
     assert.doesNotMatch(context, /gatilho de pagamento/)

@@ -4,7 +4,7 @@ import { listFiles, readTextFile } from '../core/files.ts'
 import { FROZEN_STATUSES } from '../docs/schema.ts'
 import type { Frontmatter } from '../frontmatter/parse.ts'
 
-const RULE = 'CI-4'
+const RULE = 'living-docs/staleness'
 
 /**
  * O estado que identifica uma família de dívida (spec §4: `open → paid`).
@@ -271,14 +271,14 @@ export function duePayments(context: CheckContext): DuePayment[] {
 }
 
 /**
- * `CI-4` — staleness. O **único** check autorizado a apenas avisar (spec §9), e
+ * `living-docs/staleness` — staleness. O **único** check autorizado a apenas avisar (spec §9), e
  * só na metade do `last-reviewed`: a correção ali é ler o documento, e build
  * vermelho empurra para o bump em massa que a spec §13 recusa. A metade da
  * dívida reprova, porque é ela que fecha o critério de aceite 7.
  *
  * Regras de origem: `RN-0018`, `RN-0019`.
  */
-export const ci4Staleness: Check = {
+export const livingDocsStaleness: Check = {
   id: RULE,
   name: 'staleness',
   run(context: CheckContext): Finding[] {
@@ -321,7 +321,7 @@ export const ci4Staleness: Check = {
           `${payment.id} está \`open\` e o gatilho de pagamento já aconteceu: ${payment.evidence} casa \`${payment.pattern}\`.`,
           // Regra de origem: RN-0005; spec §12, critério 7.
           'Pague a dívida, ou reclassifique-a (`paid`, `accepted-permanently`) — as duas coisas são ato humano, ' +
-            'e `HK-3` intercepta. Enquanto ela seguir `open` com o gatilho cumprido, o CI reprova.',
+            'e `living-docs/state-promotion` intercepta. Enquanto ela seguir `open` com o gatilho cumprido, o CI reprova.',
         ),
       )
     }

@@ -19,7 +19,7 @@ export type HookDecision = { action: 'allow' } | { action: 'deny'; reason: strin
 
 const ALLOW: HookDecision = { action: 'allow' }
 
-export function decideHk1(payload: HookPayload, env: HookEnv): HookDecision {
+export function decideAppendOnly(payload: HookPayload, env: HookEnv): HookDecision {
   const toolInput = payload.tool_input
 
   if (!toolInput) {
@@ -87,7 +87,7 @@ export function decideHk1(payload: HookPayload, env: HookEnv): HookDecision {
   return {
     action: 'deny',
     reason:
-      `HK-1 bloqueou: \`${basename(repoPath)}\` está em estado congelado (\`${status}\`) e você tentou alterar ${what}. ` +
+      `living-docs/append-only bloqueou: \`${basename(repoPath)}\` está em estado congelado (\`${status}\`) e você tentou alterar ${what}. ` +
       // Regra de origem: spec §4.
       'Nenhum estado terminal permite edição do corpo; ' +
       'um item aceito que se revelou errado não é corrigido, a história das decisões é o ativo. ' +
@@ -103,11 +103,11 @@ async function main(): Promise<void> {
   if (!payload) {
     return
   } // falha aberta
-  const decision = decideHk1(payload, hookEnv())
+  const decision = decideAppendOnly(payload, hookEnv())
 
   emit(decision.action === 'deny' ? denyOutput(decision.reason) : null)
 }
 
-if (process.argv[1]?.endsWith('hk1-append-only.ts')) {
+if (process.argv[1]?.endsWith('append-only.ts')) {
   main().catch(() => process.exit(0)) // falha aberta, sempre
 }

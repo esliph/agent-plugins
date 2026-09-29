@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ci1Structure } from '../../src/checks/ci1-structure.ts'
+import { livingDocsFrontmatter } from '../../src/checks/frontmatter.ts'
 import { collectArtifacts } from '../../src/docs/collect.ts'
 import { loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
@@ -58,7 +58,7 @@ function run(files: Record<string, string>): Finding[] {
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
     const config = loadLivingDocsConfig(root)
 
-    findings = ci1Structure.run({ root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-27' })
+    findings = livingDocsFrontmatter.run({ root, config, docs: collectArtifacts(root, config), documents: [], today: '2026-08-27' })
   })
 
   return findings
@@ -72,7 +72,7 @@ test('frontmatter ausente falha na linha 1', () => {
   const findings = run({ 'docs/decisions/adr/ADR-0001-x.md': '# Sem frontmatter\n' })
 
   assert.equal(findings.length, 1)
-  assert.equal(findings[0]?.ruleId, 'CI-1')
+  assert.equal(findings[0]?.ruleId, 'living-docs/frontmatter')
   assert.equal(findings[0]?.line, 1)
   assert.equal(findings[0]?.severity, 'error')
   assert.match(findings[0]?.message ?? '', /frontmatter/i)
@@ -185,7 +185,7 @@ owned:
     root => {
       const parsed = loadLivingDocsConfig(root)
 
-      findings = ci1Structure.run({ root, config: parsed, docs: collectArtifacts(root, parsed), documents: [], today: '2026-08-27' })
+      findings = livingDocsFrontmatter.run({ root, config: parsed, docs: collectArtifacts(root, parsed), documents: [], today: '2026-08-27' })
     },
   )
   assert.equal(findings.length, 1)

@@ -32,10 +32,10 @@ test('hooks.json registra os cinco hooks do living-docs nos eventos e matchers d
   )
 
   const esperado: Record<string, string[]> = {
-    'PreToolUse:Edit|Write': ['hk1-append-only', 'hk3-state-promotion', 'hk8-open-decision-guard'],
-    'PostToolUse:Edit|Write': ['hk7-shortcut-debt'],
+    'PreToolUse:Edit|Write': ['append-only', 'state-promotion', 'open-decision-guard'],
+    'PostToolUse:Edit|Write': ['shortcut-debt'],
     // SessionStart não tem matcher: o evento não é de ferramenta (spec §7).
-    SessionStart: ['hk6-session-inventory'],
+    SessionStart: ['session-inventory'],
   }
 
   assert.deepEqual([...grupos.keys()].sort(), Object.keys(esperado).sort())

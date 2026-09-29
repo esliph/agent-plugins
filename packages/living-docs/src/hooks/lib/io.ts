@@ -63,7 +63,7 @@ export function askOutput(reason: string): string {
 
 /**
  * Saída de hook que **não** decide permissão: injeta contexto e devolve o
- * controle. É a forma de HK-4 (PostToolUse) e, na Fase 7, de HK-6 (SessionStart).
+ * controle. É a forma de ownership/watch-reminder (PostToolUse) e, na Fase 7, de living-docs/session-inventory (SessionStart).
  * Não existe variante com `permissionDecision` aqui de propósito — o mecanismo 1
  * lembra e pergunta, nunca nega (spec §7).
  */

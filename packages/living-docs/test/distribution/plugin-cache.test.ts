@@ -14,7 +14,7 @@ import { toolkitRoot } from '../../src/core/roots.ts'
  */
 const PACKAGE_ROOT = toolkitRoot()
 
-/** Repositório validado mínimo: uma família append-only que o HK-1 guarda. */
+/** Repositório validado mínimo: uma família append-only que o living-docs/append-only guarda. */
 const OWNERSHIP = [
   'version: 2',
   'plugins: [living-docs]',
@@ -67,7 +67,7 @@ function runHook(bash: string, cache: string, project: string): { status: number
   // projeto, como no Claude Code, e não o cache: um wrapper que se achasse pelo
   // cwd reprovaria aqui.
   const script = join(cache, 'hooks', 'run-hook.sh').split(sep).join('/')
-  const run = spawnSync(bash, [script, 'hk1-append-only'], { cwd: project, env, input: PAYLOAD, encoding: 'utf8' })
+  const run = spawnSync(bash, [script, 'append-only'], { cwd: project, env, input: PAYLOAD, encoding: 'utf8' })
 
   return { status: run.status, stdout: run.stdout, stderr: run.stderr }
 }

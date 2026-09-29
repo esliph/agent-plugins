@@ -10,5 +10,5 @@ entradas de `## [Unreleased]` viram a seção da versão, e a nota fica com a
 moldura — destaques, o que exige atenção de quem atualiza, depreciações
 anunciadas.
 
-Ela nasce `status: draft`. Publicar é ato humano: `HK-3` intercepta a promoção
-e a resposta não é sua. Depois de `published`, `HK-1` congela o arquivo.
+Ela nasce `status: draft`. Publicar é ato humano: `living-docs/state-promotion` intercepta a promoção
+e a resposta não é sua. Depois de `published`, `living-docs/append-only` congela o arquivo.

@@ -66,9 +66,9 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 6. **No contrato do agente, linke — não copie.** Se a frase que você ia escrever
    é uma afirmação factual, ela pertence ao artefato dono; aqui fica o link.
 7. **Se a mudança de processo alterou o vínculo código→doc**, atualize `watches`
-   no `.ownership.yml`: é ele que `HK-4` e `HK-5` leem.
+   no `.ownership.yml`: é ele que `ownership/watch-reminder` e `ownership/commit-guard` leem.
 8. **O contrato do agente não repete texto de artefato dono, e isso agora é
-   verificado.** `CI-7` compara frase por frase (piso de doze palavras) contra
+   verificado.** `living-docs/agent-contract-duplication` compara frase por frase (piso de doze palavras) contra
    os artefatos com skill dona. Quando ele acusa, a correção é
    apagar a frase e deixar o ponteiro — nunca mexer no limiar.
 9. **Documento novo é declarado nos dois lugares:** `documents:` no
@@ -84,17 +84,17 @@ lista que cresce sem parar é lida por ninguém, e "se ninguém lê, não está 
 | ---------------------------------------------------- | --------------------------------------------------- |
 | Como se trabalha, e quando algo está pronto          | A regra de negócio que o CONTRIBUTING referencia    |
 | Transformar erro por falta de contexto em linha nova | Duplicar conteúdo de outro artefato                 |
-| A política sobre o que um agente pode fazer sozinho  | Aceitar a decisão em si (é ato humano, `HK-3`)      |
+| A política sobre o que um agente pode fazer sozinho  | Aceitar a decisão em si (é ato humano, `living-docs/state-promotion`)      |
 | O item da DoD e a verificação que o cobre            | Escrever o check que verifica (é `CI-n`, na engine) |
 
 ## Checklist
 
-- [ ] Cada afirmação factual do contrato do agente é um link para o artefato dono, não uma cópia — verificação: humana; `CI-7` pega a cópia palavra por palavra.
+- [ ] Cada afirmação factual do contrato do agente é um link para o artefato dono, não uma cópia — verificação: humana; `living-docs/agent-contract-duplication` pega a cópia palavra por palavra.
 - [ ] Todo item novo da DoD nomeia o que o verifica: `CI-n`, `HK-n`, ou "humana" explícita — verificação: humana.
-- [ ] O caminho vigiado que a mudança criou está em `watches`, com doc dono — verificação: `HK-4` e `HK-5`.
+- [ ] O caminho vigiado que a mudança criou está em `watches`, com doc dono — verificação: `ownership/watch-reminder` e `ownership/commit-guard`.
 - [ ] Nenhum dos três artefatos ganhou conteúdo que pertence a `docs/requirements/` ou a `docs/decisions/` — verificação: humana.
-- [ ] O `trigger` do artefato alterado continua nomeando evento, não cadência — verificação: `CI-1`.
+- [ ] O `trigger` do artefato alterado continua nomeando evento, não cadência — verificação: `living-docs/frontmatter`.
 - [ ] A alteração nasceu de um erro observado ou de uma mudança real de processo, não de vontade de documentar — verificação: humana.
 - [ ] `last-reviewed` foi atualizado só nos arquivos que mudaram de verdade — verificação: humana (bump em massa desliga a revisão fingindo cumpri-la).
-- [ ] Nenhuma frase do contrato do agente repete artefato dono — verificação: `CI-7`.
-- [ ] Cada item novo da Definition of Done nomeia o que o verifica — verificação: `CI-7`.
+- [ ] Nenhuma frase do contrato do agente repete artefato dono — verificação: `living-docs/agent-contract-duplication`.
+- [ ] Cada item novo da Definition of Done nomeia o que o verifica — verificação: `living-docs/done-verifiable`.

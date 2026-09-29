@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { loadCodeowners, ownersOf } from '@esliph/ownership'
 import { documentWithRole, loadLivingDocsConfig } from '../../src/config/ownership.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
-import { debtsWithoutTrigger, duePayments } from '../../src/checks/ci4-staleness.ts'
+import { debtsWithoutTrigger, duePayments } from '../../src/checks/staleness.ts'
 import { documentationFiles } from '../../src/docs/corpus.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
 import { todayIso } from '../../src/core/dates.ts'
@@ -71,13 +71,13 @@ test('ADR-0008: os dois papéis estão declarados e apontam para arquivos que ex
   for (const role of ['agent-contract', 'definition-of-done'] as const) {
     const document = documentWithRole(CONFIG, role)
 
-    assert.ok(document, `nenhum documento declara role: ${role} — CI-7 não teria como achá-lo`)
+    assert.ok(document, `nenhum documento declara role: ${role} — living-docs/agent-contract-duplication e living-docs/done-verifiable não teriam como achá-lo`)
     assert.ok(existsSync(join(ROOT, document.path)), `${document.path} declarado e ausente`)
   }
 })
 
 test('RN-0020: o contrato do agente continua sendo índice — sem frase copiada de artefato dono', () => {
-  // A prova real é CI-7 rodando em `validate`; este teste existe para que a
+  // A prova real é living-docs/agent-contract-duplication rodando em `validate`; este teste existe para que a
   // falha aponte o contrato em vez de se perder no meio dos outros achados.
   const contract = documentWithRole(CONFIG, 'agent-contract')
 

@@ -62,12 +62,12 @@ o caminho é `decision-recorder` (`/open-decision`), que abre uma `DA-nnnn` e
    é como duas regras passam a falar de coisas diferentes com a mesma palavra.
 7. **Preencha "fora de escopo"** onde houver ambiguidade. É esse campo que
    impede o alargamento silencioso do requisito.
-8. **Escreva `status: draft`.** Promover para `active` é ato humano — `HK-3`
+8. **Escreva `status: draft`.** Promover para `active` é ato humano — `living-docs/state-promotion`
    pergunta.
 9. **Regra removida é `revoked`, nunca deletada**, com `revoked-by` apontando a
    regra que a substituiu — e a substituta declarando `revokes` de volta.
 10. **Peça o teste que cita o ID.** Toda `RN` `active` precisa de ao menos uma
-    citação nos caminhos de `cited-by`, ou `CI-3` falha. Você não escreve o
+    citação nos caminhos de `cited-by`, ou `living-docs/citation-coverage` falha. Você não escreve o
     teste; você diz qual ID ele precisa citar.
 11. **Rode `living-docs validate`** antes de encerrar.
 12. **Cite o ID na mensagem de commit.**
@@ -85,12 +85,12 @@ o caminho é `decision-recorder` (`/open-decision`), que abre uma `DA-nnnn` e
 ## Checklist
 
 - [ ] A família certa (`RF` / `RNF` / `RN`) para a natureza do item — verificação humana
-- [ ] ID sequencial, não reciclado, conferido contra `docs/ids-retired.txt` — `CI-2`
-- [ ] `status` é `draft`; a promoção ficou para uma pessoa — `HK-3`
-- [ ] Frontmatter do arquivo com `trigger` de evento, não de cadência — `CI-1`
-- [ ] `status` de cada seção dentro da máquina de estados — `CI-1`
-- [ ] Toda citação a outro ID resolve — `CI-2`
-- [ ] Requisito revogado aponta a substituta, e ela aponta de volta — `CI-3`
-- [ ] Toda `RN` `active` é citada por ao menos um teste — `CI-3`
+- [ ] ID sequencial, não reciclado, conferido contra `docs/ids-retired.txt` — `living-docs/id-integrity`
+- [ ] `status` é `draft`; a promoção ficou para uma pessoa — `living-docs/state-promotion`
+- [ ] Frontmatter do arquivo com `trigger` de evento, não de cadência — `living-docs/frontmatter`
+- [ ] `status` de cada seção dentro da máquina de estados — `living-docs/frontmatter`
+- [ ] Toda citação a outro ID resolve — `living-docs/id-integrity`
+- [ ] Requisito revogado aponta a substituta, e ela aponta de volta — `living-docs/citation-coverage`
+- [ ] Toda `RN` `active` é citada por ao menos um teste — `living-docs/citation-coverage`
 - [ ] "Fora de escopo" preenchido onde havia ambiguidade — verificação humana
 - [ ] Nenhuma regra foi inventada para destravar implementação — verificação humana

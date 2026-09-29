@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { ci8Links, findLinks } from '../../src/checks/ci8-links.ts'
+import { livingDocsLinks, findLinks } from '../../src/checks/links.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { OWNERSHIP_FILE, configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
@@ -69,7 +69,7 @@ test('RN-0023: link relativo que resolve passa; arquivo, diretório e âncora in
       ].join('\n'),
     },
     root => {
-      assert.deepEqual(ci8Links.run(contextFor(root)), [])
+      assert.deepEqual(livingDocsLinks.run(contextFor(root)), [])
     },
   )
 })
@@ -81,10 +81,10 @@ test('RN-0023: link que não resolve reprova, com a linha e o alvo', () => {
       'docs/guia.md': ['# Guia', '', 'Veja [o que não existe](decisions/adr/ADR-9999-x.md).', ''].join('\n'),
     },
     root => {
-      const findings = ci8Links.run(contextFor(root))
+      const findings = livingDocsLinks.run(contextFor(root))
 
       assert.equal(findings.length, 1)
-      assert.equal(findings[0]?.ruleId, 'CI-8')
+      assert.equal(findings[0]?.ruleId, 'living-docs/links')
       assert.equal(findings[0]?.severity, 'error')
       assert.equal(findings[0]?.file, 'docs/guia.md')
       assert.equal(findings[0]?.line, 3)
@@ -112,7 +112,7 @@ test('RN-0023: link dentro de bloco cercado ou de marcação inline não é link
       ].join('\n'),
     },
     root => {
-      assert.deepEqual(ci8Links.run(contextFor(root)), [])
+      assert.deepEqual(livingDocsLinks.run(contextFor(root)), [])
     },
   )
 })
@@ -124,7 +124,7 @@ test('RN-0023: wikilink resolve por nome do arquivo, e sem destino reprova', () 
       'docs/guia.md': ['# Guia', '', 'Veja [[ADR-0001-x]] e [[CONTRIBUTING]].', 'Mas [[nada-disso]] não existe.', ''].join('\n'),
     },
     root => {
-      const findings = ci8Links.run(contextFor(root))
+      const findings = livingDocsLinks.run(contextFor(root))
 
       assert.equal(findings.length, 1)
       assert.equal(findings[0]?.line, 4)
@@ -141,7 +141,7 @@ test('RN-0023: definição de referência também é link', () => {
       'docs/guia.md': ['# Guia', '', 'Veja [o adr][adr].', '', '[adr]: decisions/adr/ADR-0000-inexistente.md', ''].join('\n'),
     },
     root => {
-      const findings = ci8Links.run(contextFor(root))
+      const findings = livingDocsLinks.run(contextFor(root))
 
       assert.equal(findings.length, 1)
       assert.equal(findings[0]?.line, 5)
@@ -157,7 +157,7 @@ test('RN-0023: anexo binário no corpus da documentação reprova; texto e .gitk
     writeFileSync(join(root, 'docs/anexos/dados.json'), '{}\n', 'utf8')
     writeFileSync(join(root, 'docs/anexos/.gitkeep'), '', 'utf8')
 
-    const findings = ci8Links.run(contextFor(root))
+    const findings = livingDocsLinks.run(contextFor(root))
 
     assert.equal(findings.length, 1, JSON.stringify(findings, null, 2))
     assert.equal(findings[0]?.file, 'docs/anexos/diagrama.png')
@@ -166,11 +166,11 @@ test('RN-0023: anexo binário no corpus da documentação reprova; texto e .gitk
   })
 })
 
-test('RN-0023: binário fora do corpus não é assunto de CI-8', () => {
+test('RN-0023: binário fora do corpus não é assunto de living-docs/links', () => {
   withTempRepo({ ...BASE, 'docs/guia.md': '# Guia\n' }, root => {
     mkdirSync(join(root, 'assets'), { recursive: true })
     writeFileSync(join(root, 'assets/logo.png'), Buffer.from([0x89, 0x50]))
-    assert.deepEqual(ci8Links.run(contextFor(root)), [])
+    assert.deepEqual(livingDocsLinks.run(contextFor(root)), [])
   })
 })
 

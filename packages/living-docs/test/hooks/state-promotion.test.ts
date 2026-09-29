@@ -1,11 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { decideHk3 } from '../../src/hooks/hk3-state-promotion.ts'
+import { decideStatePromotion } from '../../src/hooks/state-promotion.ts'
 import { OWNERSHIP_FILE } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
-import type { Hk3Decision } from '../../src/hooks/hk3-state-promotion.ts'
+import type { StatePromotionDecision } from '../../src/hooks/state-promotion.ts'
 
-function assertAsk(decision: Hk3Decision): asserts decision is { action: 'ask'; reason: string } {
+function assertAsk(decision: StatePromotionDecision): asserts decision is { action: 'ask'; reason: string } {
   assert.equal(decision.action, 'ask')
 }
 
@@ -64,11 +64,11 @@ function openDecisions(status: string, resolvedBy: string): string {
   ].join('\n')
 }
 
-function decide(files: Record<string, string>, toolInput: Record<string, unknown>): Hk3Decision {
-  let decision: Hk3Decision = { action: 'allow' }
+function decide(files: Record<string, string>, toolInput: Record<string, unknown>): StatePromotionDecision {
+  let decision: StatePromotionDecision = { action: 'allow' }
 
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, ...files }, root => {
-    decision = decideHk3({ tool_name: 'Edit', tool_input: toolInput }, { root, hostRoots: [root] })
+    decision = decideStatePromotion({ tool_name: 'Edit', tool_input: toolInput }, { root, hostRoots: [root] })
   })
 
   return decision
@@ -130,10 +130,10 @@ test('permite adicionar linha nova em open na tabela', () => {
 })
 
 test('RNF-0001: falha aberta — sem configuração, permite', () => {
-  let decision: Hk3Decision = { action: 'ask', reason: 'não deveria' }
+  let decision: StatePromotionDecision = { action: 'ask', reason: 'não deveria' }
 
   withTempRepo({ [ADR_FILE]: adr('draft') }, root => {
-    decision = decideHk3(
+    decision = decideStatePromotion(
       { tool_name: 'Edit', tool_input: { file_path: ADR_FILE, old_string: 'status: draft', new_string: 'status: accepted' } },
       { root, hostRoots: [root] },
     )
@@ -163,7 +163,7 @@ function rules(status: string): string {
 
 test('RN-0005: promover um requisito de draft para active pergunta', () => {
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [RULES_FILE]: rules('draft') }, root => {
-    const decision = decideHk3(
+    const decision = decideStatePromotion(
       {
         tool_name: 'Edit',
         tool_input: {
@@ -183,7 +183,7 @@ test('RN-0005: promover um requisito de draft para active pergunta', () => {
 
 test('RN-0005: revogar um requisito também pergunta', () => {
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [RULES_FILE]: rules('active') }, root => {
-    const decision = decideHk3(
+    const decision = decideStatePromotion(
       {
         tool_name: 'Edit',
         tool_input: {
@@ -202,7 +202,7 @@ test('RN-0005: revogar um requisito também pergunta', () => {
 
 test('editar o enunciado de um requisito em draft não pergunta', () => {
   withTempRepo({ [OWNERSHIP_FILE]: CONFIG, [RULES_FILE]: rules('draft') }, root => {
-    const decision = decideHk3(
+    const decision = decideStatePromotion(
       {
         tool_name: 'Edit',
         tool_input: { file_path: RULES_FILE, old_string: 'Enunciado.', new_string: 'Outro enunciado.' },

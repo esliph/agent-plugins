@@ -18,9 +18,9 @@ import { toRepoPath } from './lib/paths.ts'
 import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk3Decision = { action: 'allow' } | { action: 'ask'; reason: string }
+export type StatePromotionDecision = { action: 'allow' } | { action: 'ask'; reason: string }
 
-const ALLOW: Hk3Decision = { action: 'allow' }
+const ALLOW: StatePromotionDecision = { action: 'allow' }
 
 interface Promotion {
   id: string
@@ -67,7 +67,7 @@ function findPromotion(before: string, after: string, rule: ArtifactRule, repoPa
   return null
 }
 
-export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
+export function decideStatePromotion(payload: HookPayload, env: HookEnv): StatePromotionDecision {
   const toolInput = payload.tool_input
 
   if (!toolInput) {
@@ -122,7 +122,7 @@ export function decideHk3(payload: HookPayload, env: HookEnv): Hk3Decision {
   return {
     action: 'ask',
     reason:
-      `HK-3: esta edição promove ${promotion.id} de \`${promotion.from}\` para \`${promotion.to}\`. ` +
+      `living-docs/state-promotion: esta edição promove ${promotion.id} de \`${promotion.from}\` para \`${promotion.to}\`. ` +
       // Regra de origem: spec §4.
       'Nenhum agente promove estado sozinho: ' +
       'o máximo que uma skill escreve é `draft`/`open`, e a aceitação é ato humano. ' +
@@ -137,11 +137,11 @@ async function main(): Promise<void> {
   if (!payload) {
     return
   }
-  const decision = decideHk3(payload, hookEnv())
+  const decision = decideStatePromotion(payload, hookEnv())
 
   emit(decision.action === 'ask' ? askOutput(decision.reason) : null)
 }
 
-if (process.argv[1]?.endsWith('hk3-state-promotion.ts')) {
+if (process.argv[1]?.endsWith('state-promotion.ts')) {
   main().catch(() => process.exit(0))
 }

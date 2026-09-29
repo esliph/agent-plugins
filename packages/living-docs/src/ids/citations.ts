@@ -17,7 +17,7 @@ export interface Citation {
  *
  * Derivada de `idPatternSource` — uma fonte, não duas cópias que se pedem para
  * mudar juntas. Um match com prefixo não declarado (uma referência a "ISO-8601",
- * por exemplo) é inofensivo: `ci2-ids.ts` só resolve citações cujo prefixo está
+ * por exemplo) é inofensivo: `id-integrity.ts` só resolve citações cujo prefixo está
  * em `known`, e os demais são ignorados em silêncio.
  *
  * Global e sem âncoras de propósito: varre texto livre em busca de várias

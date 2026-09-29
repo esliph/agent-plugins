@@ -4,7 +4,7 @@ import type { ArtifactDoc, DocumentDoc } from '../docs/collect.ts'
 export type Severity = 'error' | 'warning'
 
 export interface Finding {
-  /** ID do check que produziu a finding, ex.: 'CI-1'. */
+  /** ID do check que produziu a finding, ex.: 'living-docs/frontmatter'. */
   ruleId: string
   /** Caminho relativo à raiz do repositório. */
   file: string
@@ -25,7 +25,7 @@ export interface CheckContext {
   documents: DocumentDoc[]
   /**
    * Hoje, em ISO. Nenhum check lê o relógio por dentro (`ADR-0007`, `RNF-0004`):
-   * a data entra por valor, e é isso que torna `CI-4` testável.
+   * a data entra por valor, e é isso que torna `living-docs/staleness` testável.
    */
   today: string
 }

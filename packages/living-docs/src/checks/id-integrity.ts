@@ -3,7 +3,7 @@ import { canonicalId, parseId, writeId } from '../docs/schema.ts'
 import type { IdFormat } from '../docs/schema.ts'
 import { findCitations, loadRetiredIds, RETIRED_IDS_PATH } from '../ids/citations.ts'
 
-const RULE = 'CI-2'
+const RULE = 'living-docs/id-integrity'
 
 interface Declaration {
   id: string
@@ -48,7 +48,7 @@ function key(id: string, format: IdFormat): string {
   return parsed ? canonicalId(parsed) : id
 }
 
-export const ci2Ids: Check = {
+export const livingDocsIdIntegrity: Check = {
   id: RULE,
   name: 'ID lint',
   run(context: CheckContext): Finding[] {

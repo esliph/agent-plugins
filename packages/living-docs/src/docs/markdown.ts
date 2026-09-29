@@ -13,7 +13,7 @@ const FENCE = /^\s{0,3}(`{3,}|~{3,})/
  *
  * É a metade que serve a quem **procura** um ID escrito entre crases: apagar
  * código inline apagaria justamente o que se procura, mas o exemplo dentro de
- * uma cerca continua sendo exemplo (`CI-7`, item de Definition of Done).
+ * uma cerca continua sendo exemplo (`living-docs/done-verifiable`, item de Definition of Done).
  */
 export function stripFences(source: string): string {
   const lines = source.replace(/\r\n/g, '\n').split('\n')

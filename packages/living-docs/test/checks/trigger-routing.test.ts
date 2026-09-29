@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ci10TriggerRouting, loadSkillDescriptions, rootsOf, sharedRoots, SHARED_ROOTS_FLOOR } from '../../src/checks/ci10-trigger-routing.ts'
+import { livingDocsTriggerRouting, loadSkillDescriptions, rootsOf, sharedRoots, SHARED_ROOTS_FLOOR } from '../../src/checks/trigger-routing.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { runValidate } from '../../src/cli/validate.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
@@ -85,7 +85,7 @@ test('RN-0029: gatilho e description que falam do mesmo evento passam', () => {
   }
 
   withTempRepo(arvore, root => {
-    assert.deepEqual(ci10TriggerRouting(DESCRICOES).run(contextFor(root)), [])
+    assert.deepEqual(livingDocsTriggerRouting(DESCRICOES).run(contextFor(root)), [])
   })
 })
 
@@ -96,10 +96,10 @@ test('RN-0029: gatilho que fala de outro evento reprova, nomeando os dois', () =
   }
 
   withTempRepo(arvore, root => {
-    const findings = ci10TriggerRouting(DESCRICOES).run(contextFor(root))
+    const findings = livingDocsTriggerRouting(DESCRICOES).run(contextFor(root))
 
     assert.equal(findings.length, 1)
-    assert.equal(findings[0]?.ruleId, 'CI-10')
+    assert.equal(findings[0]?.ruleId, 'living-docs/trigger-routing')
     assert.equal(findings[0]?.severity, 'error')
     assert.equal(findings[0]?.file, 'docs/open-decisions.md')
     assert.match(findings[0]?.message ?? '', /decision-recorder/)
@@ -116,7 +116,7 @@ test('ADR-0013: o trigger de um item nunca entra — artefato per-file fica fora
   }
 
   withTempRepo(arvore, root => {
-    const findings = ci10TriggerRouting(DESCRICOES).run(contextFor(root))
+    const findings = livingDocsTriggerRouting(DESCRICOES).run(contextFor(root))
 
     assert.deepEqual(
       findings.filter(f => f.file.startsWith('docs/decisions/')),
@@ -147,7 +147,7 @@ test('RN-0029: skill dona ausente da raiz do toolkit avisa e segue', () => {
   const semGlossario = new Map([...DESCRICOES].filter(([name]) => name !== 'glossary-keeper'))
 
   withTempRepo(arvore, root => {
-    const findings = ci10TriggerRouting(semGlossario).run(contextFor(root))
+    const findings = livingDocsTriggerRouting(semGlossario).run(contextFor(root))
 
     assert.equal(findings.length, 1)
     assert.equal(findings[0]?.severity, 'warning')
@@ -165,7 +165,7 @@ test('RN-0029: documento sem trigger no frontmatter nao e achado', () => {
   }
 
   withTempRepo(arvore, root => {
-    assert.deepEqual(ci10TriggerRouting(DESCRICOES).run(contextFor(root)), [])
+    assert.deepEqual(livingDocsTriggerRouting(DESCRICOES).run(contextFor(root)), [])
   })
 })
 
@@ -192,7 +192,7 @@ test('ADR-0013: a raiz do toolkit e legivel, e os pares dela cabem no piso', () 
 
   // Os doze pares deste repositorio, medidos pelo check e nao repetidos aqui:
   // repetir o `trigger` num teste seria a copia que RN-0010 recusa.
-  const findings = runValidate(checkoutRoot()).findings.filter(f => f.ruleId === 'CI-10')
+  const findings = runValidate(checkoutRoot()).findings.filter(f => f.ruleId === 'living-docs/trigger-routing')
 
   assert.deepEqual(
     findings.filter(f => f.severity === 'error'),

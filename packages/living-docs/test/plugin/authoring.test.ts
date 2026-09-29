@@ -63,7 +63,7 @@ for (const name of SKILLS) {
     for (const item of itens) {
       // "human" casa tanto "humano" quanto "humana" — a concordância de gênero em
       // português ("verificação humana") não deve ser tratada como item sem verificação.
-      assert.match(item, /CI-\d|HK-\d|human/i, `${name}: item sem verificação nomeada — ${item}`)
+      assert.match(item, /\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|human/i, `${name}: item sem verificação nomeada — ${item}`)
     }
   })
 }
@@ -220,7 +220,7 @@ test('RN-0030: release-historian não pede que o guia de migração aponte o ADR
 
   assert.doesNotMatch(source, /apontando o ADR/, 'o guia é lido por quem vem de fora: o porquê vai em texto corrido')
   assert.match(source, /commit que cria o guia cita o ADR/, 'o vínculo passa a morar no commit')
-  assert.match(source, /CI-11/, 'o checklist nomeia quem verifica')
+  assert.match(source, /living-docs\/external-audience/, 'o checklist nomeia quem verifica')
 })
 
 test('RN-0030: o template de migração pede o porquê em texto corrido, não o ID do ADR', () => {

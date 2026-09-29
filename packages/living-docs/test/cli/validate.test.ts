@@ -55,7 +55,7 @@ test('RF-0001: erro de qualquer check leva a exit 1', () => {
 
       assert.equal(result.errors, 1)
       assert.equal(result.exitCode, 1)
-      assert.equal(result.findings[0]?.ruleId, 'CI-1')
+      assert.equal(result.findings[0]?.ruleId, 'living-docs/frontmatter')
     },
   )
 })
@@ -70,7 +70,7 @@ test('roda todos os checks do registry, não só o primeiro', () => {
     root => {
       const result = runValidate(root)
 
-      assert.ok(result.findings.some(finding => finding.ruleId === 'CI-2'))
+      assert.ok(result.findings.some(finding => finding.ruleId === 'living-docs/id-integrity'))
     },
   )
 })
@@ -89,7 +89,7 @@ test('RF-0010: aviso é reportado e não muda o código de saída', () => {
 
     assert.equal(result.warnings, 1, JSON.stringify(result.findings, null, 2))
     assert.equal(result.errors, 0)
-    assert.equal(result.exitCode, 0, 'CI-4 avisa; aviso não reprova (spec §9)')
-    assert.equal(result.findings[0]?.ruleId, 'CI-4')
+    assert.equal(result.exitCode, 0, 'living-docs/staleness avisa; aviso não reprova (spec §9)')
+    assert.equal(result.findings[0]?.ruleId, 'living-docs/staleness')
   })
 })

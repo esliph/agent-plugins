@@ -119,7 +119,7 @@ test('cada regra que ficou é reportada pelo living-docs, e o núcleo fica calad
       const diff = { base: 'main', changed: [], messages: [] }
       const living = new Set(livingDocsFindings(root, diff).map(finding => finding.ruleId))
 
-      for (const rule of ['CI-1', 'CI-7', 'CI-8', 'CI-11']) {
+      for (const rule of ['living-docs/frontmatter', 'living-docs/done-verifiable', 'living-docs/links', 'living-docs/external-audience']) {
         assert.ok(living.has(rule), `${rule} deveria reportar a violação plantada`)
       }
       assert.deepEqual(

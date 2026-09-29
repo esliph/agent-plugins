@@ -15,7 +15,7 @@ export interface CitationSite {
  * Chave: o ID exatamente como escrito no texto — a canonização é de quem compara.
  *
  * A varredura da árvore e a leitura segura moram em `src/core/files.ts` desde a
- * Fase 7: `CI-4`, `CI-7` e `CI-8` fazem a mesma caminhada.
+ * Fase 7: `living-docs/staleness`, `ownership/owner-coverage` e `living-docs/links` fazem a mesma caminhada.
  */
 export function scanCitations(root: string, globs: readonly string[], format: IdFormat = DEFAULT_ID_FORMAT): Map<string, CitationSite[]> {
   const sites = new Map<string, CitationSite[]>()

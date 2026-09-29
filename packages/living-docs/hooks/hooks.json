@@ -6,19 +6,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk1-append-only",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" append-only",
             "shell": "bash",
             "async": false
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk3-state-promotion",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" state-promotion",
             "shell": "bash",
             "async": false
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk8-open-decision-guard",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" open-decision-guard",
             "shell": "bash",
             "async": false
           }
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk7-shortcut-debt",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" shortcut-debt",
             "shell": "bash",
             "async": false
           }
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" hk6-session-inventory",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" session-inventory",
             "shell": "bash",
             "async": false
           }

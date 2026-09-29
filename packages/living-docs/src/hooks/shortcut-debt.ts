@@ -18,9 +18,9 @@ import { toRepoPath } from './lib/paths.ts'
 import { contextOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk7Decision = { action: 'silent' } | { action: 'remind'; context: string }
+export type ShortcutDebtDecision = { action: 'silent' } | { action: 'remind'; context: string }
 
-const SILENT: Hk7Decision = { action: 'silent' }
+const SILENT: ShortcutDebtDecision = { action: 'silent' }
 
 /**
  * Lista fechada, de propósito: um hook que precisa interpretar intenção está no
@@ -92,7 +92,7 @@ function onlyInAfter(before: readonly string[], after: readonly string[]): strin
   return novos
 }
 
-export function decideHk7(payload: HookPayload, env: HookEnv): Hk7Decision {
+export function decideShortcutDebt(payload: HookPayload, env: HookEnv): ShortcutDebtDecision {
   const toolInput = payload.tool_input
 
   if (!toolInput) {
@@ -140,7 +140,7 @@ export function decideHk7(payload: HookPayload, env: HookEnv): Hk7Decision {
   return {
     action: 'remind',
     context:
-      `HK-7: \`${repoPath}\` ganhou marcador de atalho sem dívida registrada por perto.\n` +
+      `living-docs/shortcut-debt: \`${repoPath}\` ganhou marcador de atalho sem dívida registrada por perto.\n` +
       `${novos.map(line => `- \`${line}\``).join('\n')}\n` +
       // Regra de origem: spec §7 e RN-0014.
       'Atalho consciente vira `TDR-nnnn` ' +
@@ -156,11 +156,11 @@ async function main(): Promise<void> {
   if (!payload) {
     return
   } // falha aberta
-  const decision = decideHk7(payload, hookEnv())
+  const decision = decideShortcutDebt(payload, hookEnv())
 
   emit(decision.action === 'remind' ? contextOutput('PostToolUse', decision.context) : null)
 }
 
-if (process.argv[1]?.endsWith('hk7-shortcut-debt.ts')) {
+if (process.argv[1]?.endsWith('shortcut-debt.ts')) {
   main().catch(() => process.exit(0)) // falha aberta, sempre
 }

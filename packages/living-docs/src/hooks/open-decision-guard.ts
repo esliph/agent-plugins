@@ -16,11 +16,11 @@ import { toRepoPath } from './lib/paths.ts'
 import { askOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv, HookPayload } from './lib/io.ts'
 
-export type Hk8Decision = { action: 'allow' } | { action: 'ask'; reason: string }
+export type OpenDecisionGuardDecision = { action: 'allow' } | { action: 'ask'; reason: string }
 
-const ALLOW: Hk8Decision = { action: 'allow' }
+const ALLOW: OpenDecisionGuardDecision = { action: 'allow' }
 
-export function decideHk8(payload: HookPayload, env: HookEnv): Hk8Decision {
+export function decideOpenDecisionGuard(payload: HookPayload, env: HookEnv): OpenDecisionGuardDecision {
   const filePath = payload.tool_input?.file_path
 
   if (typeof filePath !== 'string') {
@@ -54,7 +54,7 @@ export function decideHk8(payload: HookPayload, env: HookEnv): Hk8Decision {
   return {
     action: 'ask',
     reason:
-      `HK-8: \`${repoPath}\` está reivindicado por ${claim.id}, uma decisão **aberta** em ${claim.doc}` +
+      `living-docs/open-decision-guard: \`${repoPath}\` está reivindicado por ${claim.id}, uma decisão **aberta** em ${claim.doc}` +
       `${claim.gap === null ? '' : ` — "${claim.gap}"`}. ` +
       `Ela bloqueia: ${claim.paths.join(', ')}. ` +
       // Regra de origem: RN-0026 e o critério de aceite 4 da spec §12.
@@ -71,11 +71,11 @@ async function main(): Promise<void> {
   if (!payload) {
     return
   }
-  const decision = decideHk8(payload, hookEnv())
+  const decision = decideOpenDecisionGuard(payload, hookEnv())
 
   emit(decision.action === 'ask' ? askOutput(decision.reason) : null)
 }
 
-if (process.argv[1]?.endsWith('hk8-open-decision-guard.ts')) {
+if (process.argv[1]?.endsWith('open-decision-guard.ts')) {
   main().catch(() => process.exit(0))
 }

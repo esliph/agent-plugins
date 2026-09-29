@@ -10,7 +10,7 @@ export const MUTABLE_FIELDS_DEFAULT: readonly string[] = ['status', 'superseded-
 /** "Nenhum estado terminal permite edição do corpo" (spec §4). */
 export const FROZEN_STATUSES: ReadonlySet<string> = new Set(['accepted', 'superseded', 'deprecated', 'published', 'paid', 'revoked'])
 
-/** "Nenhum agente promove estado sozinho" (spec §4); é o gatilho de HK-3. */
+/** "Nenhum agente promove estado sozinho" (spec §4); é o gatilho de living-docs/state-promotion. */
 export const HUMAN_PROMOTIONS: readonly { from: string; to: string }[] = Object.freeze([
   { from: 'draft', to: 'accepted' },
   { from: 'open', to: 'resolved' },

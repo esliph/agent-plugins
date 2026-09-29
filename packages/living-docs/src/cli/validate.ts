@@ -24,7 +24,7 @@ export interface ValidateResult {
 /**
  * `living-docs validate [--base <ref>]`.
  *
- * Com `base`, fala com o git **aqui** e passa os fatos ao `CI-7` — o check
+ * Com `base`, fala com o git **aqui** e passa os fatos aos checks de diff — o check
  * continua sendo função pura de (fatos, configuração, árvore) → achados.
  */
 export function runValidate(root: string, base: string | null = null, run?: GitRunner): ValidateResult {

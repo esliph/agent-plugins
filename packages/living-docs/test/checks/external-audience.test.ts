@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ci11ExternalAudience } from '../../src/checks/ci11-external-audience.ts'
+import { livingDocsExternalAudience } from '../../src/checks/external-audience.ts'
 import type { Finding } from '../../src/core/types.ts'
 import { collectArtifacts, collectDocuments } from '../../src/docs/collect.ts'
 import { configFrom } from '../helpers/ownership.ts'
@@ -44,7 +44,7 @@ function findingsFor(files: Record<string, string>): Finding[] {
   withTempRepo(files, root => {
     const config = configFrom(OWNERSHIP)
 
-    findings = ci11ExternalAudience.run({
+    findings = livingDocsExternalAudience.run({
       root,
       config,
       docs: collectArtifacts(root, config),
@@ -78,7 +78,7 @@ test('RN-0030: ID de artefato em prosa, em documento externo, reprova na linha c
   const findings = findingsFor({ 'CHANGELOG.md': changelog('- A regra RN-0001 passa a valer.') })
 
   assert.equal(findings.length, 1)
-  assert.equal(findings[0]?.ruleId, 'CI-11')
+  assert.equal(findings[0]?.ruleId, 'living-docs/external-audience')
   assert.equal(findings[0]?.severity, 'error')
   assert.equal(findings[0]?.file, 'CHANGELOG.md')
   assert.equal(findings[0]?.line, 5)
@@ -110,7 +110,7 @@ test('RN-0030: ID só no frontmatter de um artefato externo passa — é contrat
 })
 
 test('RN-0030: identificador da interface pública citado em documento externo passa', () => {
-  assert.deepEqual(findingsFor({ 'CHANGELOG.md': changelog('- `CI-11` reprova, `HK-6` avisa, e o código de saída é `EXIT-2`.') }), [])
+  assert.deepEqual(findingsFor({ 'CHANGELOG.md': changelog('- `living-docs/external-audience` reprova, `living-docs/session-inventory` avisa, e o código de saída é `EXIT-2`.') }), [])
 })
 
 test('RN-0030: o mesmo ID em documento interno passa', () => {
@@ -131,7 +131,7 @@ test('RN-0030: num documento com frontmatter, a linha reportada é a do arquivo'
   assert.equal(findings[0]?.line, 12)
 })
 
-test('RN-0030: artefato com frontmatter quebrado é pulado — CI-1 já reprova', () => {
+test('RN-0030: artefato com frontmatter quebrado é pulado — living-docs/frontmatter já reprova', () => {
   const quebrada = ['---', 'id: [REL-0001', 'title: v1.0.0', '---', '', 'Corrige RN-0001.', ''].join('\n')
 
   assert.deepEqual(findingsFor({ 'docs/releases/REL-0001-v1.md': quebrada }), [])

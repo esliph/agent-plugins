@@ -50,7 +50,7 @@ const REQUIREMENT_TITLES: Readonly<Record<'RF' | 'RNF' | 'RN', string>> = Object
   RN: 'Regras de negócio',
 })
 
-/** Caminhos varridos por `cited-by` para provar cobertura de requisito (CI-3). */
+/** Caminhos varridos por `cited-by` para provar cobertura de requisito (living-docs/citation-coverage). */
 const REQUIREMENT_CITED_BY: Readonly<Record<'RF' | 'RNF' | 'RN', readonly string[]>> = Object.freeze({
   RF: ['test/**'],
   RNF: ['test/**'],
@@ -90,7 +90,7 @@ const HISTORY_DIRS: readonly string[] = Object.freeze(['docs/migrations/'])
  *
  * Todo documento que o `init` cria e que não tem família de IDs entra aqui: um
  * documento criado e não declarado é um repositório que reprova no próprio
- * `CI-7` na primeira execução.
+ * `ownership/owner-coverage` na primeira execução.
  */
 interface DocumentSeed {
   path: string
@@ -465,7 +465,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
     // O contrato do agente entra no CODEOWNERS pelo caminho **adotado**, o mesmo
     // que `documents:` declara: um repositório com `AGENTS.md` que recebesse a
     // linha de `CLAUDE.md` nasceria com o contrato sem dono do lado de quem
-    // revisa — e reprovaria no próprio `CI-7` na primeira execução (`RF-0012`).
+    // revisa — e reprovaria no próprio `ownership/owner-coverage` na primeira execução (`RF-0012`).
     AGREEMENTS_CODEOWNERS:
       options.stage === 'solo'
         ? ''
@@ -540,7 +540,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
 
       // Subir de estágio: o REL precisa ser declarado num `.ownership.yml` que
       // já existe, senão a release note nasce sem dono — e artefato órfão não é
-      // enforceável (spec §3), nem congelável por HK-1.
+      // enforceável (spec §3), nem congelável por living-docs/append-only.
       if (existing && !existing.artifacts.some(artifact => artifact.idPrefix === 'REL')) {
         declareArtifacts(root, options, result, values.RELEASES_BLOCK, 'artefato REL', existing.rootFile)
       }
@@ -666,7 +666,7 @@ function declareArtifacts(root: string, options: InitOptions, result: InitResult
  *
  * O CODEOWNERS nasce inteiro na primeira execução, mas quem sobe de estágio já
  * tem um — e `writeIfAbsent` sozinho o deixaria congelado na forma do estágio
- * anterior, com os documentos novos nascendo sem quem os revise. `CI-7` cobra o
+ * anterior, com os documentos novos nascendo sem quem os revise. `ownership/owner-coverage` cobra o
  * dono nos dois lugares, então o `documents:` sem a linha correspondente é
  * meio dono (`RN-0016`).
  *
@@ -734,7 +734,7 @@ function declareDocuments(root: string, options: InitOptions, result: InitResult
  *
  * Não reescreve a linha: mesma política de `declareDocuments`,
  * `declareArtifacts` e `declareCodeowners`. A entrada é de quem a escreveu, e
- * marcá-la liga `CI-11` sobre um texto que talvez ainda cite ID — a decisão é de
+ * marcá-la liga `living-docs/external-audience` sobre um texto que talvez ainda cite ID — a decisão é de
  * quem responde por ele.
  */
 function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, existing: LivingDocsConfig): void {

@@ -4,7 +4,7 @@ import { formatFindings } from '../../src/cli/report.ts'
 import type { Finding } from '../../src/core/types.ts'
 
 const FINDING: Finding = {
-  ruleId: 'CI-1',
+  ruleId: 'living-docs/frontmatter',
   file: 'docs/decisions/adr/ADR-0001-x.md',
   line: 6,
   severity: 'error',
@@ -16,7 +16,7 @@ test('nomeia arquivo, linha, regra e correção', () => {
   const output = formatFindings([FINDING])
 
   assert.match(output, /docs\/decisions\/adr\/ADR-0001-x\.md:6/)
-  assert.match(output, /CI-1/)
+  assert.match(output, /living-docs\/frontmatter/)
   assert.match(output, /error/)
   assert.match(output, /trimestral/)
   assert.match(output, /Nomeie o evento observável\./)

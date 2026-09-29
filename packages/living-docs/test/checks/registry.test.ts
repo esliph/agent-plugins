@@ -9,33 +9,33 @@ test('RF-0006, RF-0008 e RF-0010: o catálogo cobre exatamente os checks que exi
   assert.deepEqual(catalogados, reais, 'catálogo e registry divergiram — o contrato gerado mentiria')
 })
 
-test('o catálogo é lido por gente: fica ordenado por ID', () => {
-  const ids = CHECK_CATALOG.map(entry => Number(entry.id.replace('CI-', '')))
-
+test('o catálogo é lido por gente: segue a ordem em que os checks rodam', () => {
   assert.deepEqual(
-    ids,
-    [...ids].sort((a, b) => a - b),
+    CHECK_CATALOG.map(entry => entry.id),
+    validateChecks().map(check => check.id),
   )
 })
 
 test('RF-0006: todo item do catálogo diz quando falha e por qual comando roda', () => {
   for (const entry of CHECK_CATALOG) {
     assert.ok(entry.failsWhen.length > 20, `${entry.id} sem condição de falha escrita`)
-    assert.match(entry.command, /^living-docs validate$/, `${entry.id} com comando estranho`)
+    assert.match(entry.command, /^living-docs validate( --base <ref>)?$/, `${entry.id} com comando estranho`)
   }
 })
 
 test('ADR-0005, ADR-0006 e ADR-0010: cada check roda no comando que o catálogo nomeia', () => {
   const esperado: Record<string, string> = {
-    'CI-1': 'living-docs validate',
-    'CI-2': 'living-docs validate',
-    'CI-3': 'living-docs validate',
-    'CI-4': 'living-docs validate',
-    'CI-7': 'living-docs validate',
-    'CI-8': 'living-docs validate',
-    'CI-9': 'living-docs validate',
-    'CI-10': 'living-docs validate',
-    'CI-11': 'living-docs validate',
+    'living-docs/frontmatter': 'living-docs validate',
+    'living-docs/id-integrity': 'living-docs validate',
+    'living-docs/citation-coverage': 'living-docs validate',
+    'living-docs/staleness': 'living-docs validate',
+    'living-docs/agent-contract-duplication': 'living-docs validate',
+    'living-docs/done-verifiable': 'living-docs validate',
+    'living-docs/open-decision-claim': 'living-docs validate --base <ref>',
+    'living-docs/links': 'living-docs validate',
+    'living-docs/commit-discipline': 'living-docs validate',
+    'living-docs/trigger-routing': 'living-docs validate',
+    'living-docs/external-audience': 'living-docs validate',
   }
 
   for (const entry of CHECK_CATALOG) {
@@ -48,6 +48,6 @@ test('RF-0011: validateChecks recebe o diff por parâmetro, e sem ele a lista é
   const semDiff = validateChecks().map(check => check.id)
   const comDiff = validateChecks({ base: 'origin/master', changed: [], messages: [], edits: [] }).map(check => check.id)
 
-  assert.deepEqual(semDiff, comDiff, 'a metade do diff é comportamento de CI-7, não um check a mais')
-  assert.deepEqual(semDiff, ['CI-1', 'CI-2', 'CI-3', 'CI-4', 'CI-7', 'CI-8', 'CI-9', 'CI-10', 'CI-11'])
+  assert.deepEqual(semDiff, comDiff, 'a metade do diff é comportamento de living-docs/open-decision-claim e living-docs/commit-discipline, não um check a mais')
+  assert.deepEqual(semDiff, ['living-docs/frontmatter', 'living-docs/id-integrity', 'living-docs/citation-coverage', 'living-docs/staleness', 'living-docs/agent-contract-duplication', 'living-docs/done-verifiable', 'living-docs/open-decision-claim', 'living-docs/links', 'living-docs/commit-discipline', 'living-docs/trigger-routing', 'living-docs/external-audience'])
 })

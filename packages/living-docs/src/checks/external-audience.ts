@@ -4,7 +4,7 @@ import { parseId } from '../docs/schema.ts'
 import type { Frontmatter } from '../frontmatter/parse.ts'
 import { findCitations } from '../ids/citations.ts'
 
-const RULE = 'CI-11'
+const RULE = 'living-docs/external-audience'
 
 export interface ExternalText {
   file: string
@@ -16,7 +16,7 @@ export interface ExternalText {
  * O texto que quem vem de fora lê: documentos e artefatos declarados
  * `audience: external` (`ADR-0017`).
  *
- * Artefato com frontmatter quebrado fica de fora: `CI-1` já reprova, e ler o
+ * Artefato com frontmatter quebrado fica de fora: `living-docs/frontmatter` já reprova, e ler o
  * bloco quebrado como corpo produziria um segundo achado sobre o próprio `id:`.
  */
 export function externalTexts(context: CheckContext): ExternalText[] {
@@ -42,7 +42,7 @@ export function externalTexts(context: CheckContext): ExternalText[] {
 /**
  * O texto com o frontmatter apagado **linha a linha**: a contagem fica, e a
  * linha do achado é a do arquivo. O frontmatter é contrato de máquina e é de
- * `CI-1` (`RN-0030`).
+ * `living-docs/frontmatter` (`RN-0030`).
  */
 export function bodyOf(source: string, frontmatter: Frontmatter | null): string {
   const lines = source
@@ -58,13 +58,13 @@ export function bodyOf(source: string, frontmatter: Frontmatter | null): string 
 }
 
 /**
- * `CI-11` — external audience. Regra de origem: `RN-0030`.
+ * `living-docs/external-audience` — external audience. Regra de origem: `RN-0030`.
  *
  * Não carrega lista de prefixos: interno é o que `artifacts:` declara, e só
  * isso. `CI-n`, `HK-n` e `EXIT-n` não são família de artefato — ninguém os
  * declara ali —, então ficam de fora sem que nenhuma exceção precise ser
  * escrita; e um projeto que ainda não declarou `RN` não é cobrado por um
- * `RN-0001` solto, a mesma fronteira de `CI-2` (`RN-0007`).
+ * `RN-0001` solto, a mesma fronteira de `living-docs/id-integrity` (`RN-0007`).
  *
  * `stripFences`, e não `stripCode`: o ID entre crases é exatamente o que se
  * procura, e o exemplo dentro de uma cerca continua sendo exemplo. O ID no
@@ -74,7 +74,7 @@ export function bodyOf(source: string, frontmatter: Frontmatter | null): string 
  * que não resolve —: a regra é sobre o que o leitor vê. Sem rótulo de exceção
  * (`ADR-0017`).
  */
-export const ci11ExternalAudience: Check = {
+export const livingDocsExternalAudience: Check = {
   id: RULE,
   name: 'external audience',
   run(context: CheckContext): Finding[] {

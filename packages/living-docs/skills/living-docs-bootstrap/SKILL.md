@@ -84,10 +84,10 @@ garantida.
    - **`documents:`** declara o que tem dono e não tem família de IDs
      (`CONTRIBUTING.md`, a Definition of Done, o contrato do agente, o glossary, o
      charter, o CHANGELOG, e o que mais o projeto tiver). `artifacts:` continua
-     exigindo `id-prefix`; `CI-1`, `CI-2` e `HK-1` não leem `documents:`, e `CI-4` e
-     `CI-7` leem.
-4. **Instale na ordem das fases.** Frontmatter + `CI-1` primeiro: sem contrato
-   de máquina nada mais é enforceável. Só depois `CI-2`, os hooks e as skills
+     exigindo `id-prefix`; `living-docs/frontmatter`, `living-docs/id-integrity` e `living-docs/append-only` não leem `documents:`, e `living-docs/staleness` e
+     `living-docs/agent-contract-duplication` leem.
+4. **Instale na ordem das fases.** Frontmatter + `living-docs/frontmatter` primeiro: sem contrato
+   de máquina nada mais é enforceável. Só depois `living-docs/id-integrity`, os hooks e as skills
    donas.
 5. **Registre o índice no contrato do agente** (`AGENTS.md`/`CLAUDE.md`, via
    `working-agreements-keeper`): qual artefato responde a quê e qual skill é dona.
@@ -99,7 +99,7 @@ garantida.
 8. **Entregue em um PR só**, com a matriz de gatilhos preenchida (cada artefato
    instalado, seu `trigger` e sua skill dona) e a **lista explícita do que ficou
    fora e por quê** — o que ficou fora sem justificativa volta como surpresa.
-9. **Cite na mensagem de commit** os IDs das peças instaladas (`CI-1`, `HK-1`, …).
+9. **Cite na mensagem de commit** os IDs das peças instaladas (`living-docs/frontmatter`, `living-docs/append-only`, …).
 
 ## Fronteiras
 
@@ -115,13 +115,13 @@ garantida.
 ## Checklist
 
 - [ ] O repositório foi inventariado e nenhum artefato preexistente foi duplicado ou sobrescrito — verificação humana
-- [ ] Todo caminho adotado está declarado em `docs/.ownership.yml`, e nenhum artefato tem dois donos — `CI-1`
-- [ ] Todo artefato coletado tem frontmatter completo — `CI-1`
+- [ ] Todo caminho adotado está declarado em `docs/.ownership.yml`, e nenhum artefato tem dois donos — `living-docs/frontmatter`
+- [ ] Todo artefato coletado tem frontmatter completo — `living-docs/frontmatter`
 - [ ] Os donos declarados espelham o `CODEOWNERS` — verificação humana
-- [ ] Todo `trigger` nomeia um evento observável, nunca uma cadência — `CI-1`
-- [ ] `docs/ids-retired.txt` existe e nenhum ID foi reciclado ou renumerado — `CI-2`
+- [ ] Todo `trigger` nomeia um evento observável, nunca uma cadência — `living-docs/frontmatter`
+- [ ] `docs/ids-retired.txt` existe e nenhum ID foi reciclado ou renumerado — `living-docs/id-integrity`
 - [ ] A forma escrita dos IDs foi confirmada com quem é dono do repositório, e nenhum ID preexistente foi reescrito — verificação humana
-- [ ] Os hooks instalados são os das fases do estágio, e falham abertos — `HK-1`, `HK-3`
+- [ ] Os hooks instalados são os das fases do estágio, e falham abertos — `living-docs/append-only`, `living-docs/state-promotion`
 - [ ] `living-docs init` rodado duas vezes não criou, reescreveu nem readotou nada — verificação humana
-- [ ] `living-docs validate` passa sem finding — `CI-1`, `CI-2`
+- [ ] `living-docs validate` passa sem finding — `living-docs/frontmatter`, `living-docs/id-integrity`
 - [ ] O PR traz a matriz de gatilhos e a lista do que ficou fora e por quê — verificação humana

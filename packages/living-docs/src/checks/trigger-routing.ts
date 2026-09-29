@@ -5,7 +5,7 @@ import { normalizeProse } from '../docs/markdown.ts'
 import { parseFrontmatter } from '../frontmatter/parse.ts'
 import { toolkitRoot } from '../core/roots.ts'
 
-const RULE = 'CI-10'
+const RULE = 'living-docs/trigger-routing'
 
 /** Palavra curta não é raiz: "toda", "com" e "que" casariam com tudo (`ADR-0009`). */
 export const ROOT_FLOOR = 5
@@ -142,7 +142,7 @@ export function routedDocs(context: CheckContext): RoutedDoc[] {
 }
 
 /**
- * `CI-10` — trigger routing. O `trigger:` de um documento e a `description:` da
+ * `living-docs/trigger-routing` — trigger routing. O `trigger:` de um documento e a `description:` da
  * skill declarada como dona dele descrevem o mesmo evento (`RN-0029`). Se
  * divergirem, o documento declara um gatilho que nada dispara: o mecanismo de
  * gatilho e o roteamento de skill deixam de se encontrar (spec §11).
@@ -150,10 +150,10 @@ export function routedDocs(context: CheckContext): RoutedDoc[] {
  * Não conta documento, linha nem cobertura: conta **divergência entre duas
  * coisas que deveriam concordar** (spec §13).
  *
- * As descrições entram por injeção, como o executor em `CI-5` e o diff em
- * `CI-7`: o padrão lê a raiz do toolkit, e o teste passa um mapa.
+ * As descrições entram por injeção, como o executor em `ownership/generated-drift` e o diff em
+ * `living-docs/open-decision-claim`: o padrão lê a raiz do toolkit, e o teste passa um mapa.
  */
-export function ci10TriggerRouting(descriptions: ReadonlyMap<string, string> = loadSkillDescriptions()): Check {
+export function livingDocsTriggerRouting(descriptions: ReadonlyMap<string, string> = loadSkillDescriptions()): Check {
   return {
     id: RULE,
     name: 'trigger routing',

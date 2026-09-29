@@ -12,7 +12,7 @@ O que ainda **não** foi decidido. Enquanto um item está aqui, ele não tem reg
 e **não deve ser implementado** — a saída é o ID, não o código.
 
 A coluna **Bloqueia** é opcional: quando preenchida com os caminhos que a lacuna
-impede de implementar, `HK-8` pergunta na edição e `CI-7` reprova no diff. Vazia
+impede de implementar, `living-docs/open-decision-guard` pergunta na edição e `living-docs/open-decision-claim` reprova no diff. Vazia
 (`—`), a decisão continua válida e não bloqueia nada.
 
 | ID | Lacuna | Status | Resolvida por | Bloqueia | Aberta em |

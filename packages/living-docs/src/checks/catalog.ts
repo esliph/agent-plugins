@@ -15,68 +15,79 @@ export interface CatalogEntry {
  * `@esliph/ownership` (`CORE_CHECK_CATALOG`).
  *
  * Este arquivo não importa nada (nem `yaml`, `picomatch`, `node:child_process`,
- * nem os checks CI-1/2/3): é só tipos e dados, de propósito — `src/tools/gen-checks.ts`
+ * nem os checks living-docs/frontmatter/2/3): é só tipos e dados, de propósito — `src/tools/gen-checks.ts`
  * importa daqui, e não de `registry.ts`, para não puxar transitivamente
  * dependências que um gerador não precisa.
  */
 export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
   {
-    id: 'CI-1',
+    id: 'living-docs/frontmatter',
     name: 'structure lint',
     command: 'living-docs validate',
     failsWhen:
       'Frontmatter ausente ou inválido; campo obrigatório vazio; `id` fora do formato ou do território do artefato; `status` num artefato sem `states` declarado; item de coleção sem `status`; `trigger` ausente ou descrevendo cadência; `last-reviewed` fora do formato ISO.',
   },
   {
-    id: 'CI-2',
+    id: 'living-docs/id-integrity',
     name: 'ID lint',
     command: 'living-docs validate',
     failsWhen: 'ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente.',
   },
   {
-    id: 'CI-3',
+    id: 'living-docs/citation-coverage',
     name: 'traceability',
     command: 'living-docs validate',
     failsWhen:
       'Par bidirecional aberto; requisito `active` sem citação nos caminhos de `cited-by`; ADR `accepted` sem `relates-to`; decisão aberta `resolved` sem o ADR que a fechou.',
   },
   {
-    id: 'CI-4',
+    id: 'living-docs/staleness',
     name: 'staleness',
     command: 'living-docs validate',
     failsWhen:
       'Uma dívida `open` não declara `pay-when` verificável, ou o gatilho declarado já aconteceu no repositório. `last-reviewed` além de `stale-after-months` produz aviso, não falha — e item em estado congelado não vence.',
   },
   {
-    id: 'CI-7',
-    name: 'ownership coverage',
+    id: 'living-docs/agent-contract-duplication',
+    name: 'agent contract duplication',
     command: 'living-docs validate',
-    failsWhen:
-      'Contrato do agente repetindo frase de artefato dono; item da Definition of Done sem verificação nomeada; e, com `--base <ref>`, caminho reivindicado por decisão aberta — liberado por `Docs: none — <razão>`.',
+    failsWhen: 'O contrato do agente repete, palavra por palavra, uma frase de artefato ou documento com skill dona, acima do piso de palavras do toolkit.',
   },
   {
-    id: 'CI-8',
+    id: 'living-docs/done-verifiable',
+    name: 'done verifiable',
+    command: 'living-docs validate',
+    failsWhen: 'Item da Definition of Done não nomeia o que o verifica — um identificador de check ou de hook, ou a marca de verificação humana.',
+  },
+  {
+    id: 'living-docs/open-decision-claim',
+    name: 'open decision claim',
+    command: 'living-docs validate --base <ref>',
+    failsWhen: 'O diff entre a base e `HEAD` toca caminho reivindicado por uma decisão aberta, sem `Docs: none — <razão>` em alguma mensagem de commit.',
+  },
+  {
+    id: 'living-docs/links',
     name: 'links',
     command: 'living-docs validate',
     failsWhen:
       'Link interno relativo que não resolve para arquivo ou diretório existente; `[[wikilink]]` sem destino no corpus; arquivo em formato binário na documentação. Link dentro de bloco de código ou de marcação inline não conta.',
   },
   {
-    id: 'CI-9',
+    id: 'living-docs/commit-discipline',
     name: 'commit discipline',
     command: 'living-docs validate',
     failsWhen:
       'Com `--base <ref>`: o diff altera apenas a data de revisão de `last-reviewed-bump-limit` documentos ou mais, sem outra mudança no corpo de nenhum deles; ou altera um arquivo de artefato e nenhuma mensagem de commit do diff cita um dos IDs declarados nele.',
   },
   {
-    id: 'CI-10',
+    id: 'living-docs/trigger-routing',
     name: 'trigger routing',
     command: 'living-docs validate',
     failsWhen:
       'O `trigger` de um documento e a `description` da skill declarada como dona dele compartilham menos raízes de palavra do que o piso declarado. Skill dona ausente da raiz do toolkit produz aviso, não falha; e o `trigger` de um item de coleção não é comparado.',
   },
   {
-    id: 'CI-11',
+    id: 'living-docs/external-audience',
     name: 'external audience',
     command: 'living-docs validate',
     failsWhen:

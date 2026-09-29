@@ -6,11 +6,11 @@ import { canonicalId, parseId } from '../docs/schema.ts'
 import type { IdFormat } from '../docs/schema.ts'
 import { findCitations } from '../ids/citations.ts'
 
-const RULE = 'CI-9'
+const RULE = 'living-docs/commit-discipline'
 
 /**
- * O diff com as linhas, e não só os caminhos. É o fato a mais que `CI-9` pede e
- * que `CI-6` e `CI-7` não precisam — por isso um tipo próprio, e não um campo
+ * O diff com as linhas, e não só os caminhos. É o fato a mais que `living-docs/commit-discipline` pede e
+ * que `ownership/consumer-change-logged` e `living-docs/open-decision-claim` não precisam — por isso um tipo próprio, e não um campo
  * opcional em `DiffFacts`: campo opcional que alguém esquece de preencher vira
  * check que se cala sem dizer que se calou.
  */
@@ -54,19 +54,19 @@ function error(file: string, message: string, fix: string): Finding {
 }
 
 /**
- * `CI-9` — commit discipline. Duas metades, as duas lidas do diff da branch: o
+ * `living-docs/commit-discipline` — commit discipline. Duas metades, as duas lidas do diff da branch: o
  * bump em massa de `last-reviewed` (`RN-0027`, anti-requisito da spec §13) e o
  * commit que altera artefato sem citar o ID afetado (`RN-0028`, spec §11).
  *
- * Roda no grupo que já recebe o diff por injeção, pela mesma razão de `CI-6` e
- * da metade do diff de `CI-7`: sem base não há commit para ler, e inventar um
+ * Roda no grupo que já recebe o diff por injeção, pela mesma razão de `ownership/consumer-change-logged` e
+ * de `living-docs/open-decision-claim`: sem base não há commit para ler, e inventar um
  * produziria achado sobre mudança que não é desta branch (`ADR-0010`).
  *
  * A unidade das duas metades é o **diff da branch**, não o commit: é a unidade
  * que o CI tem, e partir um bump em três commits não o torna revisão de verdade
  * (`ADR-0013`).
  */
-export function ci9CommitDiscipline(facts: CommitFacts | null): Check {
+export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
   return {
     id: RULE,
     name: 'commit discipline',

@@ -443,7 +443,7 @@ test('RN-0016: subir de estágio acrescenta ao CODEOWNERS que já existe, sem re
       'o que foi acrescentado ao CODEOWNERS precisa aparecer na saída',
     )
 
-    // Sem as linhas novas, `CI-7` acusaria documento sem quem o revise.
+    // Sem as linhas novas, `ownership/owner-coverage` acusaria documento sem quem o revise.
     assert.equal(runValidate(root).exitCode, 0, JSON.stringify(runValidate(root).findings, null, 2))
   })
 })
@@ -573,14 +573,14 @@ test('RF-0009: production instala a moldura de rastro histórico', () => {
   })
 })
 
-test('RF-0009: production declara o artefato REL, para que HK-1 congele release note publicada', () => {
+test('RF-0009: production declara o artefato REL, para que living-docs/append-only congele release note publicada', () => {
   withTempRepo({}, root => {
     runInit(root, PRODUCTION)
 
     const config = loadLivingDocsConfig(root)
     const rel = config.artifacts.find(artifact => artifact.idPrefix === 'REL')
 
-    assert.ok(rel, 'sem REL declarado, HK-1 não tem como congelar release note')
+    assert.ok(rel, 'sem REL declarado, living-docs/append-only não tem como congelar release note')
     assert.equal(rel?.path, 'docs/releases/')
     assert.equal(rel?.appendOnly, true)
     assert.equal(rel?.skill, 'release-historian')
@@ -775,7 +775,7 @@ test('RN-0019: o template de TDR traz o `pay-when` como exemplo comentado, não 
   const template = readFileSync(join(toolkitRoot(), 'templates/tdr.md'), 'utf8')
 
   assert.match(template, /# pay-when:/, 'o exemplo é comentado — o init não inventa gatilho')
-  assert.doesNotMatch(template, /^pay-when:/m, 'gatilho preenchido de fábrica passaria em CI-4 sem significar nada')
+  assert.doesNotMatch(template, /^pay-when:/m, 'gatilho preenchido de fábrica passaria em living-docs/staleness sem significar nada')
 })
 
 test('RF-0015: production declara o rastro histórico como externo, e só ele', () => {

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ci9CommitDiscipline, isPureDateBump } from '../../src/checks/ci9-commit-discipline.ts'
+import { livingDocsCommitDiscipline, isPureDateBump } from '../../src/checks/commit-discipline.ts'
 import { collectArtifacts } from '../../src/docs/collect.ts'
 import { configFrom } from '../helpers/ownership.ts'
 import { withTempRepo } from '../helpers/tmp.ts'
@@ -53,7 +53,7 @@ function bump(path: string) {
 
 test('RN-0027: tres documentos que so mudaram a data reprovam, nomeando o anti-requisito', () => {
   withTempRepo(ARVORE, root => {
-    const findings = ci9CommitDiscipline({
+    const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
       messages: ['chore: revisao da documentacao'],
@@ -63,7 +63,7 @@ test('RN-0027: tres documentos que so mudaram a data reprovam, nomeando o anti-r
     const bumpFinding = findings.find(f => /last-reviewed/.test(f.message))
 
     assert.ok(bumpFinding, JSON.stringify(findings, null, 2))
-    assert.equal(bumpFinding?.ruleId, 'CI-9')
+    assert.equal(bumpFinding?.ruleId, 'living-docs/commit-discipline')
     assert.equal(bumpFinding?.severity, 'error')
     assert.match(bumpFinding?.message ?? '', /docs\/a\.md/)
     assert.match(bumpFinding?.message ?? '', /docs\/c\.md/)
@@ -72,7 +72,7 @@ test('RN-0027: tres documentos que so mudaram a data reprovam, nomeando o anti-r
 
 test('RN-0027: dois bumps passam, e documento que mudou de verdade nunca conta', () => {
   withTempRepo(ARVORE, root => {
-    const doisBumps = ci9CommitDiscipline({
+    const doisBumps = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/a.md', 'docs/b.md'],
       messages: ['docs: revisao'],
@@ -85,7 +85,7 @@ test('RN-0027: dois bumps passam, e documento que mudou de verdade nunca conta',
     )
 
     // Tres documentos tocados, mas um deles mudou no corpo: revisao de verdade.
-    const comCorpo = ci9CommitDiscipline({
+    const comCorpo = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/a.md', 'docs/b.md', 'docs/c.md'],
       messages: ['docs: revisao'],
@@ -115,7 +115,7 @@ test('RN-0027: o limiar e configuravel, e o padrao e tres', () => {
       messages: ['docs: revisao'],
       edits: [bump('docs/a.md'), bump('docs/b.md')],
     }
-    const comLimiar2 = ci9CommitDiscipline(facts).run(contextFor(root, OWNERSHIP.replace('owned:', 'living-docs:\n  last-reviewed-bump-limit: 2\nowned:')))
+    const comLimiar2 = livingDocsCommitDiscipline(facts).run(contextFor(root, OWNERSHIP.replace('owned:', 'living-docs:\n  last-reviewed-bump-limit: 2\nowned:')))
 
     assert.ok(comLimiar2.some(f => /last-reviewed/.test(f.message)))
   })
@@ -123,7 +123,7 @@ test('RN-0027: o limiar e configuravel, e o padrao e tres', () => {
 
 test('RN-0028: commit que altera artefato sem citar o ID declarado nele reprova', () => {
   withTempRepo(ARVORE, root => {
-    const findings = ci9CommitDiscipline({
+    const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/requirements/rules.md'],
       messages: ['docs: ajusta a prosa da regra'],
@@ -139,7 +139,7 @@ test('RN-0028: commit que altera artefato sem citar o ID declarado nele reprova'
 
 test('RN-0028: basta uma mensagem do diff citar um dos IDs do arquivo', () => {
   withTempRepo(ARVORE, root => {
-    const findings = ci9CommitDiscipline({
+    const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/requirements/rules.md'],
       messages: ['chore: mexe em outra coisa', 'docs(RN-0001): a regra ganha o caso do negativo'],
@@ -152,7 +152,7 @@ test('RN-0028: basta uma mensagem do diff citar um dos IDs do arquivo', () => {
 
 test('RN-0028: arquivo que nao e artefato, e artefato ausente, nao sao cobrados', () => {
   withTempRepo(ARVORE, root => {
-    const findings = ci9CommitDiscipline({
+    const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['src/cli/index.ts', 'docs/decisions/adr/ADR-0001-apagado.md'],
       messages: ['refactor: renomeia interno'],
@@ -167,7 +167,7 @@ test('RN-0024: a citacao e comparada por identidade, nao pela forma escrita', ()
   withTempRepo({ 'docs/requirements/rules.md': REGRAS.replace('## RN-0001', '## RN001') }, root => {
     // O projeto escreve `RN001`; o commit cita `RN001`. Mesma identidade que
     // `RN-0001` teria — e quem compara e `canonicalId`, nao a forma escrita.
-    const findings = ci9CommitDiscipline({
+    const findings = livingDocsCommitDiscipline({
       base: 'origin/master',
       changed: ['docs/requirements/rules.md'],
       messages: ['docs(RN001): a regra ganha o caso do negativo'],
@@ -178,9 +178,9 @@ test('RN-0024: a citacao e comparada por identidade, nao pela forma escrita', ()
   })
 })
 
-test('ADR-0010: sem diff, CI-9 nao tem o que dizer', () => {
+test('ADR-0010: sem diff, living-docs/commit-discipline nao tem o que dizer', () => {
   withTempRepo(ARVORE, root => {
-    assert.deepEqual(ci9CommitDiscipline(null).run(contextFor(root)), [])
+    assert.deepEqual(livingDocsCommitDiscipline(null).run(contextFor(root)), [])
   })
 })
 

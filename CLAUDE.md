@@ -36,7 +36,7 @@ artefato dono e é lida de lá (`RN-0010`).
   contrato.
 - **Texto para quem lê de fora não carrega ID de artefato.** O que está marcado
   `audience: external` explica em texto corrido; o vínculo fica no artefato ou
-  no commit — `CI-11` cobra.
+  no commit — `living-docs/external-audience` cobra.
 - **O que o toolkit entrega não aponta para dentro dele.** Semente, skill e
   mensagem de CLI ou hook ficam sem o ID e sem a seção da spec daqui; o porquê
   vai para o comentário de código — o teste de distribuição cobra.

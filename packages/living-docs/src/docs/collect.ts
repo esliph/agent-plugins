@@ -123,7 +123,7 @@ export interface DocumentDoc {
  *
  * Só markdown: `docs/.ownership.yml` e `docs/ids-retired.txt` têm dono e não têm
  * frontmatter, e nada nesta fase pergunta a eles a data de revisão. Frontmatter
- * com sintaxe inválida vira `null` em silêncio, porque `CI-1` não lê `documents:`
+ * com sintaxe inválida vira `null` em silêncio, porque `living-docs/frontmatter` não lê `documents:`
  * e derrubar o `validate` por causa disso seria pior do que não reportar.
  */
 export function collectDocuments(root: string, config: LivingDocsConfig): DocumentDoc[] {
@@ -143,7 +143,7 @@ export function collectDocuments(root: string, config: LivingDocsConfig): Docume
       try {
         source = readFileSync(join(root, file), 'utf8')
       } catch {
-        continue // declarado e ausente: quem cobra ausência é CI-7, não a coleta
+        continue // declarado e ausente: quem cobra ausência é ownership/owner-coverage, não a coleta
       }
 
       let frontmatter: Frontmatter | null = null
