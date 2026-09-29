@@ -25,7 +25,7 @@ Um artefato de documentação viva pertence a um e apenas um dono, declarado em
 ## RN-0002 — `trigger` nomeia um evento observável, nunca uma cadência
 
 - **status:** active
-- **fora de escopo:** a redação do gatilho; o que se exige é a natureza dele
+- **fora de escopo:** a redação do gatilho; o que se exige é a natureza dele. No check judges the wording: the check only requires `trigger` to be present and non-empty, and the nature of the event is judged by the agent and the reviewer
 
 O campo `trigger` declara **quando** o artefato deve ser atualizado, e a resposta
 é sempre um evento que alguém pode observar acontecer. Data de calendário
@@ -225,7 +225,7 @@ da entrada: com `id-prefix` é artefato, sem ele é documento.
 - **fora de escopo:** se a verificação nomeada é boa o suficiente, que é julgamento humano
 
 Cada caixa da Definition of Done nomeia o que a verifica: um ID de check, um ID
-de hook, ou a palavra que marca verificação humana. Item sem verificação é
+de hook, ou o marcador fixo `human`. Item sem verificação é
 intenção, e intenção não é definição de pronto.
 
 É a Definition of Done que dá autoridade ao enforcement: item que ninguém
@@ -388,6 +388,7 @@ e nunca "por causa de qual regra".
 ## RN-0029 — O gatilho do artefato e a `description` da skill dona falam do mesmo evento
 
 - **status:** draft
+- **revoked-by:** ADR-0034
 - **relates-to:** ADR-0013, RN-0010
 - **fora de escopo:** o `trigger` de um item dentro de uma coleção, que é do item e não do artefato
 
@@ -497,3 +498,24 @@ Derivação sem as duas metades não gera lembrete.
 Todo caminho do repositório tem uma entrada de dono que o cobre, exceto o
 que uma entrada de `ignore:` retira explicitamente da cobertura. Caminho sem
 dono e sem `ignore` reprova.
+
+## RN-0038 — No check depends on the language of a document's prose
+
+- **status:** draft
+- **relates-to:** ADR-0032, ADR-0034
+- **fora de escopo:** the machine vocabulary a check reads — frontmatter keys, state names, IDs, the fixed markers `human` and `Docs: none —` — which is structure and is the same in every language
+
+A check reads the structure of a document — frontmatter, IDs, table columns
+through `field-map`, fixed markers — and never its headings or prose. A corpus
+written entirely in another language produces exactly the findings the same
+corpus would produce in English.
+
+## RN-0039 — A missing canonical table column points to `field-map`
+
+- **status:** draft
+- **relates-to:** ADR-0032, RN-0038
+- **fora de escopo:** a column that exists and is empty, which is reported as an empty value
+
+When a check needs a canonical field of a collection item and the item has no
+such column or bullet, the finding says the field is missing and tells how to
+declare the project's own name for it under `field-map` in the ownership file.

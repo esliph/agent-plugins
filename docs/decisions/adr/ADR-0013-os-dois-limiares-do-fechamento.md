@@ -8,7 +8,7 @@ trigger: >
 last-reviewed: 2026-08-28
 relates-to: [RN-0027, RN-0029]
 supersedes: null
-superseded-by: null
+superseded-by: ADR-0034
 ---
 
 # ADR-0013 — Os dois limiares do fechamento — bump em massa e semelhança de gatilho
