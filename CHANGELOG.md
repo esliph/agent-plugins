@@ -116,6 +116,10 @@ An entry is born in the PR that causes the change, not on the eve of the release
 
 ### Changed
 
+- The repository is now `esliph/agent-plugins`, a marketplace that will also host
+  plugins beyond documentation. Add it with
+  `/plugin marketplace add esliph/agent-plugins`; the old `esliph/living-docs`
+  address still redirects. Each plugin now has its own README under `packages/`.
 - Renaming of the identifiers of checks and hooks: the number gives way to the
   name, and the prefix says whose rule it is. The complete map:
 

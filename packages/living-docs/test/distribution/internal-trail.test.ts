@@ -134,9 +134,11 @@ test('RN-0031: what init seeds, in every stage, and the raw templates do not cit
 
 /** The plugin text that the marketplace cache delivers — `src/` and `test/` have their own scan or none. */
 const PLUGIN_DIRS = ['.claude-plugin', 'hooks', 'commands', 'skills', 'agents'] as const
+/** The package README travels in the same cache: it is the plugin's presentation (ADR-0035). */
+const PLUGIN_FILES = ['README.md'] as const
 
 test('RN-0031: the plugin text does not cite the internal trail of the toolkit', () => {
-  const files = PLUGIN_DIRS.flatMap(dir => filesUnder(join(ROOT, dir)))
+  const files = [...PLUGIN_DIRS.flatMap(dir => filesUnder(join(ROOT, dir))), ...PLUGIN_FILES.map(file => join(ROOT, file))]
   const found = files.flatMap(absolute => trailIn(toolkitPath(absolute), readFileSync(absolute, 'utf8')))
 
   assert.ok(files.length > 10, `scan too empty: ${files.length} file(s)`)
