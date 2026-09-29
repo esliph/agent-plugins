@@ -47,7 +47,7 @@ test('a Definition of Done nomeia a verificação de cada item', () => {
 
   assert.ok(itens.length >= 6, `DoD com apenas ${itens.length} itens`)
   for (const item of itens) {
-    assert.match(item, /CI-\d|HK-\d|\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|human/i, `item sem verificação nomeada — ${item}`)
+    assert.match(item, /\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|human/i, `item sem verificação nomeada — ${item}`)
   }
 })
 

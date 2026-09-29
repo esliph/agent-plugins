@@ -140,11 +140,13 @@ Fases 5 e 6 da spec §10, e as duas existem.
 
 - **status:** active
 - **relates-to:** ADR-0007, ADR-0008
-- **fora de escopo:** a metade de `CI-7` que depende do diff, que entra por `--base` e é `RF-0011`
+- **fora de escopo:** a metade que depende do diff (`living-docs/open-decision-claim`), que entra por `--base` e é `RF-0011`
 
 Uma execução de `validate` roda todos os checks que se contentam com o estado da
-árvore — hoje `CI-1`, `CI-2`, `CI-3`, `CI-4`, `CI-7` e `CI-8` — e reporta os
-achados dos seis juntos. Achado `error` leva a código de saída 1; achado
+árvore — hoje `living-docs/frontmatter`, `living-docs/id-integrity`,
+`living-docs/citation-coverage`, `living-docs/staleness`,
+`living-docs/agent-contract-duplication`, `living-docs/done-verifiable` e
+`living-docs/links` — e reporta os achados dos sete juntos. Achado `error` leva a código de saída 1; achado
 `warning` é reportado e **não** muda o código de saída.
 
 Quando existe algo que `validate` não verifica — artefato gerado, entrada de
@@ -155,7 +157,7 @@ verifica. Check que não roda e não avisa que não rodou é cobertura fingida.
 
 - **status:** active
 - **relates-to:** ADR-0010, RN-0021
-- **fora de escopo:** a entrada de CHANGELOG, que é `CI-6` e tem comando próprio
+- **fora de escopo:** a entrada de CHANGELOG, que é `ownership/consumer-change-logged` e tem comando próprio
 
 Com `--base <ref>`, `living-docs validate` acrescenta a verificação que depende do
 diff e que continua sendo dele: o caminho reivindicado por decisão aberta e
@@ -177,7 +179,7 @@ Todo documento que o `init` escreve e que não tem família de IDs é declarado 
 `owned`, com dono, o bloco `living-docs:` sem `id-prefix` e — quando existe uma —
 a skill dona. Um `init` que cria
 documento sem declará-lo entrega, na primeira execução, um repositório que
-reprova no próprio `CI-7`.
+reprova no próprio `ownership/owner-coverage`.
 
 Isso vale em todos os estágios: dono não é função de maturidade. O que muda com
 o estágio é **quais** documentos existem.

@@ -114,6 +114,35 @@ A entrada nasce no PR que causa a mudança, não na véspera da release.
 
 ### Changed
 
+- Renomeação dos identificadores de checks e hooks: o número dá lugar ao nome, e
+  o prefixo diz de quem é a regra. O mapa completo:
+
+  | Antigo                       | Novo                                     |
+  | ---------------------------- | ---------------------------------------- |
+  | `CI-1`                       | `living-docs/frontmatter`                |
+  | `CI-2`                       | `living-docs/id-integrity`               |
+  | `CI-3`                       | `living-docs/citation-coverage`          |
+  | `CI-4`                       | `living-docs/staleness`                  |
+  | `CI-5`                       | `ownership/generated-drift`              |
+  | `CI-6`                       | `ownership/consumer-change-logged`       |
+  | `CI-7` (contrato do agente)  | `living-docs/agent-contract-duplication` |
+  | `CI-7` (Definition of Done)  | `living-docs/done-verifiable`            |
+  | `CI-7` (decisão aberta)      | `living-docs/open-decision-claim`        |
+  | `CI-8`                       | `living-docs/links`                      |
+  | `CI-9`                       | `living-docs/commit-discipline`          |
+  | `CI-10`                      | `living-docs/trigger-routing`            |
+  | `CI-11`                      | `living-docs/external-audience`          |
+  | `HK-1`                       | `living-docs/append-only`                |
+  | `HK-2`                       | `ownership/generated-guard`              |
+  | `HK-3`                       | `living-docs/state-promotion`            |
+  | `HK-4`                       | `ownership/watch-reminder`               |
+  | `HK-5`                       | `ownership/commit-guard`                 |
+  | `HK-6`                       | `living-docs/session-inventory`          |
+  | `HK-7`                       | `living-docs/shortcut-debt`              |
+  | `HK-8`                       | `living-docs/open-decision-guard`        |
+
+  Quem cita um destes identificadores na própria Definition of Done precisa
+  trocá-lo pelo nome novo — o número não é mais reconhecido como verificação.
 - Os checks e hooks do `living-docs` passam a ser identificados por nome
   (`living-docs/frontmatter`, …) em vez de número; o mapa completo está na
   entrada de renomeação desta versão. O antigo `CI-7` vira três checks:

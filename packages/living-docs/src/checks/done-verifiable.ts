@@ -8,10 +8,9 @@ const RULE = 'living-docs/done-verifiable'
  * Vocabulário de verificação de um item de Definition of Done (`RN-0017`): o
  * identificador de um check ou hook (`plugin/nome`), o de agente ou skill, ou a
  * palavra que marca verificação humana — em português ou em inglês. Os
- * numerados `CI-n`/`HK-n` saem na Tarefa 6 do plano de 2026-09-28, junto da
- * Definition of Done que ainda os cita.
+ * numerados `CI-n`/`HK-n` não valem mais, sem alias de nome antigo.
  */
-const VERIFICATION = /\b(?:CI|HK|AG|SK)-\d+\b|\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|\bhumana?\b|\bhuman\b/i
+const VERIFICATION = /\b(?:AG|SK)-\d+\b|\b(?:living-docs|ownership)\/[a-z]+(?:-[a-z]+)*\b|\bhumana?\b|\bhuman\b/i
 
 const DOD_ITEM = /^\s*[-*+]\s+\[[ xX]\]\s+\S/
 

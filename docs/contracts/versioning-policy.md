@@ -35,7 +35,7 @@ texto das mensagens, o formato exato da saída de `validate`.
 
 ## O que nunca muda de significado
 
-Um identificador publicado não é reaproveitado nem redefinido. `CI-4` nunca
+Um identificador publicado não é reaproveitado nem redefinido. `living-docs/staleness` nunca
 passa a medir outra coisa; `EXIT-2` nunca vira "falhou a validação". Quando o
 significado precisa mudar, o identificador antigo ganha `deprecated` e um
 substituto nasce ao lado — é a mesma regra que `docs/ids-retired.txt` impõe aos

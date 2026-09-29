@@ -78,6 +78,8 @@ test('dodItemsWithoutVerification aceita ID de check, de hook e a marca humana',
     dodItemsWithoutVerification(source).map(item => item.line),
     [5],
   )
+  // Sem alias de nome antigo: o número não é mais verificação.
+  assert.equal(dodItemsWithoutVerification('- [ ] Algo — verificação: `CI-3`.').length, 1)
 })
 
 test('RN-0017: exemplo do formato dentro de cerca não é item — o item de fora ainda é', () => {

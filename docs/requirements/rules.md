@@ -113,7 +113,7 @@ ensina.
 ## RN-0010 — O contrato do agente é índice e política, não conteúdo
 
 - **status:** active
-- **fora de escopo:** a detecção automática de duplicação textual, que é `CI-7` e chega na Fase 7
+- **fora de escopo:** a detecção automática de duplicação textual, que é `living-docs/agent-contract-duplication` e chega na Fase 7
 
 O documento que orienta agentes (`CLAUDE.md`, `AGENTS.md`) aponta onde a verdade
 mora e declara o que nunca fazer. Toda afirmação factual vive no artefato dono e
@@ -404,7 +404,7 @@ exigir que todo dono fosse do plugin.
 
 - **status:** draft
 - **relates-to:** ADR-0017, RN-0013
-- **fora de escopo:** os identificadores da interface pública, que a política de versionamento declara; o frontmatter, que é contrato de máquina e é de `CI-1`; e o bloco de código cercado, que é exemplo
+- **fora de escopo:** os identificadores da interface pública, que a política de versionamento declara; o frontmatter, que é contrato de máquina e é de `living-docs/frontmatter`; e o bloco de código cercado, que é exemplo
 
 O corpo de um documento ou artefato declarado `audience: external` não contém
 citação a um prefixo declarado em `living-docs.id-prefix` — nem em prosa, nem entre
