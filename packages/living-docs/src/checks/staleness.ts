@@ -28,7 +28,7 @@ export interface PayWhen {
   paths: string[]
 }
 
-export type PayWhenProblem = 'ausente' | 'incompleto' | 'padrão inválido'
+export type PayWhenProblem = 'missing' | 'incomplete' | 'invalid pattern'
 
 export interface DebtWithoutTrigger {
   file: string
@@ -178,10 +178,10 @@ export function payWhenOf(data: Record<string, unknown>): PayWhen | PayWhenProbl
   const raw = data['pay-when']
 
   if (raw === undefined || raw === null) {
-    return 'ausente'
+    return 'missing'
   }
   if (typeof raw !== 'object' || Array.isArray(raw)) {
-    return 'incompleto'
+    return 'incomplete'
   }
 
   const record = raw as Record<string, unknown>
@@ -189,19 +189,19 @@ export function payWhenOf(data: Record<string, unknown>): PayWhen | PayWhenProbl
   const paths = record.paths
 
   if (typeof pattern !== 'string' || pattern.trim() === '') {
-    return 'incompleto'
+    return 'incomplete'
   }
   if (!Array.isArray(paths) || paths.length === 0) {
-    return 'incompleto'
+    return 'incomplete'
   }
   if (paths.some(path => typeof path !== 'string' || path.trim() === '')) {
-    return 'incompleto'
+    return 'incomplete'
   }
 
   try {
     new RegExp(pattern)
   } catch {
-    return 'padrão inválido'
+    return 'invalid pattern'
   }
 
   return { pattern, paths: paths as string[] }
@@ -290,11 +290,11 @@ export const livingDocsStaleness: Check = {
         warning(
           stale.file,
           stale.line,
-          `\`last-reviewed\` tem ${stale.months} meses e o limite deste projeto é ${limit} (\`stale-after-months\`).`,
-          // Regra de origem: spec §13 (bump sem leitura é anti-requisito).
-          `Releia o documento e, se ele ainda é verdade, atualize \`last-reviewed\`${
-            stale.skill === null ? '' : ` (skill dona: ${stale.skill})`
-          }. Bump sem leitura, ou bump em massa, desliga o mecanismo de revisão fingindo cumpri-lo.`,
+          `\`last-reviewed\` is ${stale.months} months old and this project's limit is ${limit} (\`stale-after-months\`).`,
+          // Rule of origin: spec §13 (a bump without reading is an anti-requirement).
+          `Re-read the document and, if it is still true, update \`last-reviewed\`${
+            stale.skill === null ? '' : ` (owning skill: ${stale.skill})`
+          }. A bump without reading, or a mass bump, switches off the review mechanism while pretending to honor it.`,
         ),
       )
     }
@@ -304,11 +304,11 @@ export const livingDocsStaleness: Check = {
         error(
           debt.file,
           debt.line,
-          `${debt.id} está \`open\` e o gatilho de pagamento não é verificável: \`pay-when\` ${debt.problem}.`,
-          'Declare `pay-when` com `pattern` (regex, em aspas simples) e `paths` (globs onde procurá-lo) — ' +
-            // Regra de origem: RN-0019, ADR-0007.
-            'uma condição que alguém consegue apontar acontecendo (skill dona: decision-recorder). ' +
-            'Dívida sem gatilho verificável é `TODO` órfão com número.',
+          `${debt.id} is \`open\` and its payment trigger is not verifiable: \`pay-when\` ${debt.problem}.`,
+          'Declare `pay-when` with `pattern` (a regex, in single quotes) and `paths` (globs where to look for it) — ' +
+            // Rule of origin: RN-0019, ADR-0007.
+            'a condition someone can point to happening (owning skill: decision-recorder). ' +
+            'A debt with no verifiable trigger is an orphan `TODO` with a number.',
         ),
       )
     }
@@ -318,10 +318,10 @@ export const livingDocsStaleness: Check = {
         error(
           payment.file,
           payment.line,
-          `${payment.id} está \`open\` e o gatilho de pagamento já aconteceu: ${payment.evidence} casa \`${payment.pattern}\`.`,
-          // Regra de origem: RN-0005; spec §12, critério 7.
-          'Pague a dívida, ou reclassifique-a (`paid`, `accepted-permanently`) — as duas coisas são ato humano, ' +
-            'e `living-docs/state-promotion` intercepta. Enquanto ela seguir `open` com o gatilho cumprido, o CI reprova.',
+          `${payment.id} is \`open\` and its payment trigger has already happened: ${payment.evidence} matches \`${payment.pattern}\`.`,
+          // Rule of origin: RN-0005; spec §12, criterion 7.
+          'Pay the debt, or reclassify it (`paid`, `accepted-permanently`) — both are human acts, ' +
+            'and `living-docs/state-promotion` intercepts. While it stays `open` with the trigger met, CI fails.',
         ),
       )
     }

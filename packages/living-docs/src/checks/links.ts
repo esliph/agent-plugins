@@ -198,10 +198,10 @@ export const livingDocsLinks: Check = {
         error(
           file,
           0,
-          `Anexo em formato binário na documentação: \`.${extension}\` não se lê em diff nem se revisa em PR.`,
-          'Guarde a fonte em texto (Mermaid num bloco de código, SVG, ou o `.puml`/`.dot` que o gera) e ' +
-            // Regra de origem: spec §13, RN-0023.
-            'mantenha o binário fora da documentação versionada.',
+          `Binary attachment in the documentation: \`.${extension}\` cannot be read in a diff nor reviewed in a PR.`,
+          'Keep the source as text (Mermaid in a code block, SVG, or the `.puml`/`.dot` that generates it) and ' +
+            // Rule of origin: spec §13, RN-0023.
+            'keep the binary out of the versioned documentation.',
         ),
       )
     }
@@ -227,10 +227,10 @@ export const livingDocsLinks: Check = {
               error(
                 file,
                 link.line,
-                `Wikilink \`[[${link.target}]]\` não tem destino: nenhum documento do corpus se chama assim.`,
-                'Aponte para um documento existente pelo nome do arquivo, ou troque por um link relativo. ' +
-                  // Regra de origem: RN-0023.
-                  'Wikilink sem destino afirma uma ligação que não existe.',
+                `Wikilink \`[[${link.target}]]\` has no target: no document in the corpus has that name.`,
+                'Point to an existing document by file name, or replace it with a relative link. ' +
+                  // Rule of origin: RN-0023.
+                  'A wikilink with no target asserts a connection that does not exist.',
               ),
             )
           }
@@ -248,10 +248,10 @@ export const livingDocsLinks: Check = {
             error(
               file,
               link.line,
-              `Link interno quebrado: \`${link.target}\` resolve para \`${resolved}\`, que não existe.`,
-              'Corrija o caminho, ou remova o link. A âncora (`#seção`) não é verificada — só o arquivo —, ' +
-                // Regra de origem: RN-0023.
-                'então um link com âncora só reprova quando o arquivo não existe.',
+              `Broken internal link: \`${link.target}\` resolves to \`${resolved}\`, which does not exist.`,
+              'Fix the path, or remove the link. The anchor (`#section`) is not checked — only the file —, ' +
+                // Rule of origin: RN-0023.
+                'so a link with an anchor only fails when the file does not exist.',
             ),
           )
         }

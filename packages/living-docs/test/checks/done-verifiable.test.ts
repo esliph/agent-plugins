@@ -59,8 +59,8 @@ test('RN-0017: item de DoD sem verificação nomeada reprova, com a linha e o no
     assert.ok(achado)
     assert.equal(achado.ruleId, 'living-docs/done-verifiable')
     assert.equal(achado.line, 4)
-    assert.match(achado.message, /verificação/)
-    assert.match(achado.fix, /plugin\/nome/)
+    assert.match(achado.message, /verification/)
+    assert.match(achado.fix, /plugin\/name/)
   })
 })
 

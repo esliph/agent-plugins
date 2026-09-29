@@ -96,13 +96,13 @@ export const livingDocsExternalAudience: Check = {
           line: citation.line,
           severity: 'error',
           message:
-            `\`${citation.id}\` é ID de artefato, e \`${text.file}\` é lido por quem vem de fora ` +
-            '(`audience: external`): esse leitor não tem como resolver o ID.',
+            `\`${citation.id}\` is an artifact ID, and \`${text.file}\` is read by people from outside ` +
+            '(`audience: external`): that reader has no way to resolve the ID.',
           fix:
-            'Escreva em texto corrido o que o item decide ou exige, sem apontá-lo. O vínculo continua existindo ' +
-            // Regra de origem: RN-0030, ADR-0017.
-            'e mora do lado de dentro — no próprio artefato ou na mensagem de commit. ' +
-            'Não há rótulo de exceção.',
+            'Write in plain prose what the item decides or requires, without pointing to it. The link still exists ' +
+            // Rule of origin: RN-0030, ADR-0017.
+            'and lives on the inside — in the artifact itself or in the commit message. ' +
+            'There is no exception label.',
         })
       }
     }

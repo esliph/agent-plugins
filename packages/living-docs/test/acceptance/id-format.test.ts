@@ -59,7 +59,7 @@ test('critério 2: identidade, duplicata, sequência e citação funcionam na fo
 test('critério 2: duplicata é detectada mesmo escrita com padding diferente', () => {
   withTempRepo(arvore(['RN001', 'RN01']), root => {
     const result = runValidate(root)
-    const duplicata = result.findings.find(f => f.ruleId === 'living-docs/id-integrity' && /duplicad/.test(f.message))
+    const duplicata = result.findings.find(f => f.ruleId === 'living-docs/id-integrity' && /Duplicate/.test(f.message))
 
     assert.ok(duplicata, JSON.stringify(result.findings, null, 2))
   })
@@ -68,7 +68,7 @@ test('critério 2: duplicata é detectada mesmo escrita com padding diferente', 
 test('critério 2: o buraco de sequência é relatado na forma escrita do projeto', () => {
   withTempRepo(arvore(['RN001', 'RN003']), root => {
     const result = runValidate(root)
-    const buraco = result.findings.find(f => f.ruleId === 'living-docs/id-integrity' && /buraco/.test(f.message))
+    const buraco = result.findings.find(f => f.ruleId === 'living-docs/id-integrity' && /gap/.test(f.message))
 
     assert.ok(buraco, JSON.stringify(result.findings, null, 2))
     assert.match(buraco.message, /RN002/, 'o ID sugerido precisa vir na forma do projeto')

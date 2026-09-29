@@ -28,8 +28,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
       error(
         doc.file,
         doc.syntaxError.line,
-        `Frontmatter com YAML inválido: ${doc.syntaxError.message}`,
-        'Corrija o bloco YAML entre os `---` no topo do arquivo.',
+        `Frontmatter with invalid YAML: ${doc.syntaxError.message}`,
+        'Fix the YAML block between the `---` at the top of the file.',
       ),
     ]
   }
@@ -41,9 +41,9 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
       error(
         doc.file,
         1,
-        'Frontmatter ausente — todo artefato de documentação viva abre com o bloco YAML padrão.',
-        // Regra de origem: spec §2.
-        'Adicione `id`, `title`, `status`, `owner`, `trigger` e `last-reviewed` entre `---` no topo.',
+        'Missing frontmatter — every living-documentation artifact opens with the standard YAML block.',
+        // Rule of origin: spec §2.
+        'Add `id`, `title`, `status`, `owner`, `trigger` and `last-reviewed` between `---` at the top.',
       ),
     ]
   }
@@ -59,8 +59,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         error(
           doc.file,
           frontmatter.endLine,
-          `Campo obrigatório \`${field}\` ausente ou vazio.`,
-          `Preencha \`${field}\` no frontmatter (skill dona: ${doc.rule.skill}).`,
+          `Required field \`${field}\` is missing or empty.`,
+          `Fill in \`${field}\` in the frontmatter (owning skill: ${doc.rule.skill}).`,
         ),
       )
     }
@@ -74,8 +74,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         error(
           doc.file,
           lineOf('id'),
-          `\`id\` "${String(data.id)}" fora do formato <PREFIXO>-<número>.`,
-          // Regra de origem: spec §8.
+          `\`id\` "${String(data.id)}" is not in the <PREFIX>-<number> format.`,
+          // Rule of origin: spec §8.
           `Use ${writeId(doc.rule.idPrefix, 1, format)}.`,
         ),
       )
@@ -84,8 +84,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         error(
           doc.file,
           lineOf('id'),
-          `\`id\` usa o prefixo ${parsed.prefix}, mas ${doc.rule.path} é território de ${doc.rule.idPrefix}.`,
-          `Renomeie para o território de ${doc.rule.idPrefix} (ex.: ${writeId(doc.rule.idPrefix, 1, format)}) ` + 'ou mova o arquivo para o artefato dono.',
+          `\`id\` uses the prefix ${parsed.prefix}, but ${doc.rule.path} is the territory of ${doc.rule.idPrefix}.`,
+          `Rename it into the territory of ${doc.rule.idPrefix} (e.g. ${writeId(doc.rule.idPrefix, 1, format)}) ` + 'or move the file to the owning artifact.',
         ),
       )
     }
@@ -99,8 +99,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
         error(
           doc.file,
           lineOf('status'),
-          `Prefixo ${doc.rule.idPrefix} não tem máquina de estados declarada.`,
-          'Declare `states:` na entrada deste artefato no arquivo de ownership.',
+          `Prefix ${doc.rule.idPrefix} has no declared state machine.`,
+          'Declare `states:` in this artifact\'s entry of the ownership file.',
         ),
       )
     }
@@ -111,9 +111,9 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
       error(
         doc.file,
         lineOf('last-reviewed'),
-        `\`last-reviewed\` "${String(data['last-reviewed'])}" não é uma data ISO.`,
-        // Regra de origem: spec §2.
-        'Use YYYY-MM-DD, e só toque neste campo se você realmente reviu o documento.',
+        `\`last-reviewed\` "${String(data['last-reviewed'])}" is not an ISO date.`,
+        // Rule of origin: spec §2.
+        'Use YYYY-MM-DD, and only touch this field if you really reviewed the document.',
       ),
     )
   }
@@ -122,8 +122,8 @@ function checkDoc(doc: ArtifactDoc, format: IdFormat): Finding[] {
     for (const item of doc.items) {
       if (item.state === '') {
         findings.push(
-          // Regra de origem: spec §4.
-          error(doc.file, item.line, `Item ${item.key} não declara \`status\`.`, `Acrescente \`- **status:** ${states[0]}\` logo abaixo do título.`),
+          // Rule of origin: spec §4.
+          error(doc.file, item.line, `Item ${item.key} does not declare \`status\`.`, `Add \`- **status:** ${states[0]}\` right below the title.`),
         )
       }
     }

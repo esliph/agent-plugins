@@ -134,9 +134,9 @@ export const livingDocsCitationCoverage: Check = {
                 error(
                   entry.file,
                   entry.line,
-                  `${entry.id} declara \`${side.from}: ${targetId}\`, que não existe.`,
-                  // Regra de origem: spec §8.
-                  'Cite um ID existente, ou remova o campo.',
+                  `${entry.id} declares \`${side.from}: ${targetId}\`, which does not exist.`,
+                  // Rule of origin: spec §8.
+                  'Cite an existing ID, or remove the field.',
                 ),
               )
               continue
@@ -146,9 +146,9 @@ export const livingDocsCitationCoverage: Check = {
                 error(
                   target.file,
                   target.line,
-                  `Par aberto: ${entry.id} declara \`${side.from}: ${target.id}\`, mas ${target.id} não declara \`${side.to}: ${entry.id}\`.`,
-                  // Regra de origem: spec §8.
-                  `Acrescente \`${side.to}: ${entry.id}\` em ${target.file}:${target.line} — o par fecha dos dois lados.`,
+                  `Open pair: ${entry.id} declares \`${side.from}: ${target.id}\`, but ${target.id} does not declare \`${side.to}: ${entry.id}\`.`,
+                  // Rule of origin: spec §8.
+                  `Add \`${side.to}: ${entry.id}\` to ${target.file}:${target.line} — the pair closes on both sides.`,
                 ),
               )
             }
@@ -162,9 +162,9 @@ export const livingDocsCitationCoverage: Check = {
           error(
             entry.file,
             entry.line,
-            `${entry.id} está \`revoked\` sem declarar \`revoked-by\`.`,
-            // Regra de origem: spec §5, SK-4.
-            'Regra removida é revogada, não deletada — aponte o ID que a substituiu.' + missingFieldHint(entry, 'revoked-by'),
+            `${entry.id} is \`revoked\` without declaring \`revoked-by\`.`,
+            // Rule of origin: spec §5, SK-4.
+            'A removed rule is revoked, not deleted — point to the ID that replaced it.' + missingFieldHint(entry, 'revoked-by'),
           ),
         )
       }
@@ -178,9 +178,9 @@ export const livingDocsCitationCoverage: Check = {
             error(
               entry.file,
               entry.line,
-              `${entry.id} está \`resolved\` sem dizer o que a resolveu.`,
-              // Regra de origem: spec §5, SK-3, regra 7.
-              'Toda decisão aberta fechada aponta o ADR que a fechou.' + missingFieldHint(entry, 'resolved-by'),
+              `${entry.id} is \`resolved\` without saying what resolved it.`,
+              // Rule of origin: spec §5, SK-3, rule 7.
+              'Every closed open decision points to the ADR that closed it.' + missingFieldHint(entry, 'resolved-by'),
             ),
           )
         }
@@ -188,7 +188,7 @@ export const livingDocsCitationCoverage: Check = {
           const resolver = byId.get(resolverId)
 
           if (!resolver) {
-            findings.push(error(entry.file, entry.line, `${entry.id} aponta ${resolverId}, que não existe.`, 'Crie o ADR ou corrija a referência.'))
+            findings.push(error(entry.file, entry.line, `${entry.id} points to ${resolverId}, which does not exist.`, 'Create the ADR or fix the reference.'))
             continue
           }
           if (!idsIn(resolver.read('relates-to'), format).includes(self)) {
@@ -196,9 +196,9 @@ export const livingDocsCitationCoverage: Check = {
               error(
                 resolver.file,
                 resolver.line,
-                `${resolver.id} resolve ${entry.id}, mas não a cita em \`relates-to\`.`,
-                // Regra de origem: spec §5, SK-3, regra 7.
-                `Acrescente ${entry.id} a \`relates-to\` — living-docs/citation-coverage verifica os dois lados.`,
+                `${resolver.id} resolves ${entry.id}, but does not cite it in \`relates-to\`.`,
+                // Rule of origin: spec §5, SK-3, rule 7.
+                `Add ${entry.id} to \`relates-to\` — living-docs/citation-coverage checks both sides.`,
               ),
             )
           }
@@ -211,9 +211,9 @@ export const livingDocsCitationCoverage: Check = {
           error(
             entry.file,
             entry.line,
-            `${entry.id} está \`accepted\` sem \`relates-to\`.`,
-            // Regra de origem: spec §8.
-            'Um ADR aceito cita ao menos um requisito, decisão aberta ou princípio — decisão que não se liga a nada é sinal de contexto faltando.',
+            `${entry.id} is \`accepted\` without \`relates-to\`.`,
+            // Rule of origin: spec §8.
+            'An accepted ADR cites at least one requirement, open decision or principle — a decision that links to nothing is a sign of missing context.',
           ),
         )
       }
@@ -249,9 +249,9 @@ export const livingDocsCitationCoverage: Check = {
           error(
             entry.file,
             entry.line,
-            `${entry.id} está \`active\` e não é citada em nenhum de ${entry.rule.citedBy.join(', ')}.`,
-            // Regra de origem: spec §5, SK-4, regra 6.
-            `Cite ${entry.id} no teste que a cobre — rastreabilidade fecha nos dois lados.`,
+            `${entry.id} is \`active\` and is not cited in any of ${entry.rule.citedBy.join(', ')}.`,
+            // Rule of origin: spec §5, SK-4, rule 6.
+            `Cite ${entry.id} in the test that covers it — traceability closes on both sides.`,
           ),
         )
       }

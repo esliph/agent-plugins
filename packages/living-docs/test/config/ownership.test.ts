@@ -94,43 +94,43 @@ test('ADR-0028: o bloco de topo carrega stale-after-months, id-format e last-rev
 })
 
 test('chave desconhecida no bloco de topo é erro', () => {
-  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  stale-after: 3\n')), /\.ownership\.yml\.living-docs.*"stale-after" desconhecida/)
+  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  stale-after: 3\n')), /\.ownership\.yml\.living-docs.*unknown key "stale-after"/)
 })
 
 test('chave desconhecida no bloco da entrada é erro que nomeia a entrada', () => {
   const extra = ADR.replace('append-only: true', 'append-only: true\n      apend-only: true')
 
-  assert.throws(() => configFrom(yaml(extra)), /entrada "docs\/decisions\/adr\/".*"apend-only" desconhecida/)
+  assert.throws(() => configFrom(yaml(extra)), /entrada "docs\/decisions\/adr\/".*unknown key "apend-only"/)
 })
 
 test('chave de artefato em documento é erro, e a mensagem diz por quê', () => {
   assert.throws(
     () => configFrom(yaml(`${ADR}\n  - path: CLAUDE.md\n    owner: '@time'\n    living-docs: { append-only: true }\n`)),
-    /"append-only" desconhecida.*só valem com `id-prefix`/,
+    /unknown key "append-only".*only apply with `id-prefix`/,
   )
 })
 
 test('id-prefix fora da forma, duplicado, ou artefato sem skill são erro', () => {
-  assert.throws(() => configFrom(yaml(ADR.replace('id-prefix: ADR', 'id-prefix: adr'))), /id-prefix "adr".*2 a 4 letras maiúsculas/)
-  assert.throws(() => configFrom(yaml(ADR + ADR.replace('docs/decisions/adr/', 'docs/adr2/'))), /id-prefix "ADR" declarado duas vezes/)
-  assert.throws(() => configFrom(yaml(ADR.replace('    skill: decision-recorder\n', ''))), /artefato precisa de `skill`/)
+  assert.throws(() => configFrom(yaml(ADR.replace('id-prefix: ADR', 'id-prefix: adr'))), /id-prefix "adr".*2 to 4 uppercase letters/)
+  assert.throws(() => configFrom(yaml(ADR + ADR.replace('docs/decisions/adr/', 'docs/adr2/'))), /id-prefix "ADR" declared twice/)
+  assert.throws(() => configFrom(yaml(ADR.replace('    skill: decision-recorder\n', ''))), /an artifact needs a `skill`/)
 })
 
 test('papel declarado em dois documentos é erro, e papel desconhecido também', () => {
   const doc = (path: string, role: string) => `\n  - path: ${path}\n    owner: '@time'\n    living-docs: { role: ${role} }\n`
 
-  assert.throws(() => configFrom(yaml(ADR + doc('A.md', 'agent-contract') + doc('B.md', 'agent-contract'))), /papel "agent-contract" declarado em dois documentos/)
-  assert.throws(() => configFrom(yaml(ADR + doc('A.md', 'manual'))), /role "manual" desconhecido/)
+  assert.throws(() => configFrom(yaml(ADR + doc('A.md', 'agent-contract') + doc('B.md', 'agent-contract'))), /role "agent-contract" declared in two documents/)
+  assert.throws(() => configFrom(yaml(ADR + doc('A.md', 'manual'))), /unknown role "manual"/)
 })
 
 test('id-format e last-reviewed-bump-limit fora da faixa são erro', () => {
-  assert.throws(() => configFrom(yaml(ADR, "living-docs:\n  id-format: { separator: '/' }\n")), /separator "\/" não é aceito/)
-  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  id-format: { padding: 9 }\n')), /padding "9" precisa ser inteiro entre 2 e 6/)
-  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  last-reviewed-bump-limit: 1\n')), /last-reviewed-bump-limit "1".*maior ou igual a 2/)
+  assert.throws(() => configFrom(yaml(ADR, "living-docs:\n  id-format: { separator: '/' }\n")), /separator "\/" is not accepted/)
+  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  id-format: { padding: 9 }\n')), /padding "9" must be an integer between 2 and 6/)
+  assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  last-reviewed-bump-limit: 1\n')), /last-reviewed-bump-limit "1".*greater than or equal to 2/)
 })
 
 test('sem nenhum artefato, o erro ensina a declarar o plugin e o bloco', () => {
-  assert.throws(() => configFrom("version: 2\nowned:\n  - path: a.md\n    owner: '@time'\n"), /nenhuma entrada de `owned` traz `living-docs\.id-prefix`.*plugins: \[living-docs\]/)
+  assert.throws(() => configFrom("version: 2\nowned:\n  - path: a.md\n    owner: '@time'\n"), /no `owned` entry carries `living-docs\.id-prefix`.*plugins: \[living-docs\]/)
 })
 
 test('sem arquivo de ownership, OwnershipError que aponta o init', () => {
@@ -197,7 +197,7 @@ test('ADR-0017: audience external é lido no artefato e no documento; fora do vo
 
   assert.equal(config.artifacts[0]?.audience, 'external')
   assert.equal(config.documents[0]?.audience, 'external')
-  assert.throws(() => configFrom(yaml(ADR.replace('append-only: true', 'audience: publico'))), /audience "publico" desconhecido.*internal, external/)
+  assert.throws(() => configFrom(yaml(ADR.replace('append-only: true', 'audience: publico'))), /unknown audience "publico".*internal, external/)
 })
 
 test('field-map normaliza as duas pontas, vale o nome canônico sem mapa, e valor vazio é erro', () => {
@@ -209,7 +209,7 @@ test('field-map normaliza as duas pontas, vale o nome canônico sem mapa, e valo
   const item = { key: 'ADR-0001', state: 'draft', line: 1, fields: { 'resolved-by': 'DA-0001' } }
 
   assert.equal(fieldOf(plain.artifacts[0]!, item, 'resolved-by'), 'DA-0001')
-  assert.throws(() => configFrom(yaml(ADR.replace('append-only: true', "field-map: { resolved-by: '' }"))), /field-map\.resolved-by precisa ser uma string não vazia/)
+  assert.throws(() => configFrom(yaml(ADR.replace('append-only: true', "field-map: { resolved-by: '' }"))), /field-map\.resolved-by must be a non-empty string/)
 })
 
 test('RN-0039: hasField tells a missing column from an empty one, through field-map', () => {

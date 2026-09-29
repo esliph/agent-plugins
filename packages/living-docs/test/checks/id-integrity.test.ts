@@ -88,7 +88,7 @@ test('ID presente em ids-retired.txt reaparecendo falha', () => {
   })
 
   assert.equal(findings.length, 1)
-  assert.match(findings[0]?.message ?? '', /reciclado|retirado/i)
+  assert.match(findings[0]?.message ?? '', /recycled|retired/i)
 })
 
 test('RN-0003: ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não dois artefatos', () => {
@@ -100,9 +100,9 @@ test('RN-0003: ADR-001 e ADR-0001 são o mesmo ID lógico — duplicata, não do
 
   assert.equal(findings.length, 1)
   assert.equal(findings[0]?.ruleId, 'living-docs/id-integrity')
-  assert.match(findings[0]?.message ?? '', /duplicado/)
+  assert.match(findings[0]?.message ?? '', /Duplicate/)
   // A mensagem mostra o ID como a pessoa escreveu, não a forma canônica.
-  assert.match(findings[0]?.message ?? '', /ID ADR-001 duplicado/)
+  assert.match(findings[0]?.message ?? '', /Duplicate ID ADR-001/)
   assert.match(findings[0]?.message ?? '', /ADR-0001-a\.md/)
 })
 
@@ -115,8 +115,8 @@ test('RN-0003: repadding não recicla um ID retirado — ADR-0002 retirado barra
   })
 
   assert.equal(findings.length, 1)
-  assert.match(findings[0]?.message ?? '', /ID ADR-002 está em/)
-  assert.match(findings[0]?.message ?? '', /reciclado/i)
+  assert.match(findings[0]?.message ?? '', /ID ADR-002 is in/)
+  assert.match(findings[0]?.message ?? '', /recycled/i)
 })
 
 test('ID retirado sem padding canônico ainda barra a forma padded', () => {
@@ -128,7 +128,7 @@ test('ID retirado sem padding canônico ainda barra a forma padded', () => {
   })
 
   assert.equal(findings.length, 1)
-  assert.match(findings[0]?.message ?? '', /ID ADR-0002 está em/)
+  assert.match(findings[0]?.message ?? '', /ID ADR-0002 is in/)
 })
 
 test('buraco na sequência falha apontando o registro de retirados', () => {
@@ -175,7 +175,7 @@ test('RN-0007: citação para um ID retirado falha', () => {
 
   assert.equal(findings.length, 1)
   assert.match(findings[0]?.message ?? '', /DA-0001/)
-  assert.match(findings[0]?.message ?? '', /retirado/i)
+  assert.match(findings[0]?.message ?? '', /retired/i)
 })
 
 test('citação de prefixo não declarado é ignorada — instalação por fases', () => {

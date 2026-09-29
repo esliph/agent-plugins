@@ -32,13 +32,13 @@ export function livingDocsOpenDecisionClaim(diff: DiffFacts | null = null): Chec
             line: claim.line,
             severity: 'error',
             message:
-              `O diff \`${diff.base}...HEAD\` toca caminho reivindicado por ${claim.id}, que está \`open\`` +
+              `The diff \`${diff.base}...HEAD\` touches a path claimed by ${claim.id}, which is \`open\`` +
               `${claim.gap === null ? '' : ` — "${claim.gap}"`}: ${levados}.`,
-            // Regra de origem: RN-0026, ADR-0010.
+            // Rule of origin: RN-0026, ADR-0010.
             fix:
-              `Resolva ${claim.id} antes de implementar (skill dona: ${claim.skill}) — enquanto a decisão está ` +
-              'aberta não há regra, e a saída é o ID, não o código. Se esta mudança não é a implementação da ' +
-              'regra que falta, escreva a razão numa mensagem de commit, no formato `Docs: none — <razão>`.',
+              `Resolve ${claim.id} before implementing (owning skill: ${claim.skill}) — while the decision is ` +
+              'open there is no rule, and the way out is the ID, not the code. If this change is not the implementation of ' +
+              'the missing rule, write the reason in a commit message, in the form `Docs: none — <reason>`.',
           })
         }
       }

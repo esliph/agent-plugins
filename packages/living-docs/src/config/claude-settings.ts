@@ -49,10 +49,10 @@ export function mergeSettings(current: string | null, marketplace: string): { te
     try {
       parsed = JSON.parse(current)
     } catch (err) {
-      throw new SettingsError(`${SETTINGS_PATH}: JSON inválido — ${err instanceof Error ? err.message : String(err)}`)
+      throw new SettingsError(`${SETTINGS_PATH}: invalid JSON — ${err instanceof Error ? err.message : String(err)}`)
     }
     if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new SettingsError(`${SETTINGS_PATH}: o conteúdo não é um objeto JSON.`)
+      throw new SettingsError(`${SETTINGS_PATH}: the content is not a JSON object.`)
     }
     root = parsed as Json
   }

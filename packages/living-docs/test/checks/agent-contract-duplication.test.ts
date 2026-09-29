@@ -84,7 +84,7 @@ test('RN-0020: frase longa do contrato repetida num artefato dono reprova', () =
       assert.ok(achado, 'living-docs/agent-contract-duplication deveria acusar a duplicata')
       assert.equal(achado.ruleId, 'living-docs/agent-contract-duplication')
       assert.match(achado.message, /docs\/requirements\/rules\.md/)
-      assert.match(achado.fix, /ponteiro|apague/i)
+      assert.match(achado.fix, /pointer|delete/i)
     },
   )
 })

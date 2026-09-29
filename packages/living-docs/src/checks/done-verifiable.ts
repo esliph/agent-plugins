@@ -80,10 +80,10 @@ export const livingDocsDoneVerifiable: Check = {
         error(
           dodPath,
           item.line,
-          `Item da Definition of Done sem verificação nomeada: "${item.text.slice(0, 120)}".`,
-          'Nomeie o que verifica o item — o identificador de um check ou de um hook (`plugin/nome`), ou o marcador fixo `human`. ' +
-            // Regra de origem: RN-0017.
-            'Item que ninguém verifica é intenção, e intenção não é definição de pronto.',
+          `Definition of Done item with no named verification: "${item.text.slice(0, 120)}".`,
+          'Name what verifies the item — the identifier of a check or a hook (`plugin/name`), or the fixed marker `human`. ' +
+            // Rule of origin: RN-0017.
+            'An item nobody verifies is an intention, and an intention is not a definition of done.',
         ),
       )
     }

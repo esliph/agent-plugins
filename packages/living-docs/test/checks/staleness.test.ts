@@ -121,9 +121,9 @@ test('RN-0018: documento além do limite avisa, e aviso não é erro', () => {
       assert.ok(aviso, 'ADR revisado em janeiro deveria vencer em agosto')
       assert.equal(aviso.ruleId, 'living-docs/staleness')
       assert.equal(aviso.severity, 'warning')
-      assert.match(aviso.message, /7 meses/)
+      assert.match(aviso.message, /7 months/)
       assert.match(aviso.message, /stale-after-months/)
-      assert.match(aviso.fix, /bump em massa/i)
+      assert.match(aviso.fix, /mass bump/i)
       assert.equal(
         findings.some(finding => finding.severity === 'error'),
         false,
@@ -194,7 +194,7 @@ test('RN-0019: dívida `open` sem `pay-when` é erro, com o problema nomeado', (
 
       assert.deepEqual(
         semGatilho.map(item => [item.id, item.problem]),
-        [['TDR-0001', 'ausente']],
+        [['TDR-0001', 'missing']],
       )
 
       const findings = livingDocsStaleness.run(contextFor(root))
@@ -215,7 +215,7 @@ test('RN-0019: `pay-when` incompleto e padrão que não compila são erros disti
       'docs/requirements/rules.md': RULES_ATIVA,
     },
     root => {
-      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'incompleto')
+      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'incomplete')
     },
   )
 
@@ -225,7 +225,7 @@ test('RN-0019: `pay-when` incompleto e padrão que não compila são erros disti
       'docs/requirements/rules.md': RULES_ATIVA,
     },
     root => {
-      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'padrão inválido')
+      assert.equal(debtsWithoutTrigger(contextFor(root))[0]?.problem, 'invalid pattern')
     },
   )
 })
@@ -248,7 +248,7 @@ test('critério 7: dívida com gatilho cumprido reprova, e a evidência aparece'
 
       assert.ok(erro)
       assert.equal(erro.file, 'docs/decisions/debt/TDR-0001-x.md')
-      assert.match(erro.message, /gatilho de pagamento já aconteceu/)
+      assert.match(erro.message, /payment trigger has already happened/)
       assert.match(erro.message, /docs\/requirements\/rules\.md/)
       assert.match(erro.fix, /paid|accepted-permanently/)
     },
@@ -301,10 +301,10 @@ test('ADR-0007: o próprio arquivo da dívida não conta como ocorrência do gat
 })
 
 test('payWhenOf distingue ausente, incompleto e válido', () => {
-  assert.equal(payWhenOf({}), 'ausente')
-  assert.equal(payWhenOf({ 'pay-when': 'quando der tempo' }), 'incompleto')
-  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x' } }), 'incompleto')
-  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x', paths: [] } }), 'incompleto')
+  assert.equal(payWhenOf({}), 'missing')
+  assert.equal(payWhenOf({ 'pay-when': 'quando der tempo' }), 'incomplete')
+  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x' } }), 'incomplete')
+  assert.equal(payWhenOf({ 'pay-when': { pattern: 'x', paths: [] } }), 'incomplete')
   assert.deepEqual(payWhenOf({ 'pay-when': { pattern: 'x', paths: ['src/**'] } }), {
     pattern: 'x',
     paths: ['src/**'],

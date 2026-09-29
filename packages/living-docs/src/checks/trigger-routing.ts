@@ -137,11 +137,11 @@ export function livingDocsTriggerRouting(descriptions: ReadonlyMap<string, strin
           line: routed.line,
           severity: 'warning',
           message:
-            `\`${routed.file}\` declara \`${routed.skill}\` como skill dona, e a raiz do toolkit não tem uma ` +
-            'skill com esse nome — o gatilho deste documento não pôde ser cruzado com o roteamento.',
+            `\`${routed.file}\` declares \`${routed.skill}\` as its owning skill, and the toolkit root has no ` +
+            'skill by that name — this document\'s trigger could not be matched against the routing.',
           fix:
-            `Se \`${routed.skill}\` é skill deste projeto, não há nada a fazer. Se era para ser do toolkit, ` +
-            'confira o nome em `skills/`, na raiz do toolkit.',
+            `If \`${routed.skill}\` is a skill of this project, there is nothing to do. If it was meant to come from the toolkit, ` +
+            'check the name in `skills/`, at the toolkit root.',
         })
       }
 

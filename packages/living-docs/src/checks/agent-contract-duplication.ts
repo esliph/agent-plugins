@@ -92,11 +92,11 @@ export const livingDocsAgentContractDuplication: Check = {
         error(
           contractPath,
           duplication.line,
-          `O contrato do agente repete, palavra por palavra, uma frase de \`${duplication.source}\`: ` + `"${duplication.sentence.slice(0, 120)}".`,
-          'Apague a frase e deixe o ponteiro para o artefato dono. O contrato do agente é índice e política, ' +
-            // Regra de origem: RN-0010, RN-0020; o limiar é o de ADR-0009.
-            'não conteúdo (skill dona: working-agreements-keeper). O limiar é do toolkit, não deste projeto: ' +
-            'não se baixa aqui.',
+          `The agent contract repeats, word for word, a sentence from \`${duplication.source}\`: ` + `"${duplication.sentence.slice(0, 120)}".`,
+          'Delete the sentence and leave a pointer to the owning artifact. The agent contract is an index and a policy, ' +
+            // Rule of origin: RN-0010, RN-0020; the threshold is the one from ADR-0009.
+            'not content (owning skill: working-agreements-keeper). The threshold belongs to the toolkit, not to this project: ' +
+            'it is not lowered here.',
         ),
       )
     }

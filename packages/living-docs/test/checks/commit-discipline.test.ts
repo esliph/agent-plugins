@@ -133,7 +133,7 @@ test('RN-0028: commit que altera artefato sem citar o ID declarado nele reprova'
     assert.equal(findings.length, 1)
     assert.equal(findings[0]?.file, 'docs/requirements/rules.md')
     assert.match(findings[0]?.message ?? '', /RN-0001/)
-    assert.match(findings[0]?.fix ?? '', /mensagem de commit/)
+    assert.match(findings[0]?.fix ?? '', /commit message/)
   })
 })
 

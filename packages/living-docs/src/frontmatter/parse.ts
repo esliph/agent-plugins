@@ -56,7 +56,7 @@ export function parseFrontmatter(source: string): Frontmatter | null {
     const at = err instanceof YAML.YAMLParseError ? (err.linePos?.[0]?.line ?? 1) : 1
 
     throw new FrontmatterSyntaxError(
-      err instanceof Error ? err.message : 'YAML inválido',
+      err instanceof Error ? err.message : 'invalid YAML',
       at + 1, // +1 porque o bloco começa na linha 2 do arquivo
     )
   }

@@ -88,12 +88,12 @@ export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
         findings.push(
           error(
             bumps[0] ?? '',
-            `O diff \`${facts.base}...HEAD\` altera o campo \`last-reviewed\` de ${bumps.length} documentos e nada ` +
-              `mais no corpo de nenhum deles (limiar: ${config.lastReviewedBumpLimit}): ${lista}.`,
-            'Um documento revisado de verdade muda em mais do que a data — bump em massa é o mecanismo de revisão ' +
-              'sendo desligado enquanto se finge cumpri-lo. Reverta a data dos que não foram revisados, ou revise-os ' +
-              // Regra de origem: RN-0027, ADR-0013.
-              '(o limiar é `last-reviewed-bump-limit` no `.ownership.yml`).',
+            `The diff \`${facts.base}...HEAD\` changes the \`last-reviewed\` field of ${bumps.length} documents and nothing ` +
+              `else in the body of any of them (threshold: ${config.lastReviewedBumpLimit}): ${lista}.`,
+            'A document that was really reviewed changes in more than its date — a mass bump is the review mechanism ' +
+              'being switched off while pretending to be honored. Revert the date of those that were not reviewed, or review them ' +
+              // Rule of origin: RN-0027, ADR-0013.
+              '(the threshold is `last-reviewed-bump-limit` in `.ownership.yml`).',
           ),
         )
       }
@@ -135,11 +135,11 @@ export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
         findings.push(
           error(
             path,
-            `O diff \`${facts.base}...HEAD\` altera \`${path}\` e nenhuma mensagem de commit cita um dos IDs ` + `declarados nele (${lista}).`,
-            'Cite o ID afetado na mensagem de commit — o formato deste projeto está em `CONTRIBUTING.md`. É a ' +
-              'citação que torna o `git log` navegável por regra: sem ela o histórico responde "o que mudou" e ' +
-              // Regra de origem: RN-0028.
-              `nunca "por causa de qual regra" (skill dona: ${doc.rule.skill}).`,
+            `The diff \`${facts.base}...HEAD\` changes \`${path}\` and no commit message cites one of the IDs ` + `declared in it (${lista}).`,
+            'Cite the affected ID in the commit message — this project\'s format is in `CONTRIBUTING.md`. It is the ' +
+              'citation that makes `git log` navigable by rule: without it the history answers "what changed" and ' +
+              // Rule of origin: RN-0028.
+              `never "because of which rule" (owning skill: ${doc.rule.skill}).`,
           ),
         )
       }

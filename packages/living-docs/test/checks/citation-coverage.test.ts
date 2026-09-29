@@ -104,7 +104,7 @@ test('living-docs/citation-coverage: par supersedes/superseded-by aberto falha n
     },
     root => {
       const findings = ci3(root)
-      const aberto = findings.find(f => /Par aberto/.test(f.message))
+      const aberto = findings.find(f => /Open pair/.test(f.message))
 
       assert.ok(aberto, JSON.stringify(findings, null, 2))
       assert.match(aberto.message, /ADR-0002/)
@@ -129,13 +129,13 @@ test('living-docs/citation-coverage: par fechado nos dois lados passa', () => {
 
 test('living-docs/citation-coverage: supersedes apontando ID inexistente falha', () => {
   withTempRepo({ ...BASE, 'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'draft', ['supersedes: ADR-0009']) }, root => {
-    assert.ok(ci3(root).some(f => /ADR-0009.*não existe/.test(f.message)))
+    assert.ok(ci3(root).some(f => /ADR-0009.*does not exist/.test(f.message)))
   })
 })
 
 test('living-docs/citation-coverage: DA resolved sem resolved-by falha', () => {
   withTempRepo({ ...BASE, 'docs/open-decisions.md': decisions('| DA-0001 | X | resolved | — | 2026-08-24 |') }, root => {
-    const finding = ci3(root).find(f => /sem dizer o que a resolveu/.test(f.message))
+    const finding = ci3(root).find(f => /without saying what resolved it/.test(f.message))
 
     assert.ok(finding)
     assert.match(finding.message, /DA-0001/)
@@ -150,7 +150,7 @@ test('living-docs/citation-coverage: DA resolved cujo ADR não a cita de volta f
       'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'draft', ['relates-to: []']),
     },
     root => {
-      const finding = ci3(root).find(f => /não a cita em/.test(f.message))
+      const finding = ci3(root).find(f => /does not cite it in/.test(f.message))
 
       assert.ok(finding)
       assert.equal(finding.file, 'docs/decisions/adr/ADR-0001-a.md')
@@ -173,7 +173,7 @@ test('living-docs/citation-coverage: DA resolved com o ADR citando de volta pass
 
 test('living-docs/citation-coverage: ADR accepted sem relates-to falha', () => {
   withTempRepo({ ...BASE, 'docs/decisions/adr/ADR-0001-a.md': adr('ADR-0001', 'accepted', ['relates-to: []']) }, root => {
-    const finding = ci3(root).find(f => /accepted.*sem/.test(f.message))
+    const finding = ci3(root).find(f => /accepted.*without/.test(f.message))
 
     assert.ok(finding)
     assert.match(finding.message, /ADR-0001/)
@@ -182,7 +182,7 @@ test('living-docs/citation-coverage: ADR accepted sem relates-to falha', () => {
 
 test('living-docs/citation-coverage: RN active sem citação em cited-by falha nomeando os globs', () => {
   withTempRepo({ ...BASE, 'docs/requirements/rules.md': rules(rn('RN-0001', 'active')) }, root => {
-    const finding = ci3(root).find(f => /não é citada/.test(f.message))
+    const finding = ci3(root).find(f => /is not cited/.test(f.message))
 
     assert.ok(finding)
     assert.match(finding.message, /test\/\*\*/)
@@ -230,7 +230,7 @@ test('living-docs/citation-coverage: citação dentro do próprio arquivo do art
       'test/rules.md': rules(rn('RN-0001', 'active'), '', 'A própria RN-0001 se cita aqui.'),
     },
     root => {
-      assert.ok(ci3(root).some(f => /não é citada/.test(f.message)))
+      assert.ok(ci3(root).some(f => /is not cited/.test(f.message)))
     },
   )
 })
@@ -244,7 +244,7 @@ test('living-docs/citation-coverage: RN-014 e RN-0014 são o mesmo ID para efeit
     },
     root => {
       assert.deepEqual(
-        ci3(root).filter(f => /não é citada/.test(f.message)),
+        ci3(root).filter(f => /is not cited/.test(f.message)),
         [],
       )
     },

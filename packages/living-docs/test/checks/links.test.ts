@@ -161,7 +161,7 @@ test('RN-0023: anexo binário no corpus da documentação reprova; texto e .gitk
 
     assert.equal(findings.length, 1, JSON.stringify(findings, null, 2))
     assert.equal(findings[0]?.file, 'docs/anexos/diagrama.png')
-    assert.match(findings[0]?.message ?? '', /binário/)
+    assert.match(findings[0]?.message ?? '', /Binary/)
     assert.match(findings[0]?.fix ?? '', /texto|SVG/i)
   })
 })

@@ -103,7 +103,7 @@ function fail(where: string, message: string): never {
 
 function asRecord(value: unknown, where: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    fail(where, 'precisa ser um mapa.')
+    fail(where, 'must be a map.')
   }
 
   return value as Record<string, unknown>
@@ -114,7 +114,7 @@ function asStringList(value: unknown, where: string): string[] {
     return []
   }
   if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
-    fail(where, 'precisa ser uma lista de strings.')
+    fail(where, 'must be a list of strings.')
   }
 
   return value as string[]
@@ -123,7 +123,7 @@ function asStringList(value: unknown, where: string): string[] {
 function assertKnown(block: Record<string, unknown>, allowed: ReadonlySet<string>, where: string, hint = ''): void {
   for (const key of Object.keys(block)) {
     if (!allowed.has(key)) {
-      fail(where, `chave "${key}" desconhecida.${hint}`)
+      fail(where, `unknown key "${key}".${hint}`)
     }
   }
 }
@@ -137,14 +137,14 @@ function parseIdFormat(raw: unknown, where: string): IdFormat {
 
   if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
     // Regra de origem: ADR-0011.
-    fail(where, `id-format.separator "${String(separator)}" não é aceito. Válidos: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`)
+    fail(where, `id-format.separator "${String(separator)}" is not accepted. Valid: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`)
   }
 
   const padding = item.padding ?? DEFAULT_ID_FORMAT.padding
 
   if (typeof padding !== 'number' || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
     // Regra de origem: ADR-0011.
-    fail(where, `id-format.padding "${String(padding)}" precisa ser inteiro entre ${PADDING_RANGE.min} e ${PADDING_RANGE.max}.`)
+    fail(where, `id-format.padding "${String(padding)}" must be an integer between ${PADDING_RANGE.min} and ${PADDING_RANGE.max}.`)
   }
 
   return { separator, padding }
@@ -156,7 +156,7 @@ function parseBumpLimit(raw: unknown, where: string): number {
   }
   if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
     // Regra de origem: ADR-0013.
-    fail(where, `last-reviewed-bump-limit "${String(raw)}" precisa ser inteiro maior ou igual a 2 (limiar 1 reprovaria a revisão legítima de um documento só).`)
+    fail(where, `last-reviewed-bump-limit "${String(raw)}" must be an integer greater than or equal to 2 (a threshold of 1 would fail the legitimate review of a single document).`)
   }
 
   return raw
@@ -167,7 +167,7 @@ function parseAudience(raw: unknown, where: string): Audience {
     return 'internal'
   }
   if (!AUDIENCES.includes(raw as Audience)) {
-    fail(where, `audience "${String(raw)}" desconhecido. Válidos: ${AUDIENCES.join(', ')}.`)
+    fail(where, `unknown audience "${String(raw)}". Valid: ${AUDIENCES.join(', ')}.`)
   }
 
   return raw as Audience
@@ -185,10 +185,10 @@ function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): Ar
   const idPrefix = block['id-prefix']
 
   if (typeof idPrefix !== 'string' || !ID_PREFIX.test(idPrefix)) {
-    fail(where, `id-prefix "${String(idPrefix)}" precisa ser 2 a 4 letras maiúsculas (ex.: ADR, DA, TDR).`)
+    fail(where, `id-prefix "${String(idPrefix)}" must be 2 to 4 uppercase letters (e.g. ADR, DA, TDR).`)
   }
   if (rule.skill === null) {
-    fail(where, 'artefato precisa de `skill` na entrada — é a skill dona que escreve os itens dele.')
+    fail(where, 'an artifact needs a `skill` in its entry — the owning skill is the one that writes its items.')
   }
 
   const fieldMap: Record<string, string> = {}
@@ -197,7 +197,7 @@ function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): Ar
   if (fieldMapRaw !== undefined && fieldMapRaw !== null) {
     for (const [canonical, real] of Object.entries(asRecord(fieldMapRaw, `${where}.field-map`))) {
       if (typeof real !== 'string' || real.trim() === '') {
-        fail(where, `field-map.${canonical} precisa ser uma string não vazia.`)
+        fail(where, `field-map.${canonical} must be a non-empty string.`)
       }
       fieldMap[normalizeFieldKey(canonical)] = normalizeFieldKey(real)
     }
@@ -222,12 +222,12 @@ function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): Ar
 function toDocument(rule: ResolvedOwnedRule, block: Record<string, unknown>): DocumentRule {
   const where = whereOf(rule)
 
-  assertKnown(block, DOCUMENT_KEYS, where, ' Chaves de artefato só valem com `id-prefix`.')
+  assertKnown(block, DOCUMENT_KEYS, where, ' Artifact keys only apply with `id-prefix`.')
 
   const role = block.role
 
   if (role !== undefined && !DOCUMENT_ROLES.includes(role as DocumentRole)) {
-    fail(where, `role "${String(role)}" desconhecido. Válidos: ${DOCUMENT_ROLES.join(', ')}.`)
+    fail(where, `unknown role "${String(role)}". Valid: ${DOCUMENT_ROLES.join(', ')}.`)
   }
 
   return {
@@ -266,8 +266,8 @@ export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
   if (artifacts.length === 0) {
     fail(
       core.rootFile,
-      `nenhuma entrada de \`owned\` traz \`${PLUGIN}.id-prefix\` — sem artefato declarado nada é enforceável. ` +
-        `Declare \`plugins: [${PLUGIN}]\` na raiz e o bloco \`${PLUGIN}:\` nas entradas.`,
+      `no \`owned\` entry carries \`${PLUGIN}.id-prefix\` — with no declared artifact nothing is enforceable. ` +
+        `Declare \`plugins: [${PLUGIN}]\` at the root and the \`${PLUGIN}:\` block in the entries.`,
     )
   }
 
@@ -275,7 +275,7 @@ export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
 
   for (const artifact of artifacts) {
     if (prefixes.has(artifact.idPrefix)) {
-      fail(core.rootFile, `id-prefix "${artifact.idPrefix}" declarado duas vezes. Um artefato, um dono.`)
+      fail(core.rootFile, `id-prefix "${artifact.idPrefix}" declared twice. One artifact, one owner.`)
     }
     prefixes.add(artifact.idPrefix)
   }
@@ -287,7 +287,7 @@ export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
       continue
     }
     if (roles.has(document.role)) {
-      fail(core.rootFile, `papel "${document.role}" declarado em dois documentos. Um papel, um documento.`)
+      fail(core.rootFile, `role "${document.role}" declared in two documents. One role, one document.`)
     }
     roles.add(document.role)
   }
@@ -316,7 +316,7 @@ export function loadLivingDocsConfig(root: string): LivingDocsConfig {
   const core = resolveOwnership(root)
 
   if (core === null) {
-    throw new OwnershipError(`nenhum arquivo de ownership encontrado em ${root}. Rode \`living-docs init\` (skill dona: living-docs-bootstrap).`)
+    throw new OwnershipError(`no ownership file found in ${root}. Run \`living-docs init\` (owning skill: living-docs-bootstrap).`)
   }
 
   return adaptConfig(core)

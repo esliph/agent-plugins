@@ -89,7 +89,7 @@ test('cada campo obrigatório ausente vira uma finding', () => {
   const findings = run({
     'docs/decisions/adr/ADR-0001-x.md': adr({ id: 'ADR-0001', status: 'draft' }),
   })
-  const faltando = findings.filter(f => /obrigatório/i.test(f.message)).map(f => f.message)
+  const faltando = findings.filter(f => /required field/i.test(f.message)).map(f => f.message)
 
   for (const field of ['title', 'owner', 'trigger', 'last-reviewed']) {
     assert.ok(

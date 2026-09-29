@@ -3,7 +3,7 @@ export interface CatalogEntry {
   name: string
   /** O comando do CLI que roda este check. */
   command: string
-  /** A condição de falha — a coluna "Falha quando" da spec §9. */
+  /** The failure condition — the 'Fails when' column of spec §9. */
   failsWhen: string
 }
 
@@ -25,33 +25,33 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     name: 'structure lint',
     command: 'living-docs validate',
     failsWhen:
-      'Frontmatter ausente ou inválido; campo obrigatório vazio; `id` fora do formato ou do território do artefato; `status` num artefato sem `states` declarado; item de coleção sem `status`; `trigger` ausente ou vazio; `last-reviewed` fora do formato ISO.',
+      'Frontmatter missing or invalid; empty required field; `id` outside the format or the territory of the artifact; `status` in an artifact with no declared `states`; collection item without `status`; `trigger` missing or empty; `last-reviewed` outside the ISO format.',
   },
   {
     id: 'living-docs/id-integrity',
     name: 'ID lint',
     command: 'living-docs validate',
-    failsWhen: 'ID duplicado, fora de sequência, ou reaproveitado de `docs/ids-retired.txt`; citação que não resolve para item existente.',
+    failsWhen: 'Duplicate ID, out of sequence, or reused from `docs/ids-retired.txt`; citation that does not resolve to an existing item.',
   },
   {
     id: 'living-docs/citation-coverage',
     name: 'traceability',
     command: 'living-docs validate',
     failsWhen:
-      'Par bidirecional aberto; requisito `active` sem citação nos caminhos de `cited-by`; ADR `accepted` sem `relates-to`; decisão aberta `resolved` sem o ADR que a fechou.',
+      'Open bidirectional pair; `active` requirement with no citation in the `cited-by` paths; `accepted` ADR without `relates-to`; `resolved` open decision without the ADR that closed it.',
   },
   {
     id: 'living-docs/staleness',
     name: 'staleness',
     command: 'living-docs validate',
     failsWhen:
-      'Uma dívida `open` não declara `pay-when` verificável, ou o gatilho declarado já aconteceu no repositório. `last-reviewed` além de `stale-after-months` produz aviso, não falha — e item em estado congelado não vence.',
+      'An `open` debt does not declare a verifiable `pay-when`, or the declared trigger has already happened in the repository. `last-reviewed` beyond `stale-after-months` produces a warning, not a failure — and an item in a frozen state does not expire.',
   },
   {
     id: 'living-docs/agent-contract-duplication',
     name: 'agent contract duplication',
     command: 'living-docs validate',
-    failsWhen: 'O contrato do agente repete, palavra por palavra, uma frase de artefato ou documento com skill dona, acima do piso de palavras do toolkit.',
+    failsWhen: 'The agent contract repeats, word for word, a sentence from an artifact or document with an owning skill, above the toolkit word floor.',
   },
   {
     id: 'living-docs/done-verifiable',
@@ -63,21 +63,21 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     id: 'living-docs/open-decision-claim',
     name: 'open decision claim',
     command: 'living-docs validate --base <ref>',
-    failsWhen: 'O diff entre a base e `HEAD` toca caminho reivindicado por uma decisão aberta, sem `Docs: none — <razão>` em alguma mensagem de commit.',
+    failsWhen: 'The diff between the base and `HEAD` touches a path claimed by an open decision, with no `Docs: none — <reason>` in any commit message.',
   },
   {
     id: 'living-docs/links',
     name: 'links',
     command: 'living-docs validate',
     failsWhen:
-      'Link interno relativo que não resolve para arquivo ou diretório existente; `[[wikilink]]` sem destino no corpus; arquivo em formato binário na documentação. Link dentro de bloco de código ou de marcação inline não conta.',
+      'Relative internal link that does not resolve to an existing file or directory; `[[wikilink]]` with no target in the corpus; binary-format file in the documentation. A link inside a code block or inline markup does not count.',
   },
   {
     id: 'living-docs/commit-discipline',
     name: 'commit discipline',
     command: 'living-docs validate',
     failsWhen:
-      'Com `--base <ref>`: o diff altera apenas a data de revisão de `last-reviewed-bump-limit` documentos ou mais, sem outra mudança no corpo de nenhum deles; ou altera um arquivo de artefato e nenhuma mensagem de commit do diff cita um dos IDs declarados nele.',
+      'With `--base <ref>`: the diff changes only the review date of `last-reviewed-bump-limit` documents or more, with no other change in the body of any of them; or it changes an artifact file and no commit message in the diff cites one of the IDs declared in it.',
   },
   {
     id: 'living-docs/trigger-routing',
@@ -91,6 +91,6 @@ export const CHECK_CATALOG: readonly CatalogEntry[] = Object.freeze([
     name: 'external audience',
     command: 'living-docs validate',
     failsWhen:
-      'Documento ou artefato declarado `audience: external` cita, fora do frontmatter e de bloco de código cercado, um ID cujo prefixo tem família declarada (`id-prefix`) — em prosa, entre crases ou no caminho de um link.',
+      'A document or artifact declared `audience: external` cites, outside the frontmatter and fenced code blocks, an ID whose prefix has a declared family (`id-prefix`) — in prose, in backticks or in a link path.',
   },
 ])

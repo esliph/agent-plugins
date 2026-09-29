@@ -68,8 +68,8 @@ export const livingDocsIdIntegrity: Check = {
           error(
             declaration.file,
             declaration.line,
-            `ID ${declaration.id} duplicado — já declarado em ${previous.file}:${previous.line}.`,
-            'Um ID identifica um único item. Escolha o próximo número livre da sequência.',
+            `Duplicate ID ${declaration.id} — already declared in ${previous.file}:${previous.line}.`,
+            'An ID identifies a single item. Pick the next free number in the sequence.',
           ),
         )
         continue
@@ -81,9 +81,9 @@ export const livingDocsIdIntegrity: Check = {
           error(
             declaration.file,
             declaration.line,
-            `ID ${declaration.id} está em ${RETIRED_IDS_PATH} e não pode ser reciclado.`,
-            // Regra de origem: spec §2.
-            'Use o próximo número livre; IDs retirados nunca voltam.',
+            `ID ${declaration.id} is in ${RETIRED_IDS_PATH} and cannot be recycled.`,
+            // Rule of origin: spec §2.
+            'Use the next free number; retired IDs never come back.',
           ),
         )
       }
@@ -119,8 +119,8 @@ export const livingDocsIdIntegrity: Check = {
           error(
             RETIRED_IDS_PATH,
             0,
-            `Sequência de ${prefix} tem buraco: ${missing} não existe nem está retirado.`,
-            `Se o item foi removido, registre \`${missing}\` em ${RETIRED_IDS_PATH}; senão, renumere sem pular.`,
+            `The ${prefix} sequence has a gap: ${missing} neither exists nor is retired.`,
+            `If the item was removed, record \`${missing}\` in ${RETIRED_IDS_PATH}; otherwise, renumber without skipping.`,
           ),
         )
       }
@@ -149,8 +149,8 @@ export const livingDocsIdIntegrity: Check = {
           error(
             doc.file,
             citation.line,
-            retired.has(cited) ? `Citação a ${citation.id}, que está retirado.` : `Citação a ${citation.id}, que não resolve para nenhum artefato existente.`,
-            `Cite um ID existente ou crie o artefato (skill dona: ${doc.rule.skill}).`,
+            retired.has(cited) ? `Citation of ${citation.id}, which is retired.` : `Citation of ${citation.id}, which does not resolve to any existing artifact.`,
+            `Cite an existing ID or create the artifact (owning skill: ${doc.rule.skill}).`,
           ),
         )
       }
