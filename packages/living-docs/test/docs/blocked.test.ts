@@ -67,3 +67,13 @@ test('RN-0026: claimsFor devolve o que cada reivindicação pegou', () => {
     assert.deepEqual(claimsFor(claims(root), ['README.md']), [])
   })
 })
+
+test('RN-0038: a word in the Blocks column is a declared path, whatever the language', () => {
+  const table = TABELA.replace('| DA-0003 | Sem caminho declarado | open | — | — |', '| DA-0003 | Sem caminho declarado | open | — | nenhum |')
+
+  withTempRepo({ [OWNERSHIP_FILE]: CONFIG, 'docs/open-decisions.md': table }, root => {
+    const claim = claims(root).find(c => c.id === 'DA-0003')
+
+    assert.deepEqual(claim?.paths, ['nenhum'])
+  })
+})

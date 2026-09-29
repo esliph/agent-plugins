@@ -12,7 +12,9 @@ export function normalizeFieldKey(key: string): string {
   return key.trim().replace(/:$/, '').trim().toLowerCase()
 }
 
-const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na', 'null', 'nenhum', 'nenhuma'])
+// Empty is structural: a dash, a placeholder or nothing. A word meaning "none"
+// is a value, because which word means "none" depends on the language (RN-0038).
+const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na', 'null'])
 
 export function isEmptyValue(value: string): boolean {
   return EMPTY.has(value.trim().toLowerCase())

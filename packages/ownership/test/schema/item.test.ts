@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { findDuplicateKeys, parseItemsSections, parseItemsTable } from '../../src/schema/item.ts'
+import { findDuplicateKeys, isEmptyValue, parseItemsSections, parseItemsTable } from '../../src/schema/item.ts'
 
 test('parseItemsTable lê pela coluna nomeada em format.key, chave opaca', () => {
   const source = ['| ID | Lacuna | Status |', '| --- | ------ | ------ |', '| DA-01 | x | open |', '| T-9 | y | resolved |'].join('\n')
@@ -114,4 +114,13 @@ test('parseItemsSections: a linha é deslocada por startLine, e seção sem esta
 
   assert.equal(items[0]?.line, 10)
   assert.equal(items[0]?.state, '')
+})
+
+test('RN-0038: an empty cell is structural — a word in any language is a value', () => {
+  for (const empty of ['', '  ', '-', '—', '–', 'n/a', 'N/A', 'na', 'null']) {
+    assert.equal(isEmptyValue(empty), true, `should be empty: "${empty}"`)
+  }
+  for (const word of ['nenhum', 'nenhuma', 'none', 'ninguno']) {
+    assert.equal(isEmptyValue(word), false, `should be a value: "${word}"`)
+  }
 })

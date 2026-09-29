@@ -22,7 +22,7 @@ export interface BlockedClaim {
   gap: string | null
 }
 
-const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na', 'nenhum', 'nenhuma'])
+const EMPTY = new Set(['', '-', '—', '–', 'n/a', 'na'])
 
 /** Um caminho por vírgula ou por espaço; crase é decoração de markdown. */
 function splitPaths(raw: string): string[] {
