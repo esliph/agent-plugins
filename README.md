@@ -1,19 +1,13 @@
-# esliph agent plugins
+# Esliph Agent Plugins
 
-A marketplace of plugins for coding agents, maintained by esliph. Each plugin
-lives in its own package under `packages/` and is listed in
-`.claude-plugin/marketplace.json`, which Claude Code reads to install it.
+Claude Code plugins maintained by esliph.
 
-## Plugins
+| Plugin                                          | Use it to                                                                                                                                                               |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`ownership`](packages/ownership/README.md)     | Declare, in one file, who owns each path of a repository, which files are generated, and which document must change when a piece of code changes — and have it checked. |
+| [`living-docs`](packages/living-docs/README.md) | Keep decisions, open questions, technical debt, requirements, glossary and changelog up to date, each with an owner and a moment to be revised. Built on `ownership`.   |
 
-| Plugin                                          | What it does                                                                                                                                 |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`living-docs`](packages/living-docs/README.md) | Keeps a repository's decisions, open decisions, technical debt, requirements and version history alive, with an owner, a trigger and checks. |
-| [`ownership`](packages/ownership/README.md)     | Declares the owner, the lifecycle and the code→doc link of each path in a repository. `living-docs` is built on it; it also runs on its own. |
-
-## Installation
-
-In Claude Code:
+## Install
 
 ```text
 /plugin marketplace add esliph/agent-plugins
@@ -21,10 +15,13 @@ In Claude Code:
 /plugin install living-docs@esliph
 ```
 
-The plugins' hooks run on the machine's Node (24 or greater). Each plugin's README
-describes its own setup and commands.
+`ownership` works on its own; `living-docs` requires it. Both run their hooks on
+the machine's `node` (24 or later). Without Node, the hooks stay silent and
+block nothing.
 
-## Development
+Each plugin's README covers its setup, commands and checks.
+
+## Contributing
 
 ```bash
 npm ci
@@ -32,23 +29,6 @@ npm test
 npm run typecheck
 ```
 
-The repository is an npm workspace: `npm ci` at the root installs every package.
-This repository keeps its own documentation with `living-docs` — the documents
-live in `docs/`, and `.ownership.yml` declares whose each one is. To contribute,
-see `CONTRIBUTING.md`.
-
-### Optional: without Node on the host
-
-There is a second execution path, optional, for whoever prefers a predictable
-environment to installing Node. `bin/dev` receives a command and runs it inside
-the container, bringing it up when needed:
-
-```bash
-bin/dev npm test
-bin/dev node --conditions=development packages/living-docs/src/cli/index.ts validate
-bin/living-docs validate     # the same, through the CLI wrapper
-```
-
-The default remains the host: the bind mount is noticeably slower, and the
-plugins' hooks always run on the machine's `node` — on a machine with no Node, the
-plugins block nothing.
+The repository is an npm workspace, and it keeps its own documentation with
+`living-docs` under `docs/`. See [`CONTRIBUTING.md`](CONTRIBUTING.md) before
+opening a pull request.
