@@ -13,6 +13,33 @@ owned:
       append-only: true
       mutable-fields: [status, superseded-by, last-reviewed]
 
+  - path: docs/open-decisions.md
+    owner: '@esliph/engineering'
+    skill: decision-recorder
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+
+  - path: docs/requirements/functional.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RF
+      # Read from the repository root, not from this file's base (ADR-0036).
+      cited-by: ['plugins/ownership/test/**']
+
+  - path: docs/requirements/rules.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RN
+      cited-by: ['plugins/ownership/test/**', 'plugins/ownership/plugin/src/**']
+
   - path: .ownership.yml
     owner: '@esliph/engineering'
     skill: living-docs-bootstrap
@@ -56,3 +83,7 @@ watches:
     doc: CHANGELOG.md
     consumer-visible: true
     reason: 'the core plugin is what whoever installs receives in the session'
+
+  - code: 'plugin/src/{checks,hooks}/**'
+    doc: docs/requirements/rules.md
+    reason: 'a check and a hook of the core are an executable rule like those of living-docs'

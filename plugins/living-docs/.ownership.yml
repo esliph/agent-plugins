@@ -22,6 +22,41 @@ owned:
       append-only: true
       mutable-fields: [status, last-reviewed]
 
+  - path: docs/open-decisions.md
+    owner: '@esliph/engineering'
+    skill: decision-recorder
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+
+  - path: docs/requirements/functional.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RF
+      cited-by: ['plugins/living-docs/test/**']
+
+  - path: docs/requirements/non-functional.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RNF
+      cited-by: ['plugins/living-docs/test/**']
+
+  - path: docs/requirements/rules.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RN
+      cited-by: ['plugins/living-docs/test/**', 'plugins/living-docs/plugin/src/**']
+
   - path: .ownership.yml
     owner: '@esliph/engineering'
     skill: living-docs-bootstrap
@@ -86,3 +121,23 @@ watches:
     doc: CHANGELOG.md
     consumer-visible: true
     reason: 'the wrapper is a public entry point of the toolkit — changing how it is invoked changes what whoever consumes uses'
+
+  - code: 'plugin/src/checks/**'
+    doc: docs/requirements/rules.md
+    reason: 'a check is an executable rule — the RN comes first, and it is what the check verifies'
+
+  - code: 'plugin/src/hooks/**'
+    doc: docs/requirements/rules.md
+    reason: 'a hook blocks or asks on behalf of a rule; with no RN cited, the block has no origin'
+
+  - code: 'plugin/src/cli/**'
+    doc: docs/requirements/functional.md
+    reason: 'what the command does that is observable is an RF, not an implementation detail'
+
+  - code: 'plugin/src/core/**'
+    doc: docs/requirements/non-functional.md
+    reason: 'the two roots are a property of the system (ADR-0003), not command behavior'
+
+  - code: 'plugin/skills/**'
+    doc: ../../CONTRIBUTING.md
+    reason: 'a new or changed skill changes how we work here'

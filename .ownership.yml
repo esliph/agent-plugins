@@ -32,24 +32,6 @@ owned:
     living-docs:
       id-prefix: DA
 
-  - path: docs/requirements/functional.md
-    owner: '@esliph/engineering'
-    skill: requirements-keeper
-    states: [draft, active, revoked]
-    format: { collection: sections, key: first-token }
-    living-docs:
-      id-prefix: RF
-      cited-by: ['plugins/living-docs/test/**', 'plugins/ownership/test/**']
-
-  - path: docs/requirements/non-functional.md
-    owner: '@esliph/engineering'
-    skill: requirements-keeper
-    states: [draft, active, revoked]
-    format: { collection: sections, key: first-token }
-    living-docs:
-      id-prefix: RNF
-      cited-by: ['plugins/living-docs/test/**', 'plugins/ownership/test/**']
-
   - path: docs/requirements/rules.md
     owner: '@esliph/engineering'
     skill: requirements-keeper
@@ -57,7 +39,7 @@ owned:
     format: { collection: sections, key: first-token }
     living-docs:
       id-prefix: RN
-      cited-by: ['plugins/living-docs/test/**', 'plugins/living-docs/plugin/src/**', 'plugins/ownership/test/**', 'plugins/ownership/plugin/src/**', '.github/scripts/**']
+      cited-by: ['.github/scripts/**']
 
   - path: docs/releases/
     owner: '@esliph/engineering'
@@ -177,33 +159,9 @@ generated:
 # enforcement on the PR diff read from here. `consumer-visible: true` is the
 # only list of paths visible to whoever consumes (ADR-0020).
 watches:
-  - code: 'plugins/living-docs/plugin/src/checks/**'
-    doc: docs/requirements/rules.md
-    reason: 'a check is an executable rule — the RN comes first, and it is what the check verifies'
-
   - code: 'plugins/living-docs/plugin/src/checks/catalog.ts'
     doc: docs/contracts/checks.gen.md
     reason: 'the public contract of the checks derives from the catalog — regenerating is part of the change, and editing by hand is blocked. Owning skill: contract-keeper'
-
-  - code: 'plugins/living-docs/plugin/src/hooks/**'
-    doc: docs/requirements/rules.md
-    reason: 'a hook blocks or asks on behalf of a rule; with no RN cited, the block has no origin'
-
-  - code: 'plugins/ownership/plugin/src/{checks,hooks}/**'
-    doc: docs/requirements/rules.md
-    reason: 'a check and a hook of the core are an executable rule like those of living-docs'
-
-  - code: 'plugins/living-docs/plugin/src/cli/**'
-    doc: docs/requirements/functional.md
-    reason: 'what the command does that is observable is an RF, not an implementation detail'
-
-  - code: 'plugins/living-docs/plugin/src/core/**'
-    doc: docs/requirements/non-functional.md
-    reason: 'the two roots are a property of the system (ADR-0003), not command behavior'
-
-  - code: 'plugins/living-docs/plugin/skills/**'
-    doc: CONTRIBUTING.md
-    reason: 'a new or changed skill changes how we work here'
 
   - code: '.github/scripts/**'
     doc: docs/requirements/rules.md

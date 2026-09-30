@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { loadLivingDocsConfig } from '../../plugin/src/config/ownership.ts'
 import { toolkitRoot } from '../../plugin/src/core/roots.ts'
 import { checkoutRoot } from '../helpers/checkout.ts'
 
@@ -25,9 +26,9 @@ test('RN-0010: the agent contract points to the owning artifacts', () => {
 })
 
 test('RN-0010: the contract copies no requirement statement', () => {
-  const titles = ['rules.md', 'functional.md', 'non-functional.md'].flatMap(file =>
-    [...readFileSync(join(ROOT, 'docs/requirements', file), 'utf8').matchAll(/^## (R[NF]F?-\d{4} — .+)$/gm)].map(match => match[1] ?? ''),
-  )
+  const config = loadLivingDocsConfig(ROOT)
+  const files = config.artifacts.filter(rule => ['RF', 'RNF', 'RN'].includes(rule.idPrefix)).map(rule => rule.path)
+  const titles = files.flatMap(file => [...readFileSync(join(ROOT, file), 'utf8').matchAll(/^## (R[NF]F?-\d{4} — .+)$/gm)].map(match => match[1] ?? ''))
 
   assert.ok(titles.length >= 11, `expected the requirements of Phases 0 to 3, found ${titles.length}`)
   for (const title of titles) {
