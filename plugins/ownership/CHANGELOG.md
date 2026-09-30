@@ -31,3 +31,5 @@ An entry is born in the PR that causes the change, not on the eve of the release
 - An ownership file value that is a map or a list where a single value was
   expected is now shown as written in the error message, instead of
   `[object Object]`.
+- The commit hook's reminder now says `Reason:` and `Owning skill:`; those two
+  labels were still in Portuguese.

@@ -77,19 +77,19 @@ export function shortcutsWithoutDebt(source: string): string[] {
 /** What `after` has and `before` does not — counting repetition, not just presence. */
 function onlyInAfter(before: readonly string[], after: readonly string[]): string[] {
   const remaining = [...before]
-  const novos: string[] = []
+  const added: string[] = []
 
   for (const line of after) {
     const at = remaining.indexOf(line)
 
     if (at === -1) {
-      novos.push(line)
+      added.push(line)
     } else {
       remaining.splice(at, 1)
     }
   }
 
-  return novos
+  return added
 }
 
 export function decideShortcutDebt(payload: HookPayload, env: HookEnv): ShortcutDebtDecision {
@@ -131,9 +131,9 @@ export function decideShortcutDebt(payload: HookPayload, env: HookEnv): Shortcut
     return SILENT
   } // the result cannot be predicted
 
-  const novos = onlyInAfter(shortcutsWithoutDebt(current), shortcutsWithoutDebt(next))
+  const added = onlyInAfter(shortcutsWithoutDebt(current), shortcutsWithoutDebt(next))
 
-  if (novos.length === 0) {
+  if (added.length === 0) {
     return SILENT
   }
 
@@ -141,7 +141,7 @@ export function decideShortcutDebt(payload: HookPayload, env: HookEnv): Shortcut
     action: 'remind',
     context:
       `living-docs/shortcut-debt: \`${repoPath}\` gained a shortcut marker with no debt recorded nearby.\n` +
-      `${novos.map(line => `- \`${line}\``).join('\n')}\n` +
+      `${added.map(line => `- \`${line}\``).join('\n')}\n` +
       // Rule of origin: spec §7 and RN-0014.
       'A conscious shortcut becomes a `TDR-nnnn` ' +
       'with an observable payment trigger, not an orphan `TODO`. Valid path: `/debt <the shortcut>` ' +

@@ -106,7 +106,7 @@ test('ADR-0009: a short sentence is shared vocabulary, not a duplicate', () => {
 
 test('duplicatedSentences ignores code and compares normalized', () => {
   const sentence = 'A sentence long enough to clear the twelve word floor without any effort at all'
-  const contract = `# Contrato\n\n**${sentence}.**\n\n\`\`\`md\n${'another long sentence '.repeat(4)}\n\`\`\`\n`
+  const contract = `# Contract\n\n**${sentence}.**\n\n\`\`\`md\n${'another long sentence '.repeat(4)}\n\`\`\`\n`
   const corpus = [{ file: 'docs/x.md', source: `prose before. ${sentence.toLowerCase()}. prose after.` }]
 
   const found = duplicatedSentences(contract, corpus)

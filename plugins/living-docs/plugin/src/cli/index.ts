@@ -9,7 +9,7 @@ import { DEFAULT_ID_FORMAT, PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/sc
 import { GitError } from '../git/diff.ts'
 import { repoRoot } from '../core/roots.ts'
 
-const USAGE = `living-docs <comando>
+const USAGE = `living-docs <command>
 
   validate    Runs the living-documentation checks over the tree
   init        Creates the living-documentation scaffold (owning skill: living-docs-bootstrap)

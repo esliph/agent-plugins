@@ -43,7 +43,7 @@ test('returns null when the block never closes', () => {
 })
 
 test('accepts CRLF and BOM', () => {
-  const fm = parseFrontmatter('﻿---\r\nid: ADR-1\r\n---\r\ncorpo\r\n')
+  const fm = parseFrontmatter('﻿---\r\nid: ADR-1\r\n---\r\nbody\r\n')
 
   assert.ok(fm)
   assert.equal(fm.data.id, 'ADR-1')

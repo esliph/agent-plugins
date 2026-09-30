@@ -81,40 +81,40 @@ export function decideSessionInventory(env: HookEnv, today: string): SessionInve
     const documents = collectDocuments(env.root, config)
     const context = { root: env.root, config, docs, documents, today }
 
-    const ausentes = [
+    const missing = [
       ...config.artifacts.filter(artifact => !existsSync(join(env.root, artifact.path))).map(artifact => `${artifact.idPrefix} (${artifact.path})`),
       ...config.documents.filter(document => !existsSync(join(env.root, document.path))).map(document => document.path),
     ]
 
-    const abertas = openDecisions(docs)
-    const vencidas = duePayments(context)
-    const velhos = staleDocs(context)
+    const undecided = openDecisions(docs)
+    const due = duePayments(context)
+    const expired = staleDocs(context)
 
     const lines = [
       `living-docs/session-inventory: inventory of the living documentation (source: \`${config.rootFile}\`).`,
       `Declared: ${config.artifacts.length} artifact(s) and ${config.documents.length} document(s).`,
     ]
 
-    if (ausentes.length > 0) {
-      lines.push(`Declared and missing (${ausentes.length}): ${shorten(ausentes)}.`)
+    if (missing.length > 0) {
+      lines.push(`Declared and missing (${missing.length}): ${shorten(missing)}.`)
     }
-    if (abertas.length > 0) {
+    if (undecided.length > 0) {
       lines.push(
-        `Open decision (${abertas.length}): ${shorten(abertas)}. While it is open, the rule does not exist and the ` + 'implementation stops (`/open-decision`).',
+        `Open decision (${undecided.length}): ${shorten(undecided)}. While it is open, the rule does not exist and the ` + 'implementation stops (`/open-decision`).',
       )
     }
-    if (vencidas.length > 0) {
+    if (due.length > 0) {
       lines.push(
         // Rule of origin: spec §12, criterion 7.
-        `Debt with its payment trigger met (${vencidas.length}): ${shorten(
-          vencidas.map(payment => `${payment.id} — ${payment.evidence}`),
+        `Debt with its payment trigger met (${due.length}): ${shorten(
+          due.map(payment => `${payment.id} — ${payment.evidence}`),
         )}. \`living-docs validate\` fails until it is paid or reclassified.`,
       )
     }
-    if (velhos.length > 0) {
+    if (expired.length > 0) {
       lines.push(
-        `Expired document (${velhos.length}): ${shorten(
-          velhos.map(stale => `${stale.file} (${stale.months} months)`),
+        `Expired document (${expired.length}): ${shorten(
+          expired.map(stale => `${stale.file} (${stale.months} months)`),
         )}. This is a warning: re-read before touching \`last-reviewed\`.`,
       )
     }

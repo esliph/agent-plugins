@@ -278,6 +278,9 @@ An entry is born in the PR that causes the change, not on the eve of the release
   out of the formatter.
 - `living-docs --help` now lists `multi-team` among the stages of `--stage`; the
   CLI already accepted it.
+- `living-docs --help` and the lines `living-docs init` reports about the RF,
+  RNF, RN and REL artifacts are now fully in English; a few Portuguese words were
+  left in them.
 - `living-docs init` now recognizes `docs/decisoes-em-aberto.md` among the paths it
   adopts for the `DA` family when they already exist.
 - `living-docs init` in a repository that already has `AGENTS.md` now writes the

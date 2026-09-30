@@ -276,7 +276,7 @@ export function duePayments(context: CheckContext): DuePayment[] {
  * build pushes toward the mass bump that spec §13 refuses. The debt
  * half fails, because it is what closes acceptance criterion 7.
  *
- * Regras de origem: `RN-0018`, `RN-0019`.
+ * Rules of origin: `RN-0018`, `RN-0019`.
  */
 export const livingDocsStaleness: Check = {
   id: RULE,
