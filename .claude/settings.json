@@ -1,0 +1,36 @@
+{
+  "enabledPlugins": {
+    "plugin-dev@claude-plugins-official": true,
+    "ownership@esliph": true,
+    "living-docs@esliph": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/lockfile-guard.sh\"",
+            "shell": "bash",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/format-ts.sh\"",
+            "shell": "bash",
+            "timeout": 60,
+            "statusMessage": "Prettier + ESLint --fix"
+          }
+        ]
+      }
+    ]
+  }
+}
