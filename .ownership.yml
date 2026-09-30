@@ -41,19 +41,6 @@ owned:
       id-prefix: RN
       cited-by: ['.github/scripts/**']
 
-  - path: docs/releases/
-    owner: '@esliph/engineering'
-    skill: release-historian
-    states: [draft, published]
-    living-docs:
-      id-prefix: REL
-      # Read by whoever consumes: the text cites no artifact ID (ADR-0017).
-      audience: external
-      # A published release note is frozen: that is why REL has an ID family
-      # and CHANGELOG.md does not.
-      append-only: true
-      mutable-fields: [status, last-reviewed]
-
   # --- Documents: a `living-docs:` block without `id-prefix` (ADR-0008, ADR-0029).
   # `role` is a closed vocabulary; `audience: external` marks text for readers
   # from the outside, which cites no artifact ID.
@@ -77,36 +64,7 @@ owned:
     owner: '@esliph/engineering'
     skill: working-agreements-keeper
     living-docs: { role: agent-contract }
-  - path: docs/glossary.md
-    owner: '@esliph/engineering'
-    skill: glossary-keeper
-    living-docs: {}
-  - path: docs/charter/
-    owner: '@esliph/engineering'
-    skill: charter-keeper
-    living-docs: {}
-  - path: docs/contracts/errors.md
-    owner: '@esliph/engineering'
-    skill: contract-keeper
-    living-docs: {}
-  - path: docs/contracts/versioning-policy.md
-    owner: '@esliph/engineering'
-    skill: contract-keeper
-    living-docs: {}
-  # Generated: the generated-artifact guard blocks editing it by hand, and
-  # `ownership/generated-drift` compares it with the generator output.
-  - path: docs/contracts/checks.gen.md
-    owner: '@esliph/engineering'
-    living-docs: {}
   - path: CHANGELOG.md
-    owner: '@esliph/engineering'
-    skill: release-historian
-    living-docs: { audience: external }
-  - path: docs/deprecations.md
-    owner: '@esliph/engineering'
-    skill: release-historian
-    living-docs: { audience: external }
-  - path: docs/migrations/
     owner: '@esliph/engineering'
     skill: release-historian
     living-docs: { audience: external }
@@ -148,21 +106,10 @@ ignore:
   - '.claude/**'
   - '.superpowers/**'
 
-generated:
-  # The command PRINTS the expected content and writes no file at all: a check
-  # that rewrites what it is checking erases the evidence the moment it reports
-  # it (ADR-0005).
-  - path: docs/contracts/checks.gen.md
-    command: node --conditions=development plugins/living-docs/plugin/src/tools/gen-checks.ts
-
 # Code → owning doc. The reminder on edit, the question at commit and the
 # enforcement on the PR diff read from here. `consumer-visible: true` is the
 # only list of paths visible to whoever consumes (ADR-0020).
 watches:
-  - code: 'plugins/living-docs/plugin/src/checks/catalog.ts'
-    doc: docs/contracts/checks.gen.md
-    reason: 'the public contract of the checks derives from the catalog — regenerating is part of the change, and editing by hand is blocked. Owning skill: contract-keeper'
-
   - code: '.github/scripts/**'
     doc: docs/requirements/rules.md
     reason: 'a marketplace check is an executable rule — the RN comes first, and it is what the script verifies'

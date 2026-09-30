@@ -2,7 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { checkoutRoot } from '../helpers/checkout.ts'
+import { loadCodeowners, ownersOf } from '@esliph/ownership'
+import { checkoutRoot, projectRoot } from '../helpers/checkout.ts'
 
 const ROOT = checkoutRoot()
 
@@ -32,7 +33,7 @@ function rows(source: string, column: string): string[][] {
     )
 }
 
-const errors = (): string => readFileSync(join(ROOT, 'docs/contracts/errors.md'), 'utf8')
+const errors = (): string => readFileSync(join(projectRoot(), 'docs/contracts/errors.md'), 'utf8')
 
 test('the error catalog lists real codes, each with a meaning, trigger and status', () => {
   const entries = rows(errors(), 'Code')
@@ -58,7 +59,7 @@ test('the error catalog does not duplicate the checks table — it is generated 
 })
 
 test('the versioning policy answers what is public, what never changes and how to deprecate', () => {
-  const source = readFileSync(join(ROOT, 'docs/contracts/versioning-policy.md'), 'utf8')
+  const source = readFileSync(join(projectRoot(), 'docs/contracts/versioning-policy.md'), 'utf8')
 
   for (const section of ['## What is public', '## What never changes meaning', '## How to deprecate']) {
     assert.ok(source.includes(section), `policy without the section "${section}"`)
@@ -66,7 +67,7 @@ test('the versioning policy answers what is public, what never changes and how t
 })
 
 test('RN-0001: the contracts have an owner in CODEOWNERS, like every artifact', () => {
-  const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
+  const codeowners = loadCodeowners(ROOT)!
 
-  assert.match(codeowners, /^docs\/contracts\/\s+@\S+$/m)
+  assert.ok(ownersOf(codeowners, 'plugins/living-docs/docs/contracts/errors.md'))
 })

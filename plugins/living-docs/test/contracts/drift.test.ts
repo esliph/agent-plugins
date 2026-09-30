@@ -6,7 +6,7 @@ import { coreChecks, resolveOwnership } from '@esliph/ownership'
 import { checkoutRoot } from '../helpers/checkout.ts'
 
 const ROOT = checkoutRoot()
-const GENERATED = 'docs/contracts/checks.gen.md'
+const GENERATED = 'plugins/living-docs/docs/contracts/checks.gen.md'
 
 test('RF-0006: the generated contract of this repository has not drifted — dogfooding with the real generator', () => {
   const config = resolveOwnership(ROOT)

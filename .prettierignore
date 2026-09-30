@@ -9,7 +9,7 @@ plugins/living-docs/plugin/templates/
 
 # Generated artifact: changes through the source and the generator, never through a formatter
 # (`HK-2` blocks hand editing; `CI-5` compares with the generator's output).
-docs/contracts/checks.gen.md
+plugins/living-docs/docs/contracts/checks.gen.md
 
 # Dated record: reformatting falsifies what was written when it was produced
 # (ADR-0014, "Consequences").

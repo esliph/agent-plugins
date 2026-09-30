@@ -2,7 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { checkoutRoot } from '../helpers/checkout.ts'
+import { loadCodeowners, ownersOf } from '@esliph/ownership'
+import { checkoutRoot, projectRoot } from '../helpers/checkout.ts'
 
 const ROOT = checkoutRoot()
 
@@ -41,7 +42,7 @@ function rows(source: string, column: string): string[][] {
 }
 
 const GLOSSARY_HEADER = 'Term'
-const glossary = (): string => readFileSync(join(ROOT, 'docs/glossary.md'), 'utf8')
+const glossary = (): string => readFileSync(join(projectRoot(), 'docs/glossary.md'), 'utf8')
 
 test('RN-0011: every glossary term has a unique name, and none has a numbered ID', () => {
   const source = glossary()
@@ -72,7 +73,7 @@ test('RN-0011: every term points to the source that defines it', () => {
 })
 
 test('the Constitution: every principle names what verifies it', () => {
-  const source = readFileSync(join(ROOT, 'docs/charter/constitution.md'), 'utf8')
+  const source = readFileSync(join(projectRoot(), 'docs/charter/constitution.md'), 'utf8')
   const section = source.slice(source.indexOf('## Principles'), source.indexOf('## Amendment log'))
   const principles = section.split('\n').filter(line => /^\d+\./.test(line.trim()))
 
@@ -83,13 +84,13 @@ test('the Constitution: every principle names what verifies it', () => {
 })
 
 test('the Constitution has an amendment log — an amendment is an append, never an in-place rewrite', () => {
-  const source = readFileSync(join(ROOT, 'docs/charter/constitution.md'), 'utf8')
+  const source = readFileSync(join(projectRoot(), 'docs/charter/constitution.md'), 'utf8')
 
   assert.match(source, /## Amendment log/)
 })
 
 test('the Vision answers only the three questions of spec §5', () => {
-  const source = readFileSync(join(ROOT, 'docs/charter/vision.md'), 'utf8')
+  const source = readFileSync(join(projectRoot(), 'docs/charter/vision.md'), 'utf8')
 
   for (const question of ['What problem', 'For whom', 'Success metric']) {
     assert.match(source, new RegExp(`\\*\\*${question}:\\*\\*`), `Vision without the question "${question}"`)
@@ -97,8 +98,8 @@ test('the Vision answers only the three questions of spec §5', () => {
 })
 
 test('RN-0001: glossary and charter have an owner in CODEOWNERS, like every artifact', () => {
-  const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
+  const codeowners = loadCodeowners(ROOT)!
 
-  assert.match(codeowners, /^docs\/glossary\.md\s+@\S+$/m)
-  assert.match(codeowners, /^docs\/charter\/\s+@\S+$/m)
+  assert.ok(ownersOf(codeowners, 'plugins/living-docs/docs/glossary.md'))
+  assert.ok(ownersOf(codeowners, 'plugins/living-docs/docs/charter/vision.md'))
 })

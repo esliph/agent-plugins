@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import picomatch from 'picomatch'
+import { loadCodeowners, ownersOf } from '@esliph/ownership'
 import { loadLivingDocsConfig } from '../../plugin/src/config/ownership.ts'
 import { checkoutRoot, projectRoot } from '../helpers/checkout.ts'
 
@@ -77,7 +78,7 @@ test('RN-0013: the CHANGELOG is consumer-facing — Keep a Changelog, no frontma
 })
 
 test('RN-0015: the deprecations table demands the four things', () => {
-  const source = readFileSync(join(ROOT, 'docs/deprecations.md'), 'utf8')
+  const source = readFileSync(join(projectRoot(), 'docs/deprecations.md'), 'utf8')
   const header = source.split('\n').find(line => line.trim().startsWith('| What |'))
 
   assert.ok(header, 'docs/deprecations.md without the table')
@@ -87,10 +88,16 @@ test('RN-0015: the deprecations table demands the four things', () => {
 })
 
 test('RN-0001: the historical trail has an owner in CODEOWNERS, like every artifact', () => {
-  const codeowners = readFileSync(join(ROOT, 'CODEOWNERS'), 'utf8')
+  const codeowners = loadCodeowners(ROOT)!
 
-  for (const path of ['CHANGELOG.md', 'docs/deprecations.md', 'docs/releases/', 'docs/migrations/']) {
-    assert.match(codeowners, new RegExp(`^${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+@\\S+$`, 'm'), `${path} without an owner`)
+  for (const path of [
+    'CHANGELOG.md',
+    'plugins/living-docs/CHANGELOG.md',
+    'plugins/living-docs/docs/deprecations.md',
+    'plugins/living-docs/docs/releases/x.md',
+    'plugins/living-docs/docs/migrations/x.md',
+  ]) {
+    assert.ok(ownersOf(codeowners, path), `${path} without an owner`)
   }
 })
 
@@ -103,13 +110,13 @@ test('REL is declared, so that living-docs/append-only freezes a published relea
 })
 
 test('RN-0030: this repository marks as external what it writes for outside readers', () => {
-  for (const path of ['README.md', 'CHANGELOG.md', 'docs/deprecations.md', 'docs/migrations/']) {
+  for (const path of ['README.md', 'CHANGELOG.md', 'plugins/living-docs/CHANGELOG.md', 'plugins/living-docs/README.md', 'plugins/living-docs/docs/deprecations.md', 'plugins/living-docs/docs/migrations/']) {
     assert.equal(config.documents.find(document => document.path === path)?.audience, 'external', `${path} should be marked`)
   }
   assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
 
   // docs/contracts/ stays out: it cites its own sources, and marking it is a decision of its own.
-  for (const path of ['docs/contracts/errors.md', 'docs/contracts/versioning-policy.md']) {
+  for (const path of ['plugins/living-docs/docs/contracts/errors.md', 'plugins/living-docs/docs/contracts/versioning-policy.md']) {
     assert.equal(config.documents.find(document => document.path === path)?.audience, 'internal', `${path} is not marked by this delivery`)
   }
 })

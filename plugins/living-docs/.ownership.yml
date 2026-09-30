@@ -57,6 +57,19 @@ owned:
       id-prefix: RN
       cited-by: ['plugins/living-docs/test/**', 'plugins/living-docs/plugin/src/**']
 
+  - path: docs/releases/
+    owner: '@esliph/engineering'
+    skill: release-historian
+    states: [draft, published]
+    living-docs:
+      id-prefix: REL
+      # Read by whoever consumes: the text cites no artifact ID (ADR-0017).
+      audience: external
+      # A published release note is frozen: that is why REL has an ID family
+      # and CHANGELOG.md does not.
+      append-only: true
+      mutable-fields: [status, last-reviewed]
+
   - path: .ownership.yml
     owner: '@esliph/engineering'
     skill: living-docs-bootstrap
@@ -65,6 +78,35 @@ owned:
     owner: '@esliph/engineering'
     living-docs: { audience: external }
   - path: CHANGELOG.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+    living-docs: { audience: external }
+  - path: docs/glossary.md
+    owner: '@esliph/engineering'
+    skill: glossary-keeper
+    living-docs: {}
+  - path: docs/charter/
+    owner: '@esliph/engineering'
+    skill: charter-keeper
+    living-docs: {}
+  - path: docs/contracts/errors.md
+    owner: '@esliph/engineering'
+    skill: contract-keeper
+    living-docs: {}
+  - path: docs/contracts/versioning-policy.md
+    owner: '@esliph/engineering'
+    skill: contract-keeper
+    living-docs: {}
+  # Generated: the generated-artifact guard blocks editing it by hand, and
+  # `ownership/generated-drift` compares it with the generator output.
+  - path: docs/contracts/checks.gen.md
+    owner: '@esliph/engineering'
+    living-docs: {}
+  - path: docs/deprecations.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+    living-docs: { audience: external }
+  - path: docs/migrations/
     owner: '@esliph/engineering'
     skill: release-historian
     living-docs: { audience: external }
@@ -90,6 +132,12 @@ owned:
     owner: '@esliph/engineering'
   - path: .dockerignore
     owner: '@esliph/engineering'
+
+generated:
+  # The command PRINTS the expected content and writes no file at all (ADR-0005).
+  # It runs from the repository root.
+  - path: docs/contracts/checks.gen.md
+    command: node --conditions=development plugins/living-docs/plugin/src/tools/gen-checks.ts
 
 watches:
   - code: 'plugin/src/cli/**'
@@ -141,3 +189,7 @@ watches:
   - code: 'plugin/skills/**'
     doc: ../../CONTRIBUTING.md
     reason: 'a new or changed skill changes how we work here'
+
+  - code: 'plugin/src/checks/catalog.ts'
+    doc: docs/contracts/checks.gen.md
+    reason: 'the public contract of the checks derives from the catalog — regenerating is part of the change, and editing by hand is blocked. Owning skill: contract-keeper'
