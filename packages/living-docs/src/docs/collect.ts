@@ -146,7 +146,7 @@ export function collectDocuments(root: string, config: LivingDocsConfig): Docume
         continue // declared and absent: whoever charges for absence is ownership/owner-coverage, not the collection
       }
 
-      let frontmatter: Frontmatter | null = null
+      let frontmatter: Frontmatter | null
 
       try {
         frontmatter = parseFrontmatter(source)

@@ -1,4 +1,5 @@
 import { execFileSync, execSync } from 'node:child_process'
+import { display } from './display.ts'
 
 export type GitRunner = (args: readonly string[], cwd: string) => string
 
@@ -19,7 +20,7 @@ const runGitDiff: GitRunner = (args, cwd) =>
 
 function reasonOf(err: unknown): string {
   const stderr = (err as { stderr?: unknown }).stderr
-  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
+  const text = display(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
 
   return text.split('\n')[0] ?? text
 }

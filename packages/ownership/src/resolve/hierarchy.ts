@@ -174,10 +174,12 @@ function collectTree(repoRoot: string, root: RootFile, onlyFor: readonly string[
       }
       seen.add(includedFile)
 
-      const parsed = parseOwnershipFile(readOwnershipFile(repoRoot, includedFile, file.file), includedFile, { isRoot: false, pluginNames: root.plugins }) as ParsedFile
+      const parsed = parseOwnershipFile(readOwnershipFile(repoRoot, includedFile, file.file), includedFile, { isRoot: false, pluginNames: root.plugins })
+      // Widened on purpose: the type admits only the accepted version, and this comparison is what rejects another.
+      const childVersion: number = parsed.version
 
-      if (parsed.version !== root.version) {
-        throw new OwnershipError(`${includedFile}: version ${parsed.version} differs from ${root.file} (version ${root.version}). One repository, one schema.`)
+      if (childVersion !== root.version) {
+        throw new OwnershipError(`${includedFile}: version ${childVersion} differs from ${root.file} (version ${root.version}). One repository, one schema.`)
       }
 
       const childBase = baseOf(parsed)

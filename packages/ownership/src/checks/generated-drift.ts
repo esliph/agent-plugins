@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { CommandRunner } from '../core/exec.ts'
 import type { Check, CheckContext, Finding } from './types.ts'
+import { display } from '../core/display.ts'
 
 const RULE = 'ownership/generated-drift'
 
@@ -29,7 +30,7 @@ function error(file: string, line: number, message: string, fix: string): Findin
 
 function reasonOf(err: unknown): string {
   const stderr = (err as { stderr?: unknown }).stderr
-  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
+  const text = display(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
 
   return text.split('\n')[0] ?? text
 }

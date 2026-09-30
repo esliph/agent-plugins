@@ -129,6 +129,10 @@ test('id-format and last-reviewed-bump-limit out of range are errors', () => {
   assert.throws(() => configFrom(yaml(ADR, 'living-docs:\n  last-reviewed-bump-limit: 1\n')), /last-reviewed-bump-limit "1".*greater than or equal to 2/)
 })
 
+test('a map where a scalar was expected is shown as written in the error', () => {
+  assert.throws(() => configFrom(yaml(ADR, "living-docs:\n  id-format: { separator: { a: 1 } }\n")), /separator "\{"a":1\}" is not accepted/)
+})
+
 test('with no artifact, the error teaches how to declare the plugin and the block', () => {
   assert.throws(() => configFrom("version: 2\nowned:\n  - path: a.md\n    owner: '@team'\n"), /no `owned` entry carries `living-docs\.id-prefix`.*plugins: \[living-docs\]/)
 })

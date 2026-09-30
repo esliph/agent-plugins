@@ -2,6 +2,7 @@ import { OwnershipError, isEmptyValue, normalizeFieldKey, resolveOwnership } fro
 import type { DocItem, ResolvedConfig, ResolvedOwnedRule } from '@esliph/ownership'
 import { DEFAULT_ID_FORMAT, PADDING_RANGE, SEPARATORS_ALLOWED } from '../docs/schema.ts'
 import type { IdFormat } from '../docs/schema.ts'
+import { display } from '../core/display.ts'
 
 export { OwnershipError }
 
@@ -137,14 +138,14 @@ function parseIdFormat(raw: unknown, where: string): IdFormat {
 
   if (typeof separator !== 'string' || !SEPARATORS_ALLOWED.includes(separator)) {
     // Rule of origin: ADR-0011.
-    fail(where, `id-format.separator "${String(separator)}" is not accepted. Valid: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`)
+    fail(where, `id-format.separator "${display(separator)}" is not accepted. Valid: ${SEPARATORS_ALLOWED.map(value => `"${value}"`).join(', ')}.`)
   }
 
   const padding = item.padding ?? DEFAULT_ID_FORMAT.padding
 
   if (typeof padding !== 'number' || !Number.isInteger(padding) || padding < PADDING_RANGE.min || padding > PADDING_RANGE.max) {
     // Rule of origin: ADR-0011.
-    fail(where, `id-format.padding "${String(padding)}" must be an integer between ${PADDING_RANGE.min} and ${PADDING_RANGE.max}.`)
+    fail(where, `id-format.padding "${display(padding)}" must be an integer between ${PADDING_RANGE.min} and ${PADDING_RANGE.max}.`)
   }
 
   return { separator, padding }
@@ -156,7 +157,7 @@ function parseBumpLimit(raw: unknown, where: string): number {
   }
   if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 2) {
     // Rule of origin: ADR-0013.
-    fail(where, `last-reviewed-bump-limit "${String(raw)}" must be an integer greater than or equal to 2 (a threshold of 1 would fail the legitimate review of a single document).`)
+    fail(where, `last-reviewed-bump-limit "${display(raw)}" must be an integer greater than or equal to 2 (a threshold of 1 would fail the legitimate review of a single document).`)
   }
 
   return raw
@@ -167,7 +168,7 @@ function parseAudience(raw: unknown, where: string): Audience {
     return 'internal'
   }
   if (!AUDIENCES.includes(raw as Audience)) {
-    fail(where, `unknown audience "${String(raw)}". Valid: ${AUDIENCES.join(', ')}.`)
+    fail(where, `unknown audience "${display(raw)}". Valid: ${AUDIENCES.join(', ')}.`)
   }
 
   return raw as Audience
@@ -185,7 +186,7 @@ function toArtifact(rule: ResolvedOwnedRule, block: Record<string, unknown>): Ar
   const idPrefix = block['id-prefix']
 
   if (typeof idPrefix !== 'string' || !ID_PREFIX.test(idPrefix)) {
-    fail(where, `id-prefix "${String(idPrefix)}" must be 2 to 4 uppercase letters (e.g. ADR, DA, TDR).`)
+    fail(where, `id-prefix "${display(idPrefix)}" must be 2 to 4 uppercase letters (e.g. ADR, DA, TDR).`)
   }
   if (rule.skill === null) {
     fail(where, 'an artifact needs a `skill` in its entry — the owning skill is the one that writes its items.')
@@ -227,7 +228,7 @@ function toDocument(rule: ResolvedOwnedRule, block: Record<string, unknown>): Do
   const role = block.role
 
   if (role !== undefined && !DOCUMENT_ROLES.includes(role as DocumentRole)) {
-    fail(where, `unknown role "${String(role)}". Valid: ${DOCUMENT_ROLES.join(', ')}.`)
+    fail(where, `unknown role "${display(role)}". Valid: ${DOCUMENT_ROLES.join(', ')}.`)
   }
 
   return {

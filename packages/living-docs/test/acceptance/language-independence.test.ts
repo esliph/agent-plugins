@@ -173,7 +173,7 @@ test('RN-0038: the Portuguese triggers route to their owning skills without a wa
 test('RN-0038: the resolved decision is read through field-map, in its own column names', () => {
   // Without the map the same corpus fails, and the failure names field-map —
   // structure, not language, decides the result (RN-0039).
-  const unmapped = OWNERSHIP.replace(/      field-map:\n(?:        .*\n)+/, '')
+  const unmapped = OWNERSHIP.replace(/ {6}field-map:\n(?: {8}.*\n)+/, '')
 
   withTempRepo({ ...TREE, [OWNERSHIP_FILE]: unmapped }, root => {
     const coverage = runValidate(root).findings.filter(f => f.ruleId === 'living-docs/citation-coverage' && f.file === 'docs/decisoes-em-aberto.md')

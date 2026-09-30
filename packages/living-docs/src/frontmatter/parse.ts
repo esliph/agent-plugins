@@ -27,7 +27,7 @@ const DELIMITER = /^---\s*$/
 const TOP_LEVEL_KEY = /^([A-Za-z_][A-Za-z0-9_-]*)\s*:/
 
 export function parseFrontmatter(source: string): Frontmatter | null {
-  const text = source.replace(/^﻿/, '').replace(/\r\n/g, '\n')
+  const text = source.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n')
   const lines = text.split('\n')
 
   if (lines.length === 0 || !DELIMITER.test(lines[0] ?? '')) {

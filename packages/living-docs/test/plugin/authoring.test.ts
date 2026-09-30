@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseFrontmatter } from '../../src/frontmatter/parse.ts'
 import { toolkitRoot } from '../../src/core/roots.ts'
+import { display } from '../../src/core/display.ts'
 
 const ROOT = toolkitRoot()
 
@@ -34,7 +35,7 @@ for (const name of SKILLS) {
   })
 
   test(`${name}: the description is written in symptom language, not category language`, () => {
-    const description = String(parseFrontmatter(skillSource(name))?.data.description ?? '')
+    const description = display(parseFrontmatter(skillSource(name))?.data.description ?? '')
 
     assert.ok(description.length > 120, `${name}: description too short to be found when it matters`)
     assert.match(description, /\bUse\b/i, `${name}: the description must say when to use it`)
@@ -67,7 +68,7 @@ for (const name of SKILLS) {
 }
 
 test('decision-recorder: the description names the symptoms of decision, gap and debt', () => {
-  const description = String(parseFrontmatter(skillSource('decision-recorder'))?.data.description ?? '')
+  const description = display(parseFrontmatter(skillSource('decision-recorder'))?.data.description ?? '')
 
   assert.match(description, /Use when/i)
   for (const symptom of ['why', 'gap', 'debt']) {
@@ -83,7 +84,7 @@ test('decision-recorder does not duplicate the content of the artifacts it gover
 })
 
 test('requirements-keeper: the description speaks in symptoms, not categories', () => {
-  const description = String(parseFrontmatter(skillSource('requirements-keeper'))?.data.description ?? '')
+  const description = display(parseFrontmatter(skillSource('requirements-keeper'))?.data.description ?? '')
 
   assert.ok(description.length > 120)
   for (const symptom of ['what is the rule', 'what should the system do', 'specified']) {
@@ -119,7 +120,7 @@ test('the seven commands exist, have a description and contain no logic of their
 })
 
 test('glossary-keeper: the description names the symptoms of a new, ambiguous or renamed term', () => {
-  const description = String(parseFrontmatter(skillSource('glossary-keeper'))?.data.description ?? '')
+  const description = display(parseFrontmatter(skillSource('glossary-keeper'))?.data.description ?? '')
 
   assert.match(description, /Use when/i)
   for (const symptom of ['term', 'renam']) {
@@ -135,7 +136,7 @@ test('glossary-keeper does not duplicate the format of the table it governs', ()
 })
 
 test('charter-keeper: the description names principle, vision and amendment', () => {
-  const description = String(parseFrontmatter(skillSource('charter-keeper'))?.data.description ?? '')
+  const description = display(parseFrontmatter(skillSource('charter-keeper'))?.data.description ?? '')
 
   assert.match(description, /Use when/i)
   for (const symptom of ['principle', 'vision']) {
@@ -155,7 +156,7 @@ test('charter-keeper does not duplicate the content of the artifacts it governs'
 })
 
 test('working-agreements-keeper: the description names the error caused by lack of context', () => {
-  const description = String(parseFrontmatter(skillSource('working-agreements-keeper'))?.data.description ?? '')
+  const description = display(parseFrontmatter(skillSource('working-agreements-keeper'))?.data.description ?? '')
 
   assert.match(description, /Use when/i)
   for (const symptom of ['lack of context', "wasn't written", 'done']) {
@@ -171,7 +172,7 @@ test('working-agreements-keeper does not duplicate the content of the agreements
 })
 
 test('contract-keeper: the description names public interface, new error and versioning', () => {
-  const description = String(parseFrontmatter(skillSource('contract-keeper'))?.data.description ?? '')
+  const description = display(parseFrontmatter(skillSource('contract-keeper'))?.data.description ?? '')
 
   assert.match(description, /Use when/i)
   for (const symptom of ['contract', 'error', 'generat']) {
@@ -189,7 +190,7 @@ test('contract-keeper does not duplicate the content of the artifacts it governs
 })
 
 test('release-historian: the description names the symptoms of visible change, version and deprecation', () => {
-  const description = String(parseFrontmatter(skillSource('release-historian'))?.data.description ?? '')
+  const description = display(parseFrontmatter(skillSource('release-historian'))?.data.description ?? '')
 
   assert.match(description, /Use when/i)
   for (const symptom of ['consum', 'version', 'migrat', 'deprecat']) {

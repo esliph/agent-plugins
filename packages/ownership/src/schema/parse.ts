@@ -2,6 +2,7 @@ import { posix } from 'node:path'
 import YAML from 'yaml'
 import { OwnershipError } from './types.ts'
 import type { DerivesFrom, FormatBlock, GeneratedRuleRaw, OwnedRuleRaw, ParsedFile, RootFile, WatchRuleRaw } from './types.ts'
+import { display } from '../core/display.ts'
 
 export { OwnershipError } from './types.ts'
 export type { Collection, DerivesFrom, FormatBlock, GeneratedRuleRaw, OwnedRuleRaw, ParsedFile, RootFile, SectionKeyMode, WatchRuleRaw } from './types.ts'
@@ -103,7 +104,7 @@ function parseFormat(raw: unknown, where: string): FormatBlock {
     const keyMode = item.key ?? 'first-token'
 
     if (keyMode !== 'first-token' && keyMode !== 'heading') {
-      throw new OwnershipError(`${where}.format.key: must be "first-token" or "heading" (received: ${String(keyMode)}).`)
+      throw new OwnershipError(`${where}.format.key: must be "first-token" or "heading" (received: ${display(keyMode)}).`)
     }
 
     return { collection: 'sections', key: null, keyMode, stateField }

@@ -14,6 +14,7 @@ import { applyToolInput, diffDocument } from './lib/edit.ts'
 import { toRepoPath } from './lib/paths.ts'
 import { denyOutput, emit, hookEnv, readPayload } from './lib/io.ts'
 import type { HookEnv, HookPayload } from './lib/io.ts'
+import { display } from '../core/display.ts'
 
 export type HookDecision = { action: 'allow' } | { action: 'deny'; reason: string }
 
@@ -91,7 +92,7 @@ export function decideAppendOnly(payload: HookPayload, env: HookEnv): HookDecisi
       // Rule of origin: spec §4.
       'No terminal state allows editing the body; ' +
       'an accepted item that turned out wrong is not corrected, the history of decisions is the asset. ' +
-      `Valid path: create a new item with \`supersedes: ${String(parseFrontmatter(current)?.data.id ?? '')}\` and ` +
+      `Valid path: create a new item with \`supersedes: ${display(parseFrontmatter(current)?.data.id ?? '')}\` and ` +
       `mark this one \`status: superseded\` + \`superseded-by:\` (fields allowed here: ${mutable.join(', ')}). ` +
       `Owning artifact: ${rule.path} (${rule.owner}); owning skill: ${rule.skill}.`,
   }

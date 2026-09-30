@@ -75,7 +75,7 @@ test('duplicate key is a finding, even with no states declared', () => {
 
     assert.equal(findings.length, 1)
     assert.equal(findings[0]?.line, 4)
-    assert.match(findings[0]!.message, /DA-01/)
+    assert.match(findings[0].message, /DA-01/)
   })
 })
 

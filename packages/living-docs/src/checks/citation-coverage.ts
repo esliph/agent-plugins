@@ -6,6 +6,7 @@ import type { IdFormat } from '../docs/schema.ts'
 import { findCitations } from '../ids/citations.ts'
 import { scanCitations } from '../ids/coverage.ts'
 import type { CitationSite } from '../ids/coverage.ts'
+import { display } from '../core/display.ts'
 
 const RULE = 'living-docs/citation-coverage'
 
@@ -87,7 +88,7 @@ function entriesOf(context: CheckContext, format: IdFormat): Entry[] {
           if (value === undefined || value === null) {
             return null
           }
-          const text = Array.isArray(value) ? value.join(', ') : String(value)
+          const text = Array.isArray(value) ? value.map(display).join(', ') : display(value)
 
           return text.trim() === '' || text === 'null' ? null : text
         },

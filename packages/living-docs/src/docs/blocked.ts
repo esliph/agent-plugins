@@ -1,6 +1,7 @@
 import picomatch from 'picomatch'
 import { fieldOf } from '../config/ownership.ts'
 import type { ArtifactDoc } from './collect.ts'
+import { display } from '../core/display.ts'
 
 /**
  * An open decision that named the paths it blocks (`RN-0026`).
@@ -44,7 +45,7 @@ export function blockedClaims(docs: readonly ArtifactDoc[]): BlockedClaim[] {
         continue
       }
       const raw = data.blocks
-      const paths = splitPaths(Array.isArray(raw) ? raw.join(' ') : String(raw ?? ''))
+      const paths = splitPaths(Array.isArray(raw) ? raw.join(' ') : display(raw ?? ''))
 
       if (paths.length === 0) {
         continue

@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import type { GitRunner } from './staged.ts'
+import { display } from '../core/display.ts'
 
 /**
  * Ceiling for a read-only git command. Generous compared with the 3 s of `staged.ts`:
@@ -30,7 +31,7 @@ export const runGitDiff: GitRunner = (args, cwd) =>
 /** The first useful line of the error: stderr if there is any, message if not. */
 function reasonOf(err: unknown): string {
   const stderr = (err as { stderr?: unknown }).stderr
-  const text = String(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
+  const text = display(stderr ?? '').trim() || (err instanceof Error ? err.message : String(err))
 
   return text.split('\n')[0] ?? text
 }
