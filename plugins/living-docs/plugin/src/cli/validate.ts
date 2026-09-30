@@ -28,7 +28,7 @@ export interface ValidateResult {
  * remains a pure function of (facts, configuration, tree) → findings.
  */
 export function runValidate(root: string, base: string | null = null, run?: GitRunner): ValidateResult {
-  const inicio = process.hrtime.bigint()
+  const start = process.hrtime.bigint()
 
   // The scan is memoized per root within the process (`src/core/files.ts`).
   // One `validate` run is a single read of the tree; two runs are
@@ -65,6 +65,6 @@ export function runValidate(root: string, base: string | null = null, run?: GitR
     generated: config.generated.length,
     watched: config.watches.length,
     base,
-    elapsedMs: Number(process.hrtime.bigint() - inicio) / 1e6,
+    elapsedMs: Number(process.hrtime.bigint() - start) / 1e6,
   }
 }

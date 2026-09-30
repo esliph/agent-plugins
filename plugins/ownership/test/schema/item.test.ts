@@ -25,7 +25,7 @@ test('parseItemsTable: an empty cell or empty marker does not become an item', (
 })
 
 test('parseItemsTable without the declared column returns an empty list', () => {
-  const source = ['| Nome | Status |', '| ---- | ------ |', '| x | open |'].join('\n')
+  const source = ['| Name | Status |', '| ---- | ------ |', '| x | open |'].join('\n')
 
   assert.deepEqual(parseItemsTable(source, 1, { key: 'ID', stateField: 'status' }), [])
 })

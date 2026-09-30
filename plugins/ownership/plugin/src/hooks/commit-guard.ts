@@ -24,10 +24,10 @@ function describe(match: WatchMatch): string {
   }
   parts.push(`— required by: ${match.matched.join(', ')}`)
   if (match.reason !== null) {
-    parts.push(`Motivo: ${match.reason}`)
+    parts.push(`Reason: ${match.reason}`)
   }
   if (match.skill !== null) {
-    parts.push(`Skill dona: ${match.skill}.`)
+    parts.push(`Owning skill: ${match.skill}.`)
   }
 
   return parts.join(' ')

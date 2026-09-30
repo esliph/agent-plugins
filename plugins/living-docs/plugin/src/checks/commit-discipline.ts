@@ -83,13 +83,13 @@ export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
       const bumps = facts.edits.filter(isPureDateBump).map(edit => normalizePath(edit.path))
 
       if (bumps.length >= config.lastReviewedBumpLimit) {
-        const lista = bumps.slice(0, 5).join(', ') + (bumps.length > 5 ? `, … (+${bumps.length - 5})` : '')
+        const listed = bumps.slice(0, 5).join(', ') + (bumps.length > 5 ? `, … (+${bumps.length - 5})` : '')
 
         findings.push(
           error(
             bumps[0] ?? '',
             `The diff \`${facts.base}...HEAD\` changes the \`last-reviewed\` field of ${bumps.length} documents and nothing ` +
-              `else in the body of any of them (threshold: ${config.lastReviewedBumpLimit}): ${lista}.`,
+              `else in the body of any of them (threshold: ${config.lastReviewedBumpLimit}): ${listed}.`,
             'A document that was really reviewed changes in more than its date — a mass bump is the review mechanism ' +
               'being switched off while pretending to be honored. Revert the date of those that were not reviewed, or review them ' +
               // Rule of origin: RN-0027, ADR-0013.
@@ -99,14 +99,14 @@ export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
       }
 
       // 2 — commit that changes an artifact without citing the affected ID (`RN-0028`).
-      const citados = new Set<string>()
+      const cited = new Set<string>()
 
       for (const message of facts.messages) {
         for (const citation of findCitations(message, config.idFormat)) {
           const parsed = parseId(citation.id, config.idFormat)
 
           if (parsed !== null) {
-            citados.add(canonicalId(parsed))
+            cited.add(canonicalId(parsed))
           }
         }
       }
@@ -126,16 +126,16 @@ export function livingDocsCommitDiscipline(facts: CommitFacts | null): Check {
         if (ids.length === 0) {
           continue
         } // artifact file without an item: nothing to cite
-        if (ids.some(id => citados.has(id))) {
+        if (ids.some(id => cited.has(id))) {
           continue
         }
 
-        const lista = ids.slice(0, 5).join(', ') + (ids.length > 5 ? `, … (+${ids.length - 5})` : '')
+        const listed = ids.slice(0, 5).join(', ') + (ids.length > 5 ? `, … (+${ids.length - 5})` : '')
 
         findings.push(
           error(
             path,
-            `The diff \`${facts.base}...HEAD\` changes \`${path}\` and no commit message cites one of the IDs ` + `declared in it (${lista}).`,
+            `The diff \`${facts.base}...HEAD\` changes \`${path}\` and no commit message cites one of the IDs ` + `declared in it (${listed}).`,
             'Cite the affected ID in the commit message — this project\'s format is in `CONTRIBUTING.md`. It is the ' +
               'citation that makes `git log` navigable by rule: without it the history answers "what changed" and ' +
               // Rule of origin: RN-0028.

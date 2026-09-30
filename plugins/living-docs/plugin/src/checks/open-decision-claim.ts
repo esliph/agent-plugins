@@ -24,7 +24,7 @@ export function livingDocsOpenDecisionClaim(diff: DiffFacts | null = null): Chec
 
       if (diff !== null && docsExceptionReason(diff.messages) === null) {
         for (const { claim, matched } of claimsFor(blockedClaims(context.docs), diff.changed)) {
-          const levados = matched.slice(0, 5).join(', ') + (matched.length > 5 ? `, … (+${matched.length - 5})` : '')
+          const shown = matched.slice(0, 5).join(', ') + (matched.length > 5 ? `, … (+${matched.length - 5})` : '')
 
           findings.push({
             ruleId: RULE,
@@ -33,7 +33,7 @@ export function livingDocsOpenDecisionClaim(diff: DiffFacts | null = null): Chec
             severity: 'error',
             message:
               `The diff \`${diff.base}...HEAD\` touches a path claimed by ${claim.id}, which is \`open\`` +
-              `${claim.gap === null ? '' : ` — "${claim.gap}"`}: ${levados}.`,
+              `${claim.gap === null ? '' : ` — "${claim.gap}"`}: ${shown}.`,
             // Rule of origin: RN-0026, ADR-0010.
             fix:
               `Resolve ${claim.id} before implementing (owning skill: ${claim.skill}) — while the decision is ` +

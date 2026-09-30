@@ -516,7 +516,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
     const missing = REQUIREMENT_KINDS.filter(kind => !existing?.artifacts.some(artifact => artifact.idPrefix === kind))
 
     if (existing && missing.length > 0) {
-      declareArtifacts(root, options, result, values.REQUIREMENTS_BLOCK, 'artefatos RF, RNF e RN', existing.rootFile)
+      declareArtifacts(root, options, result, values.REQUIREMENTS_BLOCK, 'RF, RNF and RN artifacts', existing.rootFile)
     }
 
     for (const kind of REQUIREMENT_KINDS) {
@@ -542,7 +542,7 @@ export function runInit(root: string, options: InitOptions): InitResult {
       // already exists, otherwise the release note is born without an owner — and an orphan artifact is not
       // enforceable (spec §3), nor freezable by living-docs/append-only.
       if (existing && !existing.artifacts.some(artifact => artifact.idPrefix === 'REL')) {
-        declareArtifacts(root, options, result, values.RELEASES_BLOCK, 'artefato REL', existing.rootFile)
+        declareArtifacts(root, options, result, values.RELEASES_BLOCK, 'REL artifact', existing.rootFile)
       }
 
       for (const item of HISTORY) {
@@ -752,7 +752,7 @@ function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, 
   const rel = primaryArtifact(existing, 'REL')
 
   if (reaches(stage, 6) && rel !== null && rel.audience !== 'external') {
-    result.notInstalled.push(unmarkedExternal('o artefato REL', existing.rootFile))
+    result.notInstalled.push(unmarkedExternal('the REL artifact', existing.rootFile))
   }
 }
 
