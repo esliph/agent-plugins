@@ -531,7 +531,7 @@ declare the project's own name for it under `field-map` in the ownership file.
 
 ## RN-0040 — An ID prefix may be declared in several ownership entries, and its sequence is one per repository
 
-- **status:** draft
+- **status:** active
 - **relates-to:** ADR-0037, ADR-0011
 - **out of scope:** `role`, which stays unique across the repository
 

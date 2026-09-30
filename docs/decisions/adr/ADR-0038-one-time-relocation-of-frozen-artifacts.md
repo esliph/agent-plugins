@@ -1,7 +1,7 @@
 ---
 id: ADR-0038
 title: One-time relocation of frozen artifacts into their project's docs/
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.

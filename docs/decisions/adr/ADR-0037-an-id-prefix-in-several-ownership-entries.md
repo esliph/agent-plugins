@@ -1,7 +1,7 @@
 ---
 id: ADR-0037
 title: An ID prefix may be declared in several ownership entries; its sequence is one per repository
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.

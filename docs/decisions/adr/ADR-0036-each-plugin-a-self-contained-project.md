@@ -1,7 +1,7 @@
 ---
 id: ADR-0036
 title: Each plugin is a self-contained project under plugins/<name>/
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.
