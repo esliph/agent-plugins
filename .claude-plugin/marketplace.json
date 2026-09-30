@@ -10,13 +10,13 @@
       "name": "living-docs",
       "description": "Seven artifact-owning skills, two agents, five hooks and seven commands — the session side of the living-documentation toolkit.",
       "version": "0.1.0",
-      "source": "./packages/living-docs"
+      "source": "./plugins/living-docs/plugin"
     },
     {
       "name": "ownership",
       "description": "Owner, lifecycle and trigger of each path: the core that living documentation uses, and that runs on its own.",
       "version": "0.1.0",
-      "source": "./packages/ownership"
+      "source": "./plugins/ownership/plugin"
     }
   ]
 }

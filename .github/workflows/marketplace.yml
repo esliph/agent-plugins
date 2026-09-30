@@ -1,0 +1,66 @@
+name: marketplace
+
+# Runs on every push and pull request: what only makes sense for the whole
+# repository at once — the manifests, ID uniqueness, links across projects and
+# owner coverage (ADR-0036).
+on:
+  push:
+  pull_request:
+
+jobs:
+  manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Marketplace and plugin manifests, and each plugin's governance
+        run: node .github/scripts/check-marketplace.mjs
+
+      - name: Tests of the marketplace scripts
+        run: node --test ".github/scripts/*.test.mjs"
+
+  governance:
+    runs-on: ubuntu-latest
+    env:
+      # The validated repository is the checkout root (RNF-0003).
+      OWNERSHIP_REPO_ROOT: ${{ github.workspace }}
+      LIVING_DOCS_REPO_ROOT: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The diff half compares <base>...HEAD; a shallow clone lacks the base.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: plugins/*/package-lock.json
+
+      - name: Install the core
+        working-directory: plugins/ownership
+        run: npm ci
+
+      - name: Install living-docs
+        working-directory: plugins/living-docs
+        run: npm ci
+
+      - name: Owner, lifecycle and generated artifact
+        run: node --conditions=development plugins/ownership/plugin/src/cli/index.ts validate
+
+      - name: Living documentation — tree state
+        run: node --conditions=development plugins/living-docs/plugin/src/cli/index.ts validate
+
+      # The diff only exists with a base. On `push` there is no base, and inventing one
+      # would produce findings about a change that is not this branch's.
+      - name: Code→doc link and CHANGELOG entry in the PR diff
+        if: github.event_name == 'pull_request'
+        run: node --conditions=development plugins/ownership/plugin/src/cli/index.ts validate --base ${{ github.event.pull_request.base.sha }}
+
+      - name: Living documentation in the PR diff
+        if: github.event_name == 'pull_request'
+        run: node --conditions=development plugins/living-docs/plugin/src/cli/index.ts validate --base ${{ github.event.pull_request.base.sha }}

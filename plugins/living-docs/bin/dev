@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Optional containerized execution path (RNF-0006, ADR-0016). Runs any
+# maintenance command inside the container described by compose.yaml.
+#
+# This wrapper knows no command: it has no subcommand, does not validate argv and
+# translates nothing. That ignorance is what makes parity with the host exist
+# without a list of supported commands to maintain — the list does not exist.
+#
+# The path of record remains the host's node (RNF-0002, ADR-0015), and hooks
+# never go through here: plugin/hooks/run-hook.sh invokes node directly.
+set -euo pipefail
+
+CONTAINER="${LIVING_DOCS_CONTAINER:-esliph-living-docs}"
+
+# One level above bin/ — the living-docs project, where compose.yaml lives
+# (ADR-0003: the root comes from the file's own path, never from the caller's
+# working directory).
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Ensure the container. The first time this builds the image; afterwards it is
+# nearly instant. The side effect is deliberate: in exchange, the "container
+# stopped" failure mode disappears, which returned exit 2 doing nothing.
+if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null)" != "true" ]; then
+  docker compose -f "$ROOT/compose.yaml" up -d >&2
+fi
+
+# From here on every path is the container's, and Windows Git Bash would
+# rewrite `/opt/living-docs` (and any path in "$@") as a host path — docker
+# refuses the exec with "Cwd must be an absolute path". The conversion is only
+# turned off after compose: there "$ROOT" is a host path and needs it.
+export MSYS_NO_PATHCONV=1
+
+# `-t` only when stdin is a terminal: with a pipe on input, docker exec
+# refuses the allocation. The `+` expansion is what keeps the empty array
+# compatible with `set -u`.
+TTY=()
+if [ -t 0 ]; then TTY=(-t); fi
+
+# With no arguments, the wrapper is the workspace: a shell inside the container.
+if [ "$#" -eq 0 ]; then
+  exec docker exec -i ${TTY[@]+"${TTY[@]}"} -w /opt/esliph/plugins/living-docs "$CONTAINER" bash
+fi
+
+# The bootstrap happens inside the same exec, with no extra round-trip: compose.yaml
+# mounts node_modules as a named volume and nothing populates it, so even with the
+# container up the CLI would break for lack of `yaml` and `picomatch`.
+#
+# The `>&2` is not cosmetic: the output of npm ci must not contaminate the stdout of a
+# command whose output someone reads.
+#
+# The working dir is the living-docs project because that is where npm makes sense. The CLI still
+# validates /workspace because LIVING_DOCS_REPO_ROOT comes from compose.yaml — the
+# separation of ADR-0003 keeps coming from an environment variable, never from the cwd.
+exec docker exec -i ${TTY[@]+"${TTY[@]}"} -w /opt/esliph/plugins/living-docs "$CONTAINER" \
+  bash -c '[ -d ../ownership/node_modules/yaml ] || (cd ../ownership && npm ci >&2); [ -d node_modules/yaml ] || npm ci >&2; exec "$@"' -- "$@"

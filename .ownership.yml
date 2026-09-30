@@ -8,6 +8,11 @@ plugins: [living-docs]
 living-docs:
   stale-after-months: 6
 
+# Each plugin project declares its own paths (ADR-0036).
+include:
+  - plugins/ownership/
+  - plugins/living-docs/
+
 owned:
   # --- Artifacts: an entry with `living-docs.id-prefix`. ID family and lifecycle.
   - path: docs/decisions/adr/
@@ -27,33 +32,6 @@ owned:
     living-docs:
       id-prefix: DA
 
-  - path: docs/decisions/debt/
-    owner: '@esliph/engineering'
-    skill: decision-recorder
-    states: [open, paid, accepted-permanently]
-    living-docs:
-      id-prefix: TDR
-      append-only: true
-      mutable-fields: [status, last-reviewed]
-
-  - path: docs/requirements/functional.md
-    owner: '@esliph/engineering'
-    skill: requirements-keeper
-    states: [draft, active, revoked]
-    format: { collection: sections, key: first-token }
-    living-docs:
-      id-prefix: RF
-      cited-by: ['packages/living-docs/test/**', 'packages/ownership/test/**']
-
-  - path: docs/requirements/non-functional.md
-    owner: '@esliph/engineering'
-    skill: requirements-keeper
-    states: [draft, active, revoked]
-    format: { collection: sections, key: first-token }
-    living-docs:
-      id-prefix: RNF
-      cited-by: ['packages/living-docs/test/**', 'packages/ownership/test/**']
-
   - path: docs/requirements/rules.md
     owner: '@esliph/engineering'
     skill: requirements-keeper
@@ -61,20 +39,7 @@ owned:
     format: { collection: sections, key: first-token }
     living-docs:
       id-prefix: RN
-      cited-by: ['packages/living-docs/test/**', 'packages/living-docs/src/**', 'packages/ownership/test/**', 'packages/ownership/src/**']
-
-  - path: docs/releases/
-    owner: '@esliph/engineering'
-    skill: release-historian
-    states: [draft, published]
-    living-docs:
-      id-prefix: REL
-      # Read by whoever consumes: the text cites no artifact ID (ADR-0017).
-      audience: external
-      # A published release note is frozen: that is why REL has an ID family
-      # and CHANGELOG.md does not.
-      append-only: true
-      mutable-fields: [status, last-reviewed]
+      cited-by: ['.github/scripts/**']
 
   # --- Documents: a `living-docs:` block without `id-prefix` (ADR-0008, ADR-0029).
   # `role` is a closed vocabulary; `audience: external` marks text for readers
@@ -99,36 +64,7 @@ owned:
     owner: '@esliph/engineering'
     skill: working-agreements-keeper
     living-docs: { role: agent-contract }
-  - path: docs/glossary.md
-    owner: '@esliph/engineering'
-    skill: glossary-keeper
-    living-docs: {}
-  - path: docs/charter/
-    owner: '@esliph/engineering'
-    skill: charter-keeper
-    living-docs: {}
-  - path: docs/contracts/errors.md
-    owner: '@esliph/engineering'
-    skill: contract-keeper
-    living-docs: {}
-  - path: docs/contracts/versioning-policy.md
-    owner: '@esliph/engineering'
-    skill: contract-keeper
-    living-docs: {}
-  # Generated: the generated-artifact guard blocks editing it by hand, and
-  # `ownership/generated-drift` compares it with the generator output.
-  - path: docs/contracts/checks.gen.md
-    owner: '@esliph/engineering'
-    living-docs: {}
   - path: CHANGELOG.md
-    owner: '@esliph/engineering'
-    skill: release-historian
-    living-docs: { audience: external }
-  - path: docs/deprecations.md
-    owner: '@esliph/engineering'
-    skill: release-historian
-    living-docs: { audience: external }
-  - path: docs/migrations/
     owner: '@esliph/engineering'
     skill: release-historian
     living-docs: { audience: external }
@@ -144,21 +80,11 @@ owned:
 
   # --- Owner only: outside living documentation. `ownership/owner-coverage`
   # requires an owner for every file in the repository, not only for documentation.
-  - path: packages/living-docs/
-    owner: '@esliph/engineering'
-  - path: packages/ownership/
-    owner: '@esliph/engineering'
-  - path: bin/
-    owner: '@esliph/engineering'
   - path: .github/
     owner: '@esliph/engineering'
   - path: .claude-plugin/
     owner: '@esliph/engineering'
   - path: CODEOWNERS
-    owner: '@esliph/engineering'
-  - path: package.json
-    owner: '@esliph/engineering'
-  - path: package-lock.json
     owner: '@esliph/engineering'
   - path: .gitattributes
     owner: '@esliph/engineering'
@@ -168,13 +94,7 @@ owned:
     owner: '@esliph/engineering'
   - path: .prettierrc
     owner: '@esliph/engineering'
-  - path: .dockerignore
-    owner: '@esliph/engineering'
-  - path: Dockerfile
-    owner: '@esliph/engineering'
-  - path: compose.yaml
-    owner: '@esliph/engineering'
-  - path: eslint.config.mjs
+  - path: .editorconfig
     owner: '@esliph/engineering'
 
 # The core scans the file system, not the git index: what exists only in the
@@ -186,44 +106,13 @@ ignore:
   - '.claude/**'
   - '.superpowers/**'
 
-generated:
-  # The command PRINTS the expected content and writes no file at all: a check
-  # that rewrites what it is checking erases the evidence the moment it reports
-  # it (ADR-0005).
-  - path: docs/contracts/checks.gen.md
-    command: node --conditions=development packages/living-docs/src/tools/gen-checks.ts
-
 # Code → owning doc. The reminder on edit, the question at commit and the
 # enforcement on the PR diff read from here. `consumer-visible: true` is the
 # only list of paths visible to whoever consumes (ADR-0020).
 watches:
-  - code: 'packages/living-docs/src/checks/**'
+  - code: '.github/scripts/**'
     doc: docs/requirements/rules.md
-    reason: 'a check is an executable rule — the RN comes first, and it is what the check verifies'
-
-  - code: 'packages/living-docs/src/checks/catalog.ts'
-    doc: docs/contracts/checks.gen.md
-    reason: 'the public contract of the checks derives from the catalog — regenerating is part of the change, and editing by hand is blocked. Owning skill: contract-keeper'
-
-  - code: 'packages/living-docs/src/hooks/**'
-    doc: docs/requirements/rules.md
-    reason: 'a hook blocks or asks on behalf of a rule; with no RN cited, the block has no origin'
-
-  - code: 'packages/ownership/src/{checks,hooks}/**'
-    doc: docs/requirements/rules.md
-    reason: 'a check and a hook of the core are an executable rule like those of living-docs'
-
-  - code: 'packages/living-docs/src/cli/**'
-    doc: docs/requirements/functional.md
-    reason: 'what the command does that is observable is an RF, not an implementation detail'
-
-  - code: 'packages/living-docs/src/core/**'
-    doc: docs/requirements/non-functional.md
-    reason: 'the two roots are a property of the system (ADR-0003), not command behavior'
-
-  - code: 'packages/living-docs/skills/**'
-    doc: CONTRIBUTING.md
-    reason: 'a new or changed skill changes how we work here'
+    reason: 'a marketplace check is an executable rule — the RN comes first, and it is what the script verifies'
 
   - code: '.github/workflows/**'
     doc: docs/definition-of-done.md
@@ -233,43 +122,3 @@ watches:
     doc: CHANGELOG.md
     consumer-visible: true
     reason: 'the enforcement is literally what the consumer installs'
-
-  - code: 'packages/living-docs/src/cli/**'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'subcommand, option and exit code are public contract (docs/contracts/versioning-policy.md)'
-
-  - code: 'packages/living-docs/src/checks/catalog.ts'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'the identifiers of the checks are public and do not change meaning'
-
-  - code: 'packages/living-docs/src/config/ownership.ts'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'the living-docs block of the ownership file is the contract of whoever installs'
-
-  - code: 'packages/living-docs/{.claude-plugin,hooks,commands,skills,agents}/**'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'skill, hook and command identifiers are public'
-
-  - code: 'packages/living-docs/templates/**'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'it is what `init` writes in the repository of whoever installs'
-
-  - code: 'packages/ownership/src/cli/**'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'subcommand, option and exit code of the core are public contract'
-
-  - code: 'packages/ownership/{.claude-plugin,hooks}/**'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'the core plugin is what whoever installs receives in the session'
-
-  - code: 'bin/**'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'the wrapper is a public entry point of the toolkit — changing how it is invoked changes what whoever consumes uses'

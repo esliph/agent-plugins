@@ -1,36 +1,24 @@
-# Mirrors the `owner` field of .ownership.yml. One path, one owner.
+# Mirrors the `owner` field of the ownership files. One path, one owner.
+# Each plugin project is covered as a whole; its own .ownership.yml details it.
 
 docs/decisions/adr/ @esliph/engineering
 docs/open-decisions.md @esliph/engineering
-docs/decisions/debt/ @esliph/engineering
 docs/requirements/ @esliph/engineering
-CONTRIBUTING.md @esliph/engineering
 docs/definition-of-done.md @esliph/engineering
-CLAUDE.md @esliph/engineering
-docs/glossary.md @esliph/engineering
-docs/charter/ @esliph/engineering
-docs/contracts/ @esliph/engineering
-CHANGELOG.md @esliph/engineering
-docs/deprecations.md @esliph/engineering
-docs/releases/ @esliph/engineering
-docs/migrations/ @esliph/engineering
-.ownership.yml @esliph/engineering
 docs/ids-retired.txt @esliph/engineering
 docs/superpowers/ @esliph/engineering
+CONTRIBUTING.md @esliph/engineering
+CLAUDE.md @esliph/engineering
+CHANGELOG.md @esliph/engineering
 README.md @esliph/engineering
-packages/living-docs/ @esliph/engineering
-packages/ownership/ @esliph/engineering
-bin/ @esliph/engineering
+.ownership.yml @esliph/engineering
+plugins/ownership/ @esliph/engineering
+plugins/living-docs/ @esliph/engineering
 .github/ @esliph/engineering
 .claude-plugin/ @esliph/engineering
 CODEOWNERS @esliph/engineering
-package.json @esliph/engineering
-package-lock.json @esliph/engineering
+.editorconfig @esliph/engineering
 .gitattributes @esliph/engineering
 .gitignore @esliph/engineering
 .prettierignore @esliph/engineering
 .prettierrc @esliph/engineering
-.dockerignore @esliph/engineering
-Dockerfile @esliph/engineering
-compose.yaml @esliph/engineering
-eslint.config.mjs @esliph/engineering
