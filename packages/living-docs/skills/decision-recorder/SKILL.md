@@ -55,8 +55,11 @@ exactly the "twenty four-hundred-line documents" that kills documentation.
 
 ## Procedure
 
-1. **Read `.ownership.yml`** and find the path, the owner and the prefix of
-   each artifact. If the file does not exist, stop and run `/docs-setup`.
+1. **Read `.ownership.yml`**, and every ownership file it `include`s, and find
+   the path, the owner and the prefix of each artifact. A prefix may be declared
+   in more than one entry — one per project: write in the entry of the project
+   whose code the decision governs. If the file does not exist, stop and run
+   `/docs-setup`.
 2. **Classify** what is in front of you:
    - what to do is known and it is expensive to reverse → **ADR**;
    - it is not known → **DA**, and **stop the implementation**;
@@ -64,8 +67,9 @@ exactly the "twenty four-hundred-line documents" that kills documentation.
 3. **Search before creating.** A `grep` for the topic in the existing
    artifacts. If an ADR about it already exists, the way is to supersede, not
    to write a second one.
-4. **Take the next free ID** of the prefix, also checking `docs/ids-retired.txt`.
-   Never recycle. Never skip.
+4. **Take the next free ID** of the prefix across the whole repository — every
+   entry that declares it — also checking `docs/ids-retired.txt`. Never recycle.
+   Never skip.
 5. **Write from the template.** In an ADR, demand of yourself the **alternatives
    considered** with the real reason for each discard, and the section **what we
    accept to lose** — an ADR with no declared negative consequence is

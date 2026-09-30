@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { parseCodeowners } from '@esliph/ownership'
-import { loadLivingDocsConfig } from '../config/ownership.ts'
+import { loadLivingDocsConfig, primaryArtifact } from '../config/ownership.ts'
 import type { Audience, DocumentRole, LivingDocsConfig } from '../config/ownership.ts'
 import { SETTINGS_PATH, SettingsError, mergeSettings } from '../config/claude-settings.ts'
 import { RETIRED_IDS_PATH } from '../ids/citations.ts'
@@ -309,7 +309,7 @@ function template(name: string, values: Record<string, string>): string {
  * a second run must not reinterpret the structure the first one created.
  */
 function resolvePath(root: string, kind: Kind, existing: LivingDocsConfig | null, result: InitResult, claimed: Set<string>): string {
-  const declared = existing?.artifacts.find(artifact => artifact.idPrefix === kind)
+  const declared = existing ? primaryArtifact(existing, kind) : null
 
   if (declared) {
     claimed.add(declared.path)
@@ -749,9 +749,9 @@ function reportUnmarkedExternal(root: string, stage: Stage, result: InitResult, 
     }
   }
 
-  const rel = existing.artifacts.find(artifact => artifact.idPrefix === 'REL')
+  const rel = primaryArtifact(existing, 'REL')
 
-  if (reaches(stage, 6) && rel !== undefined && rel.audience !== 'external') {
+  if (reaches(stage, 6) && rel !== null && rel.audience !== 'external') {
     result.notInstalled.push(unmarkedExternal('o artefato REL', existing.rootFile))
   }
 }

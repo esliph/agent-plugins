@@ -112,7 +112,11 @@ test('an artifact key in a document is an error, and the message says why', () =
 
 test('an id-prefix out of shape, duplicated, or an artifact without a skill are errors', () => {
   assert.throws(() => configFrom(yaml(ADR.replace('id-prefix: ADR', 'id-prefix: adr'))), /id-prefix "adr".*2 to 4 uppercase letters/)
-  assert.throws(() => configFrom(yaml(ADR + ADR.replace('docs/decisions/adr/', 'docs/adr2/'))), /id-prefix "ADR" declared twice/)
+  assert.deepEqual(
+    configFrom(yaml(ADR + ADR.replace('docs/decisions/adr/', 'docs/adr2/'))).artifacts.map(artifact => artifact.path),
+    ['docs/decisions/adr/', 'docs/adr2/'],
+    'RN-0040: a prefix may be declared in several entries',
+  )
   assert.throws(() => configFrom(yaml(ADR.replace('    skill: decision-recorder\n', ''))), /an artifact needs a `skill`/)
 })
 

@@ -45,8 +45,11 @@ and **stops** the implementation.
 
 ## Procedure
 
-1. **Read `.ownership.yml`** and find the path, owner and prefix of each
-   family. If it does not exist, stop and run `/docs-setup`.
+1. **Read `.ownership.yml`**, and every ownership file it `include`s, and find
+   the path, owner and prefix of each family. A prefix may be declared in more
+   than one entry — one per project: write in the entry of the project whose
+   tests will cite the requirement. If it does not exist, stop and run
+   `/docs-setup`.
 2. **Do not look at the code, and that is deliberate.** The spec says what must
    be; justifying the rule by what the code does today inverts the relationship
    and erases the gap.
@@ -55,9 +58,9 @@ and **stops** the implementation.
    survive a complete rewrite of the interface: if so, it is an `RN`.
 4. **Search before creating.** An almost-identical requirement is a sign that
    the right move is to edit the existing one or revoke it, not to add a second.
-5. **Take the next free ID** of the prefix, checking `docs/ids-retired.txt`.
-   Never recycle, never skip. The new section goes at the end of the file,
-   after the existing ones.
+5. **Take the next free ID** of the prefix across the whole repository — every
+   entry that declares it — checking `docs/ids-retired.txt`. Never recycle, never
+   skip. The new section goes at the end of the file, after the existing ones.
 6. **Name by the glossary**, when it exists. A term out of the writer's habit is
    how two rules come to talk about different things with the same word.
 7. **Fill in "out of scope"** wherever there is ambiguity. That field is what

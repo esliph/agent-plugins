@@ -272,15 +272,9 @@ export function adaptConfig(core: ResolvedConfig): LivingDocsConfig {
     )
   }
 
-  const prefixes = new Set<string>()
-
-  for (const artifact of artifacts) {
-    if (prefixes.has(artifact.idPrefix)) {
-      fail(core.rootFile, `id-prefix "${artifact.idPrefix}" declared twice. One artifact, one owner.`)
-    }
-    prefixes.add(artifact.idPrefix)
-  }
-
+  // A prefix may be declared in several entries — one per project — and all of
+  // them share one sequence, which `living-docs/id-integrity` checks across the
+  // repository (ADR-0037). `role` stays unique: below.
   const roles = new Set<string>()
 
   for (const document of documents) {
@@ -377,4 +371,15 @@ export function findDocumentRule(config: LivingDocsConfig, repoPath: string): Do
 /** The document the project declared with this role, or null. */
 export function documentWithRole(config: LivingDocsConfig, role: DocumentRole): DocumentRule | null {
   return config.documents.find(document => document.role === role) ?? null
+}
+
+/**
+ * The entry a tool takes when it needs one place for a prefix (a second run of
+ * `init`): the one the root ownership file declares, or else the first in
+ * resolution order. A prefix may live in several entries (ADR-0037).
+ */
+export function primaryArtifact(config: LivingDocsConfig, idPrefix: string): ArtifactRule | null {
+  const entries = config.artifacts.filter(artifact => artifact.idPrefix === idPrefix)
+
+  return entries.find(artifact => artifact.core.origin === config.rootFile) ?? entries[0] ?? null
 }

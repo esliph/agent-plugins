@@ -116,6 +116,11 @@ An entry is born in the PR that causes the change, not on the eve of the release
 
 ### Changed
 
+- The same `id-prefix` may now be declared in more than one `owned` entry — for
+  instance one per project, in files that the root ownership file includes. All
+  entries of a prefix share one numbering: no number repeats and no gap is
+  allowed across them, and a new item takes the next free number of the whole
+  repository. `role` stays unique.
 - The repository is now `esliph/agent-plugins`, a marketplace that will also host
   plugins beyond documentation. Add it with
   `/plugin marketplace add esliph/agent-plugins`; the old `esliph/living-docs`
