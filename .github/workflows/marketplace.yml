@@ -1,12 +1,34 @@
-name: living-docs
+name: marketplace
 
+# Runs on every push and pull request: what only makes sense for the whole
+# repository at once — the manifests, ID uniqueness, links across projects and
+# owner coverage (ADR-0036).
 on:
   push:
   pull_request:
 
 jobs:
-  validate:
+  manifests:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Marketplace and plugin manifests, and each plugin's governance
+        run: node .github/scripts/check-marketplace.mjs
+
+      - name: Tests of the marketplace scripts
+        run: node --test ".github/scripts/*.test.mjs"
+
+  governance:
+    runs-on: ubuntu-latest
+    env:
+      # The validated repository is the checkout root (RNF-0003).
+      OWNERSHIP_REPO_ROOT: ${{ github.workspace }}
+      LIVING_DOCS_REPO_ROOT: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -15,7 +37,6 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          # The floor is `engines.node` in package.json (RNF-0002).
           node-version: '24'
           cache: npm
           cache-dependency-path: plugins/*/package-lock.json

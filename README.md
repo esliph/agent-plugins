@@ -23,12 +23,15 @@ Each plugin's README covers its setup, commands and checks.
 
 ## Contributing
 
+Each plugin is a project under `plugins/<name>/`, with its own toolchain and
+tests; its README says how to work on it. For the two current plugins:
+
 ```bash
-npm ci
-npm test
-npm run typecheck
+(cd plugins/ownership && npm ci && npm test)
+(cd plugins/living-docs && npm ci && npm test)
 ```
 
-The repository is an npm workspace, and it keeps its own documentation with
-`living-docs` under `docs/`. See [`CONTRIBUTING.md`](CONTRIBUTING.md) before
-opening a pull request.
+`living-docs` depends on `ownership` by path, so the first line comes first.
+
+The repository keeps its own documentation with `living-docs` under `docs/`.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.

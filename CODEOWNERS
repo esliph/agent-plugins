@@ -23,10 +23,8 @@ plugins/ownership/ @esliph/engineering
 .github/ @esliph/engineering
 .claude-plugin/ @esliph/engineering
 CODEOWNERS @esliph/engineering
-package.json @esliph/engineering
-package-lock.json @esliph/engineering
 .gitattributes @esliph/engineering
 .gitignore @esliph/engineering
 .prettierignore @esliph/engineering
 .prettierrc @esliph/engineering
-eslint.config.mjs @esliph/engineering
+.editorconfig @esliph/engineering

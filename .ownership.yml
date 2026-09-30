@@ -66,7 +66,7 @@ owned:
     format: { collection: sections, key: first-token }
     living-docs:
       id-prefix: RN
-      cited-by: ['plugins/living-docs/test/**', 'plugins/living-docs/plugin/src/**', 'plugins/ownership/test/**', 'plugins/ownership/plugin/src/**']
+      cited-by: ['plugins/living-docs/test/**', 'plugins/living-docs/plugin/src/**', 'plugins/ownership/test/**', 'plugins/ownership/plugin/src/**', '.github/scripts/**']
 
   - path: docs/releases/
     owner: '@esliph/engineering'
@@ -155,10 +155,6 @@ owned:
     owner: '@esliph/engineering'
   - path: CODEOWNERS
     owner: '@esliph/engineering'
-  - path: package.json
-    owner: '@esliph/engineering'
-  - path: package-lock.json
-    owner: '@esliph/engineering'
   - path: .gitattributes
     owner: '@esliph/engineering'
   - path: .gitignore
@@ -167,7 +163,7 @@ owned:
     owner: '@esliph/engineering'
   - path: .prettierrc
     owner: '@esliph/engineering'
-  - path: eslint.config.mjs
+  - path: .editorconfig
     owner: '@esliph/engineering'
 
 # The core scans the file system, not the git index: what exists only in the
@@ -217,6 +213,10 @@ watches:
   - code: 'plugins/living-docs/plugin/skills/**'
     doc: CONTRIBUTING.md
     reason: 'a new or changed skill changes how we work here'
+
+  - code: '.github/scripts/**'
+    doc: docs/requirements/rules.md
+    reason: 'a marketplace check is an executable rule — the RN comes first, and it is what the script verifies'
 
   - code: '.github/workflows/**'
     doc: docs/definition-of-done.md
