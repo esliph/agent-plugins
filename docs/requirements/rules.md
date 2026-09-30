@@ -528,3 +528,28 @@ corpus would produce in English.
 When a check needs a canonical field of a collection item and the item has no
 such column or bullet, the finding says the field is missing and tells how to
 declare the project's own name for it under `field-map` in the ownership file.
+
+## RN-0040 — An ID prefix may be declared in several ownership entries, and its sequence is one per repository
+
+- **status:** draft
+- **relates-to:** ADR-0037, ADR-0011
+- **out of scope:** `role`, which stays unique across the repository
+
+The same `id-prefix` may appear in more than one `owned` entry, in the root
+ownership file or in the files it includes. Every item of the prefix, whichever
+entry declares it, shares one sequence: a number is taken once in the repository,
+the sequence has no gap across all entries together, and a new item takes the
+next free number of the whole repository.
+
+## RN-0041 — Every plugin in the marketplace has a distributed directory and the minimum governance
+
+- **status:** draft
+- **relates-to:** ADR-0036
+- **out of scope:** what a plugin's own workflow verifies; the content of its README and CHANGELOG, which their owners judge
+
+The marketplace manifest and every plugin manifest parse as JSON. Every plugin
+listed in the marketplace has a `source` inside the repository that exists and
+contains `.claude-plugin/plugin.json`, whose `name` is the entry's name and whose
+`version` equals the entry's when the entry declares one. The directory above the
+source is the plugin's project, and it holds `README.md`, `CHANGELOG.md` and
+`.ownership.yml`.
