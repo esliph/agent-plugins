@@ -32,15 +32,6 @@ owned:
     living-docs:
       id-prefix: DA
 
-  - path: docs/decisions/debt/
-    owner: '@esliph/engineering'
-    skill: decision-recorder
-    states: [open, paid, accepted-permanently]
-    living-docs:
-      id-prefix: TDR
-      append-only: true
-      mutable-fields: [status, last-reviewed]
-
   - path: docs/requirements/functional.md
     owner: '@esliph/engineering'
     skill: requirements-keeper

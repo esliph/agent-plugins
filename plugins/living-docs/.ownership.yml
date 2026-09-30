@@ -3,6 +3,25 @@
 version: 2
 
 owned:
+  # --- Artifacts. The prefix is shared with the other projects; the sequence is one per repository (ADR-0037).
+  - path: docs/decisions/adr/
+    owner: '@esliph/engineering'
+    skill: decision-recorder
+    states: [draft, accepted, superseded]
+    living-docs:
+      id-prefix: ADR
+      append-only: true
+      mutable-fields: [status, superseded-by, last-reviewed]
+
+  - path: docs/decisions/debt/
+    owner: '@esliph/engineering'
+    skill: decision-recorder
+    states: [open, paid, accepted-permanently]
+    living-docs:
+      id-prefix: TDR
+      append-only: true
+      mutable-fields: [status, last-reviewed]
+
   - path: .ownership.yml
     owner: '@esliph/engineering'
     skill: living-docs-bootstrap

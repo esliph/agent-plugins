@@ -166,7 +166,12 @@ test('this repository: the root .ownership.yml declares states for every family,
   const config = loadLivingDocsConfig(checkoutRoot())
 
   assert.equal(config.rootFile, '.ownership.yml')
-  assert.deepEqual(config.artifacts.map(rule => rule.idPrefix).sort(), ['ADR', 'DA', 'REL', 'RF', 'RN', 'RNF', 'TDR'])
+  assert.deepEqual([...new Set(config.artifacts.map(rule => rule.idPrefix))].sort(), ['ADR', 'DA', 'REL', 'RF', 'RN', 'RNF', 'TDR'])
+  assert.deepEqual(
+    config.artifacts.filter(rule => rule.idPrefix === 'ADR').map(rule => rule.path).sort(),
+    ['docs/decisions/adr/', 'plugins/living-docs/docs/decisions/adr/', 'plugins/ownership/docs/decisions/adr/'],
+    'ADR-0036: each project keeps its decisions; RN-0040: one prefix, several entries',
+  )
   for (const rule of config.artifacts) {
     assert.ok(rule.states !== null && rule.states.length > 0, `${rule.idPrefix} must declare states`)
   }
