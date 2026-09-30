@@ -8,6 +8,15 @@ on:
       # the core can break it.
       - 'plugins/ownership/**'
       - '.github/workflows/plugin-living-docs.yml'
+      # The tests read the checkout root: its contract, ownership map and docs.
+      - '.ownership.yml'
+      - 'CLAUDE.md'
+      - 'CONTRIBUTING.md'
+      - 'CODEOWNERS'
+      - 'docs/**'
+      - '.claude-plugin/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
   pull_request:
     paths: *paths
 
