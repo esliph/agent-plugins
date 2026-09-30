@@ -397,11 +397,13 @@ exists.
 - **relates-to:** ADR-0018, RN-0030
 - **out of scope:** code comments and commit messages; the documents of the toolkit's own repository; the IDs of the installer's project that a message shows; the identifiers of the public interface, skill names and commands
 
-The files `init` seeds, the templates, the plugin's text and the output of the CLI
-and of the hooks do not cite a prefix declared in the toolkit's
-`living-docs.id-prefix`, a section of the toolkit's spec or a path of an internal
-document of it. Whoever installs does not resolve the citation — or resolves it to
-an item of their own, with another meaning.
+What is delivered is the plugin's distributed directory
+(`plugins/living-docs/plugin/`), and nothing above it. The files `init` seeds,
+the templates, the plugin's text and the output of the CLI and of the hooks do
+not cite a prefix declared in the toolkit's `living-docs.id-prefix`, a section of
+the toolkit's spec or a path of an internal document of it. Whoever installs does
+not resolve the citation — or resolves it to an item of their own, with another
+meaning.
 
 ## RN-0039 — A missing canonical table column points to `field-map`
 

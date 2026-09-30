@@ -81,6 +81,10 @@ owned:
     owner: '@esliph/engineering'
     skill: release-historian
     living-docs: { audience: external }
+  - path: CLAUDE.md
+    owner: '@esliph/engineering'
+    skill: working-agreements-keeper
+    living-docs: {}
   - path: docs/glossary.md
     owner: '@esliph/engineering'
     skill: glossary-keeper

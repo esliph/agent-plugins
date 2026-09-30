@@ -27,7 +27,7 @@ belong on this list — it becomes an intention, and an intention is not a defin
 - [ ] No internal link was left broken, and no binary attachment entered under `docs/` — verification: `living-docs/links`.
 - [ ] The recorded debt declares `pay-when`, and no debt with its trigger met stays `open` — verification: `living-docs/staleness`.
 - [ ] The watched path that changed carried the owning doc, or the reason written in the commit — verification: `ownership/commit-guard` asks, `ownership/watch-satisfied` fails (`ownership validate --base <ref>`).
-- [ ] `npm test`, `npm run typecheck`, `ownership validate [--base <ref>]` and `living-docs validate [--base <ref>]` pass on the host — verification: the checks of the core and of living-docs (`ownership/owner-coverage`, `living-docs/frontmatter`, …), run by the repository's workflow.
+- [ ] Each changed plugin's workflow (`plugin-<name>.yml`: tests, type-check, lint) and `marketplace.yml` (manifests, `ownership validate [--base <ref>]`, `living-docs validate [--base <ref>]`) pass — verification: the checks of the core and of living-docs (`ownership/owner-coverage`, `living-docs/frontmatter`, …), run by those workflows.
 - [ ] No agent and no person went wrong for lack of context that would have fit in an existing artifact — and, when they did, the owning artifact gained the missing line — verification: human (spec §12, criterion 9).
 - [ ] No document-volume metric was used as a quality signal: neither page counts, nor coverage, nor "documenting what was done" — verification: human (spec §12, criterion 10).
 

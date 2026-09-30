@@ -14,33 +14,34 @@ consumer. Everything it requires of a project, it fulfils.
 
 ## The environment
 
-Node 24 or greater and the npm that comes with it — nothing beyond that
-(`RNF-0002`). Dependencies come in with `npm ci`, and it comes before any other
-command:
+Each plugin is a project under `plugins/<name>/`, with its own toolchain. The
+root has none. For the two current plugins, Node 24 or greater and the npm that
+comes with it — nothing beyond that (`RNF-0002`). Dependencies come in with
+`npm ci`, and the core comes first while living-docs depends on it by path:
 
 ```bash
-npm ci
-npm test
-npm run typecheck
-node --conditions=development packages/ownership/src/cli/index.ts validate
-node --conditions=development packages/living-docs/src/cli/index.ts validate
-node --conditions=development packages/ownership/src/cli/index.ts validate --base origin/master
-node --conditions=development packages/living-docs/src/cli/index.ts validate --base origin/master
+(cd plugins/ownership && npm ci && npm test && npm run typecheck && npm run lint:check)
+(cd plugins/living-docs && npm ci && npm test && npm run typecheck && npm run lint:check)
+node --conditions=development plugins/ownership/plugin/src/cli/index.ts validate
+node --conditions=development plugins/living-docs/plugin/src/cli/index.ts validate
+node --conditions=development plugins/ownership/plugin/src/cli/index.ts validate --base origin/master
+node --conditions=development plugins/living-docs/plugin/src/cli/index.ts validate --base origin/master
+node .github/scripts/check-marketplace.mjs
 ```
 
 A command that fails with `ERR_MODULE_NOT_FOUND` is a command run before
 `npm ci` — it is not the environment that is wrong.
 
-### Optional: running through the container
+### Optional: running living-docs through the container
 
 Whoever does not want to install Node on the machine has a second path (`RNF-0006`,
-`ADR-0016`). `bin/dev` runs any maintenance command inside the container, and
-brings the container up by itself when it is not up:
+`ADR-0016`). From `plugins/living-docs/`, `bin/dev` runs any maintenance command
+inside the container, and brings the container up by itself when it is not up:
 
 ```bash
 bin/dev npm test
 bin/dev npm run typecheck
-bin/dev node --conditions=development packages/living-docs/src/cli/index.ts validate
+bin/dev node --conditions=development plugin/src/cli/index.ts validate
 bin/living-docs validate     # the same, through the CLI wrapper
 bin/dev                      # a shell inside the container
 ```
@@ -54,6 +55,26 @@ reproduces on every PR and what the Definition of Done measures remains the host
 And it does not cover the hooks, which always run on the host (`RNF-0001`) — on a
 machine with no Node, local enforcement does not exist, and that is the same loss
 `ADR-0015` already declared.
+
+## Adding a plugin
+
+A plugin is a project under `plugins/<name>/`, and what is installed is its
+`plugin/` directory (`ADR-0036`). The minimum (`RN-0041`):
+
+- `plugins/<name>/plugin/.claude-plugin/plugin.json`, and what the plugin ships
+  (`skills/`, `commands/`, `agents/`, `hooks/`) beside it, inside `plugin/`;
+- `plugins/<name>/README.md` for whoever installs, `CHANGELOG.md`, and
+  `.ownership.yml` declaring the project's paths relative to its directory;
+- one entry in `.claude-plugin/marketplace.json` with
+  `source: ./plugins/<name>/plugin`, one `include:` line in the root
+  `.ownership.yml`, one line in `CODEOWNERS` and one row in the root `README.md`.
+
+A plugin in plain Markdown needs no workflow: `marketplace.yml` covers it. A
+plugin with code adds its own toolchain in the project (a `package.json`, a
+`pyproject.toml`) and a `.github/workflows/plugin-<name>.yml` filtered by
+`plugins/<name>/**`. Tests, documentation and toolchain stay outside `plugin/`.
+Its documents live in `plugins/<name>/docs/`, under the repository's single ID
+space: take the next free number across every project (`RN-0040`).
 
 ## The cycle
 

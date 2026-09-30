@@ -27,9 +27,11 @@ day one, and then there is no enforcement at all.
 - **relates-to:** ADR-0015, ADR-0025
 - **out of scope:** `git`; the optional containerized path of `RNF-0006`, which is an alternative and not a requirement; how the toolkit reaches the repository of whoever consumes it (`DA-0003`); and the published package, which is compiled on `prepack` (`ADR-0025`) and is not what runs from the checkout
 
-Node 24 or greater, and the npm that comes with it, are the only toolchain required
-of whoever clones this repository. `npm ci` installs the dependencies; `node` runs
-the TypeScript source straight from the checkout, with no compiled artifact in the
+Node 24 or greater, and the npm that comes with it, are the only toolchain
+required of whoever works on the toolkit. `npm ci`, run from the plugin project
+(`plugins/living-docs/`), installs the dependencies — after the core's project
+(`plugins/ownership/`) while the toolkit depends on it by path; `node` runs the
+TypeScript source straight from the checkout, with no compiled artifact in the
 middle. The package published on npm is compiled on `prepack` — that compilation
 exists only inside the tarball and never reaches a development checkout.
 
@@ -73,10 +75,11 @@ measures is an intention, and the first slow run discovers it in production.
 - **out of scope:** the hooks, which always run on the host (`RNF-0001`)
 
 Whoever does not want to install Node on the host can run any toolkit maintenance
-command inside a container. The set of commands that works through that path is the
-same that works on the host, and that is so because the entry point knows no command
-at all: it passes on what it received. A list of supported commands does not exist,
-and what does not exist does not diverge.
+command inside a container, described in the plugin project (`plugins/living-docs/`:
+`compose.yaml` and `bin/dev`). The set of commands that works through that path
+is the same that works on the host, and that is so because the entry point knows
+no command at all: it passes on what it received. A list of supported commands
+does not exist, and what does not exist does not diverge.
 
 The path of record remains the host (`RNF-0002`): it is the one CI reproduces on
 every PR and the one the Definition of Done measures.

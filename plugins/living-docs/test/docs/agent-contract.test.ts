@@ -4,24 +4,22 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { loadLivingDocsConfig } from '../../plugin/src/config/ownership.ts'
 import { toolkitRoot } from '../../plugin/src/core/roots.ts'
-import { checkoutRoot } from '../helpers/checkout.ts'
+import { checkoutRoot, projectRoot } from '../helpers/checkout.ts'
 
 const ROOT = checkoutRoot()
 const CONTRACT = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8')
+const PLUGIN_CONTRACT = readFileSync(join(projectRoot(), 'CLAUDE.md'), 'utf8')
 
-test('RN-0010: the agent contract points to the owning artifacts', () => {
-  const targets = [
-    'docs/superpowers/research/2026-08-24-living-documentation-toolkit.md',
-    '.ownership.yml',
-    'CONTRIBUTING.md',
-    'docs/definition-of-done.md',
-    'docs/requirements/',
-    'docs/glossary.md',
-    'docs/charter/',
-  ]
+test('RN-0010: the root agent contract points to the owning artifacts of the whole repository', () => {
+  for (const target of ['.ownership.yml', 'CONTRIBUTING.md', 'docs/definition-of-done.md', 'docs/requirements/', 'plugins/<name>/CLAUDE.md']) {
+    assert.ok(CONTRACT.includes(target), `the root contract should point to ${target}`)
+  }
+  assert.doesNotMatch(CONTRACT, /npm (ci|test)|node --conditions/, 'the root contract names no toolchain (ADR-0036)')
+})
 
-  for (const target of targets) {
-    assert.ok(CONTRACT.includes(target), `the contract should point to ${target}`)
+test('RN-0010: the living-docs contract points to its spec, vocabulary, principles and toolchain', () => {
+  for (const target of ['docs/superpowers/research/2026-08-24-living-documentation-toolkit.md', 'docs/glossary.md', 'docs/charter/', 'docs/requirements/', 'npm ci']) {
+    assert.ok(PLUGIN_CONTRACT.includes(target), `the living-docs contract should point to ${target}`)
   }
 })
 
@@ -31,15 +29,25 @@ test('RN-0010: the contract copies no requirement statement', () => {
   const titles = files.flatMap(file => [...readFileSync(join(ROOT, file), 'utf8').matchAll(/^## (R[NF]F?-\d{4} — .+)$/gm)].map(match => match[1] ?? ''))
 
   assert.ok(titles.length >= 11, `expected the requirements of Phases 0 to 3, found ${titles.length}`)
-  for (const title of titles) {
-    assert.equal(CONTRACT.includes(title), false, `the contract copies the requirement "${title}"`)
+  for (const [name, contract] of [
+    ['CLAUDE.md', CONTRACT],
+    ['plugins/living-docs/CLAUDE.md', PLUGIN_CONTRACT],
+  ] as const) {
+    for (const title of titles) {
+      assert.equal(contract.includes(title), false, `${name} copies the requirement "${title}"`)
+    }
   }
 })
 
 test('RN-0010: the contract is an index, not a manual — it fits on one screen', () => {
-  const lines = CONTRACT.split('\n').length
+  for (const [name, contract] of [
+    ['CLAUDE.md', CONTRACT],
+    ['plugins/living-docs/CLAUDE.md', PLUGIN_CONTRACT],
+  ] as const) {
+    const lines = contract.split('\n').length
 
-  assert.ok(lines <= 60, `contract with ${lines} lines: an index that does not fit on one screen becomes a manual`)
+    assert.ok(lines <= 60, `${name} with ${lines} lines: an index that does not fit on one screen becomes a manual`)
+  }
 })
 
 test('the Definition of Done names the verification of each item', () => {
