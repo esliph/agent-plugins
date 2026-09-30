@@ -104,7 +104,7 @@ function hookNames(pluginRoot: string): string[] {
 
 test('the two plugins register no hook in common — each guard runs in a single plugin', () => {
   const living = hookNames(ROOT)
-  const core = hookNames(join(ROOT, '..', 'ownership'))
+  const core = hookNames(join(CHECKOUT, 'plugins', 'ownership', 'plugin'))
 
   assert.ok(core.length >= 3, 'the scan should see the core hooks')
   assert.deepEqual(
@@ -119,7 +119,7 @@ test('the two plugins register no hook in common — each guard runs in a single
 test('living-docs declares the ownership plugin as a dependency, and the marketplace publishes both', () => {
   const manifest = readJson('.claude-plugin/plugin.json')
   const marketplace = JSON.parse(readFileSync(join(CHECKOUT, '.claude-plugin/marketplace.json'), 'utf8')) as { plugins: { name: string; source: string; version: string }[] }
-  const core = JSON.parse(readFileSync(join(ROOT, '..', 'ownership', '.claude-plugin/plugin.json'), 'utf8')) as { version: string }
+  const core = JSON.parse(readFileSync(join(CHECKOUT, 'plugins', 'ownership', 'plugin', '.claude-plugin/plugin.json'), 'utf8')) as { version: string }
 
   assert.deepEqual(manifest.dependencies, ['ownership'])
   assert.deepEqual(
@@ -128,7 +128,7 @@ test('living-docs declares the ownership plugin as a dependency, and the marketp
   )
   const entry = marketplace.plugins.find(plugin => plugin.name === 'ownership')!
 
-  assert.equal(entry.source, './packages/ownership')
+  assert.equal(entry.source, './plugins/ownership/plugin')
   assert.equal(entry.version, core.version)
 })
 

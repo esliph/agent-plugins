@@ -10,14 +10,9 @@ An entry is born in the PR that causes the change, not on the eve of the release
 
 ### Added
 
-- `ownership` plugin in the marketplace: owner, lifecycle, generated artifact and
-  the code→doc link, with hooks of its own.
 - `living-docs init --invoke-ownership <command>`: how the core's CLI is called
   in the installed workflow (default `npx ownership`, which only works after the
   core is published on npm).
-- The root ownership file accepts, at the top, a configuration block per plugin
-  listed in `plugins:`; in an included file, it is an error.
-- A frontmatter `owner` without `@` becomes a finding of `ownership validate`.
 - `validate`, `drift` and `changelog` now report how long the set of checks took
   and what the declared ceiling is. The measurement does not change the exit code.
 - `CI-9` (`living-docs validate --base <ref>`): fails the diff that only changes
@@ -171,8 +166,6 @@ An entry is born in the PR that causes the change, not on the eve of the release
 - Installed through the marketplace, the `living-docs` plugin does not install its
   dependencies until the core is published on npm; the hooks fail open and do not
   answer.
-- The v1 schema error of `ownership` says the file needs to be rewritten as v2.
-- A plugin block that is not a map is now a load error.
 - The toolkit now lives in `packages/living-docs/`, and that directory is at the
   same time the package and the Claude Code plugin. Whoever invokes the CLI from a
   clone now calls it through `node packages/living-docs/src/cli/index.ts`, always
@@ -261,8 +254,6 @@ An entry is born in the PR that causes the change, not on the eve of the release
 - `living-docs drift` and `living-docs changelog`: generated-artifact drift and
   the CHANGELOG entry are now verified by `ownership validate` (`--base <ref>` for
   the diff).
-- `consumer-visible-paths`: the `consumer-visible: true` mark on the `watches`
-  rules is the list.
 - `living-docs/frontmatter` no longer rejects a `trigger` worded as a calendar
   cadence; it only requires `trigger` to be present and non-empty.
 - `living-docs/trigger-routing` no longer compares the words of a `trigger`

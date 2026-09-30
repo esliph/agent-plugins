@@ -8,6 +8,10 @@ plugins: [living-docs]
 living-docs:
   stale-after-months: 6
 
+# Each plugin project declares its own paths (ADR-0036).
+include:
+  - plugins/ownership/
+
 owned:
   # --- Artifacts: an entry with `living-docs.id-prefix`. ID family and lifecycle.
   - path: docs/decisions/adr/
@@ -43,7 +47,7 @@ owned:
     format: { collection: sections, key: first-token }
     living-docs:
       id-prefix: RF
-      cited-by: ['packages/living-docs/test/**', 'packages/ownership/test/**']
+      cited-by: ['packages/living-docs/test/**', 'plugins/ownership/test/**']
 
   - path: docs/requirements/non-functional.md
     owner: '@esliph/engineering'
@@ -52,7 +56,7 @@ owned:
     format: { collection: sections, key: first-token }
     living-docs:
       id-prefix: RNF
-      cited-by: ['packages/living-docs/test/**', 'packages/ownership/test/**']
+      cited-by: ['packages/living-docs/test/**', 'plugins/ownership/test/**']
 
   - path: docs/requirements/rules.md
     owner: '@esliph/engineering'
@@ -61,7 +65,7 @@ owned:
     format: { collection: sections, key: first-token }
     living-docs:
       id-prefix: RN
-      cited-by: ['packages/living-docs/test/**', 'packages/living-docs/src/**', 'packages/ownership/test/**', 'packages/ownership/src/**']
+      cited-by: ['packages/living-docs/test/**', 'packages/living-docs/src/**', 'plugins/ownership/test/**', 'plugins/ownership/plugin/src/**']
 
   - path: docs/releases/
     owner: '@esliph/engineering'
@@ -146,8 +150,6 @@ owned:
   # requires an owner for every file in the repository, not only for documentation.
   - path: packages/living-docs/
     owner: '@esliph/engineering'
-  - path: packages/ownership/
-    owner: '@esliph/engineering'
   - path: bin/
     owner: '@esliph/engineering'
   - path: .github/
@@ -209,7 +211,7 @@ watches:
     doc: docs/requirements/rules.md
     reason: 'a hook blocks or asks on behalf of a rule; with no RN cited, the block has no origin'
 
-  - code: 'packages/ownership/src/{checks,hooks}/**'
+  - code: 'plugins/ownership/plugin/src/{checks,hooks}/**'
     doc: docs/requirements/rules.md
     reason: 'a check and a hook of the core are an executable rule like those of living-docs'
 
@@ -258,16 +260,6 @@ watches:
     doc: CHANGELOG.md
     consumer-visible: true
     reason: 'it is what `init` writes in the repository of whoever installs'
-
-  - code: 'packages/ownership/src/cli/**'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'subcommand, option and exit code of the core are public contract'
-
-  - code: 'packages/ownership/{.claude-plugin,hooks}/**'
-    doc: CHANGELOG.md
-    consumer-visible: true
-    reason: 'the core plugin is what whoever installs receives in the session'
 
   - code: 'bin/**'
     doc: CHANGELOG.md

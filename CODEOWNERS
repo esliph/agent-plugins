@@ -19,7 +19,7 @@ docs/ids-retired.txt @esliph/engineering
 docs/superpowers/ @esliph/engineering
 README.md @esliph/engineering
 packages/living-docs/ @esliph/engineering
-packages/ownership/ @esliph/engineering
+plugins/ownership/ @esliph/engineering
 bin/ @esliph/engineering
 .github/ @esliph/engineering
 .claude-plugin/ @esliph/engineering

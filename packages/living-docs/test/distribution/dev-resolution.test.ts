@@ -8,7 +8,7 @@ test('RNF-0002: from the living-docs package, @esliph/ownership resolves through
   const result = spawnSync('node', ['--conditions=development', '--input-type=module', '-e', script], { cwd: toolkitRoot(), encoding: 'utf8' })
 
   assert.equal(result.status, 0, result.stderr)
-  assert.match(result.stdout, /packages\/ownership\/src\/index\.ts/)
+  assert.match(result.stdout, /plugins\/ownership\/plugin\/src\/index\.ts/)
 })
 
 test('RNF-0002: the test runner itself loads @esliph/ownership through the development condition', async () => {

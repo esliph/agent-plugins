@@ -16,7 +16,7 @@
       "name": "ownership",
       "description": "Owner, lifecycle and trigger of each path: the core that living documentation uses, and that runs on its own.",
       "version": "0.1.0",
-      "source": "./packages/ownership"
+      "source": "./plugins/ownership/plugin"
     }
   ]
 }

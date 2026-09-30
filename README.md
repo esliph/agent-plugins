@@ -4,7 +4,7 @@ Claude Code plugins maintained by esliph.
 
 | Plugin                                          | Use it to                                                                                                                                                               |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`ownership`](packages/ownership/README.md)     | Declare, in one file, who owns each path of a repository, which files are generated, and which document must change when a piece of code changes — and have it checked. |
+| [`ownership`](plugins/ownership/README.md)     | Declare, in one file, who owns each path of a repository, which files are generated, and which document must change when a piece of code changes — and have it checked. |
 | [`living-docs`](packages/living-docs/README.md) | Keep decisions, open questions, technical debt, requirements, glossary and changelog up to date, each with an owner and a moment to be revised. Built on `ownership`.   |
 
 ## Install

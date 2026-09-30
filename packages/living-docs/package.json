@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@esliph/ownership": "file:../ownership",
+    "@esliph/ownership": "file:../../plugins/ownership/plugin",
     "picomatch": "^4.0.2",
     "yaml": "^2.6.0"
   },

@@ -62,9 +62,14 @@ test('RN-0013: this repository declares what is visible to the consumer', () => 
 })
 
 test('ADR-0006: some watches rule says where the entry should be', () => {
-  const targets = new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.doc))
+  const targets = [...new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.doc))]
 
-  assert.deepEqual([...targets], ['CHANGELOG.md'])
+  // One CHANGELOG per project: each plugin answers to its own consumers.
+  assert.ok(targets.length > 0, 'no consumer-visible watch: the test would pass on nothing')
+  assert.deepEqual(
+    targets.filter(doc => doc.split('/').pop() !== 'CHANGELOG.md'),
+    [],
+  )
 })
 
 test('RN-0013: the CHANGELOG is consumer-facing — Keep a Changelog, no frontmatter', () => {

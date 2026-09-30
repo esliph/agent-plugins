@@ -7,18 +7,18 @@ import { join } from 'node:path'
 import { toolkitRoot } from '../../src/core/roots.ts'
 
 const PACKAGE_ROOT = toolkitRoot()
-const CORE_ROOT = join(PACKAGE_ROOT, '..', 'ownership')
+const CORE_ROOT = join(PACKAGE_ROOT, '..', '..', 'plugins', 'ownership', 'plugin')
 
 function packagesOf(lockfile: string): unknown {
   return (JSON.parse(readFileSync(lockfile, 'utf8')) as { packages: unknown }).packages
 }
 
 test('RNF-0002: the package-lock.json of the package is up to date with package.json', { timeout: 120_000 }, () => {
-  // The two packages side by side, as in the checkout: without the sibling, `file:../ownership`
+  // The two projects side by side, as in the checkout: without the core, `file:../../plugins/ownership/plugin`
   // does not resolve. The lockfile goes along so npm only changes what package.json asks for.
   const isolated = mkdtempSync(join(tmpdir(), 'living-docs-lock-'))
   const pkg = join(isolated, 'packages', 'living-docs')
-  const core = join(isolated, 'packages', 'ownership')
+  const core = join(isolated, 'plugins', 'ownership', 'plugin')
 
   try {
     mkdirSync(pkg, { recursive: true })
@@ -32,7 +32,7 @@ test('RNF-0002: the package-lock.json of the package is up to date with package.
     assert.deepEqual(
       packagesOf(join(pkg, 'package-lock.json')),
       packagesOf(join(PACKAGE_ROOT, 'package-lock.json')),
-      'Outdated lockfile. Regenerate it in a temporary directory with packages/living-docs and packages/ownership side by side (see step 2.3 of the 2026-09-28 plan).',
+      'Outdated lockfile. Regenerate it in a temporary directory with packages/living-docs and plugins/ownership/plugin side by side.',
     )
   } finally {
     rmSync(isolated, { recursive: true, force: true })

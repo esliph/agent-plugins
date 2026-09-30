@@ -1,0 +1,48 @@
+# Paths of the ownership plugin project, relative to this directory. The root
+# .ownership.yml includes this file; paths are disjoint across files.
+version: 2
+
+owned:
+  - path: .ownership.yml
+    owner: '@esliph/engineering'
+    skill: living-docs-bootstrap
+    living-docs: {}
+  - path: README.md
+    owner: '@esliph/engineering'
+    living-docs: { audience: external }
+  - path: CHANGELOG.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+    living-docs: { audience: external }
+
+  # --- Owner only: code and toolchain.
+  - path: plugin/
+    owner: '@esliph/engineering'
+  - path: test/
+    owner: '@esliph/engineering'
+  - path: package.json
+    owner: '@esliph/engineering'
+  - path: package-lock.json
+    owner: '@esliph/engineering'
+  - path: tsconfig.json
+    owner: '@esliph/engineering'
+  - path: tsconfig.build.json
+    owner: '@esliph/engineering'
+  - path: eslint.config.mjs
+    owner: '@esliph/engineering'
+  - path: .gitignore
+    owner: '@esliph/engineering'
+
+ignore:
+  - 'plugin/dist/**'
+
+watches:
+  - code: 'plugin/src/cli/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'subcommand, option and exit code of the core are public contract'
+
+  - code: 'plugin/{.claude-plugin,hooks}/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'the core plugin is what whoever installs receives in the session'
