@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-# Runs the toolkit CLI through the optional containerized path (RNF-0006).
-# Delegation, not implementation: all the conversation with the daemon lives in bin/dev, and
-# a second place holding it would be a second place to diverge (ADR-0016).
-#
-# On the host, the equivalent command is `node --conditions=development packages/living-docs/src/cli/index.ts …`,
-# run from the checkout root, and it is what CI reproduces on every PR (RNF-0002).
-exec "$(dirname "${BASH_SOURCE[0]}")/dev" node --conditions=development packages/living-docs/src/cli/index.ts "$@"

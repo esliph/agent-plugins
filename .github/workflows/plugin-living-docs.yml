@@ -1,0 +1,104 @@
+name: plugin-living-docs
+
+on:
+  push:
+    paths: &paths
+      - 'plugins/living-docs/**'
+      # While living-docs depends on the core by path (TDR-0003), a change in
+      # the core can break it.
+      - 'plugins/ownership/**'
+      - '.github/workflows/plugin-living-docs.yml'
+  pull_request:
+    paths: *paths
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/living-docs
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # The floor is `engines.node` in package.json (RNF-0002).
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: plugins/*/package-lock.json
+
+      # The core's source resolves its own dependencies from its real path.
+      - name: Install the core's dependencies
+        working-directory: plugins/ownership
+        run: npm ci
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint:check
+
+  # The `paths` filter is per workflow and not per job, and a third-party action
+  # for it is not an option (ADR-0016): the diff decides here.
+  container-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      container: ${{ steps.diff.outputs.container }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: diff
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # A new branch has no `before`: run the container job rather than guess.
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            echo container=true >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --name-only "$BASE" HEAD -- \
+              plugins/living-docs/Dockerfile plugins/living-docs/compose.yaml plugins/living-docs/.dockerignore \
+              plugins/living-docs/bin/ plugins/living-docs/package.json plugins/living-docs/package-lock.json \
+              plugins/living-docs/plugin/package.json plugins/living-docs/plugin/package-lock.json \
+              plugins/ownership/package.json plugins/ownership/package-lock.json plugins/ownership/plugin/package.json \
+              .github/workflows/plugin-living-docs.yml | grep -q .; then
+            echo container=true >> "$GITHUB_OUTPUT"
+          else
+            echo container=false >> "$GITHUB_OUTPUT"
+          fi
+
+  container:
+    needs: container-changes
+    if: needs.container-changes.outputs.container == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/living-docs
+    steps:
+      - uses: actions/checkout@v4
+
+      # The container runs as `node` (uid 1000), and the runner's checkout belongs
+      # to another uid.
+      - name: Hand the checkout to the container user
+        working-directory: .
+        run: sudo chown -R 1000:1000 "$GITHUB_WORKSPACE"
+
+      # Bringing the container up in its own step keeps build time attributable:
+      # an image failure does not disguise itself as a test failure.
+      - name: Start the container
+        run: docker compose up -d
+
+      # Through the wrapper, what the host already runs (RNF-0006 parity).
+      - name: Tests, through the wrapper
+        run: bin/dev npm test
+
+      - name: Living documentation, through the wrapper
+        run: bin/dev node --conditions=development plugin/src/cli/index.ts validate

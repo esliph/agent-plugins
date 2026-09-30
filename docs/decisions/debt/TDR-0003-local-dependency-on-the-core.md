@@ -11,7 +11,7 @@ relates-to: [ADR-0025, ADR-0029, RNF-0002]
 pay-when:
   pattern: '"@esliph/ownership":\s*"[\^~]?\d'
   paths:
-    - packages/living-docs/package.json
+    - plugins/living-docs/plugin/package.json
 ---
 
 # TDR-0003 — @esliph/ownership as file:../ownership breaks the remote installation of living-docs
@@ -37,7 +37,7 @@ on them.
 ## Payment trigger
 
 `@esliph/ownership` published on npm. Observable signal: the dependency in
-`packages/living-docs/package.json` stops being `file:` and becomes a semver range
+`plugins/living-docs/plugin/package.json` stops being `file:` and becomes a semver range
 from the registry. At that moment, the dependency becomes that range, living-docs'
 `plugin-cache.test.ts` goes back to requiring that the hook answers from the cache,
 and the default of `--invoke-ownership` starts working outside here.

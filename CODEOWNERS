@@ -18,9 +18,8 @@ docs/migrations/ @esliph/engineering
 docs/ids-retired.txt @esliph/engineering
 docs/superpowers/ @esliph/engineering
 README.md @esliph/engineering
-packages/living-docs/ @esliph/engineering
+plugins/living-docs/ @esliph/engineering
 plugins/ownership/ @esliph/engineering
-bin/ @esliph/engineering
 .github/ @esliph/engineering
 .claude-plugin/ @esliph/engineering
 CODEOWNERS @esliph/engineering
@@ -30,7 +29,4 @@ package-lock.json @esliph/engineering
 .gitignore @esliph/engineering
 .prettierignore @esliph/engineering
 .prettierrc @esliph/engineering
-.dockerignore @esliph/engineering
-Dockerfile @esliph/engineering
-compose.yaml @esliph/engineering
 eslint.config.mjs @esliph/engineering

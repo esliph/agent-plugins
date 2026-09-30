@@ -6,7 +6,7 @@ code changes. This plugin checks those promises — in the Claude Code session,
 at commit time and in CI.
 
 It works on its own, and it is the core that
-[`living-docs`](../../packages/living-docs/README.md) builds on.
+[`living-docs`](../living-docs/README.md) builds on.
 
 ## Install
 

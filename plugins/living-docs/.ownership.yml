@@ -1,0 +1,69 @@
+# Paths of the living-docs plugin project, relative to this directory. The root
+# .ownership.yml includes this file; paths are disjoint across files.
+version: 2
+
+owned:
+  - path: .ownership.yml
+    owner: '@esliph/engineering'
+    skill: living-docs-bootstrap
+    living-docs: {}
+  - path: README.md
+    owner: '@esliph/engineering'
+    living-docs: { audience: external }
+  - path: CHANGELOG.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+    living-docs: { audience: external }
+
+  # --- Owner only: code, toolchain and container.
+  - path: plugin/
+    owner: '@esliph/engineering'
+  - path: test/
+    owner: '@esliph/engineering'
+  - path: bin/
+    owner: '@esliph/engineering'
+  - path: package.json
+    owner: '@esliph/engineering'
+  - path: package-lock.json
+    owner: '@esliph/engineering'
+  - path: tsconfig.json
+    owner: '@esliph/engineering'
+  - path: eslint.config.mjs
+    owner: '@esliph/engineering'
+  - path: Dockerfile
+    owner: '@esliph/engineering'
+  - path: compose.yaml
+    owner: '@esliph/engineering'
+  - path: .dockerignore
+    owner: '@esliph/engineering'
+
+watches:
+  - code: 'plugin/src/cli/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'subcommand, option and exit code are public contract (the versioning policy)'
+
+  - code: 'plugin/src/checks/catalog.ts'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'the identifiers of the checks are public and do not change meaning'
+
+  - code: 'plugin/src/config/ownership.ts'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'the living-docs block of the ownership file is the contract of whoever installs'
+
+  - code: 'plugin/{.claude-plugin,hooks,commands,skills,agents}/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'skill, hook and command identifiers are public'
+
+  - code: 'plugin/templates/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'it is what `init` writes in the repository of whoever installs'
+
+  - code: 'bin/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'the wrapper is a public entry point of the toolkit — changing how it is invoked changes what whoever consumes uses'
