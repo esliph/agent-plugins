@@ -67,7 +67,9 @@ A plugin is a project under `plugins/<name>/`, and what is installed is its
   `.ownership.yml` declaring the project's paths relative to its directory;
 - one entry in `.claude-plugin/marketplace.json` with
   `source: ./plugins/<name>/plugin`, one `include:` line in the root
-  `.ownership.yml`, one line in `CODEOWNERS` and one row in the root `README.md`.
+  `.ownership.yml`, one line in `CODEOWNERS`, one row in the root `README.md`
+  and one `Added` entry in the root `CHANGELOG.md` — a new plugin is a change
+  for whoever installs from the marketplace.
 
 A plugin in plain Markdown needs no workflow: `marketplace.yml` covers it. A
 plugin with code adds its own toolchain in the project (a `package.json`, a
