@@ -2,8 +2,8 @@
 
 Claude Code plugins maintained by esliph.
 
-| Plugin                                          | Use it to                                                                                                                                                               |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plugin                                         | Use it to                                                                                                                                                               |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`ownership`](plugins/ownership/README.md)     | Declare, in one file, who owns each path of a repository, which files are generated, and which document must change when a piece of code changes — and have it checked. |
 | [`living-docs`](plugins/living-docs/README.md) | Keep decisions, open questions, technical debt, requirements, glossary and changelog up to date, each with an owner and a moment to be revised. Built on `ownership`.   |
 
@@ -27,11 +27,13 @@ Each plugin is a project under `plugins/<name>/`, with its own toolchain and
 tests; its README says how to work on it. For the two current plugins:
 
 ```bash
-(cd plugins/ownership && npm ci && npm test)
-(cd plugins/living-docs && npm ci && npm test)
+./spur install
+./spur plugins
 ```
 
-`living-docs` depends on `ownership` by path, so the first line comes first.
+`./spur` is the command runner committed at the root; it needs a POSIX shell
+with `awk` (on Windows, Git Bash or WSL), and `./spur --list` shows every task.
+`install` installs `ownership` first, since `living-docs` depends on it by path.
 
 The repository keeps its own documentation with `living-docs` under `docs/`.
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.
