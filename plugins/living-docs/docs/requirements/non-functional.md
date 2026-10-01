@@ -4,7 +4,7 @@ owner: '@esliph/engineering'
 trigger: >
   Before implementing any behavior of this family, and on every new or changed
   rule.
-last-reviewed: 2026-09-18
+last-reviewed: 2026-09-30
 ---
 
 # Non-functional requirements
@@ -24,16 +24,19 @@ day one, and then there is no enforcement at all.
 ## RNF-0002 — The toolkit runs on the host's Node, with no build step in the checkout
 
 - **status:** active
-- **relates-to:** ADR-0015, ADR-0025
-- **out of scope:** `git`; the optional containerized path of `RNF-0006`, which is an alternative and not a requirement; how the toolkit reaches the repository of whoever consumes it (`DA-0003`); and the published package, which is compiled on `prepack` (`ADR-0025`) and is not what runs from the checkout
+- **relates-to:** ADR-0015, ADR-0025, ADR-0039
+- **out of scope:** `git`; the optional containerized path of `RNF-0006`, which is an alternative and not a requirement; how the toolkit reaches the repository of whoever consumes it (`DA-0003`); the published package, which is compiled on `prepack` (`ADR-0025`) and is not what runs from the checkout; and the hooks, which run `node` directly and never the command runner
 
-Node 24 or greater, and the npm that comes with it, are the only toolchain
-required of whoever works on the toolkit. `npm ci`, run from the plugin project
-(`plugins/living-docs/`), installs the dependencies — after the core's project
-(`plugins/ownership/`) while the toolkit depends on it by path; `node` runs the
-TypeScript source straight from the checkout, with no compiled artifact in the
-middle. The package published on npm is compiled on `prepack` — that compilation
-exists only inside the tarball and never reaches a development checkout.
+Node 24 or greater with the npm that comes with it, and a POSIX shell with
+`awk` to run the command runner vendored at the repository root (`./spur`), are
+the only toolchain required of whoever works on the toolkit — on Windows, Git
+Bash or WSL provides the shell. `../../spur install`, run from the plugin
+project (`plugins/living-docs/`), installs the dependencies with `npm ci` —
+after the core's project (`plugins/ownership/`) while the toolkit depends on it
+by path; `node` runs the TypeScript source straight from the checkout, with no
+compiled artifact in the middle. The package published on npm is compiled on
+`prepack` — that compilation exists only inside the tarball and never reaches a
+development checkout.
 
 ## RNF-0003 — The toolkit root and the validated repository root are independent
 
