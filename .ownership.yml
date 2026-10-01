@@ -100,6 +100,8 @@ owned:
   # from another tag, never edited by hand (ADR-0039).
   - path: spur
     owner: '@esliph/engineering'
+  - path: Spurfile
+    owner: '@esliph/engineering'
 
 # The core scans the file system, not the git index: what exists only in the
 # checkout of whoever runs it (worktrees, local session state) stays out.

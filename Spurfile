@@ -1,0 +1,41 @@
+# The repository's commands (ADR-0039). Each plugin with a toolchain owns its
+# commands in plugins/<name>/Spurfile; this file only delegates to them. The
+# order is load-bearing — the core first, while living-docs depends on it by
+# path — so it is written here and never taken from a glob.
+PLUGINS="ownership living-docs"
+
+# Runs one task in every plugin, in order. `set -e` stops at the first plugin
+# that fails, with its exit code.
+each() {
+  for plugin in $PLUGINS; do
+    spur -C "plugins/$plugin" "$1"
+  done
+}
+
+install: ## install every plugin's development dependencies, in order
+  each install
+
+plugins: ## run every plugin's tests, type-check and lint, in order
+  each check
+
+## Without an argument, the state of the tree. With a base ref, both validators
+## also check the diff against it:
+##   ./spur validate origin/master
+validate: ## validate ownership, then the living documentation
+  if [ -n "${1:-}" ]; then set -- --base "$1"; fi
+  node --conditions=development plugins/ownership/plugin/src/cli/index.ts validate "$@"
+  node --conditions=development plugins/living-docs/plugin/src/cli/index.ts validate "$@"
+
+marketplace: ## check the marketplace and plugin manifests, and test that check
+  node .github/scripts/check-marketplace.mjs
+  node --test ".github/scripts/*.test.mjs"
+
+## What CONTRIBUTING.md runs before a change is done, in that order. With a
+## base ref, the diff checks run too:
+##   ./spur check origin/master
+check: ## install, every plugin's checks, validation and the marketplace
+  spur install
+  spur plugins
+  spur validate
+  if [ -n "${1:-}" ]; then spur validate "$1"; fi
+  spur marketplace
