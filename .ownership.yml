@@ -96,6 +96,10 @@ owned:
     owner: '@esliph/engineering'
   - path: .editorconfig
     owner: '@esliph/engineering'
+  # Vendored from https://github.com/esliph/spur at tag v0.3.1. Replaced whole
+  # from another tag, never edited by hand (ADR-0039).
+  - path: spur
+    owner: '@esliph/engineering'
 
 # The core scans the file system, not the git index: what exists only in the
 # checkout of whoever runs it (worktrees, local session state) stays out.

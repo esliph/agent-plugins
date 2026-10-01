@@ -5,3 +5,9 @@
 *.jpg binary
 *.gif binary
 *.pdf binary
+
+# spur runs itself and every Spurfile through sh, which breaks on CR
+# (ADR-0039). The `*` rule above already says LF; this keeps it for these files
+# even if that rule changes.
+spur text eol=lf
+Spurfile text eol=lf

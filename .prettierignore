@@ -14,3 +14,6 @@ plugins/living-docs/docs/contracts/checks.gen.md
 # Dated record: reformatting falsifies what was written when it was produced
 # (ADR-0014, "Consequences").
 docs/superpowers/plans/
+
+# Vendored runner: replaced whole from its upstream tag, never reformatted (ADR-0039).
+/spur
