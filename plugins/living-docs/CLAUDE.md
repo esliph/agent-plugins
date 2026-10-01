@@ -16,15 +16,14 @@ plugin's truth lives. **No factual claim lives here** (`RN-0010`).
 
 ## Toolchain
 
-It runs on the host's `node` (`RNF-0002`). While living-docs depends on the core
-by path (`TDR-0003`), the core's dependencies come first:
+It runs on the host's `node` (`RNF-0002`). Every command is a task of this
+project's `Spurfile`, run by the runner vendored at the repository root
+(`ADR-0039`); `../../spur --list` shows them. `install` installs the core's
+dependencies first, while living-docs depends on it by path (`TDR-0003`):
 
 ```bash
-(cd ../ownership && npm ci)
-npm ci
-npm test
-npm run typecheck
-npm run lint:check
+../../spur install
+../../spur check        # tests, type-check, lint
 ```
 
 The validated repository is the checkout root: from there,

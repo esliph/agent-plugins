@@ -22,3 +22,5 @@ CODEOWNERS @esliph/engineering
 .gitignore @esliph/engineering
 .prettierignore @esliph/engineering
 .prettierrc @esliph/engineering
+spur @esliph/engineering
+Spurfile @esliph/engineering

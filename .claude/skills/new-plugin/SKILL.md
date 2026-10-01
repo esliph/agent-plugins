@@ -41,7 +41,7 @@ checks say so.
   code→doc link other than the one to the CHANGELOG, maturity stage. That is
   the job of whoever sets up living documentation for a project.
 - The toolchain of a plugin with code (package manifest, compiler and linter
-  configuration, its CI workflow). The stack is a decision of whoever writes
+  configuration, its `Spurfile` and its line in the root one, its CI workflow). The stack is a decision of whoever writes
   the code; this skill lists it as pending.
 - Committing, the commit message, the branch and the PR — repository
   convention.
@@ -167,7 +167,7 @@ leave it.
 - Every path created, moved or edited, one line each.
 - The output of each check.
 - What was left out on purpose: the documentation frame, and — when the plugin
-  ships code — the toolchain and the plugin's own CI workflow, as
+  ships code — the toolchain, its `Spurfile` and the plugin's own CI workflow, as
   `CONTRIBUTING.md` describes them.
 - When the plugin does not exist yet: the distributed directory is where its
   components go, and nothing there is written yet.

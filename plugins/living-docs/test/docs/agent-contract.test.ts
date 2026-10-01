@@ -18,7 +18,13 @@ test('RN-0010: the root agent contract points to the owning artifacts of the who
 })
 
 test('RN-0010: the living-docs contract points to its spec, vocabulary, principles and toolchain', () => {
-  for (const target of ['docs/superpowers/research/2026-08-24-living-documentation-toolkit.md', 'docs/glossary.md', 'docs/charter/', 'docs/requirements/', 'npm ci']) {
+  for (const target of [
+    'docs/superpowers/research/2026-08-24-living-documentation-toolkit.md',
+    'docs/glossary.md',
+    'docs/charter/',
+    'docs/requirements/',
+    'Spurfile',
+  ]) {
     assert.ok(PLUGIN_CONTRACT.includes(target), `the living-docs contract should point to ${target}`)
   }
 })

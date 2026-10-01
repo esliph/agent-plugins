@@ -15,22 +15,24 @@ consumer. Everything it requires of a project, it fulfils.
 ## The environment
 
 Each plugin is a project under `plugins/<name>/`, with its own toolchain. The
-root has none. For the two current plugins, Node 24 or greater and the npm that
-comes with it — nothing beyond that (`RNF-0002`). Dependencies come in with
-`npm ci`, and the core comes first while living-docs depends on it by path:
+root has none. For the two current plugins, Node 24 or greater with its npm, and
+a POSIX shell with `awk` to run `./spur` — on Windows, Git Bash or WSL
+(`RNF-0002`). Every command is a task of `./spur`, the runner vendored at the
+root (`ADR-0039`): `./spur --list` shows the root's tasks, and `../../spur --list`
+from a plugin project shows that plugin's. Dependencies come in with
+`./spur install`, which installs the core first while living-docs depends on it
+by path:
 
 ```bash
-(cd plugins/ownership && npm ci && npm test && npm run typecheck && npm run lint:check)
-(cd plugins/living-docs && npm ci && npm test && npm run typecheck && npm run lint:check)
-node --conditions=development plugins/ownership/plugin/src/cli/index.ts validate
-node --conditions=development plugins/living-docs/plugin/src/cli/index.ts validate
-node --conditions=development plugins/ownership/plugin/src/cli/index.ts validate --base origin/master
-node --conditions=development plugins/living-docs/plugin/src/cli/index.ts validate --base origin/master
-node .github/scripts/check-marketplace.mjs
+./spur install
+./spur plugins
+./spur validate
+./spur validate origin/master
+./spur marketplace
 ```
 
 A command that fails with `ERR_MODULE_NOT_FOUND` is a command run before
-`npm ci` — it is not the environment that is wrong.
+`./spur install` — it is not the environment that is wrong.
 
 ### Optional: running living-docs through the container
 
@@ -39,8 +41,8 @@ Whoever does not want to install Node on the machine has a second path (`RNF-000
 inside the container, and brings the container up by itself when it is not up:
 
 ```bash
-bin/dev npm test
-bin/dev npm run typecheck
+bin/dev ../../spur test
+bin/dev ../../spur typecheck
 bin/dev node --conditions=development plugin/src/cli/index.ts validate
 bin/living-docs validate     # the same, through the CLI wrapper
 bin/dev                      # a shell inside the container
@@ -75,6 +77,17 @@ A plugin in plain Markdown needs no workflow: `marketplace.yml` covers it. A
 plugin with code adds its own toolchain in the project (a `package.json`, a
 `pyproject.toml`) and a `.github/workflows/plugin-<name>.yml` filtered by
 `plugins/<name>/**`. Tests, documentation and toolchain stay outside `plugin/`.
+
+A plugin with commands of its own keeps them in a `Spurfile` in its project,
+each task calling its tools directly; its workflow runs them through
+`../../spur`. Which tasks it has is the plugin's call. The root `Spurfile` knows
+two names and requires neither: `./spur install` runs the plugin's `install`,
+and `./spur plugins` runs its `check` — everything that must pass before a
+change to it is done. A plugin with no `Spurfile`, or without one of those
+tasks, is skipped with a notice. The root `Spurfile` lists the plugin in
+`PLUGINS`, after any plugin it depends on. An existing plugin's `Spurfile` is
+the model.
+
 Its documents live in `plugins/<name>/docs/`, under the repository's single ID
 space: take the next free number across every project (`RN-0040`).
 
@@ -97,20 +110,20 @@ space: take the next free number across every project (`RN-0040`).
 
 ## Where the truth lives
 
-| Question                                     | Artifact                                                               |
-| -------------------------------------------- | ---------------------------------------------------------------------- |
-| What the toolkit must be                     | `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md` |
-| What is the rule for X                       | `docs/requirements/`                                                   |
-| Why was it done this way                     | `docs/decisions/adr/`                                                  |
-| What has not been decided yet                | `docs/open-decisions.md`                                               |
-| What we accepted to owe                      | `docs/decisions/debt/`                                                 |
-| Who owns each path                           | `.ownership.yml` and `CODEOWNERS`                                      |
-| What is the domain vocabulary                | `docs/glossary.md`                                                     |
-| What is inviolable, and the product vision   | `docs/charter/`                                                        |
-| What is public, and what each error means    | `docs/contracts/`                                                      |
-| What changed for whoever uses it             | `CHANGELOG.md` and `docs/releases/`                                    |
-| When it is done                              | `docs/definition-of-done.md`                                           |
-| Who answers for each document with no ID     | `.ownership.yml` (entry with a `living-docs:` block)                   |
+| Question                                   | Artifact                                                               |
+| ------------------------------------------ | ---------------------------------------------------------------------- |
+| What the toolkit must be                   | `docs/superpowers/research/2026-08-24-living-documentation-toolkit.md` |
+| What is the rule for X                     | `docs/requirements/`                                                   |
+| Why was it done this way                   | `docs/decisions/adr/`                                                  |
+| What has not been decided yet              | `docs/open-decisions.md`                                               |
+| What we accepted to owe                    | `docs/decisions/debt/`                                                 |
+| Who owns each path                         | `.ownership.yml` and `CODEOWNERS`                                      |
+| What is the domain vocabulary              | `docs/glossary.md`                                                     |
+| What is inviolable, and the product vision | `docs/charter/`                                                        |
+| What is public, and what each error means  | `docs/contracts/`                                                      |
+| What changed for whoever uses it           | `CHANGELOG.md` and `docs/releases/`                                    |
+| When it is done                            | `docs/definition-of-done.md`                                           |
+| Who answers for each document with no ID   | `.ownership.yml` (entry with a `living-docs:` block)                   |
 
 None of these answers is copied anywhere else. A duplicate rots, and the old
 version beats the new one by repetition.

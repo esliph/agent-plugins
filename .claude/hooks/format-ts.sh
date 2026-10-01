@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PostToolUse (Edit|Write): runs Prettier and ESLint --fix on the edited .ts,
-# from inside its plugin project, because the scripts there pass
-# `--ignore-path ../../.prettierignore` relative to plugins/<name>/.
+# from inside its plugin project, because the plugin's Spurfile passes
+# `--ignore-path ../../.prettierignore` relative to plugins/<name>/ too.
 # What ESLint cannot fix goes back to the model (exit 2); everything else is
 # silent and never blocks.
 

@@ -67,6 +67,8 @@ owned:
     owner: '@esliph/engineering'
   - path: eslint.config.mjs
     owner: '@esliph/engineering'
+  - path: Spurfile
+    owner: '@esliph/engineering'
   - path: .gitignore
     owner: '@esliph/engineering'
 
