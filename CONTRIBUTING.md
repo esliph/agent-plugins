@@ -78,12 +78,15 @@ plugin with code adds its own toolchain in the project (a `package.json`, a
 `pyproject.toml`) and a `.github/workflows/plugin-<name>.yml` filtered by
 `plugins/<name>/**`. Tests, documentation and toolchain stay outside `plugin/`.
 
-A plugin with a toolchain has a `Spurfile` in its project with the tasks
-`install`, `test`, `typecheck`, `lint`, `lint-check`, `format`, `format-check`
-and `check` — the last running `test`, `typecheck` and `lint-check`, in that
-order — each calling its tools directly; its workflow runs them through
-`../../spur`. The root `Spurfile` lists the plugin in `PLUGINS`, after any
-plugin it depends on. An existing plugin's `Spurfile` is the model.
+A plugin with commands of its own keeps them in a `Spurfile` in its project,
+each task calling its tools directly; its workflow runs them through
+`../../spur`. Which tasks it has is the plugin's call. The root `Spurfile` knows
+two names and requires neither: `./spur install` runs the plugin's `install`,
+and `./spur plugins` runs its `check` — everything that must pass before a
+change to it is done. A plugin with no `Spurfile`, or without one of those
+tasks, is skipped with a notice. The root `Spurfile` lists the plugin in
+`PLUGINS`, after any plugin it depends on. An existing plugin's `Spurfile` is
+the model.
 
 Its documents live in `plugins/<name>/docs/`, under the repository's single ID
 space: take the next free number across every project (`RN-0040`).

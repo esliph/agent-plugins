@@ -4,18 +4,35 @@
 # path — so it is written here and never taken from a glob.
 PLUGINS="ownership living-docs"
 
-# Runs one task in every plugin, in order. `set -e` stops at the first plugin
-# that fails, with its exit code.
+# Runs one task in every plugin that has it, in order. A plugin owes the root
+# nothing: one with no Spurfile, or with a Spurfile that lacks the task, is
+# skipped with a notice. The Spurfile is checked here, before delegating,
+# because spur searches the parent directories for one and would find this
+# file. A name in PLUGINS that is not a directory is a mistake in this file and
+# fails. `set -e` stops at the first plugin that fails, with its exit code.
 each() {
   for plugin in $PLUGINS; do
+    if [ ! -d "plugins/$plugin" ]; then
+      echo "plugins/$plugin: listed in PLUGINS, but it does not exist" >&2
+      exit 1
+    fi
+    if [ ! -f "plugins/$plugin/Spurfile" ]; then
+      echo "$plugin: no Spurfile, skipped '$1'" >&2
+      continue
+    fi
+    names=$(spur -C "plugins/$plugin" --names)
+    if ! printf '%s\n' "$names" | grep -qxF -- "$1"; then
+      echo "$plugin: no task '$1', skipped" >&2
+      continue
+    fi
     spur -C "plugins/$plugin" "$1"
   done
 }
 
-install: ## install every plugin's development dependencies, in order
+install: ## run `install` in every plugin that has it, in order
   each install
 
-plugins: ## run every plugin's tests, type-check and lint, in order
+plugins: ## run `check` in every plugin that has it, in order
   each check
 
 ## Without an argument, the state of the tree. With a base ref, both validators
