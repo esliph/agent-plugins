@@ -1,7 +1,7 @@
 ---
 id: ADR-0039
 title: spur, vendored and pinned to a tag, is the repository's command runner
-status: draft
+status: accepted
 owner: '@esliph/engineering'
 trigger: >
   Never. Immutable once accepted; a new decision supersedes it.
