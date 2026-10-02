@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { applyDelta } from '../changes/apply.ts'
-import { CHANGE_ID, SLUG, archiveDir, changeDir, loadChange, withStatus } from '../changes/change.ts'
+import { CHANGE_ID, SLUG, archiveDir, changeDir, loadChange, openChangeIds, withStatus } from '../changes/change.ts'
 import { loadConfig } from '../config/config.ts'
 import { ARCHIVE_DIR, PROPOSAL_FILE } from '../core/paths.ts'
 import { KanonError, type Finding } from '../core/types.ts'
@@ -43,7 +43,9 @@ function notOpen(root: string, id: string): string | null {
   if (existsSync(join(root, archiveDir(id)))) {
     return `${id} is already archived, in ${archiveDir(id)}.`
   }
-  if (!existsSync(join(root, changeDir(id)))) {
+  // Exactly as the folder is named: a file system that ignores case would let
+  // another spelling through, and the lint would then report under the other one.
+  if (!openChangeIds(root).includes(id)) {
     return `${id} is not an open change: there is no ${changeDir(id)}.`
   }
 

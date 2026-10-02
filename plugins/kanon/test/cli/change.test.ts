@@ -399,3 +399,16 @@ test('RNF-0007: everything a change writes is Markdown inside the project', () =
     assert.deepEqual(Object.keys(snapshot(root, 'changes')), [`${DIR}/proposal.md`])
   })
 })
+
+test('RF-0026: an ID that names an open change only by the case of the file system is not synced', () => {
+  const files = project(SPEC, { [`changes/${TODAY}-Coupon/proposal.md`]: proposal(`${TODAY}-Coupon`) })
+
+  withProject(files, root => {
+    const before = snapshot(root)
+    const run = kanon(root, 'change', 'sync', `${TODAY}-coupon`)
+
+    assert.equal(run.status, 1, run.stderr)
+    assert.match(run.stderr, /is not an open change/)
+    assert.deepEqual(snapshot(root), before)
+  })
+})
