@@ -68,3 +68,27 @@ test('RN-0058: a heading inside a code fence does not end a block', () => {
 test('RN-0058: lines are counted the same in a file with Windows line endings', () => {
   assert.deepEqual(blocks('# checkout\r\n\r\n### CHK-001 [Ubiquitous]\r\n\r\nTHE Checkout SHALL show the total.\r\n\r\n'), [['CHK-001', 3, 5]])
 })
+
+test('RN-0058: a fence is closed only by a fence of its own kind, so a tilde fence can hold a backtick one', () => {
+  const source = [
+    '### CHK-001 [Ubiquitous]', // 1
+    '', // 2
+    'THE Checkout SHALL show the total.', // 3
+    '', // 4
+    '~~~markdown', // 5
+    '```', // 6
+    '## Not a heading', // 7
+    '```', // 8
+    '~~~', // 9
+    '', // 10
+    '### CHK-002 [Ubiquitous]', // 11
+    '', // 12
+    'THE Checkout SHALL show the tax.', // 13
+    '',
+  ].join('\n')
+
+  assert.deepEqual(blocks(source), [
+    ['CHK-001', 1, 9],
+    ['CHK-002', 11, 13],
+  ])
+})

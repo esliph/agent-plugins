@@ -140,3 +140,16 @@ test('RN-0053: a delta with Windows line endings is read the same', () => {
   )
   assert.equal(delta.entries[1]?.text, '### CHK-009 [Event]\n\nWHEN the [[coupon]] is applied, THE Checkout SHALL show the discounted total.')
 })
+
+test('RN-0053: a tilde fence holding a backtick one hides the headings inside it from the sections', () => {
+  const delta = parseDelta(
+    FILE,
+    ['## ADDED', '', '### CHK-015 [Ubiquitous]', '', 'THE Checkout SHALL show the total.', '', '~~~markdown', '```', '## REMOVED', '```', '~~~', ''].join('\n'),
+  )
+
+  assert.deepEqual(delta.problems, [])
+  assert.deepEqual(
+    delta.entries.map(entry => [entry.operation, entry.requirement.token, entry.requirement.endLine]),
+    [['ADDED', 'CHK-015', 11]],
+  )
+})

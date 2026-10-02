@@ -1,5 +1,5 @@
 import { SPECS_DIR, SPEC_FILE } from '../core/paths.ts'
-import { parseSpec, type Requirement } from '../specs/parse.ts'
+import { nextFence, parseSpec, type Requirement } from '../specs/parse.ts'
 
 export const OPERATIONS = ['ADDED', 'MODIFIED', 'REMOVED'] as const
 
@@ -60,15 +60,13 @@ export function parseDelta(file: string, source: string): Delta {
   const first = new Map<Operation, number>()
   /** Line of each heading that opens or closes a section. `null`: a heading that is no section. */
   const marks: { line: number; operation: Operation | null | undefined }[] = []
-  let fenced = false
+  let fence: string | null = null
 
   lines.forEach((line, index) => {
-    if (FENCE.test(line)) {
-      fenced = !fenced
+    const opened = fence
 
-      return
-    }
-    if (fenced) {
+    fence = nextFence(line, fence)
+    if (opened !== null || fence !== null) {
       return
     }
     if (TITLE.test(line)) {

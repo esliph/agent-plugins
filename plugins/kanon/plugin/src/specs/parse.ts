@@ -23,7 +23,26 @@ const HEADING = /^###\s+([A-Za-z]+-\d+)\b\s*(.*)$/
 const ANY_HEADING = /^#{1,6}(?:\s|$)/
 const TAG = /^\[([^\]]*)\]$/
 const FENCE = /^\s*(```|~~~)/
+const FENCE_RUN = /^\s*(`{3,}|~{3,})(.*)$/
 const METADATA = /^(Story|Status|Since|Supersedes)\s*:/
+
+// The fence a line opens, closes or leaves alone. `open` is the run of
+// characters that opened the fence now in force, or null outside one: only a
+// run of the same character, at least as long and with nothing after it,
+// closes it, so a tilde fence can hold a backtick one.
+export function nextFence(line: string, open: string | null): string | null {
+  const run = FENCE_RUN.exec(line)
+  const marks = run?.[1]
+
+  if (marks === undefined) {
+    return open
+  }
+  if (open === null) {
+    return (run?.[2] ?? '').includes('`') && marks.startsWith('`') ? null : marks
+  }
+
+  return marks[0] === open[0] && marks.length >= open.length && (run?.[2] ?? '').trim() === '' ? null : open
+}
 
 // A block runs from the heading of a requirement to the line before the next
 // heading of any level, or to the end of the file; a heading inside a code
@@ -31,7 +50,7 @@ const METADATA = /^(Story|Status|Since|Supersedes)\s*:/
 export function parseSpec(file: string, source: string): Requirement[] {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
   const requirements: Requirement[] = []
-  let fenced = false
+  let fence: string | null = null
   let open: Requirement | null = null
 
   const requirementAt = (index: number, token: string, rest: string): Requirement => {
@@ -66,9 +85,12 @@ export function parseSpec(file: string, source: string): Requirement[] {
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index] ?? ''
 
-    if (FENCE.test(line)) {
-      fenced = !fenced
-    } else if (!fenced && ANY_HEADING.test(line)) {
+    const before = fence
+
+    fence = nextFence(line, fence)
+    if (before !== null || fence !== null) {
+      // Inside a fence, or on the line that opens or closes one: text.
+    } else if (ANY_HEADING.test(line)) {
       const heading = HEADING.exec(line)
 
       open = heading?.[1] === undefined ? null : requirementAt(index, heading[1], heading[2] ?? '')
