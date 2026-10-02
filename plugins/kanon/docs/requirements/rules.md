@@ -146,7 +146,7 @@ opaque to kanon.
 
 ## RN-0052 — A change has an ID of its own, a folder of its own, and a state that is where the folder is
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RNF-0007
 - **out of scope:** what the body of a proposal says, which no script reads; renaming a change, which never happens; a change that only lived in a branch never merged, which leaves nothing behind
 
@@ -162,7 +162,7 @@ archived. A change with only a proposal is a valid open change.
 
 ## RN-0053 — A delta mirrors the path of the spec it changes and has only the sections ADDED, MODIFIED and REMOVED
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0043, RN-0047, RN-0052
 - **out of scope:** whether a MODIFIED changes the intent of a requirement, which is left to a reader; the metadata lines `Story`, `Status` and `Since`, which stay opaque
 
@@ -178,7 +178,7 @@ prefix.
 
 ## RN-0054 — A MODIFIED and a REMOVED name a requirement that is in that current spec, and a REMOVED says why
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0044, RN-0053
 - **out of scope:** whether the reason is a good one, which is left to a reader
 
@@ -190,7 +190,7 @@ and stays readable in the archived delta.
 
 ## RN-0055 — An ADDED reuses neither an active ID nor a tombstone, and an ID appears in one operation of a change
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0044, RN-0045, RF-0019
 - **out of scope:** allocating the ID, which stays with `kanon id next <CAP>`
 
@@ -201,7 +201,7 @@ incremented counter travels in the same branch as the delta.
 
 ## RN-0056 — A `Supersedes` names a requirement the same change removes
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0053, RN-0054
 - **out of scope:** whether the new requirement really replaces the old one, which is left to a reader; a `Supersedes` carried by a MODIFIED, which an earlier change put there
 
@@ -211,7 +211,7 @@ the same change does not remove is an error.
 
 ## RN-0057 — Two open changes are an error only where the second sync would break
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0054, RN-0055
 - **out of scope:** which of the two changes must yield, which a script does not know; a conflict between branches not merged yet, which a later slice resolves by renumbering
 
@@ -222,7 +222,7 @@ changes, each finding naming the other folder.
 
 ## RN-0058 — A delta is merged by requirement block, and everything outside the blocks is kept as it was
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0044, RN-0053
 - **out of scope:** rewriting any line of a block — a block is copied as written, its metadata lines included; reordering the requirements of a spec
 
@@ -237,7 +237,7 @@ Blocks are separated by one blank line, and the file ends with one newline.
 
 ## RN-0059 — The IDs a dropped change allocated become tombstones, and a live requirement never does
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0044, RN-0045
 - **out of scope:** a change that died in a branch never merged — the branch is deleted, and the counter on the main branch never knew of it
 

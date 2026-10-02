@@ -90,7 +90,7 @@ watches:
     consumer-visible: true
     reason: 'it is what `init` and `capability add` write in the repository of whoever installs'
 
-  - code: 'plugin/src/{checks,ears,ids,glossary,registry,specs}/**'
+  - code: 'plugin/src/{changes,checks,ears,ids,glossary,registry,specs}/**'
     doc: docs/requirements/rules.md
     reason: 'a lint check is an executable rule — the RN comes first, and it is what the check verifies'
 

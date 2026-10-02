@@ -5,6 +5,11 @@ export const CONFIG_PATH = '.kanon/config.yml'
 export const CAPABILITIES_DIR = '.kanon/capabilities'
 export const SPECS_DIR = 'specs'
 export const SPEC_FILE = 'spec.md'
+export const CHANGES_DIR = 'changes'
+/** The one name under `changes/` that is not a change: an ID starts with a digit. */
+export const ARCHIVE_NAME = 'archive'
+export const ARCHIVE_DIR = `${CHANGES_DIR}/${ARCHIVE_NAME}`
+export const PROPOSAL_FILE = 'proposal.md'
 
 export function posix(path: string): string {
   return path.split(sep).join('/')

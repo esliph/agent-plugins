@@ -74,8 +74,23 @@ export function project(spec: string, extra: Record<string, string> = {}): Recor
   }
 }
 
+/** The day every test run of the command line happens on. */
+export const TODAY = '2026-10-02'
+
+export function proposal(id: string, status: string = 'open'): string {
+  return ['---', `change: ${id}`, `status: ${status}`, '---', '', `# ${id}`, ''].join('\n')
+}
+
+/** The files of an open change: its proposal, and one delta per capability name given. */
+export function change(id: string, deltas: Record<string, string> = {}): Record<string, string> {
+  return {
+    [`changes/${id}/proposal.md`]: proposal(id),
+    ...Object.fromEntries(Object.entries(deltas).map(([name, delta]) => [`changes/${id}/specs/${name}/spec.md`, delta])),
+  }
+}
+
 export function kanon(root: string, ...args: string[]): { status: number | null; stdout: string; stderr: string } {
-  const env: NodeJS.ProcessEnv = { ...process.env, KANON_REPO_ROOT: root }
+  const env: NodeJS.ProcessEnv = { ...process.env, KANON_REPO_ROOT: root, KANON_TODAY: TODAY }
   const run = spawnSync('node', [CLI, ...args], { cwd: root, env, encoding: 'utf8' })
 
   return { status: run.status, stdout: run.stdout, stderr: run.stderr }

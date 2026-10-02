@@ -47,6 +47,31 @@ test('RNF-0008: the plugin declares no dependency and no build output', () => {
   assert.equal(existsSync(join(PLUGIN_ROOT, 'package-lock.json')), false)
 })
 
+test('RF-0030: the change command goes through the command line to open, sync and drop', () => {
+  for (const subcommand of ['open <slug>', 'sync <id>', 'drop <id>']) {
+    assert.ok(command('change').includes(`${CLI} change ${subcommand}`), subcommand)
+  }
+  assert.match(command('change'), /^argument-hint: .*open .*sync .*drop /m)
+  assert.match(command('change'), /as it came/)
+  assert.match(command('change'), /never commit/i)
+})
+
+test('RF-0030: opening confirms the slug first, and dropping asks first', () => {
+  assert.match(command('change'), /Confirm it with the person before creating/)
+  assert.match(command('change'), /Ask before running it/)
+  assert.match(command('change'), /\/kanon:capability next <CAP>/)
+})
+
+test('RF-0030: the status command runs the command line and shows its output as it came', () => {
+  assert.ok(command('status').includes(`${CLI} status`))
+  assert.match(command('status'), /as it came/)
+})
+
+test('RF-0029: the lint command says it covers the open changes', () => {
+  assert.match(command('ears-lint'), /every open change/)
+  assert.match(command('ears-lint'), /read as a delta/)
+})
+
 // The marketplace cache receives the plugin directory alone, with no
 // `node_modules` beside or above it.
 test('RNF-0008: copied alone, with nothing installed, the command line runs', () => {
@@ -55,6 +80,7 @@ test('RNF-0008: copied alone, with nothing installed, the command line runs', ()
   const env: NodeJS.ProcessEnv = { ...process.env }
 
   delete env.KANON_REPO_ROOT
+  delete env.KANON_TODAY
   delete env.NODE_OPTIONS
   delete env.NODE_PATH
 
@@ -69,6 +95,9 @@ test('RNF-0008: copied alone, with nothing installed, the command line runs', ()
     assert.equal(run('capability', 'add', 'CHK', 'checkout').status, 0)
     assert.equal(run('id', 'next', 'CHK').stdout, 'CHK-001\n')
     assert.match(run('lint').stdout, /kanon: no findings\./)
+    // The proposal comes from a template that travels with the plugin, and the date from the clock.
+    assert.match(run('change', 'open', 'first-change').stdout, /^\d{4}-\d{2}-\d{2}-first-change\n$/)
+    assert.match(run('status').stdout, /-first-change {2}0 errors, 0 warnings\n$/)
   } finally {
     rmSync(cache, { recursive: true, force: true })
     rmSync(project, { recursive: true, force: true })

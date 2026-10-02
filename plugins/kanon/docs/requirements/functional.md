@@ -97,7 +97,7 @@ requirement of a spec: the counter is the only source of one.
 
 ## RF-0025 — `kanon change open <slug>` opens a change under the date of the day
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0052
 - **out of scope:** writing the delta, which is done by hand until a later slice; committing
 
@@ -108,7 +108,7 @@ environment variable fixes it for a run that must not depend on the clock.
 
 ## RF-0026 — `kanon change sync <id>` applies the deltas of a change and archives it, in one step
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0053, RN-0054, RN-0055, RN-0056, RN-0057, RN-0058, RF-0029
 - **out of scope:** committing; recovering from a disk failure in the middle of the writes, which is left to `git`; an applied-but-open state, which does not exist
 
@@ -122,7 +122,7 @@ registries and `status: synced` in the proposal, and last moves the folder to
 
 ## RF-0027 — `kanon change drop <id>` abandons a change without giving its IDs back
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0059
 - **out of scope:** validating the delta — an abandoned change may well be broken; committing
 
@@ -132,7 +132,7 @@ proposal and moves the folder to `changes/archive/<id>/`.
 
 ## RF-0028 — `kanon status` lists the open changes
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RN-0052, RF-0029
 - **out of scope:** the findings themselves, which `kanon lint` prints; archived changes; the traceability view of a later slice
 
@@ -143,7 +143,7 @@ exits 2 only when it could not run.
 
 ## RF-0029 — `kanon lint` also checks the open changes
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RF-0018, RN-0052, RN-0053, RN-0054, RN-0055, RN-0056, RN-0057
 - **out of scope:** archived changes, which are never checked; a change with no delta, which is not an error; the projection of the specs after a change — the capacity warnings keep measuring the current specs
 
@@ -154,7 +154,7 @@ error in a change fails the run.
 
 ## RF-0030 — The change commands of the session run the command line and show its output as it came
 
-- **status:** draft
+- **status:** active
 - **relates-to:** RF-0022, RF-0024, RF-0025, RF-0026, RF-0027, RF-0028
 - **out of scope:** writing the delta with the model's help, which belongs to a later slice; committing, which the session never does
 

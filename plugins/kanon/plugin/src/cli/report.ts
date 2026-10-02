@@ -1,6 +1,6 @@
 import type { Finding } from '../core/types.ts'
 
-function plural(count: number, singular: string, pluralForm: string): string {
+export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`
 }
 

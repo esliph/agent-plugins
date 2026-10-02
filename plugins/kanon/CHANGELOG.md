@@ -29,3 +29,20 @@ An entry is born in the PR that causes the change, not on the eve of the release
   principles and its controlled vocabulary.
 - Two skills, loaded when the work calls for them: writing acceptance criteria
   in EARS, and keeping the glossary.
+- `/kanon:change` opens a change, syncs it and drops it. A change is a folder
+  `changes/<date>-<slug>/` with a proposal and one delta per capability, in the
+  sections `ADDED`, `MODIFIED` and `REMOVED`. Syncing merges the deltas into the
+  current specs requirement by requirement, leaves everything else in a spec as
+  it was, and archives the folder; dropping retires the IDs the change
+  allocated and archives it.
+- `/kanon:status` lists the open changes, with what each one adds, modifies and
+  removes per capability and how many errors and warnings it has.
+- Seven lint rules for changes: `kanon/change-shape`, `kanon/delta-shape`,
+  `kanon/delta-target`, `kanon/delta-added`, `kanon/delta-duplicate`,
+  `kanon/delta-supersedes` and `kanon/delta-conflict`.
+
+### Changed
+
+- `/kanon:ears-lint` also checks every open change under `changes/`, and a path
+  under `changes/` is read as a delta. A project with an open change that
+  breaks a rule now fails the lint; archived changes are never checked.
