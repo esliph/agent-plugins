@@ -17,6 +17,12 @@
       "description": "Owner, lifecycle and trigger of each path: the core that living documentation uses, and that runs on its own.",
       "version": "0.1.0",
       "source": "./plugins/ownership/plugin"
+    },
+    {
+      "name": "kanon",
+      "description": "Spec-Driven Development with EARS as the native format of acceptance criteria: stable requirement IDs, a controlled glossary and a deterministic lint.",
+      "version": "0.1.0",
+      "source": "./plugins/kanon/plugin"
     }
   ]
 }

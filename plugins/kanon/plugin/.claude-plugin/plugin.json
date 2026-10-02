@@ -1,0 +1,5 @@
+{
+  "name": "kanon",
+  "version": "0.1.0",
+  "description": "Spec-Driven Development with EARS as the native format of acceptance criteria: stable requirement IDs, a controlled glossary and a deterministic lint."
+}

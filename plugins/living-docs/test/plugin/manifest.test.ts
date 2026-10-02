@@ -99,7 +99,9 @@ test('every referenced hook exists in the repository', () => {
 function hookNames(pluginRoot: string): string[] {
   const config = JSON.parse(readFileSync(join(pluginRoot, 'hooks/hooks.json'), 'utf8')) as { hooks: Record<string, { hooks: { command: string }[] }[]> }
 
-  return Object.values(config.hooks).flatMap(groups => groups.flatMap(group => group.hooks.map(hook => hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? '')))
+  return Object.values(config.hooks).flatMap(groups =>
+    groups.flatMap(group => group.hooks.map(hook => hook.command.trim().split(/\s+/).pop()?.replace(/"/g, '') ?? '')),
+  )
 }
 
 test('the two plugins register no hook in common — each guard runs in a single plugin', () => {
@@ -118,12 +120,18 @@ test('the two plugins register no hook in common — each guard runs in a single
 
 test('living-docs declares the ownership plugin as a dependency, and the marketplace publishes both', () => {
   const manifest = readJson('.claude-plugin/plugin.json')
-  const marketplace = JSON.parse(readFileSync(join(CHECKOUT, '.claude-plugin/marketplace.json'), 'utf8')) as { plugins: { name: string; source: string; version: string }[] }
+  const marketplace = JSON.parse(readFileSync(join(CHECKOUT, '.claude-plugin/marketplace.json'), 'utf8')) as {
+    plugins: { name: string; source: string; version: string }[]
+  }
   const core = JSON.parse(readFileSync(join(CHECKOUT, 'plugins', 'ownership', 'plugin', '.claude-plugin/plugin.json'), 'utf8')) as { version: string }
 
   assert.deepEqual(manifest.dependencies, ['ownership'])
+  // The marketplace may publish other plugins; what this one needs is its dependency beside it.
   assert.deepEqual(
-    marketplace.plugins.map(plugin => plugin.name).sort(),
+    marketplace.plugins
+      .map(plugin => plugin.name)
+      .filter(name => name === 'living-docs' || name === 'ownership')
+      .sort(),
     ['living-docs', 'ownership'],
   )
   const entry = marketplace.plugins.find(plugin => plugin.name === 'ownership')!
@@ -226,7 +234,11 @@ for (const file of AGENTS) {
 
     assert.match(source, new RegExp(`^name:\\s*${name}\\s*$`, 'm'), `${file} declares another name`)
     assert.match(source, /^description:/m, `${file} without a description — it is what says when to use it`)
-    assert.notEqual(source.match(/^tools:\s*(.+)$/m)?.[1] ?? '', '', `${file} must declare tools explicitly — an agent without an allowlist inherits everything`)
+    assert.notEqual(
+      source.match(/^tools:\s*(.+)$/m)?.[1] ?? '',
+      '',
+      `${file} must declare tools explicitly — an agent without an allowlist inherits everything`,
+    )
   })
 }
 

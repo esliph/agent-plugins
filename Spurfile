@@ -2,7 +2,7 @@
 # commands in plugins/<name>/Spurfile; this file only delegates to them. The
 # order is load-bearing — the core first, while living-docs depends on it by
 # path — so it is written here and never taken from a glob.
-PLUGINS="ownership living-docs"
+PLUGINS="ownership living-docs kanon"
 
 # Runs one task in every plugin that has it, in order. A plugin owes the root
 # nothing: one with no Spurfile, or with a Spurfile that lacks the task, is

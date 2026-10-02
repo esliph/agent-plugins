@@ -12,6 +12,7 @@ living-docs:
 include:
   - plugins/ownership/
   - plugins/living-docs/
+  - plugins/kanon/
 
 owned:
   # --- Artifacts: an entry with `living-docs.id-prefix`. ID family and lifecycle.

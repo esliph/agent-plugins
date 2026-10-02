@@ -6,6 +6,7 @@ Claude Code plugins maintained by esliph.
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`ownership`](plugins/ownership/README.md)     | Declare, in one file, who owns each path of a repository, which files are generated, and which document must change when a piece of code changes — and have it checked. |
 | [`living-docs`](plugins/living-docs/README.md) | Keep decisions, open questions, technical debt, requirements, glossary and changelog up to date, each with an owner and a moment to be revised. Built on `ownership`.   |
+| [`kanon`](plugins/kanon/README.md)             | Write acceptance criteria in EARS, each requirement with a stable ID and terms from a controlled glossary, and have them linted by a script. Works on its own.          |
 
 ## Install
 
@@ -24,7 +25,8 @@ Each plugin's README covers its setup, commands and checks.
 ## Contributing
 
 Each plugin is a project under `plugins/<name>/`, with its own toolchain and
-tests; its README says how to work on it. For the two current plugins:
+tests; its README says how to work on it. From the root, for every plugin at
+once:
 
 ```bash
 ./spur install

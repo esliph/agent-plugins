@@ -1,0 +1,99 @@
+# Paths of the kanon plugin project, relative to this directory. The root
+# .ownership.yml includes this file; paths are disjoint across files.
+version: 2
+
+owned:
+  # --- Artifacts. The prefix is shared with the other projects; the sequence is one per repository (ADR-0037).
+  - path: docs/open-decisions.md
+    owner: '@esliph/engineering'
+    skill: decision-recorder
+    states: [open, resolved, dropped]
+    format: { collection: table, key: ID, state-field: Status }
+    living-docs:
+      id-prefix: DA
+
+  - path: docs/requirements/functional.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RF
+      # Read from the repository root, not from this file's base (ADR-0036).
+      cited-by: ['plugins/kanon/test/**']
+
+  - path: docs/requirements/non-functional.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RNF
+      cited-by: ['plugins/kanon/test/**']
+
+  - path: docs/requirements/rules.md
+    owner: '@esliph/engineering'
+    skill: requirements-keeper
+    states: [draft, active, revoked]
+    format: { collection: sections, key: first-token }
+    living-docs:
+      id-prefix: RN
+      cited-by: ['plugins/kanon/test/**', 'plugins/kanon/plugin/src/**']
+
+  # No owning skill, and that is information: the scope has an owner and no keeper.
+  - path: docs/research/
+    owner: '@esliph/engineering'
+    living-docs: {}
+  - path: .ownership.yml
+    owner: '@esliph/engineering'
+    skill: living-docs-bootstrap
+    living-docs: {}
+  - path: README.md
+    owner: '@esliph/engineering'
+    living-docs: { audience: external }
+  - path: CHANGELOG.md
+    owner: '@esliph/engineering'
+    skill: release-historian
+    living-docs: { audience: external }
+
+  # --- Owner only: code and toolchain.
+  - path: plugin/
+    owner: '@esliph/engineering'
+  - path: test/
+    owner: '@esliph/engineering'
+  - path: package.json
+    owner: '@esliph/engineering'
+  - path: package-lock.json
+    owner: '@esliph/engineering'
+  - path: tsconfig.json
+    owner: '@esliph/engineering'
+  - path: eslint.config.mjs
+    owner: '@esliph/engineering'
+  - path: Spurfile
+    owner: '@esliph/engineering'
+  - path: .gitignore
+    owner: '@esliph/engineering'
+
+watches:
+  - code: 'plugin/src/cli/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'subcommand, option, output and exit code are what a project and its CI depend on'
+
+  - code: 'plugin/{.claude-plugin,commands,skills}/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'command and skill identifiers are what whoever installs receives in the session'
+
+  - code: 'plugin/templates/**'
+    doc: CHANGELOG.md
+    consumer-visible: true
+    reason: 'it is what `init` and `capability add` write in the repository of whoever installs'
+
+  - code: 'plugin/src/{checks,ears,ids,glossary,registry,specs}/**'
+    doc: docs/requirements/rules.md
+    reason: 'a lint check is an executable rule — the RN comes first, and it is what the check verifies'
+
+  - code: 'plugin/src/cli/**'
+    doc: docs/requirements/functional.md
+    reason: 'what a command does that is observable is an RF, not an implementation detail'

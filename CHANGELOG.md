@@ -8,6 +8,13 @@ An entry is born in the PR that causes the change, not on the eve of the release
 
 ## [Unreleased]
 
+### Added
+
+- `kanon` plugin: Spec-Driven Development with EARS as the native format of
+  acceptance criteria. It installs with `/plugin install kanon@esliph` and
+  brings the foundation — constitution, glossary, capabilities — and a
+  deterministic lint of criteria and requirement IDs. It needs no other plugin.
+
 ### Changed
 
 - Each plugin now lives in its own directory under `plugins/`, and the

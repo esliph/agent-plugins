@@ -57,7 +57,12 @@ test('RN-0013: this repository declares what is visible to the consumer', () => 
   ]) {
     assert.ok(isVisible(path), `${path} should be visible to the consumer`)
   }
-  for (const path of ['plugins/living-docs/plugin/src/core/roots.ts', 'plugins/living-docs/test/smoke.test.ts', 'plugins/living-docs/package.json', 'plugins/living-docs/plugin/package.json']) {
+  for (const path of [
+    'plugins/living-docs/plugin/src/core/roots.ts',
+    'plugins/living-docs/test/smoke.test.ts',
+    'plugins/living-docs/package.json',
+    'plugins/living-docs/plugin/package.json',
+  ]) {
     assert.equal(isVisible(path), false, `${path} is not public surface`)
   }
 })
@@ -66,7 +71,7 @@ test('ADR-0006: some watches rule says where the entry should be', () => {
   const targets = [...new Set(config.watches.filter(watch => watch.consumerVisible).map(watch => watch.doc))].sort()
 
   // One CHANGELOG per project: each plugin answers to its own consumers.
-  assert.deepEqual(targets, ['CHANGELOG.md', 'plugins/living-docs/CHANGELOG.md', 'plugins/ownership/CHANGELOG.md'])
+  assert.deepEqual(targets, ['CHANGELOG.md', 'plugins/kanon/CHANGELOG.md', 'plugins/living-docs/CHANGELOG.md', 'plugins/ownership/CHANGELOG.md'])
 })
 
 test('RN-0013: the CHANGELOG is consumer-facing — Keep a Changelog, no frontmatter', () => {
@@ -110,7 +115,14 @@ test('REL is declared, so that living-docs/append-only freezes a published relea
 })
 
 test('RN-0030: this repository marks as external what it writes for outside readers', () => {
-  for (const path of ['README.md', 'CHANGELOG.md', 'plugins/living-docs/CHANGELOG.md', 'plugins/living-docs/README.md', 'plugins/living-docs/docs/deprecations.md', 'plugins/living-docs/docs/migrations/']) {
+  for (const path of [
+    'README.md',
+    'CHANGELOG.md',
+    'plugins/living-docs/CHANGELOG.md',
+    'plugins/living-docs/README.md',
+    'plugins/living-docs/docs/deprecations.md',
+    'plugins/living-docs/docs/migrations/',
+  ]) {
     assert.equal(config.documents.find(document => document.path === path)?.audience, 'external', `${path} should be marked`)
   }
   assert.equal(config.artifacts.find(artifact => artifact.idPrefix === 'REL')?.audience, 'external')
