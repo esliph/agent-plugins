@@ -15,7 +15,7 @@ consumer. Everything it requires of a project, it fulfils.
 ## The environment
 
 Each plugin is a project under `plugins/<name>/`, with its own toolchain. The
-root has none. For the two current plugins, Node 24 or greater with its npm, and
+root has none. Every plugin with code needs Node 24 or greater with its npm, and
 a POSIX shell with `awk` to run `./spur` — on Windows, Git Bash or WSL
 (`RNF-0002`). Every command is a task of `./spur`, the runner vendored at the
 root (`ADR-0039`): `./spur --list` shows the root's tasks, and `../../spur --list`
