@@ -94,3 +94,73 @@ Asked for the next ID of a capability, `/kanon:capability` runs
 `kanon id next <CAP>` and gives back the ID it printed, with its warning or its
 refusal as they came. An ID is never typed from memory or read off the last
 requirement of a spec: the counter is the only source of one.
+
+## RF-0025 — `kanon change open <slug>` opens a change under the date of the day
+
+- **status:** draft
+- **relates-to:** RN-0052
+- **out of scope:** writing the delta, which is done by hand until a later slice; committing
+
+The command creates `changes/<date>-<slug>/proposal.md` from a template and
+prints the ID of the change. It refuses a slug that is not lowercase kebab-case,
+and an ID that already exists, open or archived. The date is the local date; an
+environment variable fixes it for a run that must not depend on the clock.
+
+## RF-0026 — `kanon change sync <id>` applies the deltas of a change and archives it, in one step
+
+- **status:** draft
+- **relates-to:** RN-0053, RN-0054, RN-0055, RN-0056, RN-0057, RN-0058, RF-0029
+- **out of scope:** committing; recovering from a disk failure in the middle of the writes, which is left to `git`; an applied-but-open state, which does not exist
+
+The command refuses a change that is not under `changes/`, that is already
+archived, or that has no operation in any delta. It validates the change as the
+lint does: with an error it prints the findings and exits 1 having written
+nothing; a warning does not stop it. It computes the final text of every spec
+and of every registry before touching the disk, writes the specs, the
+registries and `status: synced` in the proposal, and last moves the folder to
+`changes/archive/<id>/`. It prints one line per path written or moved.
+
+## RF-0027 — `kanon change drop <id>` abandons a change without giving its IDs back
+
+- **status:** draft
+- **relates-to:** RN-0059
+- **out of scope:** validating the delta — an abandoned change may well be broken; committing
+
+The command refuses a change that is not open. It writes the tombstones
+`RN-0059` asks for, says which IDs it skipped, writes `status: dropped` in the
+proposal and moves the folder to `changes/archive/<id>/`.
+
+## RF-0028 — `kanon status` lists the open changes
+
+- **status:** draft
+- **relates-to:** RN-0052, RF-0029
+- **out of scope:** the findings themselves, which `kanon lint` prints; archived changes; the traceability view of a later slice
+
+For each open change the command prints its ID, the count of ADDED, MODIFIED and
+REMOVED per capability, and how many errors and warnings the validator sees in
+it. It is a view: it writes nothing, exits 0 even when a change has errors, and
+exits 2 only when it could not run.
+
+## RF-0029 — `kanon lint` also checks the open changes
+
+- **status:** draft
+- **relates-to:** RF-0018, RN-0052, RN-0053, RN-0054, RN-0055, RN-0056, RN-0057
+- **out of scope:** archived changes, which are never checked; a change with no delta, which is not an error; the projection of the specs after a change — the capacity warnings keep measuring the current specs
+
+With no argument, `kanon lint` also checks every open change under `changes/`,
+and never `changes/archive/`. Given paths, a path under `changes/` is read as a
+delta. A finding in a change has the format of every other finding, and an
+error in a change fails the run.
+
+## RF-0030 — The change commands of the session run the command line and show its output as it came
+
+- **status:** draft
+- **relates-to:** RF-0022, RF-0024, RF-0025, RF-0026, RF-0027, RF-0028
+- **out of scope:** writing the delta with the model's help, which belongs to a later slice; committing, which the session never does
+
+`/kanon:change open` proposes a slug from the description and confirms it before
+creating anything. `/kanon:change sync` and `/kanon:change drop` run the command
+line; `drop` asks first, because a tombstone has no way back. `/kanon:status`
+runs `kanon status`. Each shows the output of the command line as it came and
+never commits. The lint command of the session says the lint covers the open
+changes.
