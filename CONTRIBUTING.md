@@ -20,8 +20,7 @@ a POSIX shell with `awk` to run `./spur` — on Windows, Git Bash or WSL
 (`RNF-0002`). Every command is a task of `./spur`, the runner vendored at the
 root (`ADR-0039`): `./spur --list` shows the root's tasks, and `../../spur --list`
 from a plugin project shows that plugin's. Dependencies come in with
-`./spur install`, which installs the core first while living-docs depends on it
-by path:
+`./spur install`:
 
 ```bash
 ./spur install
@@ -33,30 +32,6 @@ by path:
 
 A command that fails with `ERR_MODULE_NOT_FOUND` is a command run before
 `./spur install` — it is not the environment that is wrong.
-
-### Optional: running living-docs through the container
-
-Whoever does not want to install Node on the machine has a second path (`RNF-0006`,
-`ADR-0016`). From `plugins/living-docs/`, `bin/dev` runs any maintenance command
-inside the container, and brings the container up by itself when it is not up:
-
-```bash
-bin/dev ../../spur test
-bin/dev ../../spur typecheck
-bin/dev node --conditions=development plugin/src/cli/index.ts validate
-bin/living-docs validate     # the same, through the CLI wrapper
-bin/dev                      # a shell inside the container
-```
-
-It requires the Docker daemon, and the first invocation builds the image. On
-Windows, invoke it through Git Bash, through WSL, or with `bash bin/dev …` from
-PowerShell.
-
-Two things this path is **not**. It is not the execution of record: what CI
-reproduces on every PR and what the Definition of Done measures remains the host.
-And it does not cover the hooks, which always run on the host (`RNF-0001`) — on a
-machine with no Node, local enforcement does not exist, and that is the same loss
-`ADR-0015` already declared.
 
 ## Adding a plugin
 
@@ -99,7 +74,7 @@ space: take the next free number across every project (`RN-0040`).
    implementation **stops** — inventing the rule is the error this repository
    exists to avoid.
 2. **A test before the implementation**, citing the ID of the requirement it
-   covers. It is the citation that `living-docs/citation-coverage` looks for; a test without an ID leaves the rule uncovered.
+   covers; a test without an ID leaves the rule uncovered.
 3. **Minimal implementation.** What has no requirement is not scope.
 4. **A commit citing the affected ID** — it is what makes `git log` navigable by rule.
 5. **The Definition of Done** (`docs/definition-of-done.md`) says when it is finished.
@@ -123,7 +98,7 @@ space: take the next free number across every project (`RN-0040`).
 | What is public, and what each error means  | `docs/contracts/`                                                      |
 | What changed for whoever uses it           | `CHANGELOG.md` and `docs/releases/`                                    |
 | When it is done                            | `docs/definition-of-done.md`                                           |
-| Who answers for each document with no ID   | `.ownership.yml` (entry with a `living-docs:` block)                   |
+| Who answers for each document with no ID   | `.ownership.yml`                                                       |
 
 None of these answers is copied anywhere else. A duplicate rots, and the old
 version beats the new one by repetition.

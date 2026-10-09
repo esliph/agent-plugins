@@ -2,16 +2,6 @@ node_modules/
 .worktrees/
 package-lock.json
 
-# `init` seed: `{{ID}}`, `{{TODAY}}` and the like are placeholders, and
-# Prettier reads `{{X}}` in frontmatter as a YAML map and rewrites it `{ { X } }` —
-# the seeded file stops parsing. A template is not formattable code.
-plugins/living-docs/plugin/templates/
-plugins/kanon/plugin/templates/
-
-# Generated artifact: changes through the source and the generator, never through a formatter
-# (`HK-2` blocks hand editing; `CI-5` compares with the generator's output).
-plugins/living-docs/docs/contracts/checks.gen.md
-
 # Dated record: reformatting falsifies what was written when it was produced
 # (ADR-0014, "Consequences").
 docs/superpowers/plans/

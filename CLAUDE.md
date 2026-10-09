@@ -22,9 +22,9 @@ one.
   `docs/requirements/`; if the rule does not exist, open a `DA`
   (`/open-decision`) and stop. Do not invent the rule that is missing.
 - **You do not accept decisions.** A skill writes `draft`/`open`; promoting is a
-  human act — `living-docs/state-promotion` asks, and the answer is not yours.
+  human act, and the answer is not yours.
 - **You do not fix a frozen item.** An accepted ADR gets `superseded` and a new
-  ADR — `living-docs/append-only` blocks the rest.
+  ADR.
 - **You do not edit a generated artifact.** What is in `generated[]` (or carries
   the marker) changes through the source and the generator —
   `ownership/generated-guard` denies and `ownership/generated-drift` enforces.
@@ -39,7 +39,7 @@ one.
   is in the contract.
 - **Text for readers on the outside carries no artifact ID.** What is marked
   `audience: external` explains in running text; the link stays in the artifact
-  or in the commit — `living-docs/external-audience` enforces it.
+  or in the commit.
 - **What a plugin ships does not point inside this repository.** A seed, a skill
   and a CLI or hook message stay free of the ID and of the spec section from
   here; the why goes into the code comment — the distribution test enforces it.
