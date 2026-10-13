@@ -2,6 +2,7 @@ import { resolve } from 'node:path'
 
 import { OwnershipError } from '../errors.ts'
 import { explainCommand } from './explain.ts'
+import { initCommand } from './init.ts'
 import { USAGE, UsageError } from './usage.ts'
 import { validateCommand } from './validate.ts'
 
@@ -42,6 +43,8 @@ export async function main(argv: readonly string[], io: Io): Promise<number> {
         return await validateCommand(args, root, io)
       case 'explain':
         return explainCommand(args, root, io)
+      case 'init':
+        return initCommand(args, root, io)
       default:
         io.stderr(`ownership: unknown command "${command}"\n\n${USAGE}`)
 
