@@ -2,9 +2,9 @@
 
 Claude Code plugins maintained by esliph.
 
-| Plugin                                         | Use it to                                                                                                                                                               |
-| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`ownership`](plugins/ownership/README.md)     | Declare, in one file, who owns each path of a repository, which files are generated, and which document must change when a piece of code changes — and have it checked. |
+| Plugin                                     | Use it to                                                                                                                                          |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`ownership`](plugins/ownership/README.md) | Declare, in one file, who owns each path of a repository and which files are generated — and have it checked in the Claude Code session and in CI. |
 
 ## Install
 

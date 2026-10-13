@@ -1,0 +1,149 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+
+import { buildIndex } from '../../plugin/src/resolve/relations.ts'
+import { coveringIgnore, coveringOwned } from '../../plugin/src/resolve/trie.ts'
+import type { GeneratedRule, IgnoreRule, OwnedRule } from '../../plugin/src/resolve/types.ts'
+
+const ROOT = '.ownership.yml'
+
+function owned(index: number, path: string, line: number, file = ROOT): OwnedRule {
+  return { kind: 'owned', path, owner: '@t', plugins: {}, origin: { file, keyPath: `owned[${index}]`, line } }
+}
+
+function generated(index: number, path: string, line: number, file = ROOT): GeneratedRule {
+  return { kind: 'generated', path, command: 'gen', origin: { file, keyPath: `generated[${index}]`, line } }
+}
+
+function ignore(index: number, path: string, line: number, file = ROOT): IgnoreRule {
+  return { kind: 'ignore', path, origin: { file, keyPath: `ignore[${index}]`, line } }
+}
+
+test('disjoint paths load, and the index answers who covers a path', () => {
+  const docs = owned(0, 'docs/', 3)
+  const readme = owned(1, 'README.md', 5)
+  const vendor = ignore(0, 'docs/vendor/', 8)
+  const { index, issues } = buildIndex({ owned: [docs, readme], generated: [], ignore: [vendor] })
+
+  assert.deepEqual(issues, [])
+  assert.equal(coveringOwned(index, 'docs/adr/1.md'), docs)
+  assert.equal(coveringOwned(index, 'docs/'), docs)
+  assert.equal(coveringOwned(index, 'docs'), null)
+  assert.equal(coveringOwned(index, 'README.md'), readme)
+  assert.equal(coveringOwned(index, 'README.md/x'), null)
+  assert.equal(coveringOwned(index, 'src/a.ts'), null)
+  assert.equal(coveringIgnore(index, 'docs/vendor/a.js'), vendor)
+  assert.equal(coveringIgnore(index, 'docs/a.md'), null)
+})
+
+test('two equal owned paths are an error on the second one', () => {
+  const { issues } = buildIndex({ owned: [owned(0, 'docs/', 3), owned(1, 'docs/', 5)], generated: [], ignore: [] })
+
+  assert.deepEqual(issues, [
+    {
+      file: ROOT,
+      keyPath: 'owned[1].path',
+      line: 5,
+      message: 'owned[1].path "docs/" repeats owned[0].path; owned paths must be disjoint.',
+      fix: 'remove one of the two entries',
+    },
+  ])
+})
+
+test('containment is one error on the outer path, in either order of declaration', () => {
+  const expected = [
+    {
+      file: ROOT,
+      keyPath: 'owned[0].path',
+      line: 3,
+      message: 'owned[0].path "docs/" contains owned[1].path "docs/adr/"; owned paths must be disjoint.',
+      fix: 'split "docs/" into entries that leave out "docs/adr/"',
+    },
+  ]
+
+  assert.deepEqual(buildIndex({ owned: [owned(0, 'docs/', 3), owned(1, 'docs/adr/', 5)], generated: [], ignore: [] }).issues, expected)
+  assert.deepEqual(buildIndex({ owned: [owned(1, 'docs/adr/', 5), owned(0, 'docs/', 3)], generated: [], ignore: [] }).issues, expected)
+})
+
+test('with the repository files, containment suggests the entries that replace the outer path', () => {
+  const files = new Set(['docs/README.md', 'docs/guides/x.md', 'docs/adr/0001.md', 'docs/api/v1/y.md'])
+  const { issues } = buildIndex({ owned: [owned(0, 'docs/', 3), owned(1, 'docs/adr/', 5)], generated: [], ignore: [] }, files)
+
+  assert.equal(issues[0]?.fix, 'replace "docs/" with: docs/README.md, docs/api/, docs/guides/ (keep docs/adr/)')
+})
+
+test('the suggestion is truncated at 20 children', () => {
+  const files = new Set([...Array.from({ length: 25 }, (_, i) => `docs/f${String(i).padStart(2, '0')}.md`), 'docs/adr/x.md'])
+  const { issues } = buildIndex({ owned: [owned(0, 'docs/', 3), owned(1, 'docs/adr/', 5)], generated: [], ignore: [] }, files)
+  const shown = Array.from({ length: 20 }, (_, i) => `docs/f${String(i).padStart(2, '0')}.md`).join(', ')
+
+  assert.equal(issues[0]?.fix, `replace "docs/" with: ${shown} and 5 more (keep docs/adr/)`)
+})
+
+test('a relation across files names the other file', () => {
+  const { issues } = buildIndex({ owned: [owned(0, 'plugins/', 3), owned(0, 'plugins/x/', 2, 'plugins/x/.ownership.yml')], generated: [], ignore: [] })
+
+  assert.equal(issues[0]?.message, 'owned[0].path "plugins/" contains owned[0].path "plugins/x/" (plugins/x/.ownership.yml:2); owned paths must be disjoint.')
+})
+
+test('ignore paths are disjoint among themselves', () => {
+  const { issues } = buildIndex({ owned: [], generated: [], ignore: [ignore(0, 'vendor/', 2), ignore(1, 'vendor/lib/', 3)] })
+
+  assert.deepEqual(
+    issues.map(issue => issue.message),
+    ['ignore[0] "vendor/" contains ignore[1] "vendor/lib/"; ignore paths must be disjoint.'],
+  )
+})
+
+test('a generated path is distinct and inside an owned path', () => {
+  const { issues } = buildIndex({
+    owned: [owned(0, 'docs/', 2), owned(1, 'api.md', 4)],
+    generated: [generated(0, 'docs/a.md', 6), generated(1, 'api.md', 8), generated(2, 'docs/a.md', 10), generated(3, 'out.md', 12)],
+    ignore: [],
+  })
+
+  assert.deepEqual(
+    issues.map(issue => issue.message),
+    [
+      'generated[2].path "docs/a.md" repeats generated[0].path; a file is generated by one command.',
+      'generated[3].path "out.md" is not inside any owned path; a generated file needs an owner.',
+    ],
+  )
+  assert.equal(issues[1]?.fix, 'declare "out.md" in owned[], or move it inside an existing owned entry')
+})
+
+test('an ignore neither equals nor contains an owned or generated path, but may sit inside an owned directory', () => {
+  const { issues } = buildIndex({
+    owned: [owned(0, 'src/', 2), owned(1, 'lib/a.ts', 4)],
+    generated: [generated(0, 'src/gen/out.ts', 6)],
+    ignore: [ignore(0, 'src/vendor/', 8), ignore(1, 'lib/a.ts', 9), ignore(2, 'src/gen/', 10)],
+  })
+
+  assert.deepEqual(
+    issues.map(issue => issue.message),
+    [
+      'ignore[1] "lib/a.ts" equals owned[1].path; a path cannot be declared and ignored.',
+      'ignore[2] "src/gen/" contains generated[0].path "src/gen/out.ts"; a path cannot be declared and ignored.',
+    ],
+  )
+})
+
+test('paths that differ only in case are an error naming both, across kinds', () => {
+  const { issues } = buildIndex({ owned: [owned(0, 'Docs/', 2)], generated: [], ignore: [ignore(0, 'docs/', 5)] })
+
+  assert.equal(issues[0]?.message, 'ignore[0] "docs/" and owned[0].path "Docs/" differ only in case')
+  assert.equal(issues[0]?.fix, 'use the same case in both: on GitHub they are two different paths')
+})
+
+test('every relation error is collected in one run, sorted by file and line', () => {
+  const { issues } = buildIndex({
+    owned: [owned(0, 'a/', 2), owned(1, 'a/b/', 4), owned(0, 'x/', 9, 'other.yml'), owned(1, 'x/', 11, 'other.yml')],
+    generated: [generated(0, 'z.md', 6)],
+    ignore: [],
+  })
+
+  assert.deepEqual(
+    issues.map(issue => `${issue.file}:${issue.line}`),
+    ['.ownership.yml:2', '.ownership.yml:6', 'other.yml:11'],
+  )
+})

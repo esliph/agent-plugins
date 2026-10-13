@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "plugin/src",
+    "outDir": "plugin/dist",
+    "declaration": true,
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": ["plugin/src/**/*.ts"]
+}

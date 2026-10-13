@@ -1,0 +1,5 @@
+{
+  "name": "ownership",
+  "version": "0.1.0",
+  "description": "Who owns each path of a repository and which files are generated, checked in the agent session and in CI."
+}

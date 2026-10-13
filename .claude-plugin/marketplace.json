@@ -5,5 +5,12 @@
     "name": "Dan Ruan",
     "email": "danrsaquetti@gmail.com"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "ownership",
+      "description": "Who owns each path of a repository and which files are generated, checked in the agent session and in CI.",
+      "version": "0.1.0",
+      "source": "./plugins/ownership/plugin"
+    }
+  ]
 }
