@@ -48,6 +48,10 @@ An entry is born in the change that causes it, not on the eve of the release.
 - A YAML alias now works wherever the value it stands for would: a whole plugin
   block, a whole `plugins` map, an `owned` or `generated` entry, or a single
   value such as an owner.
+- `ownership init --from-codeowners` no longer drops a path whose `CODEOWNERS`
+  line lists only email addresses without a word: the path appears in the
+  commented "Left out" block and in the output, with the reason that an owner
+  must start with `@`.
 - The session hook keeps to its five-second budget even when `git` is slow or
   hangs: it stops waiting, stays silent and lets the edit through, instead of
   holding the edit for as long as `git` takes.

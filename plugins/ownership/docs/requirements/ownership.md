@@ -836,11 +836,18 @@ starts from each root child and, if needed, descends:
   an ownership file accepts only such an owner (REQ-SCH-03). The other owners on that line,
   emails included, go in a comment on the entry, in the order of the line
   (`# CODEOWNERS line 12 also lists @b dev@example.com`).
+- A node whose effective line lists only emails has no owner to declare: it generates no entry
+  and is left out, with the reason that the line lists only emails and that an owner starts
+  with `@`. It is reported once, at the node that would have been the entry, not once per file
+  under it, and `owner-coverage` fails on its files. The reason reads:
+  `CODEOWNERS line 12 lists only emails (a@example.com); an owner must start with "@"`.
 - A file without an effective line generates no entry. This includes a line with a pattern and
   no owners, which on GitHub unsets the owner. The output says how many files ended up in that
   situation, and `owner-coverage` fails on them.
-- Paths that differ only in case (REQ-RES-08) do not become entries. They appear commented out
-  and listed in the output.
+- Paths that differ only in case (REQ-RES-08), and paths that are not literal (REQ-SCH-08), do
+  not become entries and are left out.
+- A path left out appears commented out, with its reason, in a "Left out" block of the file, and
+  is listed in the output. Its files count among those without an owner (REQ-INIT-05).
 
 **Why:** converting line by line does not work, because CODEOWNERS patterns have glob and match
 at any level (REQ-SCH-08), and the rule "the last line wins" produces overlap. The second

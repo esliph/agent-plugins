@@ -80,14 +80,18 @@ function sortedChildren(node: TreeNode): TreeNode[] {
 
 const NO_OWNER = ''
 
+/** The placeholder owner of a left-out path that has no @handle to offer. */
+const PLACEHOLDER_OWNER = '@owner'
+
 /** The owner set of a CODEOWNERS answer as one comparable text; no line and a line without owners are both "no owner". */
 function ownerKey(result: OwnersResult): string {
-  return result.kind === 'matched' && hasHandle(result.owners) ? [...new Set(result.owners.map(owner => owner.toLowerCase()))].sort().join(' ') : NO_OWNER
+  return result.kind === 'matched' && result.owners.length > 0 ? [...new Set(result.owners.map(owner => owner.toLowerCase()))].sort().join(' ') : NO_OWNER
 }
 
-/** An ownership file only accepts an owner that starts with `@`; CODEOWNERS also accepts an email address. */
-function hasHandle(owners: readonly string[]): boolean {
-  return owners.some(owner => owner.startsWith('@'))
+interface Derived {
+  readonly entries: InitEntry[]
+  /** Nodes whose line lists only emails: an ownership file only accepts an owner that starts with `@`. */
+  readonly emailOnly: LeftOut[]
 }
 
 /**
@@ -97,7 +101,7 @@ function hasHandle(owners: readonly string[]): boolean {
  * condition matters because a line such as `docs/**\/*.md @x` gives every file
  * of `docs/` to `@x` without matching `docs/` itself.
  */
-function fromCodeowners(repoFiles: Iterable<string>, codeowners: Codeowners): InitEntry[] {
+function fromCodeowners(repoFiles: Iterable<string>, codeowners: Codeowners): Derived {
   const keys = new Map<TreeNode, string | null>()
 
   const keyOf = (node: TreeNode): string | null => {
@@ -124,6 +128,7 @@ function fromCodeowners(repoFiles: Iterable<string>, codeowners: Codeowners): In
   }
 
   const entries: InitEntry[] = []
+  const emailOnly: LeftOut[] = []
 
   const visit = (node: TreeNode): void => {
     const key = keyOf(node)
@@ -132,8 +137,17 @@ function fromCodeowners(repoFiles: Iterable<string>, codeowners: Codeowners): In
     const owner = listed.find(candidate => candidate.startsWith('@'))
     const others = listed.filter(candidate => candidate !== owner)
 
-    if (key !== null && key !== NO_OWNER && own.kind === 'matched' && owner !== undefined && ownerKey(own) === key) {
-      entries.push({ path: node.path, owner, ...(others.length === 0 ? {} : { note: `CODEOWNERS line ${own.line} also lists ${others.join(' ')}` }) })
+    if (key !== null && key !== NO_OWNER && own.kind === 'matched' && ownerKey(own) === key) {
+      if (owner === undefined) {
+        // Reported where the entry would have been, once for the whole node.
+        emailOnly.push({
+          path: node.path,
+          owner: PLACEHOLDER_OWNER,
+          reason: `CODEOWNERS line ${own.line} lists only emails (${listed.join(' ')}); an owner must start with "@"`,
+        })
+      } else {
+        entries.push({ path: node.path, owner, ...(others.length === 0 ? {} : { note: `CODEOWNERS line ${own.line} also lists ${others.join(' ')}` }) })
+      }
 
       return
     }
@@ -143,7 +157,7 @@ function fromCodeowners(repoFiles: Iterable<string>, codeowners: Codeowners): In
 
   sortedChildren(buildTree(repoFiles)).forEach(visit)
 
-  return entries
+  return { entries, emailOnly }
 }
 
 function countUnowned(repoFiles: Iterable<string>, entries: readonly InitEntry[]): number {
@@ -174,8 +188,11 @@ export function deriveInit(repoFiles: ReadonlySet<string>, mode: InitMode): Init
     return { mode: 'skeleton', entries: [], leftOut: [], templates: rootChildren(repoFiles), unowned: repoFiles.size }
   }
 
-  const candidates =
-    mode.kind === 'owner' ? rootChildren(repoFiles).map((path): InitEntry => ({ path, owner: mode.owner })) : fromCodeowners(repoFiles, mode.codeowners)
+  const derived: Derived =
+    mode.kind === 'owner'
+      ? { entries: rootChildren(repoFiles).map((path): InitEntry => ({ path, owner: mode.owner })), emailOnly: [] }
+      : fromCodeowners(repoFiles, mode.codeowners)
+  const candidates = derived.entries
   const collisions = new Set(caseCollisions(candidates.map(entry => entry.path)).flat())
   const entries: InitEntry[] = []
   const leftOut: LeftOut[] = []
@@ -190,7 +207,7 @@ export function deriveInit(repoFiles: ReadonlySet<string>, mode: InitMode): Init
     }
   }
 
-  return { mode: mode.kind, entries, leftOut, templates: [], unowned: countUnowned(repoFiles, entries) }
+  return { mode: mode.kind, entries, leftOut: [...leftOut, ...derived.emailOnly], templates: [], unowned: countUnowned(repoFiles, entries) }
 }
 
 /** The repository files whose first line says they are generated. */

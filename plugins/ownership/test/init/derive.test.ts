@@ -146,3 +146,13 @@ test('an owner that is not an @handle, such as an email, is never the declared o
   ])
   assert.equal(plan.unowned, 1)
 })
+
+test('a CODEOWNERS line that lists only emails is listed as left out with the reason, once, at the level an entry would have', () => {
+  const plan = fromCodeowners(['lib/a.ts', 'lib/deep/b.ts', 'docs/c.md', 'tmp/d.txt'], 'lib/ dev@example.com ops@example.com\ndocs/ @docs\ntmp/\n')
+
+  assert.deepEqual(plan.entries, [{ path: 'docs/', owner: '@docs' }])
+  assert.deepEqual(plan.leftOut, [
+    { path: 'lib/', owner: '@owner', reason: 'CODEOWNERS line 1 lists only emails (dev@example.com ops@example.com); an owner must start with "@"' },
+  ])
+  assert.equal(plan.unowned, 3)
+})
