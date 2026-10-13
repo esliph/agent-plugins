@@ -7,9 +7,13 @@ export interface Issue {
   fix?: string
 }
 
+/** `file:line`, or the file alone when there is no line. */
+export function location(place: { readonly file: string; readonly line?: number }): string {
+  return place.line === undefined ? place.file : `${place.file}:${place.line}`
+}
+
 export function formatIssue(issue: Issue): string {
-  const where = issue.line === undefined ? issue.file : `${issue.file}:${issue.line}`
-  const head = `${where}: ${issue.message}`
+  const head = `${location(issue)}: ${issue.message}`
 
   return issue.fix === undefined ? head : `${head}\n  → ${issue.fix}`
 }

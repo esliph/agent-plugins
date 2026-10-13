@@ -1,3 +1,4 @@
+import { location } from '../errors.ts'
 import type { Issue } from '../errors.ts'
 import { splitSuggestion } from './split.ts'
 import { coveringIgnore, coveringOwned, descend, descendants, newNode, nodeAt } from './trie.ts'
@@ -16,13 +17,9 @@ function label(rule: Rule): string {
   return rule.kind === 'ignore' ? rule.origin.keyPath : `${rule.origin.keyPath}.path`
 }
 
-function location(rule: Rule): string {
-  return rule.origin.line === undefined ? rule.origin.file : `${rule.origin.file}:${rule.origin.line}`
-}
-
 /** Where `other` was declared, said only when it is another file than the one of `rule`. */
 function elsewhere(rule: Rule, other: Rule): string {
-  return rule.origin.file === other.origin.file ? '' : ` (${location(other)})`
+  return rule.origin.file === other.origin.file ? '' : ` (${location(other.origin)})`
 }
 
 function issueAt(rule: Rule, message: string, fix: string): Issue {

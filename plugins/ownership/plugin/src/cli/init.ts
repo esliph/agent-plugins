@@ -1,22 +1,19 @@
 import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
-import { dirname, isAbsolute, relative, resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 
 import { CODEOWNERS_LOCATIONS, findCodeowners, loadCodeowners } from '../codeowners/locate.ts'
 import { deriveInit, markerFiles } from '../init/derive.ts'
 import type { InitMode, InitPlan } from '../init/derive.ts'
 import { renderOwnershipFile } from '../init/render.ts'
-import { normalizePath, toPosix } from '../paths/paths.ts'
+import { normalizePath, relativeTo, toPosix } from '../paths/paths.ts'
 import { isInsideWorkTree, listRepoFiles } from '../repo/repo.ts'
 import { ROOT_CANDIDATES } from '../resolve/load.ts'
+import { plural } from './format.ts'
 import type { Io } from './main.ts'
 import { USAGE, UsageError } from './usage.ts'
 
 const DEFAULT_TARGET = ROOT_CANDIDATES[0]
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`
-}
 
 function isDirectory(path: string): boolean {
   try {
@@ -29,9 +26,9 @@ function isDirectory(path: string): boolean {
 /** The target as the repository names it. It lives inside the repository, and it is a file. */
 function targetPath(root: string, given: string): string {
   const absolute = resolve(root, given)
-  const fromRoot = relative(root, absolute)
+  const fromRoot = relativeTo(root, absolute)
 
-  if (fromRoot === '' || fromRoot.startsWith('..') || isAbsolute(fromRoot)) {
+  if (fromRoot === null || fromRoot === '') {
     throw new UsageError(`--ownership "${given}" is outside the repository; the root ownership file lives inside it`)
   }
 
@@ -39,7 +36,7 @@ function targetPath(root: string, given: string): string {
     throw new UsageError(`--ownership "${given}" is a directory; name the file to create`)
   }
 
-  return normalizePath(toPosix(fromRoot))
+  return normalizePath(fromRoot)
 }
 
 /** For the hint of skeleton mode only: two CODEOWNERS are for `validate` to report, not a reason to refuse a skeleton. */

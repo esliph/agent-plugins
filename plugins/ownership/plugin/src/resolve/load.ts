@@ -1,8 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { isAbsolute, relative, resolve } from 'node:path'
 
-import { OwnershipError } from '../errors.ts'
-import { dirOf, literalProblem, normalizePath, resolveUnder, toPosix } from '../paths/paths.ts'
+import { location, OwnershipError } from '../errors.ts'
+import { dirOf, literalProblem, normalizePath, relativeTo, resolveUnder, toPosix } from '../paths/paths.ts'
 import { parseOwnershipFile } from '../schema/parse.ts'
 import type { Origin, RawFile, RawPath } from '../schema/types.ts'
 
@@ -24,14 +24,10 @@ function errorAt(origin: Origin, keyPath: string, message: string, fix?: string)
   ])
 }
 
-function location(origin: Origin): string {
-  return origin.line === undefined ? origin.file : `${origin.file}:${origin.line}`
-}
-
 function displayPath(root: string, absolute: string): string {
-  const relativePath = relative(root, absolute)
+  const fromRoot = relativeTo(root, absolute)
 
-  return relativePath === '' || relativePath.startsWith('..') || isAbsolute(relativePath) ? toPosix(absolute) : toPosix(relativePath)
+  return fromRoot === null || fromRoot === '' ? toPosix(absolute) : fromRoot
 }
 
 /** The root ownership file, relative to the repository root, or null when the repository has none. */

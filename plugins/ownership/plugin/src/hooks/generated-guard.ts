@@ -1,6 +1,7 @@
 import { realpathSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 
+import { location } from '../errors.ts'
 import { isGeneratedByMarker, readHead } from '../generated/marker.ts'
 import { deepestOwnershipFile, findGeneratedRule } from '../resolve/lookup.ts'
 import { resolveOwnership } from '../resolve/resolve.ts'
@@ -77,7 +78,7 @@ function judge(payload: unknown, env: HookEnv): Decision {
     const rule = findGeneratedRule(config, candidate)
 
     if (rule !== null) {
-      const origin = rule.origin.line === undefined ? rule.origin.file : `${rule.origin.file}:${rule.origin.line}`
+      const origin = location(rule.origin)
 
       return {
         action: 'deny',

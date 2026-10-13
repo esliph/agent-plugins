@@ -1,4 +1,4 @@
-import { posix } from 'node:path'
+import { isAbsolute, posix, relative } from 'node:path'
 
 /** NFC, no `.` or empty segment; the trailing `/` of a directory stays. `..` is left for resolveUnder. */
 export function normalizePath(path: string): string {
@@ -13,6 +13,13 @@ export function normalizePath(path: string): string {
 
 export function toPosix(path: string): string {
   return path.replace(/\\/g, '/')
+}
+
+/** `absolute` relative to `root`, with `/`: `''` for the root itself, null when it lies outside. */
+export function relativeTo(root: string, absolute: string): string | null {
+  const fromRoot = relative(root, absolute)
+
+  return fromRoot.startsWith('..') || isAbsolute(fromRoot) ? null : toPosix(fromRoot)
 }
 
 const NOT_LITERAL = /[*?[!]/

@@ -1,9 +1,10 @@
 import { lstatSync } from 'node:fs'
-import { isAbsolute, relative, resolve } from 'node:path'
+import { resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 
 import { loadCodeowners } from '../codeowners/locate.ts'
-import { normalizePath, toPosix } from '../paths/paths.ts'
+import { location } from '../errors.ts'
+import { normalizePath, relativeTo } from '../paths/paths.ts'
 import { isInsideWorkTree, listRepoFiles } from '../repo/repo.ts'
 import { explainPath } from '../resolve/explain.ts'
 import type { PathExplanation } from '../resolve/explain.ts'
@@ -20,7 +21,7 @@ function row(label: string, text: string): string {
 }
 
 function at(origin: RuleOrigin): string {
-  return origin.line === undefined ? `(${origin.file})` : `(${origin.file}:${origin.line})`
+  return `(${location(origin)})`
 }
 
 /** A real directory: a symbolic link is not followed, since the repository names the link itself as a file. */
@@ -40,17 +41,17 @@ function isDirectory(path: string): boolean {
  */
 function repositoryPath(root: string, given: string, repoFiles: ReadonlySet<string>): string {
   const absolute = resolve(root, given)
-  const fromRoot = relative(root, absolute)
+  const fromRoot = relativeTo(root, absolute)
 
   if (fromRoot === '') {
     throw new UsageError(`"${given}" is the repository itself; explain takes a file or a directory inside it`)
   }
 
-  if (fromRoot.startsWith('..') || isAbsolute(fromRoot)) {
+  if (fromRoot === null) {
     throw new UsageError(`"${given}" is outside the repository`)
   }
 
-  const path = normalizePath(toPosix(fromRoot))
+  const path = normalizePath(fromRoot)
 
   if (repoFiles.has(path)) {
     return path
