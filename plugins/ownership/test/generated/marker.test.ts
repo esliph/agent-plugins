@@ -12,6 +12,13 @@ test('the marker counts on the first line, in any case', () => {
   assert.equal(isGeneratedByMarker(new TextEncoder().encode('# Generated: Do Not Edit')), true)
 })
 
+test('only the exact marker counts: a variant in the spacing is not the marker', () => {
+  assert.equal(isGeneratedByMarker('generated:do not edit\n'), false)
+  assert.equal(isGeneratedByMarker('generated:  do not edit\n'), false)
+  assert.equal(isGeneratedByMarker('generated:\tdo not edit\n'), false)
+  assert.equal(isGeneratedByMarker('generated: do  not edit\n'), false)
+})
+
 test('the marker on another line, or beyond the first 512 bytes, does not count', () => {
   assert.equal(isGeneratedByMarker('# Title\ngenerated: do not edit\n'), false)
   assert.equal(isGeneratedByMarker(`${'x'.repeat(600)} generated: do not edit\n`), false)

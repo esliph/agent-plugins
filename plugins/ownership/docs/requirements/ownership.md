@@ -488,6 +488,10 @@ The rule also applies to a file whose first line contains the marker `generated:
 (case-insensitive, searched in the first 512 bytes), even if it is outside `generated[]`. In
 that case the message asks to declare it there.
 
+Only the exact marker counts: `generated:`, one space, `do not edit`. Case is the only
+variation accepted. A variant in the spacing (`generated:do not edit`, two spaces, a tab) is not
+the marker.
+
 ### REQ-GEN-03 — A Write with the marker in the content is denied
 
 - In the Write, besides the current file, the hook applies the marker rule (REQ-GEN-02) to the
