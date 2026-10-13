@@ -61,3 +61,6 @@ An entry is born in the change that causes it, not on the eve of the release.
 - The session hook keeps to its five-second budget even when `git` is slow or
   hangs: it stops waiting, stays silent and lets the edit through, instead of
   holding the edit for as long as `git` takes.
+- The session hook also keeps to its five-second budget when the file system is
+  slow or hangs, such as on a network drive: past the budget it stays silent
+  and lets the edit through.

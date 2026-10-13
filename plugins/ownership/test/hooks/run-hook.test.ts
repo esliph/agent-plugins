@@ -1,9 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { delimiter, join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 import { bashExecutable, runHook } from '../helpers/hook.ts'
 import { tempRepo } from '../helpers/repo.ts'
@@ -117,6 +118,55 @@ test('a git that hangs does not hold the hook past its five-second budget: it en
   })
   const elapsed = Date.now() - started
 
+  assert.equal(run.status, 0)
+  assert.equal(run.stdout, '')
+  assert.ok(elapsed < 10000, `the hook took ${elapsed} ms`)
+})
+
+test('a file system that hangs does not hold the hook past its five-second budget: it ends silent, with 0', t => {
+  const root = tempRepo(t, FILES)
+  const dir = mkdtempSync(join(tmpdir(), 'ownership-preload-'))
+  const preload = join(dir, 'hang-fs.mjs')
+  const reached = join(dir, 'reached')
+
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  // Loaded before the hook in every thread: reading an ownership file blocks for
+  // 30 s, as a hung network drive would, and leaves a mark that it was reached.
+  writeFileSync(
+    preload,
+    [
+      "import fs from 'node:fs'",
+      "import { syncBuiltinESMExports } from 'node:module'",
+      'const original = fs.readFileSync',
+      'fs.readFileSync = (path, ...rest) => {',
+      "  if (String(path).endsWith('.ownership.yml')) {",
+      `    fs.writeFileSync(${JSON.stringify(reached)}, '')`,
+      '    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 30000)',
+      '  }',
+      '  return original(path, ...rest)',
+      '}',
+      'syncBuiltinESMExports()',
+      '',
+    ].join('\n'),
+  )
+
+  const env: NodeJS.ProcessEnv = { ...process.env, CLAUDE_PROJECT_DIR: root }
+
+  delete env.OWNERSHIP_HOST_ROOT
+  delete env.OWNERSHIP_CONFIG
+  delete env.NODE_OPTIONS
+
+  const started = Date.now()
+  const run = spawnSync(process.execPath, ['--import', pathToFileURL(preload).href, join(PLUGIN_ROOT, 'src', 'hooks', 'main.ts'), 'generated-guard'], {
+    cwd: root,
+    env,
+    input: JSON.stringify(edit(root, 'docs/api.md')),
+    encoding: 'utf8',
+    timeout: 25000,
+  })
+  const elapsed = Date.now() - started
+
+  assert.ok(existsSync(reached), 'the hook never read the ownership file')
   assert.equal(run.status, 0)
   assert.equal(run.stdout, '')
   assert.ok(elapsed < 10000, `the hook took ${elapsed} ms`)
