@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { join } from 'node:path'
 
 import { runCli } from '../helpers/cli.ts'
-import { tempRepo } from '../helpers/repo.ts'
+import { git, tempRepo, writeFile } from '../helpers/repo.ts'
 
 const OWNERSHIP = [
   'version: 1',
@@ -201,4 +201,19 @@ test('explain never prunes: an error in an include that cannot hold the path sti
 
   assert.equal(result.status, 2)
   assert.match(result.stderr, /^plugins\/x\/\.ownership\.yml:1: version 2 is not supported/)
+})
+
+test('a nested repository is one file at its path, explained without a trailing slash', t => {
+  const root = tempRepo(t, {
+    '.ownership.yml': ['version: 1', 'owned:', '  - path: .ownership.yml', "    owner: '@team'", '  - path: sub', "    owner: '@team'", ''].join('\n'),
+  })
+
+  writeFile(root, 'sub/x.js', '')
+  git(join(root, 'sub'), 'init', '-q')
+
+  const output = explain(root, 'sub')
+
+  assert.match(output, /^path {7}sub$/m)
+  assert.match(output, /^owned {6}sub {2}owner @team /m)
+  assert.doesNotMatch(output, /^coverage/m)
 })

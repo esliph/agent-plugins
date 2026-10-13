@@ -1,4 +1,4 @@
-import { statSync } from 'node:fs'
+import { lstatSync } from 'node:fs'
 import { isAbsolute, relative, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 
@@ -23,16 +23,22 @@ function at(origin: RuleOrigin): string {
   return origin.line === undefined ? `(${origin.file})` : `(${origin.file}:${origin.line})`
 }
 
+/** A real directory: a symbolic link is not followed, since the repository names the link itself as a file. */
 function isDirectory(path: string): boolean {
   try {
-    return statSync(path).isDirectory()
+    return lstatSync(path).isDirectory()
   } catch {
     return false
   }
 }
 
-/** The path as the repository names it: relative to the root, with `/`, and a trailing `/` when it is a directory. */
-function repositoryPath(root: string, given: string): string {
+/**
+ * The path as the repository names it: relative to the root, with `/`, and a
+ * trailing `/` when it is a directory. Git lists a submodule and a nested
+ * repository as one file, though they are directories on disk, so a path the
+ * repository lists as a file keeps no slash.
+ */
+function repositoryPath(root: string, given: string, repoFiles: ReadonlySet<string>): string {
   const absolute = resolve(root, given)
   const fromRoot = relative(root, absolute)
 
@@ -45,6 +51,10 @@ function repositoryPath(root: string, given: string): string {
   }
 
   const path = normalizePath(toPosix(fromRoot))
+
+  if (repoFiles.has(path)) {
+    return path
+  }
 
   return /[\\/]$/.test(given) || isDirectory(absolute) ? `${path}/` : path
 }
@@ -154,8 +164,8 @@ export function explainCommand(args: readonly string[], root: string, io: Io): n
     throw new UsageError(`explain takes one path; got ${positionals.length}`)
   }
 
-  const path = repositoryPath(root, given)
   const repoFiles = isInsideWorkTree(root) ? listRepoFiles(root) : new Set<string>()
+  const path = repositoryPath(root, given, repoFiles)
   const config = resolveOwnership(root, { repoFiles, ...(values.ownership === undefined ? {} : { ownership: values.ownership }) })
 
   if (config === null) {
