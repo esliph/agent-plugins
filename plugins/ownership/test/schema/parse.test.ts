@@ -179,3 +179,11 @@ test('declared paths are literal', () => {
 test('a file stops at its first error', () => {
   assert.equal(loadError('version: 1\nowned:\n  - path: docs/*\n    owner: team\n').issues.length, 1)
 })
+
+test('a YAML alias inside a plugin block reaches the plugin as the value it stands for', () => {
+  const file = parseOwnershipFile(['version: 1', 'plugins:', '  docs-kit:', '    base: &dir', '      path: x', '    other: *dir', ''].join('\n'), FILE, {
+    isRoot: true,
+  })
+
+  assert.deepEqual(file.plugins, { 'docs-kit': { base: { path: 'x' }, other: { path: 'x' } } })
+})

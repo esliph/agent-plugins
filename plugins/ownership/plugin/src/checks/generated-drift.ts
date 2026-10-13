@@ -66,6 +66,15 @@ export function firstDifferentLine(expected: Buffer, actual: Buffer): number | n
   return line
 }
 
+/**
+ * The content as Git stores it. A checkout with `core.autocrlf` has CRLF line ends
+ * that the committed file does not, and the same repository must give the same
+ * answer on every machine, so the line-end style is not part of the comparison.
+ */
+function withLf(content: Buffer): Buffer {
+  return content.includes(0x0d) ? Buffer.from(content.toString('latin1').replaceAll('\r\n', '\n'), 'latin1') : content
+}
+
 async function checkGenerated(ctx: CheckContext, rule: GeneratedRule): Promise<Finding[]> {
   const fix = `${rule.command} > ${rule.path}`
   const where = { file: rule.origin.file, line: rule.origin.line, checkId: ID, severity: 'error' as const }
@@ -84,7 +93,7 @@ async function checkGenerated(ctx: CheckContext, rule: GeneratedRule): Promise<F
     return [finding({ ...where, message: `${rule.origin.keyPath}.command "${rule.command}" failed${exit}: ${detail}`, fix })]
   }
 
-  const line = firstDifferentLine(readFileSync(absolute), result.stdout)
+  const line = firstDifferentLine(withLf(readFileSync(absolute)), withLf(result.stdout))
 
   return line === null
     ? []

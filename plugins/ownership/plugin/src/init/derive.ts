@@ -82,7 +82,12 @@ const NO_OWNER = ''
 
 /** The owner set of a CODEOWNERS answer as one comparable text; no line and a line without owners are both "no owner". */
 function ownerKey(result: OwnersResult): string {
-  return result.kind === 'matched' ? [...new Set(result.owners.map(owner => owner.toLowerCase()))].sort().join(' ') : NO_OWNER
+  return result.kind === 'matched' && hasHandle(result.owners) ? [...new Set(result.owners.map(owner => owner.toLowerCase()))].sort().join(' ') : NO_OWNER
+}
+
+/** An ownership file only accepts an owner that starts with `@`; CODEOWNERS also accepts an email address. */
+function hasHandle(owners: readonly string[]): boolean {
+  return owners.some(owner => owner.startsWith('@'))
 }
 
 /**
@@ -123,7 +128,9 @@ function fromCodeowners(repoFiles: Iterable<string>, codeowners: Codeowners): In
   const visit = (node: TreeNode): void => {
     const key = keyOf(node)
     const own = ownersOf(codeowners, node.path)
-    const [owner, ...others] = own.kind === 'matched' ? own.owners : []
+    const listed = own.kind === 'matched' ? own.owners : []
+    const owner = listed.find(candidate => candidate.startsWith('@'))
+    const others = listed.filter(candidate => candidate !== owner)
 
     if (key !== null && key !== NO_OWNER && own.kind === 'matched' && owner !== undefined && ownerKey(own) === key) {
       entries.push({ path: node.path, owner, ...(others.length === 0 ? {} : { note: `CODEOWNERS line ${own.line} also lists ${others.join(' ')}` }) })

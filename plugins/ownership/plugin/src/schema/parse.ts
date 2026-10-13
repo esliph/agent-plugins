@@ -1,4 +1,5 @@
 import { isMap, isNode, isScalar, isSeq, LineCounter, parseDocument } from 'yaml'
+import type { Document } from 'yaml'
 import type { Pair, YAMLMap } from 'yaml'
 
 import { OwnershipError } from '../errors.ts'
@@ -16,11 +17,14 @@ class FileReader {
   readonly file: string
   readonly text: string
   readonly lines: LineCounter
+  /** The document, so that an alias is resolved to what it stands for. */
+  readonly doc: Document
 
-  constructor(file: string, text: string, lines: LineCounter) {
+  constructor(file: string, text: string, lines: LineCounter, doc: Document) {
     this.file = file
     this.text = text
     this.lines = lines
+    this.doc = doc
   }
 
   line(node: unknown): number | undefined {
@@ -181,7 +185,7 @@ function pluginBlocks(reader: FileReader, node: unknown, keyPath: string): Plugi
       )
     }
 
-    blocks[name] = pair.value.toJSON() as PluginBlock
+    blocks[name] = pair.value.toJS(reader.doc) as PluginBlock
   }
 
   return blocks
@@ -295,7 +299,7 @@ export function parseOwnershipFile(text: string, file: string, options: { isRoot
     throw syntaxError(text, file, lines, syntax)
   }
 
-  const reader = new FileReader(file, text, lines)
+  const reader = new FileReader(file, text, lines, doc)
   const top = topMap(reader, doc.contents)
 
   for (const pair of top.items) {

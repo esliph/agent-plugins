@@ -152,3 +152,17 @@ test('the findings do not depend on how many generators run at once', async t =>
 
   assert.deepEqual(await runCheck(generatedDrift, root, 1), await runCheck(generatedDrift, root, 4))
 })
+
+test('a checkout with CRLF line ends is not drift: Git stores the file with LF, and the content is what is compared', async t => {
+  const root = tempRepo(t, { ...TOOLS, '.ownership.yml': ownership([['out/a.md', 'node tools/ok.mjs']]), 'out/a.md': 'one\r\ntwo\r\n' })
+
+  assert.deepEqual(await runCheck(generatedDrift, root), [])
+})
+
+test('a CRLF checkout still reports a real difference, at the right line', async t => {
+  const root = tempRepo(t, { ...TOOLS, '.ownership.yml': ownership([['out/a.md', 'node tools/ok.mjs']]), 'out/a.md': 'one\r\nTWO\r\n' })
+  const findings = await runCheck(generatedDrift, root)
+
+  assert.equal(findings.length, 1)
+  assert.equal(findings[0]?.line, 2)
+})

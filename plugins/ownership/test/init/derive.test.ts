@@ -136,3 +136,13 @@ test('the files whose first line carries the marker are found, sorted; a missing
 
   assert.deepEqual(markerFiles(root, ['b.md', 'c.md', 'a/x.ts', 'missing.md']), ['a/x.ts', 'b.md'])
 })
+
+test('an owner that is not an @handle, such as an email, is never the declared owner: the first @handle is, the email goes in the note', () => {
+  const plan = fromCodeowners(['src/a.ts', 'lib/b.ts', 'docs/c.md'], 'src/ dev@example.com @team\nlib/ dev@example.com\ndocs/ @docs\n')
+
+  assert.deepEqual(plan.entries, [
+    { path: 'docs/', owner: '@docs' },
+    { path: 'src/', owner: '@team', note: 'CODEOWNERS line 1 also lists dev@example.com' },
+  ])
+  assert.equal(plan.unowned, 1)
+})
