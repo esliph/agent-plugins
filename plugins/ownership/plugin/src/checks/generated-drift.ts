@@ -19,6 +19,9 @@ const ID = 'ownership/generated-drift'
  */
 export const GENERATOR_TIMEOUT_MS = 10 * 60 * 1000
 
+/** How long a stopped generator's process group is waited for before the check moves on. */
+const KILL_WAIT_MS = 5000
+
 interface CommandResult {
   code: number | null
   stdout: Buffer
@@ -27,9 +30,23 @@ interface CommandResult {
   timedOut?: boolean
 }
 
+/** Whether any process of the group still exists. */
+function groupAlive(pgid: number): boolean {
+  try {
+    process.kill(-pgid, 0)
+
+    return true
+  } catch {
+    return false
+  }
+}
+
 /**
  * Stops the shell and everything it started. Killing only the shell would leave
- * the generator running and holding the pipes open.
+ * the generator running and holding the pipes open. It resolves once the tree is
+ * gone: a signal is delivered asynchronously, and the shell dies before what it
+ * started, so returning right after sending it reports a generator as stopped
+ * while it still runs.
  */
 function killTree(pid: number): Promise<void> {
   if (process.platform === 'win32') {
@@ -47,7 +64,20 @@ function killTree(pid: number): Promise<void> {
     // The group is already gone.
   }
 
-  return Promise.resolve()
+  // Bounded, so that a process stuck in the kernel cannot hold the check forever.
+  const deadline = Date.now() + KILL_WAIT_MS
+
+  return new Promise(resolve => {
+    const poll = (): void => {
+      if (!groupAlive(pid) || Date.now() >= deadline) {
+        resolve()
+      } else {
+        setTimeout(poll, 10)
+      }
+    }
+
+    poll()
+  })
 }
 
 /** Runs a generator through the shell at the repository root. The output is streamed, so its size has no limit. */
