@@ -9,6 +9,7 @@ test('the public catalog lists the core checks with their command', () => {
     [
       ['ownership/owner-coverage', 'ownership validate --check ownership/owner-coverage'],
       ['ownership/codeowners-match', 'ownership validate --check ownership/codeowners-match'],
+      ['ownership/generated-drift', 'ownership validate --check ownership/generated-drift'],
     ],
   )
   assert.deepEqual(
