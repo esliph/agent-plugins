@@ -207,7 +207,9 @@ could not run — an ownership file with an error, an unknown option.
 
 **Generators run in parallel.** The commands of `generated` run at the same
 time. Generators that share state on disk — a cache, a temporary directory —
-must be independent of each other, or run with `--jobs 1`.
+must be independent of each other, or run with `--jobs 1`. A command that has
+not finished after ten minutes is stopped, with everything it started, and
+reported as a failed command.
 
 `ownership/owner-coverage` alone reads no file and runs no command, so it fits a
 pre-commit hook:

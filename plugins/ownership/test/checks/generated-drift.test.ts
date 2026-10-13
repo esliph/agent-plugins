@@ -1,11 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import fs from 'node:fs'
+import fs, { readFileSync } from 'node:fs'
 import { syncBuiltinESMExports } from 'node:module'
 import { join } from 'node:path'
 
-import { firstDifferentLine, generatedDrift } from '../../plugin/src/checks/generated-drift.ts'
+import { checkGenerated, firstDifferentLine, generatedDrift } from '../../plugin/src/checks/generated-drift.ts'
+import { createCheckContext } from '../../plugin/src/checks/run.ts'
+import { listRepoFiles } from '../../plugin/src/repo/repo.ts'
+import { resolveOwnership } from '../../plugin/src/resolve/resolve.ts'
 import { runCheck } from '../helpers/check.ts'
 import { tempRepo } from '../helpers/repo.ts'
 
@@ -178,6 +181,31 @@ test('a CRLF checkout still reports a real difference, at the right line', async
 
   assert.equal(findings.length, 1)
   assert.equal(findings[0]?.line, 2)
+})
+
+test('a generator that does not finish in time is stopped and reported as a failed command', async t => {
+  const root = tempRepo(t, {
+    ...TOOLS,
+    '.ownership.yml': ownership([['out/a.md', 'node tools/hang.mjs']]),
+    'tools/hang.mjs': "import { writeFileSync } from 'node:fs'\nwriteFileSync('hang.pid', String(process.pid))\nsetInterval(() => {}, 1000)\n",
+    'out/a.md': '',
+  })
+  const repoFiles = listRepoFiles(root)
+  const config = resolveOwnership(root, { repoFiles })
+
+  assert.ok(config !== null)
+
+  const [rule] = config.generated
+
+  assert.ok(rule !== undefined)
+  assert.deepEqual(
+    (await checkGenerated(createCheckContext(config, repoFiles, 1), rule, 1500)).map(item => [item.file, item.line, item.message, item.fix]),
+    [['.ownership.yml', 10, 'generated[0].command "node tools/hang.mjs" did not finish within 1.5 s and was stopped', 'node tools/hang.mjs > out/a.md']],
+  )
+
+  const pid = Number(readFileSync(join(root, 'hang.pid'), 'utf8'))
+
+  assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' })
 })
 
 test('a declared file that cannot be read is a finding on the generated entry that names the reason', async t => {

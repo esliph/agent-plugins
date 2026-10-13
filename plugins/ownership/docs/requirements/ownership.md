@@ -472,6 +472,8 @@ of the versioned file. It is an error when:
 
 - the content differs: the finding points at the **first different line**;
 - the command fails: the finding shows the first line of the error;
+- the command is still running after 10 minutes: it is stopped, together with the processes it
+  started, and reported as a failed command. The limit is fixed, not configurable;
 - the declared file does not exist, or the path is a directory;
 - the declared file exists but cannot be read (no permission, or any other read error): the
   finding names the path and the reason. It is a finding, not an error that keeps `validate`

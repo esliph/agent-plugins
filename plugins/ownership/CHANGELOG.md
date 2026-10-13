@@ -39,6 +39,9 @@ An entry is born in the change that causes it, not on the eve of the release.
 - A generated file that exists but cannot be read, for lack of permission or
   any other read error, is reported by `ownership validate` as a finding that
   gives the reason, instead of crashing the command.
+- A generator command that never finishes no longer keeps `ownership validate`
+  waiting forever: after ten minutes it is stopped, together with what it
+  started, and reported as a failed command that names it.
 - `ownership explain` treats a submodule, a nested repository and a symbolic
   link to a directory as the single file the repository lists, so it shows the
   `owned` entry that declares it instead of calling the path excluded.
