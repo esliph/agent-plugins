@@ -1,8 +1,0 @@
-# Mirrors the `owner` field of .ownership.yml. One artifact, one owner.
-{{ADR_PATH}}    {{OWNER}}
-{{DA_PATH}}    {{OWNER}}
-{{TDR_PATH}}    {{OWNER}}
-{{REQUIREMENTS_CODEOWNERS}}{{AGREEMENTS_CODEOWNERS}}{{CONTRACTS_CODEOWNERS}}{{HISTORY_CODEOWNERS}}.ownership.yml    {{OWNER}}
-CODEOWNERS    {{OWNER}}
-.github/workflows/living-docs.yml    {{OWNER}}
-{{RETIRED_CODEOWNERS}}

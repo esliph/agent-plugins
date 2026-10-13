@@ -1,22 +1,9 @@
 {
   "name": "esliph",
-  "description": "Living-documentation toolkit: ADRs, open decisions, recorded debt, requirements with stable IDs, a generated contract and the enforcement that keeps them alive.",
+  "description": "",
   "owner": {
     "name": "Dan Ruan",
     "email": "danrsaquetti@gmail.com"
   },
-  "plugins": [
-    {
-      "name": "living-docs",
-      "description": "Seven artifact-owning skills, two agents, five hooks and seven commands — the session side of the living-documentation toolkit.",
-      "version": "0.1.0",
-      "source": "./plugins/living-docs/plugin"
-    },
-    {
-      "name": "ownership",
-      "description": "Owner, lifecycle and trigger of each path: the core that living documentation uses, and that runs on its own.",
-      "version": "0.1.0",
-      "source": "./plugins/ownership/plugin"
-    }
-  ]
+  "plugins": []
 }

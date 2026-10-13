@@ -8,8 +8,3 @@ An entry is born in the PR that causes the change, not on the eve of the release
 
 ## [Unreleased]
 
-### Changed
-
-- Each plugin now lives in its own directory under `plugins/`, and the
-  marketplace installs it from that directory's `plugin/` folder. Installing by
-  name (`/plugin install living-docs@esliph`) does not change.

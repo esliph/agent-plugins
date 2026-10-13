@@ -13,7 +13,6 @@ CHANGELOG.md @esliph/engineering
 README.md @esliph/engineering
 .ownership.yml @esliph/engineering
 plugins/ownership/ @esliph/engineering
-plugins/living-docs/ @esliph/engineering
 .github/ @esliph/engineering
 .claude-plugin/ @esliph/engineering
 CODEOWNERS @esliph/engineering

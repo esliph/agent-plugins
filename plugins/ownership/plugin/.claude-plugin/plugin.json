@@ -1,5 +1,0 @@
-{
-  "name": "ownership",
-  "version": "0.1.0",
-  "description": "Artifact ownership core: owner, lifecycle and the code→doc and doc→doc trigger."
-}

@@ -1,2 +1,0 @@
-# Retired IDs. They are never recycled.
-# One ID per line.
