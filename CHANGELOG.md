@@ -8,3 +8,8 @@ An entry is born in the PR that causes the change, not on the eve of the release
 
 ## [Unreleased]
 
+### Added
+
+- The `ownership` plugin: one file says who owns each path of a repository and
+  which files are generated, and the plugin checks it in the Claude Code session
+  and in CI. Its own changelog is in `plugins/ownership/CHANGELOG.md`.
