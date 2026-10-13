@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json
+version: 1
+
+owned:
+  - path: .claude-plugin/
+    owner: "@esliph/engineering"
+  - path: .editorconfig
+    owner: "@esliph/engineering"
+  - path: .gitattributes
+    owner: "@esliph/engineering"
+  - path: .github/
+    owner: "@esliph/engineering"
+  - path: .gitignore
+    owner: "@esliph/engineering"
+  - path: .ownership.yml
+    owner: "@esliph/engineering"
+  - path: .prettierignore
+    owner: "@esliph/engineering"
+  - path: .prettierrc
+    owner: "@esliph/engineering"
+  - path: CHANGELOG.md
+    owner: "@esliph/engineering"
+  - path: CLAUDE.md
+    owner: "@esliph/engineering"
+  - path: CODEOWNERS
+    owner: "@esliph/engineering"
+  - path: CONTRIBUTING.md
+    owner: "@esliph/engineering"
+  - path: README.md
+    owner: "@esliph/engineering"
+  - path: Spurfile
+    owner: "@esliph/engineering"
+  - path: docs/superpowers/
+    owner: "@esliph/engineering"
+  - path: spur
+    owner: "@esliph/engineering"
+
+# Each plugin project declares its own paths, relative to its directory.
+include:
+  - plugins/ownership/

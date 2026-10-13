@@ -1,11 +1,6 @@
 # Mirrors the `owner` field of the ownership files. One path, one owner.
 # Each plugin project is covered as a whole; its own .ownership.yml details it.
 
-docs/decisions/adr/ @esliph/engineering
-docs/open-decisions.md @esliph/engineering
-docs/requirements/ @esliph/engineering
-docs/definition-of-done.md @esliph/engineering
-docs/ids-retired.txt @esliph/engineering
 docs/superpowers/ @esliph/engineering
 CONTRIBUTING.md @esliph/engineering
 CLAUDE.md @esliph/engineering

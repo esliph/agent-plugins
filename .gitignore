@@ -1,2 +1,5 @@
 node_modules/
 .worktrees/
+
+# Local Claude Code settings: per machine, never shared.
+.claude/settings.local.json

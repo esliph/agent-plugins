@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json
+# The paths of the ownership plugin project, relative to this directory. The
+# root ownership file includes this one.
+version: 1
+
+owned:
+  # What the plugin must do, and what is told to whoever installs it.
+  - path: docs/
+    owner: '@esliph/engineering'
+  - path: README.md
+    owner: '@esliph/engineering'
+  - path: CHANGELOG.md
+    owner: '@esliph/engineering'
+  - path: .ownership.yml
+    owner: '@esliph/engineering'
+
+  # What is installed, and its tests.
+  - path: plugin/
+    owner: '@esliph/engineering'
+  - path: test/
+    owner: '@esliph/engineering'
+
+  # The toolchain of the project.
+  - path: .gitignore
+    owner: '@esliph/engineering'
+  - path: Spurfile
+    owner: '@esliph/engineering'
+  - path: eslint.config.mjs
+    owner: '@esliph/engineering'
+  - path: package.json
+    owner: '@esliph/engineering'
+  - path: package-lock.json
+    owner: '@esliph/engineering'
+  - path: tsconfig.json
+    owner: '@esliph/engineering'
+  - path: tsconfig.build.json
+    owner: '@esliph/engineering'
