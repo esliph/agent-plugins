@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json",
+  "title": "Ownership file",
+  "description": "Who owns each path of a repository and which files are generated. What depends on more than one file or on the repository - how declared paths relate, includes, the base of each file - is checked by `ownership validate`, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
+  "properties": {
+    "version": {
+      "description": "The schema version. This release supports 1.",
+      "const": 1
+    },
+    "plugins": {
+      "description": "Global configuration per plugin. Root file only. It links no path: only an entry of `owned` does.",
+      "$ref": "#/$defs/pluginBlocks"
+    },
+    "basePath": {
+      "description": "A directory below the directory of this file; the paths of the file are relative to it. Ignored in the root file, whose base is the repository root.",
+      "type": "string"
+    },
+    "owned": {
+      "description": "The owner of each path. Paths are disjoint: none repeats or contains another.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/owned" }
+    },
+    "generated": {
+      "description": "Files produced by a command. Each one sits under an `owned` entry.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/generated" }
+    },
+    "ignore": {
+      "description": "Paths left out of owner coverage.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/path" }
+    },
+    "include": {
+      "description": "Other ownership files to read: a file, or a directory (trailing `/`) that holds exactly one.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "path": {
+      "description": "A literal path relative to the base of the file: no glob, no negation, no leading `/`. A trailing `/` means a directory.",
+      "type": "string",
+      "pattern": "^(?!/)[^*?\\[!]+$"
+    },
+    "filePath": {
+      "description": "A literal path of a file relative to the base of the file: no glob, no negation, no leading or trailing `/`.",
+      "type": "string",
+      "pattern": "^(?!/)[^*?\\[!]*[^*?\\[!/]$"
+    },
+    "pluginBlocks": {
+      "description": "Plugin name to block. The content of a block belongs to the plugin.",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" },
+      "additionalProperties": { "type": "object" }
+    },
+    "owned": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "owner"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "owner": {
+          "description": "A user or a team, as in CODEOWNERS: `@user` or `@org/team`.",
+          "type": "string",
+          "pattern": "^@"
+        },
+        "skill": {
+          "description": "The skill that answers for the path.",
+          "type": "string",
+          "minLength": 1
+        },
+        "plugins": {
+          "description": "The plugins this path belongs to. `name: {}` links the path without configuration.",
+          "$ref": "#/$defs/pluginBlocks"
+        }
+      }
+    },
+    "generated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "command"],
+      "properties": {
+        "path": { "$ref": "#/$defs/filePath" },
+        "command": {
+          "description": "Run at the repository root; what it prints must equal the file.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
