@@ -1,0 +1,33 @@
+name: plugin-ownership
+
+# No path filter: the last step checks that every file of the repository has
+# an owner, and a file added anywhere can break that.
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # The floor is `engines.node` in the plugin's package.json.
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: plugins/ownership/package-lock.json
+
+      - name: Install dependencies
+        run: ./spur install
+
+      - name: Tests, type-check, lint and formatting
+        run: ./spur plugins
+
+      - name: Performance
+        run: ./spur -C plugins/ownership perf
+
+      - name: Validate this repository
+        run: ./spur validate --format github

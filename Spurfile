@@ -1,0 +1,48 @@
+# The repository's commands. Each plugin with a toolchain owns its commands in
+# plugins/<name>/Spurfile; this file only delegates to them. The order is
+# load-bearing — a plugin comes after the ones it depends on — so it is written
+# here and never taken from a glob.
+PLUGINS="ownership"
+
+# Runs one task in every plugin that has it, in order. A plugin owes the root
+# nothing: one with no Spurfile, or with a Spurfile that lacks the task, is
+# skipped with a notice. The Spurfile is checked here, before delegating,
+# because spur searches the parent directories for one and would find this
+# file. A name in PLUGINS that is not a directory is a mistake in this file and
+# fails. `set -e` stops at the first plugin that fails, with its exit code.
+each() {
+  for plugin in $PLUGINS; do
+    if [ ! -d "plugins/$plugin" ]; then
+      echo "plugins/$plugin: listed in PLUGINS, but it does not exist" >&2
+      exit 1
+    fi
+    if [ ! -f "plugins/$plugin/Spurfile" ]; then
+      echo "$plugin: no Spurfile, skipped '$1'" >&2
+      continue
+    fi
+    names=$(spur -C "plugins/$plugin" --names)
+    if ! printf '%s\n' "$names" | grep -qxF -- "$1"; then
+      echo "$plugin: no task '$1', skipped" >&2
+      continue
+    fi
+    spur -C "plugins/$plugin" "$1"
+  done
+}
+
+install: ## run `install` in every plugin that has it, in order
+  each install
+
+plugins: ## run `check` in every plugin that has it, in order
+  each check
+
+## The ownership plugin checks the repository that develops it. Arguments go
+## to its CLI:
+##   ./spur validate --check ownership/owner-coverage
+validate: ## validate who owns each path of this repository
+  node plugins/ownership/plugin/src/cli/index.ts validate "$@"
+
+## What has to pass before a change is done, in that order.
+check: ## install, every plugin's checks and the repository's validation
+  spur install
+  spur plugins
+  spur validate
