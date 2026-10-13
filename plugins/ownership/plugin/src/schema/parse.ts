@@ -1,4 +1,4 @@
-import { isMap, isNode, isScalar, isSeq, LineCounter, parseDocument } from 'yaml'
+import { isAlias, isMap, isNode, isScalar, isSeq, LineCounter, parseDocument } from 'yaml'
 import type { Document } from 'yaml'
 import type { Pair, YAMLMap } from 'yaml'
 
@@ -40,6 +40,20 @@ class FileReader {
     const source = this.text.slice(node.range[0], node.range[1]).replace(/\s+/g, ' ').trim()
 
     return source === '' ? '(empty)' : source
+  }
+
+  /**
+   * The node an alias stands for, or the node itself. Every value is read through
+   * here before its type is checked, so that `*name` is accepted wherever the
+   * value it names would be.
+   */
+  resolved(node: unknown): unknown {
+    return isAlias(node) ? node.resolve(this.doc) : node
+  }
+
+  /** The value of `key` in `map`, with an alias resolved. */
+  get(map: YAMLMap<unknown, unknown>, key: string): unknown {
+    return this.resolved(map.get(key, true))
   }
 
   keyOf(pair: Pair<unknown, unknown>): string {
@@ -90,7 +104,8 @@ function topMap(reader: FileReader, top: unknown): YAMLMap<unknown, unknown> {
     reader.fail('version', top, missing, 'add "version: 1" at the top of the file')
   }
 
-  const value = isScalar(pair.value) ? pair.value.value : undefined
+  const versionNode = reader.resolved(pair.value)
+  const value = isScalar(versionNode) ? versionNode.value : undefined
 
   if (typeof value !== 'number' || !SUPPORTED_VERSIONS.includes(value)) {
     reader.fail(
@@ -105,7 +120,7 @@ function topMap(reader: FileReader, top: unknown): YAMLMap<unknown, unknown> {
 }
 
 function sequence(reader: FileReader, top: YAMLMap<unknown, unknown>, key: string): unknown[] {
-  const node = top.get(key, true)
+  const node = reader.get(top, key)
 
   if (node === undefined) {
     return []
@@ -115,11 +130,11 @@ function sequence(reader: FileReader, top: YAMLMap<unknown, unknown>, key: strin
     reader.fail(key, node, `${key} must be a list; got ${reader.shown(node)}`, `write ${key} as a YAML list, one "- " item per line`)
   }
 
-  return node.items
+  return node.items.map(item => reader.resolved(item))
 }
 
 function requiredString(reader: FileReader, map: YAMLMap<unknown, unknown>, keyPath: string, key: string): string {
-  const node = map.get(key, true)
+  const node = reader.get(map, key)
 
   if (node === undefined) {
     reader.fail(`${keyPath}.${key}`, map, `${keyPath}.${key} is missing`, `add ${key} to the entry`)
@@ -176,7 +191,9 @@ function pluginBlocks(reader: FileReader, node: unknown, keyPath: string): Plugi
       reader.fail(blockPath, pair.key, `plugin name "${name}" must match ^[a-z][a-z0-9-]*$`, 'use lowercase letters, digits and "-", starting with a letter')
     }
 
-    if (!isMap(pair.value)) {
+    const block = reader.resolved(pair.value)
+
+    if (!isMap(block)) {
       reader.fail(
         blockPath,
         pair.value ?? pair.key,
@@ -185,7 +202,7 @@ function pluginBlocks(reader: FileReader, node: unknown, keyPath: string): Plugi
       )
     }
 
-    blocks[name] = pair.value.toJS(reader.doc) as PluginBlock
+    blocks[name] = block.toJS(reader.doc) as PluginBlock
   }
 
   return blocks
@@ -221,20 +238,20 @@ function readOwned(reader: FileReader, node: unknown, index: number): PendingOwn
   const owner = requiredString(reader, node, keyPath, 'owner')
 
   if (!owner.startsWith('@')) {
-    const ownerNode = node.get('owner', true)
+    const ownerNode = reader.get(node, 'owner')
 
     reader.fail(`${keyPath}.owner`, ownerNode, `${keyPath}.owner must start with "@"; got ${reader.shown(ownerNode)}`, 'write the owner as @user or @org/team')
   }
 
-  const skill = node.get('skill', true) === undefined ? undefined : requiredString(reader, node, keyPath, 'skill')
+  const skill = reader.get(node, 'skill') === undefined ? undefined : requiredString(reader, node, keyPath, 'skill')
   const line = reader.line(node)
 
   return {
     path,
-    pathNode: node.get('path', true),
+    pathNode: reader.get(node, 'path'),
     owner,
     ...(skill === undefined ? {} : { skill }),
-    pluginsNode: node.get('plugins', true),
+    pluginsNode: reader.get(node, 'plugins'),
     origin: { file: reader.file, keyPath, ...(line === undefined ? {} : { line }) },
   }
 }
@@ -257,7 +274,7 @@ function readGenerated(reader: FileReader, node: unknown, index: number): RawGen
   ])
 
   const path = requiredString(reader, node, keyPath, 'path')
-  const pathNode = node.get('path', true)
+  const pathNode = reader.get(node, 'path')
 
   if (path.endsWith('/')) {
     reader.fail(
@@ -314,7 +331,7 @@ export function parseOwnershipFile(text: string, file: string, options: { isRoot
     }
   }
 
-  const baseNode = top.get('basePath', true)
+  const baseNode = reader.get(top, 'basePath')
   const baseValue = stringOf(baseNode)
 
   if (baseNode !== undefined && baseValue === undefined) {
@@ -326,7 +343,7 @@ export function parseOwnershipFile(text: string, file: string, options: { isRoot
   const ignore = readPaths(reader, sequence(reader, top, 'ignore'), 'ignore')
   const include = readPaths(reader, sequence(reader, top, 'include'), 'include')
 
-  const rootPlugins = pluginBlocks(reader, top.get('plugins', true), 'plugins')
+  const rootPlugins = pluginBlocks(reader, reader.get(top, 'plugins'), 'plugins')
   const entryPlugins = owned.map(entry => pluginBlocks(reader, entry.pluginsNode, `${entry.origin.keyPath}.plugins`))
 
   const literal = (keyPath: string, node: unknown, path: string): void => {

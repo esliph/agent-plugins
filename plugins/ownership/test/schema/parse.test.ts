@@ -187,3 +187,36 @@ test('a YAML alias inside a plugin block reaches the plugin as the value it stan
 
   assert.deepEqual(file.plugins, { 'docs-kit': { base: { path: 'x' }, other: { path: 'x' } } })
 })
+
+test('a plugin block that is itself an alias is read as the block it stands for', () => {
+  const file = parseOwnershipFile(['version: 1', 'plugins:', '  a: &d', '    x: 1', '  b: *d', ''].join('\n'), FILE, { isRoot: true })
+
+  assert.deepEqual(file.plugins, { a: { x: 1 }, b: { x: 1 } })
+})
+
+test('a whole plugins map given by an alias is read as the map it stands for', () => {
+  const file = parseOwnershipFile(
+    ['version: 1', 'plugins: &common', '  docs-kit: {}', 'owned:', '  - path: docs/', "    owner: '@team'", '    plugins: *common', ''].join('\n'),
+    FILE,
+    { isRoot: true },
+  )
+
+  assert.deepEqual(file.owned[0]?.plugins, { 'docs-kit': {} })
+})
+
+test('an owned entry and its values given by aliases are read as what they stand for', () => {
+  const file = parseOwnershipFile(
+    ['version: 1', 'owned:', '  - &entry', '    path: docs/', "    owner: &team '@team'", '  - *entry', '  - path: src/', '    owner: *team', ''].join('\n'),
+    FILE,
+    { isRoot: true },
+  )
+
+  assert.deepEqual(
+    file.owned.map(entry => [entry.path, entry.owner]),
+    [
+      ['docs/', '@team'],
+      ['docs/', '@team'],
+      ['src/', '@team'],
+    ],
+  )
+})

@@ -42,3 +42,6 @@ An entry is born in the change that causes it, not on the eve of the release.
 - `ownership explain` treats a submodule, a nested repository and a symbolic
   link to a directory as the single file the repository lists, so it shows the
   `owned` entry that declares it instead of calling the path excluded.
+- A YAML alias now works wherever the value it stands for would: a whole plugin
+  block, a whole `plugins` map, an `owned` or `generated` entry, or a single
+  value such as an owner.
