@@ -1,7 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { delimiter, join } from 'node:path'
 
 import { bashExecutable, runHook } from '../helpers/hook.ts'
 import { tempRepo } from '../helpers/repo.ts'
@@ -85,4 +87,37 @@ test('without node on the PATH, the wrapper is silent and exits 0', { skip }, t 
 
   assert.equal(run.status, 0)
   assert.equal(run.stdout, '')
+})
+
+test('a git that hangs does not hold the hook past its five-second budget: it ends silent, with 0', t => {
+  const root = tempRepo(t, FILES)
+  // A stand-in for git: node itself, named git, which runs the script named by the
+  // first argument git receives from the cwd it is given, the repository root.
+  const bin = mkdtempSync(join(tmpdir(), 'ownership-bin-'))
+
+  t.after(() => rmSync(bin, { recursive: true, force: true }))
+  copyFileSync(process.execPath, join(bin, process.platform === 'win32' ? 'git.exe' : 'git'))
+  writeFileSync(join(root, 'rev-parse'), 'setTimeout(() => {}, 30000)\n')
+
+  const env: NodeJS.ProcessEnv = { ...process.env, CLAUDE_PROJECT_DIR: root }
+  const pathKey = Object.keys(env).find(key => key.toUpperCase() === 'PATH') ?? 'PATH'
+
+  env[pathKey] = `${bin}${delimiter}${env[pathKey] ?? ''}`
+  delete env.OWNERSHIP_HOST_ROOT
+  delete env.OWNERSHIP_CONFIG
+  delete env.NODE_OPTIONS
+
+  const started = Date.now()
+  const run = spawnSync(process.execPath, [join(PLUGIN_ROOT, 'src', 'hooks', 'main.ts'), 'generated-guard'], {
+    cwd: root,
+    env,
+    input: JSON.stringify(edit(root, 'docs/api.md')),
+    encoding: 'utf8',
+    timeout: 25000,
+  })
+  const elapsed = Date.now() - started
+
+  assert.equal(run.status, 0)
+  assert.equal(run.stdout, '')
+  assert.ok(elapsed < 10000, `the hook took ${elapsed} ms`)
 })

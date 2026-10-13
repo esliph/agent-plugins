@@ -48,3 +48,6 @@ An entry is born in the change that causes it, not on the eve of the release.
 - A YAML alias now works wherever the value it stands for would: a whole plugin
   block, a whole `plugins` map, an `owned` or `generated` entry, or a single
   value such as an owner.
+- The session hook keeps to its five-second budget even when `git` is slow or
+  hangs: it stops waiting, stays silent and lets the edit through, instead of
+  holding the edit for as long as `git` takes.

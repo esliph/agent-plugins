@@ -2,8 +2,31 @@ import { execFileSync } from 'node:child_process'
 
 const MAX_BUFFER = 1024 * 1024 * 1024
 
+let deadline: number | null = null
+
+/**
+ * Every later git call ends by `at` (milliseconds since the epoch), or fails.
+ * A process with a time budget needs this: a timer cannot fire while a
+ * synchronous git call is running, so a slow or hung git would outlast it.
+ */
+export function limitGitCallsUntil(at: number): void {
+  deadline = at
+}
+
 function git(root: string, args: readonly string[]): string {
-  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: MAX_BUFFER, stdio: ['ignore', 'pipe', 'pipe'] })
+  const timeout = deadline === null ? undefined : deadline - Date.now()
+
+  if (timeout !== undefined && timeout <= 0) {
+    throw new Error('no time left to run git')
+  }
+
+  return execFileSync('git', args, {
+    cwd: root,
+    encoding: 'utf8',
+    maxBuffer: MAX_BUFFER,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    ...(timeout === undefined ? {} : { timeout, killSignal: 'SIGKILL' as const }),
+  })
 }
 
 function entries(output: string): string[] {
