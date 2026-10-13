@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
+import type { Stats } from 'node:fs'
 import { join } from 'node:path'
 
 import { isGeneratedByMarker, readHead } from '../generated/marker.ts'
@@ -30,6 +31,13 @@ function runCommand(command: string, cwd: string): Promise<CommandResult> {
     child.on('error', error => resolve({ code: null, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr), error }))
     child.on('close', code => resolve({ code, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) }))
   })
+}
+
+/** Why a file system call failed, by its error code when it has one. */
+function reasonOf(error: unknown): string {
+  const code = (error as NodeJS.ErrnoException | undefined)?.code
+
+  return typeof code === 'string' ? code : error instanceof Error ? error.message : String(error)
 }
 
 function firstLine(output: Buffer): string {
@@ -80,8 +88,33 @@ async function checkGenerated(ctx: CheckContext, rule: GeneratedRule): Promise<F
   const where = { file: rule.origin.file, line: rule.origin.line, checkId: ID, severity: 'error' as const }
   const absolute = join(ctx.root, rule.path)
 
-  if (!existsSync(absolute)) {
+  let stat: Stats | undefined
+
+  try {
+    stat = statSync(absolute, { throwIfNoEntry: false })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOTDIR') {
+      return [finding({ ...where, message: `${rule.origin.keyPath}.path "${rule.path}" cannot be read: ${reasonOf(error)}`, fix })]
+    }
+  }
+
+  if (stat === undefined) {
     return [finding({ ...where, message: `${rule.origin.keyPath}.path "${rule.path}" does not exist`, fix })]
+  }
+
+  // A generated path is always a file: a directory there means the declared file is missing.
+  if (stat.isDirectory()) {
+    return [finding({ ...where, message: `${rule.origin.keyPath}.path "${rule.path}" is a directory, not a file`, fix })]
+  }
+
+  let content: Buffer
+
+  // A file that cannot be read is a finding like a missing one, never a crash that
+  // would leave CI unable to tell it from a run with findings.
+  try {
+    content = readFileSync(absolute)
+  } catch (error) {
+    return [finding({ ...where, message: `${rule.origin.keyPath}.path "${rule.path}" cannot be read: ${reasonOf(error)}`, fix })]
   }
 
   const result = await runCommand(rule.command, ctx.root)
@@ -93,7 +126,7 @@ async function checkGenerated(ctx: CheckContext, rule: GeneratedRule): Promise<F
     return [finding({ ...where, message: `${rule.origin.keyPath}.command "${rule.command}" failed${exit}: ${detail}`, fix })]
   }
 
-  const line = firstDifferentLine(withLf(readFileSync(absolute)), withLf(result.stdout))
+  const line = firstDifferentLine(withLf(content), withLf(result.stdout))
 
   return line === null
     ? []

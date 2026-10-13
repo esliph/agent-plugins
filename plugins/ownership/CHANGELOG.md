@@ -30,3 +30,12 @@ An entry is born in the change that causes it, not on the eve of the release.
   editor.
 - The package as a library for other plugins: the resolved configuration, the
   checks, the `CODEOWNERS` evaluation and the generated marker.
+
+### Fixed
+
+- `ownership validate` no longer crashes with a stack trace when a path in
+  `generated` names a directory: the check reports that the path is a directory
+  and not a file.
+- A generated file that exists but cannot be read, for lack of permission or
+  any other read error, is reported by `ownership validate` as a finding that
+  gives the reason, instead of crashing the command.

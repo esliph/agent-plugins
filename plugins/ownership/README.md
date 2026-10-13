@@ -185,11 +185,11 @@ ownership validate
 
 `validate` always covers the whole repository.
 
-| Check                        | Fails when                                                                                                                                                                 |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ownership/owner-coverage`   | A file of the repository has neither an `owned` entry nor an `ignore`; an `owned` path does not exist, or all its files are ignored.                                       |
-| `ownership/codeowners-match` | The repository has a `CODEOWNERS` and an `owned` path has no matching line in it, or the line that decides — the last one that matches — does not list the declared owner. |
-| `ownership/generated-drift`  | A generated file differs from what its command prints; the command fails; the file is missing; a file carries the `generated: do not edit` marker without being declared.  |
+| Check                        | Fails when                                                                                                                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ownership/owner-coverage`   | A file of the repository has neither an `owned` entry nor an `ignore`; an `owned` path does not exist, or all its files are ignored.                                                        |
+| `ownership/codeowners-match` | The repository has a `CODEOWNERS` and an `owned` path has no matching line in it, or the line that decides — the last one that matches — does not list the declared owner.                  |
+| `ownership/generated-drift`  | A generated file differs from what its command prints; the command fails; the file is missing or cannot be read; a file carries the `generated: do not edit` marker without being declared. |
 
 A `CODEOWNERS` is optional: without one, `ownership/codeowners-match` has
 nothing to check. With one, the declared owner must be on the line GitHub would

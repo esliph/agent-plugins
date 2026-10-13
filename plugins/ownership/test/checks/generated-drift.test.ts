@@ -1,6 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
+import fs from 'node:fs'
+import { syncBuiltinESMExports } from 'node:module'
+import { join } from 'node:path'
+
 import { firstDifferentLine, generatedDrift } from '../../plugin/src/checks/generated-drift.ts'
 import { runCheck } from '../helpers/check.ts'
 import { tempRepo } from '../helpers/repo.ts'
@@ -67,6 +71,15 @@ test('a missing declared file is a finding on the generated entry', async t => {
   assert.deepEqual(
     (await runCheck(generatedDrift, root)).map(item => [item.file, item.line, item.message, item.fix]),
     [['.ownership.yml', 10, 'generated[0].path "out/missing.md" does not exist', 'node tools/ok.mjs > out/missing.md']],
+  )
+})
+
+test('a declared path that is a directory is a finding on the generated entry, not a crash', async t => {
+  const root = tempRepo(t, { ...TOOLS, '.ownership.yml': ownership([['out/api', 'node tools/ok.mjs']]), 'out/api/v1.md': '' })
+
+  assert.deepEqual(
+    (await runCheck(generatedDrift, root)).map(item => [item.file, item.line, item.message, item.fix]),
+    [['.ownership.yml', 10, 'generated[0].path "out/api" is a directory, not a file', 'node tools/ok.mjs > out/api']],
   )
 })
 
@@ -165,4 +178,29 @@ test('a CRLF checkout still reports a real difference, at the right line', async
 
   assert.equal(findings.length, 1)
   assert.equal(findings[0]?.line, 2)
+})
+
+test('a declared file that cannot be read is a finding on the generated entry that names the reason', async t => {
+  const root = tempRepo(t, { ...TOOLS, '.ownership.yml': ownership([['out/a.md', 'node tools/ok.mjs']]), 'out/a.md': 'one\ntwo\n' })
+  const unreadable = join(root, 'out', 'a.md')
+  const original = fs.readFileSync
+
+  // Permissions cannot make a file unreadable on every platform, so the read itself fails here.
+  t.mock.method(fs, 'readFileSync', (...args: Parameters<typeof fs.readFileSync>) => {
+    if (args[0] === unreadable) {
+      throw Object.assign(new Error(`EACCES: permission denied, open '${unreadable}'`), { code: 'EACCES' })
+    }
+
+    return original(...args)
+  })
+  syncBuiltinESMExports()
+  t.after(() => {
+    t.mock.restoreAll()
+    syncBuiltinESMExports()
+  })
+
+  assert.deepEqual(
+    (await runCheck(generatedDrift, root)).map(item => [item.file, item.line, item.message, item.fix]),
+    [['.ownership.yml', 10, 'generated[0].path "out/a.md" cannot be read: EACCES', 'node tools/ok.mjs > out/a.md']],
+  )
 })
