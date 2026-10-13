@@ -57,18 +57,18 @@ extension protocol blind.
 
 ## 3. Glossary
 
-| Term | Meaning |
-| --- | --- |
-| **Ownership file** | YAML file (`.ownership.yml` or a variant) that declares the rules of this core. |
-| **Root file** | The ownership file found by the candidate resolution; unique in the repository. |
-| **Included file** | Ownership file read because another one lists it in `include:`. |
-| **Repository file** | File listed by the enumeration of REQ-RES-11; it is the universe of coverage and of the checks. |
-| **Base** | Directory against which the paths of a file are resolved. |
-| **`owned` entry** | Declaration of an owner for a path, optionally with a skill and plugin blocks. |
-| **Generated artifact** | File produced by a command declared in `generated[]`. It is always under an `owned` entry (REQ-RES-05). |
-| **Plugin block** | Map under `plugins.<name>`, at the root (global block) or in an `owned` entry (entry block), which the core carries without interpreting. |
-| **Shared domain library** | Package separate from the core that gathers what is in §2.2 for the use of the domain plugins. |
-| **Finding** | Result of a check: file, line, check ID, severity, message and suggested fix. |
+| Term                      | Meaning                                                                                                                                   |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ownership file**        | YAML file (`.ownership.yml` or a variant) that declares the rules of this core.                                                           |
+| **Root file**             | The ownership file found by the candidate resolution; unique in the repository.                                                           |
+| **Included file**         | Ownership file read because another one lists it in `include:`.                                                                           |
+| **Repository file**       | File listed by the enumeration of REQ-RES-11; it is the universe of coverage and of the checks.                                           |
+| **Base**                  | Directory against which the paths of a file are resolved.                                                                                 |
+| **`owned` entry**         | Declaration of an owner for a path, optionally with a skill and plugin blocks.                                                            |
+| **Generated artifact**    | File produced by a command declared in `generated[]`. It is always under an `owned` entry (REQ-RES-05).                                   |
+| **Plugin block**          | Map under `plugins.<name>`, at the root (global block) or in an `owned` entry (entry block), which the core carries without interpreting. |
+| **Shared domain library** | Package separate from the core that gathers what is in §2.2 for the use of the domain plugins.                                            |
+| **Finding**               | Result of a check: file, line, check ID, severity, message and suggested fix.                                                             |
 
 ---
 
@@ -86,15 +86,15 @@ Every ownership file (root or included) declares `version: 1`.
 
 ### REQ-SCH-02 — Top-level keys are a closed list
 
-| Key | Root | Included | Type |
-| --- | --- | --- | --- |
-| `version` | mandatory | mandatory | integer |
-| `plugins` | optional | **forbidden** | map of plugin name → global block (REQ-PLG-01) |
-| `basePath` | optional | optional | string |
-| `owned` | optional | optional | list of entries |
-| `generated` | optional | optional | list of entries |
-| `ignore` | optional | optional | list of paths |
-| `include` | optional | optional | list of paths |
+| Key         | Root      | Included      | Type                                           |
+| ----------- | --------- | ------------- | ---------------------------------------------- |
+| `version`   | mandatory | mandatory     | integer                                        |
+| `plugins`   | optional  | **forbidden** | map of plugin name → global block (REQ-PLG-01) |
+| `basePath`  | optional  | optional      | string                                         |
+| `owned`     | optional  | optional      | list of entries                                |
+| `generated` | optional  | optional      | list of entries                                |
+| `ignore`    | optional  | optional      | list of paths                                  |
+| `include`   | optional  | optional      | list of paths                                  |
 
 - Any other top-level key is an error that names the key.
 
@@ -102,12 +102,12 @@ Every ownership file (root or included) declares `version: 1`.
 
 There are no separate lists per artifact type. Each entry accepts exactly:
 
-| Key | Mandatory | Rule |
-| --- | --- | --- |
-| `path` | yes | Non-empty string. Ending in `/` = directory; no slash = file. Literal (REQ-SCH-08). |
-| `owner` | yes | String that starts with `@`. No inheritance and no cascade: every entry declares its own. |
-| `skill` | no | Non-empty string, if present. Tells the agent which skill answers for the path; no mechanism of the core uses it. |
-| `plugins` | no | Map of plugin name → entry block (REQ-SCH-06). |
+| Key       | Mandatory | Rule                                                                                                              |
+| --------- | --------- | ----------------------------------------------------------------------------------------------------------------- |
+| `path`    | yes       | Non-empty string. Ending in `/` = directory; no slash = file. Literal (REQ-SCH-08).                               |
+| `owner`   | yes       | String that starts with `@`. No inheritance and no cascade: every entry declares its own.                         |
+| `skill`   | no        | Non-empty string, if present. Tells the agent which skill answers for the path; no mechanism of the core uses it. |
+| `plugins` | no        | Map of plugin name → entry block (REQ-SCH-06).                                                                    |
 
 An unknown key is an error, and the message suggests, if it is plugin configuration, moving it
 to `plugins.<name>`.
@@ -194,7 +194,7 @@ plugins:
 
 owned:
   - path: docs/
-    owner: "@time-docs"
+    owner: '@time-docs'
     plugins:
       plugin-example:
         prop2: Teste 2
@@ -282,14 +282,14 @@ Resolved against their bases and normalized (REQ-RES-08), the paths of **all** t
 files obey the rules below. "Contains" means that a directory path is an ancestor of the other
 path.
 
-| Pair | Rule |
-| --- | --- |
-| `owned` × `owned` | Disjoint: none is equal to another and none contains another. |
-| `ignore` × `ignore` | Disjoint, by the same rule. |
-| `generated` × `generated` | Distinct (REQ-SCH-05). Since every generated path is a file, there is no containment. |
-| `generated` × `owned` | Every `generated[].path` is equal to an `owned[].path` of a file or is contained in an `owned[].path` of a directory. |
-| `ignore` × `owned` | An `ignore` is not equal to an `owned[].path` and does not contain it. It may be contained in an `owned[].path` of a directory; in that case, the files under the `ignore` leave the coverage. |
-| `ignore` × `generated` | An `ignore` is not equal to a `generated[].path` and does not contain it. |
+| Pair                      | Rule                                                                                                                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `owned` × `owned`         | Disjoint: none is equal to another and none contains another.                                                                                                                                  |
+| `ignore` × `ignore`       | Disjoint, by the same rule.                                                                                                                                                                    |
+| `generated` × `generated` | Distinct (REQ-SCH-05). Since every generated path is a file, there is no containment.                                                                                                          |
+| `generated` × `owned`     | Every `generated[].path` is equal to an `owned[].path` of a file or is contained in an `owned[].path` of a directory.                                                                          |
+| `ignore` × `owned`        | An `ignore` is not equal to an `owned[].path` and does not contain it. It may be contained in an `owned[].path` of a directory; in that case, the files under the `ignore` leave the coverage. |
+| `ignore` × `generated`    | An `ignore` is not equal to a `generated[].path` and does not contain it.                                                                                                                      |
 
 - Every violation is a load error that names the two paths and the two files, whether inside
   one file, between siblings or between included and includer.
@@ -525,11 +525,11 @@ blow the budget of REQ-NF-07. `generated-drift` is already the expensive check.
 
 #### REQ-CHK-01 — Catalog of the core checks
 
-| ID | Requirements | Fails when | Cost |
-| --- | --- | --- | --- |
-| `ownership/owner-coverage` | REQ-OWN-01, REQ-OWN-02 | a file without coverage; an `owned[].path` that does not exist or has all its files ignored | a single enumeration of the repository files (REQ-RES-11, REQ-NF-07) |
-| `ownership/codeowners-match` | REQ-OWN-03 | an `owned[].path` without an effective line in CODEOWNERS; the declared owner outside the effective line | parsing CODEOWNERS and one evaluation per declared path |
-| `ownership/generated-drift` | REQ-GEN-01, REQ-GEN-04 | content diverges from the generator; the command fails; the declared file is missing; a marker outside `generated[]` | running the generators (REQ-CLI-09) and reading the start of the undeclared files |
+| ID                           | Requirements           | Fails when                                                                                                           | Cost                                                                              |
+| ---------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `ownership/owner-coverage`   | REQ-OWN-01, REQ-OWN-02 | a file without coverage; an `owned[].path` that does not exist or has all its files ignored                          | a single enumeration of the repository files (REQ-RES-11, REQ-NF-07)              |
+| `ownership/codeowners-match` | REQ-OWN-03             | an `owned[].path` without an effective line in CODEOWNERS; the declared owner outside the effective line             | parsing CODEOWNERS and one evaluation per declared path                           |
+| `ownership/generated-drift`  | REQ-GEN-01, REQ-GEN-04 | content diverges from the generator; the command fails; the declared file is missing; a marker outside `generated[]` | running the generators (REQ-CLI-09) and reading the start of the undeclared files |
 
 - This table is the content of the public catalog exported by the library (REQ-API-01).
 - Every finding of these checks is `error` (REQ-API-05).
@@ -569,15 +569,15 @@ a check of defined scope.
 
 #### REQ-CLI-03 — Output and exit codes
 
-| Situation | Output | Code |
-| --- | --- | --- |
-| No violations | plugins block (REQ-CLI-05), if any + `ownership: no violations found.` | 0 |
-| Warnings only | list of findings + plugins block + summary | 0 |
-| Some error | list of findings + plugins block + summary | 1 |
-| Repository without an ownership file | message saying there is nothing to validate | 0 |
-| Load error, unknown command, unknown option or option with an invalid value, missing argument | message on stderr | 2 |
-| No command | usage | 2 |
-| `--help` / `-h` | usage | 0 |
+| Situation                                                                                     | Output                                                                 | Code |
+| --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---- |
+| No violations                                                                                 | plugins block (REQ-CLI-05), if any + `ownership: no violations found.` | 0    |
+| Warnings only                                                                                 | list of findings + plugins block + summary                             | 0    |
+| Some error                                                                                    | list of findings + plugins block + summary                             | 1    |
+| Repository without an ownership file                                                          | message saying there is nothing to validate                            | 0    |
+| Load error, unknown command, unknown option or option with an invalid value, missing argument | message on stderr                                                      | 2    |
+| No command                                                                                    | usage                                                                  | 2    |
+| `--help` / `-h`                                                                               | usage                                                                  | 0    |
 
 The output follows the order: findings, plugins block (REQ-CLI-05), final line.
 
@@ -675,8 +675,8 @@ pre-commit.
 
 #### REQ-HK-01 — Set of hooks
 
-| Hook | Event | Tools | Decision |
-| --- | --- | --- | --- |
+| Hook                        | Event           | Tools                                            | Decision                            |
+| --------------------------- | --------------- | ------------------------------------------------ | ----------------------------------- |
 | `ownership/generated-guard` | before the tool | Edit, Write, MultiEdit, NotebookEdit (REQ-HK-04) | **denies** (REQ-GEN-02, REQ-GEN-03) |
 
 There is no hook on commit.
@@ -796,11 +796,11 @@ by hand.
 
 #### REQ-INIT-02 — Three modes, chosen explicitly
 
-| Mode | Option | `owned` entries generated |
-| --- | --- | --- |
-| Skeleton | none | none, only a commented template per root child |
-| Single owner | `--owner <@x>` | one per root child, all with `@x` |
-| CODEOWNERS | `--from-codeowners` | derived by REQ-INIT-03 |
+| Mode         | Option              | `owned` entries generated                      |
+| ------------ | ------------------- | ---------------------------------------------- |
+| Skeleton     | none                | none, only a commented template per root child |
+| Single owner | `--owner <@x>`      | one per root child, all with `@x`              |
+| CODEOWNERS   | `--from-codeowners` | derived by REQ-INIT-03                         |
 
 - "Root children" is the first level of the repository files (REQ-RES-11), with directories
   ending in `/` and in order.

@@ -1,0 +1,38 @@
+# Commands of the ownership plugin project. The runner is the one vendored at
+# the repository root: `../../spur <task>` from here, or
+# `./spur -C plugins/ownership <task>` from the root.
+
+install: ## install the development dependencies from the lockfile
+  npm ci
+
+## Arguments are Node test-runner options. They go before the file pattern,
+## because Node ignores the options that come after it:
+##   ../../spur test --test-name-pattern coverage
+test: ## run the tests
+  node --test "$@" "test/**/*.test.ts"
+
+typecheck: ## type-check without emitting
+  npx --no-install tsc --noEmit
+
+lint: ## lint, fixing what ESLint can fix
+  npx --no-install eslint . --fix
+
+lint-check: ## lint without fixing
+  npx --no-install eslint .
+
+format: ## format with Prettier
+  npx --no-install prettier --ignore-path ../../.prettierignore --write .
+
+format-check: ## check the formatting without writing
+  npx --no-install prettier --ignore-path ../../.prettierignore --check .
+
+## Builds a repository of 100,000 files first, which is slow, so it stays out
+## of `check`; CI runs it on its own.
+perf: ## run the performance test
+  node --test "test/**/*.perf.ts"
+
+check: ## tests, type-check, lint and formatting, in that order
+  spur test
+  spur typecheck
+  spur lint-check
+  spur format-check

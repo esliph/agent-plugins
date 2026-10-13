@@ -1,0 +1,28 @@
+{
+  "name": "@esliph/ownership",
+  "version": "0.1.0",
+  "description": "Who owns each path of a repository and which files are generated, checked in the agent session and in CI.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "ownership.schema.json"
+  ],
+  "bin": {
+    "ownership": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "prepack": "tsc -p ../tsconfig.build.json"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  }
+}
