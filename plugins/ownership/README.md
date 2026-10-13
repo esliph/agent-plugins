@@ -211,6 +211,13 @@ must be independent of each other, or run with `--jobs 1`. A command that has
 not finished after ten minutes is stopped, with everything it started, and
 reported as a failed command.
 
+**Generated files are compared as Git would store them.** The output of the
+command and the file in the work tree are compared after the line-end
+conversions that `.gitattributes` and `core.autocrlf` apply to that path. A
+checkout whose line ends Git converts is not drift; a line end that Git keeps,
+such as in a file marked `-text`, is part of the content. An uncommitted edit is
+drift.
+
 `ownership/owner-coverage` alone reads no file and runs no command, so it fits a
 pre-commit hook:
 

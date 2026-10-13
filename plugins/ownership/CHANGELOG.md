@@ -48,6 +48,12 @@ An entry is born in the change that causes it, not on the eve of the release.
 - A YAML alias now works wherever the value it stands for would: a whole plugin
   block, a whole `plugins` map, an `owned` or `generated` entry, or a single
   value such as an owner.
+- `ownership/generated-drift` compares a generated file with its command's
+  output as Git would store both at that path, after the line-end conversions
+  of `.gitattributes` and `core.autocrlf`. It no longer ignores every line-end
+  difference: a CRLF file marked `-text` against an LF output, or a generator
+  that starts printing CRLF where Git keeps it, is reported as drift. A failure
+  of Git to compute this is reported as a finding with the reason.
 - `ownership init --from-codeowners` no longer drops a path whose `CODEOWNERS`
   line lists only email addresses without a word: the path appears in the
   commented "Left out" block and in the output, with the reason that an owner

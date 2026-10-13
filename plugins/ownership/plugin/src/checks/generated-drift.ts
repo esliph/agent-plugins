@@ -131,11 +131,35 @@ export function firstDifferentLine(expected: Buffer, actual: Buffer): number | n
 }
 
 /**
- * The content as Git stores it. A checkout with `core.autocrlf` has CRLF line ends
- * that the committed file does not, and the same repository must give the same
- * answer on every machine, so the line-end style is not part of the comparison.
+ * The object id Git would give `content` if it were added at `path`: the
+ * `.gitattributes` and `core.autocrlf` conversions of that path apply, so a
+ * checkout whose line ends Git converts compares equal, and a line end Git keeps
+ * does not. Rejects with the first line of Git's error.
  */
-function withLf(content: Buffer): Buffer {
+function storedHash(root: string, path: string, content: Buffer): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const stdout: Buffer[] = []
+    const stderr: Buffer[] = []
+    const child = spawn('git', ['hash-object', `--path=${path}`, '--stdin'], { cwd: root, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true })
+
+    child.stdout.on('data', (chunk: Buffer) => stdout.push(chunk))
+    child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk))
+    child.on('error', reject)
+    child.on('close', code => {
+      if (code === 0) {
+        resolve(Buffer.concat(stdout).toString('utf8').trim())
+      } else {
+        reject(new Error(firstLine(Buffer.concat(stderr)) || `git hash-object exited with code ${code}`))
+      }
+    })
+    // A filter that exits without reading its input closes the pipe; the exit code tells.
+    child.stdin.on('error', () => undefined)
+    child.stdin.end(content)
+  })
+}
+
+/** Only to point at a line: the decision itself comes from the stored hashes. */
+function withoutCr(content: Buffer): Buffer {
   return content.includes(0x0d) ? Buffer.from(content.toString('latin1').replaceAll('\r\n', '\n'), 'latin1') : content
 }
 
@@ -187,11 +211,28 @@ export async function checkGenerated(ctx: CheckContext, rule: GeneratedRule, tim
     return [finding({ ...where, message: `${rule.origin.keyPath}.command "${rule.command}" failed${exit}: ${detail}`, fix })]
   }
 
-  const line = firstDifferentLine(withLf(content), withLf(result.stdout))
+  // The same bytes at the same path are stored the same way: no need to ask Git.
+  if (content.equals(result.stdout)) {
+    return []
+  }
 
-  return line === null
-    ? []
-    : [finding({ file: rule.path, line, checkId: ID, severity: 'error', message: `differs from the output of "${rule.command}" from this line on`, fix })]
+  // Both git calls are waited for, even when one fails, so that none is still running when the check ends.
+  const [file, output] = await Promise.allSettled([storedHash(ctx.root, rule.path, content), storedHash(ctx.root, rule.path, result.stdout)])
+
+  if (file.status === 'rejected' || output.status === 'rejected') {
+    const reason: unknown = file.status === 'rejected' ? file.reason : output.status === 'rejected' ? output.reason : undefined
+
+    return [finding({ ...where, message: `${rule.origin.keyPath}.path "${rule.path}" could not be hashed by git: ${reasonOf(reason)}`, fix })]
+  }
+
+  if (file.value === output.value) {
+    return []
+  }
+
+  // When the only difference is in line ends that Git keeps, the first byte that differs is the line.
+  const line = firstDifferentLine(withoutCr(content), withoutCr(result.stdout)) ?? firstDifferentLine(content, result.stdout) ?? 1
+
+  return [finding({ file: rule.path, line, checkId: ID, severity: 'error', message: `differs from the output of "${rule.command}" from this line on`, fix })]
 }
 
 /** Files outside generated[] and ignore that still say they are generated. Links and submodules are not read. */

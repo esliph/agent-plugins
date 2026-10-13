@@ -10,7 +10,7 @@ import { createCheckContext } from '../../plugin/src/checks/run.ts'
 import { listRepoFiles } from '../../plugin/src/repo/repo.ts'
 import { resolveOwnership } from '../../plugin/src/resolve/resolve.ts'
 import { runCheck } from '../helpers/check.ts'
-import { tempRepo } from '../helpers/repo.ts'
+import { git, tempRepo, writeFile } from '../helpers/repo.ts'
 
 const TOOLS = {
   'tools/ok.mjs': "process.stdout.write('one\\ntwo\\n')\n",
@@ -169,18 +169,79 @@ test('the findings do not depend on how many generators run at once', async t =>
   assert.deepEqual(await runCheck(generatedDrift, root, 1), await runCheck(generatedDrift, root, 4))
 })
 
-test('a checkout with CRLF line ends is not drift: Git stores the file with LF, and the content is what is compared', async t => {
-  const root = tempRepo(t, { ...TOOLS, '.ownership.yml': ownership([['out/a.md', 'node tools/ok.mjs']]), 'out/a.md': 'one\r\ntwo\r\n' })
+/** The files of a repository whose .gitattributes says `attributes`; the .gitattributes itself is ignored. */
+function withAttributes(attributes: string, file: string, command = 'node tools/ok.mjs'): Record<string, string> {
+  return {
+    ...TOOLS,
+    'tools/crlf.mjs': "process.stdout.write('one\\r\\ntwo\\r\\n')\n",
+    '.gitattributes': attributes,
+    '.ownership.yml': ownership([['out/a.md', command]], ['ignore:', '  - .gitattributes']),
+    'out/a.md': file,
+  }
+}
+
+test('with "* text=auto" and a CRLF checkout, a generator printing the same lines with LF is not drift', async t => {
+  const root = tempRepo(t, withAttributes('* text=auto\n', 'one\r\ntwo\r\n'))
 
   assert.deepEqual(await runCheck(generatedDrift, root), [])
 })
 
-test('a CRLF checkout still reports a real difference, at the right line', async t => {
-  const root = tempRepo(t, { ...TOOLS, '.ownership.yml': ownership([['out/a.md', 'node tools/ok.mjs']]), 'out/a.md': 'one\r\nTWO\r\n' })
+test('with "* text=auto" and a CRLF checkout, a real difference is reported at its line', async t => {
+  const root = tempRepo(t, withAttributes('* text=auto\n', 'one\r\nTWO\r\n'))
+
+  assert.deepEqual(
+    (await runCheck(generatedDrift, root)).map(item => [item.file, item.line]),
+    [['out/a.md', 2]],
+  )
+})
+
+test('a file marked -text and committed with CRLF is drift when the generator prints LF', async t => {
+  const root = tempRepo(t, withAttributes('out/a.md -text\n', 'one\r\ntwo\r\n'), { add: true })
+
+  git(root, 'commit', '-q', '-m', 'files')
+
+  assert.deepEqual(
+    (await runCheck(generatedDrift, root)).map(item => [item.file, item.line, item.message]),
+    [['out/a.md', 1, 'differs from the output of "node tools/ok.mjs" from this line on']],
+  )
+})
+
+test('under default attributes Git keeps the CR of a generator that starts printing CRLF, so an LF file is drift', async t => {
+  const root = tempRepo(t, withAttributes('', 'one\ntwo\n', 'node tools/crlf.mjs'))
+
+  assert.deepEqual(
+    (await runCheck(generatedDrift, root)).map(item => [item.file, item.line]),
+    [['out/a.md', 1]],
+  )
+})
+
+test('an uncommitted edit of a committed generated file is drift: the work tree is compared, not the commit', async t => {
+  const root = tempRepo(t, withAttributes('* text=auto\n', 'one\ntwo\n'), { add: true })
+
+  git(root, 'commit', '-q', '-m', 'files')
+  writeFile(root, 'out/a.md', 'one\r\nedited\r\n')
+
+  assert.deepEqual(
+    (await runCheck(generatedDrift, root)).map(item => [item.file, item.line]),
+    [['out/a.md', 2]],
+  )
+})
+
+test('when Git cannot compute how it would store the file, the finding names the reason', async t => {
+  // The file differs from the output, so Git is asked how it would store both.
+  const root = tempRepo(t, withAttributes('out/a.md filter=broken\n', 'one\nTWO\n'))
+
+  // A clean filter that always fails.
+  git(root, 'config', 'filter.broken.clean', 'exit 1')
+  git(root, 'config', 'filter.broken.required', 'true')
+
   const findings = await runCheck(generatedDrift, root)
 
-  assert.equal(findings.length, 1)
-  assert.equal(findings[0]?.line, 2)
+  assert.deepEqual(
+    findings.map(item => [item.file, item.line, item.fix]),
+    [['.ownership.yml', 10, 'node tools/ok.mjs > out/a.md']],
+  )
+  assert.match(findings[0]?.message ?? '', /^generated\[0\]\.path "out\/a\.md" could not be hashed by git: \S/)
 })
 
 test('a generator that does not finish in time is stopped and reported as a failed command', async t => {

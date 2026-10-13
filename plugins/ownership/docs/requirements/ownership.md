@@ -467,10 +467,16 @@ silence.
 
 ### REQ-GEN-01 — The versioned file equals the generator output
 
-For each `generated[]`, the output of `command` (run at the repository root) equals the content
-of the versioned file. It is an error when:
+For each `generated[]`, the output of `command` (run at the repository root), as Git would store
+it at the declared path, equals the file in the work tree, as Git would store it at that same
+path. "As Git would store it" means after the conversions that the repository's
+`.gitattributes` and `core.autocrlf` apply to that path when it is added, so a checkout whose
+line ends Git converts is not drift, and a line end that Git would keep is part of the content.
+The file is the one in the work tree, so an uncommitted edit is drift. It is an error when:
 
 - the content differs: the finding points at the **first different line**;
+- Git cannot compute how it would store the output or the file: the finding names the path and
+  the reason;
 - the command fails: the finding shows the first line of the error;
 - the command is still running after 10 minutes: it is stopped, together with the processes it
   started, and reported as a failed command. The limit is fixed, not configurable;
