@@ -10,6 +10,13 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-09-ownership-plugin-design.md` (the design) and, once Task 1 lands, `plugins/ownership/docs/requirements/ownership.md` (the requirements). The Portuguese original of the requirements is `C:\Users\conta\Downloads\ownership-especificacao.md`; it is the input of Task 1 and is never versioned.
 
+**Departures from the design**, each one measured or forced while the plan was written:
+
+- *Deleted tracked files.* The design subtracts `git ls-files -z --deleted` from the listing. Task 5 subtracts `git diff-files -z --name-only --diff-filter=D --relative` instead. Both name the tracked files missing from the work tree; on Windows, with 100,000 files, the first takes about 2.5 s and the second about 0.1 s, and only the second keeps `validate --check ownership/owner-coverage` inside its 2 s budget there (0.7 s against 3.0 s).
+- *Paths `init` cannot declare.* The design leaves out of the entries the paths that differ only in case. Task 16 leaves out, the same way, a path that is not literal (`app/[slug]/`), because an entry for it would be a load error and the file `init` writes must load.
+- *The `coverage` line of `explain`.* The design shows five fixed blocks. Task 15 prints those five and, only when the path is not plainly covered, a sixth `coverage` line that says why.
+- *Order of the last tasks.* The slash command (Task 20) comes before the distribution tests (Task 21), which check that it ships.
+
 ## Global Constraints
 
 - Node `>=24` in every `package.json` `engines`; CI on Node `24`.
@@ -24,7 +31,7 @@
 - JSON Schema URL: `https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json`.
 - Owner comparison against CODEOWNERS is case-insensitive.
 - Every core finding has `severity: 'error'`.
-- Commands are run from `plugins/ownership/` unless a step says otherwise; on Windows, run them in Git Bash.
+- Commands are run from `plugins/ownership/` unless a step says otherwise; on Windows, run them in Git Bash. The `git add` of a commit step names its paths from the repository root, hence its `-C ../..`.
 
 ## Review Focus
 
@@ -76,7 +83,7 @@ If the two counts differ, find the missing heading and translate it before going
 - [ ] **Step 4: Commit**
 
 ```bash
-git add plugins/ownership/docs/requirements/ownership.md
+git -C ../.. add plugins/ownership/docs/requirements/ownership.md
 git commit -m "docs(ownership): version the requirements specification in English
 
 Translates the requirements of the rebuilt plugin and folds in the rules
@@ -535,7 +542,7 @@ Expected: every step passes (the test glob finds only `test/errors.test.ts`).
 - [ ] **Step 8: Commit**
 
 ```bash
-git add plugins/ownership/.gitignore plugins/ownership/package.json plugins/ownership/package-lock.json plugins/ownership/tsconfig.json plugins/ownership/tsconfig.build.json plugins/ownership/eslint.config.mjs plugins/ownership/Spurfile plugins/ownership/plugin/package.json plugins/ownership/plugin/package-lock.json plugins/ownership/plugin/.claude-plugin/plugin.json plugins/ownership/plugin/src/errors.ts plugins/ownership/test
+git -C ../.. add plugins/ownership/.gitignore plugins/ownership/package.json plugins/ownership/package-lock.json plugins/ownership/tsconfig.json plugins/ownership/tsconfig.build.json plugins/ownership/eslint.config.mjs plugins/ownership/Spurfile plugins/ownership/plugin/package.json plugins/ownership/plugin/package-lock.json plugins/ownership/plugin/.claude-plugin/plugin.json plugins/ownership/plugin/src/errors.ts plugins/ownership/test
 git commit -m "chore(ownership): scaffold the plugin project and its load error
 
 Changelog: none — the plugin is not published yet
@@ -733,7 +740,7 @@ Expected: PASS (8 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/paths plugins/ownership/test/paths
+git -C ../.. add plugins/ownership/plugin/src/paths plugins/ownership/test/paths
 git commit -m "feat(ownership): normalize, confine and compare declared paths
 
 Changelog: none — the plugin is not published yet
@@ -1341,7 +1348,7 @@ Expected: PASS (20 tests). If the duplicate-key test fails on the line or the ke
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/schema plugins/ownership/test/schema
+git -C ../.. add plugins/ownership/plugin/src/schema plugins/ownership/test/schema
 git commit -m "feat(ownership): parse an ownership file with key paths and lines
 
 Changelog: none — the plugin is not published yet
@@ -1360,7 +1367,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces:
   - `isInsideWorkTree(root: string): boolean`
-  - `listRepoFiles(root: string): ReadonlySet<string>` — sorted, NFC, repository-relative with `/`; tracked plus untracked that no `.gitignore` excludes, minus tracked files deleted from the work tree; a submodule, a symbolic link and an untracked nested repository are one entry each, without a trailing `/`. One `git ls-files` for the listing, one for the deleted files.
+  - `listRepoFiles(root: string): ReadonlySet<string>` — sorted, NFC, repository-relative with `/`; tracked plus untracked that no `.gitignore` excludes, minus tracked files deleted from the work tree; a submodule, a symbolic link and an untracked nested repository are one entry each, without a trailing `/`. One `git ls-files` for the listing, one `git diff-files` for the tracked files missing from the work tree.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1482,10 +1489,15 @@ export function isInsideWorkTree(root: string): boolean {
  * .git/info/exclude nor core.excludesFile — so the same commit gives the same
  * list on every machine. Git already lists a submodule, a symbolic link and an
  * untracked nested repository as one entry, so no file is stat'ed here.
+ *
+ * The tracked files missing from the work tree come from `diff-files`, not
+ * from `ls-files --deleted`: both name the same files, but `diff-files` reads
+ * the work tree in parallel, and on Windows that is a tenth of a second
+ * against several for a hundred thousand files.
  */
 export function listRepoFiles(root: string): ReadonlySet<string> {
   const listed = entries(git(root, ['-c', 'core.quotePath=false', 'ls-files', '-z', '--cached', '--others', '--exclude-per-directory=.gitignore']))
-  const deleted = new Set(entries(git(root, ['-c', 'core.quotePath=false', 'ls-files', '-z', '--deleted'])))
+  const deleted = new Set(entries(git(root, ['diff-files', '-z', '--name-only', '--diff-filter=D', '--relative'])))
 
   return new Set([...new Set(listed.filter(entry => !deleted.has(entry)))].sort())
 }
@@ -1500,7 +1512,7 @@ Expected: PASS (7 tests; the symbolic-link test may report SKIP on Windows witho
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/repo plugins/ownership/test/repo
+git -C ../.. add plugins/ownership/plugin/src/repo plugins/ownership/test/repo
 git commit -m "feat(ownership): enumerate the repository files once through Git
 
 Changelog: none — the plugin is not published yet
@@ -2188,7 +2200,7 @@ Expected: PASS (3 + 11 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/resolve plugins/ownership/test/resolve
+git -C ../.. add plugins/ownership/plugin/src/resolve plugins/ownership/test/resolve
 git commit -m "feat(ownership): index the declared paths and check their relations
 
 Every broken relation between owned, generated and ignore paths is
@@ -2614,7 +2626,7 @@ Expected: PASS (14 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/resolve/load.ts plugins/ownership/test/resolve/load.test.ts
+git -C ../.. add plugins/ownership/plugin/src/resolve/load.ts plugins/ownership/test/resolve/load.test.ts
 git commit -m "feat(ownership): find the root file, follow includes and confine paths
 
 Changelog: none — the plugin is not published yet
@@ -2937,7 +2949,7 @@ Expected: PASS (8 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/resolve plugins/ownership/test/resolve/resolve.test.ts
+git -C ../.. add plugins/ownership/plugin/src/resolve plugins/ownership/test/resolve/resolve.test.ts
 git commit -m "feat(ownership): resolve the composed configuration and look rules up
 
 Changelog: none — the plugin is not published yet
@@ -3304,7 +3316,7 @@ Expected: PASS (34 tests: 26 from the pattern table plus 8).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/codeowners plugins/ownership/test/codeowners
+git -C ../.. add plugins/ownership/plugin/src/codeowners plugins/ownership/test/codeowners
 git commit -m "feat(ownership): read CODEOWNERS and evaluate the effective owner as GitHub does
 
 Changelog: none — the plugin is not published yet
@@ -3839,7 +3851,7 @@ Expected: PASS (3 + 4 + 6 + 1 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/generated plugins/ownership/plugin/src/checks plugins/ownership/test/generated plugins/ownership/test/checks plugins/ownership/test/helpers/check.ts
+git -C ../.. add plugins/ownership/plugin/src/generated plugins/ownership/plugin/src/checks plugins/ownership/test/generated plugins/ownership/test/checks plugins/ownership/test/helpers/check.ts
 git commit -m "feat(ownership): the check framework and the owner coverage check
 
 Changelog: none — the plugin is not published yet
@@ -4026,7 +4038,7 @@ Expected: PASS (7 + 1 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/checks plugins/ownership/test/checks
+git -C ../.. add plugins/ownership/plugin/src/checks plugins/ownership/test/checks
 git commit -m "feat(ownership): check that CODEOWNERS agrees with the declared owners
 
 Changelog: none — the plugin is not published yet
@@ -4200,7 +4212,7 @@ test('a file with the marker outside generated[] is a finding; under an ignore o
   const root = tempRepo(t, {
     ...TOOLS,
     '.ownership.yml': ownership([['out/a.md', 'node tools/marked.mjs']], ['ignore:', '  - out/vendor/']),
-    'tools/marked.mjs': "process.stdout.write('<!-- generated: do not edit -->\\n')\n",
+    'tools/marked.mjs': "// writes a file that says it is generated\nprocess.stdout.write('<!-- generated: do not edit -->\\n')\n",
     'out/a.md': '<!-- generated: do not edit -->\n',
     'out/stray.md': '<!-- GENERATED: DO NOT EDIT -->\nhand-written\n',
     'out/vendor/lib.md': 'generated: do not edit\n',
@@ -4435,7 +4447,7 @@ Expected: PASS (2 + 9 + 1 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/checks plugins/ownership/test/checks
+git -C ../.. add plugins/ownership/plugin/src/checks plugins/ownership/test/checks
 git commit -m "feat(ownership): check generated files against their generators and the marker
 
 Changelog: none — the plugin is not published yet
@@ -4782,7 +4794,7 @@ Expected: PASS (8 + 3 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/resolve plugins/ownership/test/resolve
+git -C ../.. add plugins/ownership/plugin/src/resolve plugins/ownership/test/resolve
 git commit -m "feat(ownership): explain a path and filter the entries of a plugin
 
 Changelog: none — the plugin is not published yet
@@ -4985,7 +4997,7 @@ test('--check runs only the named checks, over the whole repository, and keeps t
   assert.match(all.stdout, /ownership\/codeowners-match/)
   assert.doesNotMatch(coverage.stdout, /ownership\/codeowners-match/)
   assert.match(coverage.stdout, /ownership: plugins in use:/)
-  assert.match(coverage.stdout, /CODEOWNERS  ownership\/owner-coverage/)
+  assert.match(coverage.stdout, /CODEOWNERS {2}ownership\/owner-coverage/)
 })
 
 test('an unknown check, a bad format or a bad --jobs exits 2', t => {
@@ -5387,7 +5399,7 @@ Expected: PASS (3 + 12 tests).
 
 ```bash
 ../../spur format && ../../spur check
-git add plugins/ownership/plugin/src/cli plugins/ownership/test/cli
+git -C ../.. add plugins/ownership/plugin/src/cli plugins/ownership/test/cli
 git commit -m "feat(ownership): the CLI and ownership validate, in text, json and github formats
 
 Changelog: none — the plugin is not published yet
@@ -5397,6 +5409,4376 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
-### Not written yet
+### Task 15: `ownership explain`
 
-This plan stops at Task 14. The tasks still to write, in order: 15 `ownership explain`; 16 init derivation and rendering; 17 `ownership init`; 18 the JSON Schema and its corpus test; 19 the `generated-guard` hook; 20 the public surface and the distribution tests; 21 the `/ownership:init` slash command; 22 the performance test; 23 README, CHANGELOG and the marketplace entry; 24 the root `Spurfile` and CI; 25 dogfooding; 26 `CLAUDE.md` and `CONTRIBUTING.md`.
+**Files:**
+- Create: `plugins/ownership/plugin/src/cli/explain.ts`
+- Modify: `plugins/ownership/plugin/src/cli/main.ts`
+- Test: `plugins/ownership/test/cli/explain.test.ts`
+
+**Interfaces:**
+- Consumes: `explainPath`, `PathExplanation` (Task 13), `loadCodeowners` (Task 9), `resolveOwnership` (Task 8), `isInsideWorkTree`, `listRepoFiles` (Task 5), `normalizePath`, `toPosix` (Task 3), `RuleOrigin` (Task 6), `Io`, `USAGE`, `UsageError` (Task 14), the `runCli` and `tempRepo` test helpers (Task 2).
+- Produces:
+  - `formatExplanation(explanation: PathExplanation): string` — the fixed blocks `path`, `owned`, `generated`, `ignore`, `CODEOWNERS`, one per line, labels padded to 11 columns, `—` for what the path does not have; one `plugin <name>: <json>` line per plugin block of the entry, sorted by name; a last `coverage` line only when the path is not plainly covered (ignored, uncovered, excluded by a `.gitignore`).
+  - `explainCommand(args: readonly string[], root: string, io: Io): number` — exit 0; a `UsageError` for a missing path, more than one path, the repository root itself or a path outside the repository; without an ownership file it prints `ownership: no ownership file found; nothing to explain.` and returns 0.
+  - `main` gains the `explain` case.
+- The path may be relative to the repository root, absolute, or start with `./`. A path that is a directory on disk is explained as a directory even without the trailing `/`.
+
+- [ ] **Step 1: Write the failing test**
+
+`plugins/ownership/test/cli/explain.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { join } from 'node:path'
+
+import { runCli } from '../helpers/cli.ts'
+import { tempRepo } from '../helpers/repo.ts'
+
+const OWNERSHIP = [
+  'version: 1',
+  'owned:',
+  '  - path: .ownership.yml',
+  "    owner: '@team'",
+  '  - path: src/',
+  "    owner: '@team'",
+  '    skill: src-keeper',
+  '    plugins:',
+  '      sdd-kit: {}',
+  '      docs-kit:',
+  '        id-prefix: ADR',
+  '  - path: .gitignore',
+  "    owner: '@Lead'",
+  'generated:',
+  '  - path: src/gen.ts',
+  '    command: node gen.mjs',
+  'ignore:',
+  '  - src/vendor/',
+  '',
+].join('\n')
+
+const FILES = {
+  '.ownership.yml': OWNERSHIP,
+  '.gitignore': 'dist/\n',
+  'src/a.ts': '',
+  'src/gen.ts': '',
+  'src/marked.ts': '// generated: do not edit\n',
+  'src/vendor/lib.js': '',
+  'dist/out.js': '',
+  'README.md': '',
+}
+
+const SRC_ENTRY = [
+  'owned      src/  owner @team  skill src-keeper  (.ownership.yml:5)',
+  '           plugin docs-kit: {"id-prefix":"ADR"}',
+  '           plugin sdd-kit: {}',
+]
+
+function explain(root: string, ...args: string[]): string {
+  const result = runCli(['explain', ...args], { cwd: root })
+
+  assert.equal(result.stderr, '')
+  assert.equal(result.status, 0)
+
+  return result.stdout
+}
+
+test('a covered file shows every block, with — for what it does not have', t => {
+  const root = tempRepo(t, FILES, { codeowners: '* @other\nsrc/ @team @lead\n' })
+
+  assert.equal(
+    explain(root, 'src/a.ts'),
+    ['path       src/a.ts', ...SRC_ENTRY, 'generated  —', 'ignore     —', 'CODEOWNERS line 2: @team @lead — declared owner listed', ''].join('\n'),
+  )
+})
+
+test('an entry without a skill shows —, and a declared owner missing from the line is said', t => {
+  const root = tempRepo(t, FILES, { codeowners: '* @other\n' })
+
+  assert.equal(
+    explain(root, '.gitignore'),
+    [
+      'path       .gitignore',
+      'owned      .gitignore  owner @Lead  skill —  (.ownership.yml:12)',
+      'generated  —',
+      'ignore     —',
+      'CODEOWNERS line 1: @other — declared owner @Lead not listed',
+      '',
+    ].join('\n'),
+  )
+})
+
+test('the declared owner is looked up on the CODEOWNERS line without regard to case', t => {
+  assert.match(explain(tempRepo(t, FILES, { codeowners: '.gitignore @lead\n' }), '.gitignore'), /^CODEOWNERS line 1: @lead — declared owner listed$/m)
+})
+
+test('a line with a pattern and no owner, and a path no line matches, are told apart', t => {
+  const root = tempRepo(t, FILES, { codeowners: 'src/\n' })
+
+  assert.match(explain(root, 'src/a.ts'), /^CODEOWNERS line 1: no owner — declared owner @team not listed$/m)
+  assert.match(explain(root, 'README.md'), /^CODEOWNERS no line matches this path$/m)
+})
+
+test('a declared generated file shows its command, its origin and the owned entry that covers it', t => {
+  assert.equal(
+    explain(tempRepo(t, FILES), 'src/gen.ts'),
+    [
+      'path       src/gen.ts',
+      ...SRC_ENTRY,
+      'generated  generated[]  command node gen.mjs  (.ownership.yml:15)',
+      'ignore     —',
+      'CODEOWNERS the repository has no CODEOWNERS',
+      '',
+    ].join('\n'),
+  )
+})
+
+test('a file with the marker outside generated[] says the marker is the origin', t => {
+  assert.match(explain(tempRepo(t, FILES), 'src/marked.ts'), /^generated {2}marker "generated: do not edit" on its first line; not declared in generated\[\]$/m)
+})
+
+test('a file under an ignore inside an owned directory shows both rules and is outside coverage', t => {
+  assert.equal(
+    explain(tempRepo(t, FILES), 'src/vendor/lib.js'),
+    [
+      'path       src/vendor/lib.js',
+      ...SRC_ENTRY,
+      'generated  —',
+      'ignore     src/vendor/  (.ownership.yml:18)',
+      'CODEOWNERS the repository has no CODEOWNERS',
+      'coverage   outside coverage: the ignore leaves it out of src/',
+      '',
+    ].join('\n'),
+  )
+})
+
+test('an uncovered path names the ownership file where its entry belongs', t => {
+  const root = tempRepo(t, {
+    ...FILES,
+    '.ownership.yml': `${OWNERSHIP}include:\n  - plugins/x/\n`,
+    'plugins/x/.ownership.yml': "version: 1\nowned:\n  - path: .ownership.yml\n    owner: '@x'\n",
+    'plugins/x/a.ts': '',
+  })
+
+  assert.equal(
+    explain(root, 'README.md'),
+    [
+      'path       README.md',
+      'owned      —',
+      'generated  —',
+      'ignore     —',
+      'CODEOWNERS the repository has no CODEOWNERS',
+      'coverage   not covered: its entry belongs in owned[] of .ownership.yml',
+      '',
+    ].join('\n'),
+  )
+  assert.match(explain(root, 'plugins/x/a.ts'), /^coverage {3}not covered: its entry belongs in owned\[\] of plugins\/x\/\.ownership\.yml$/m)
+  assert.match(explain(root, 'plugins/x/planned/new.ts'), /^coverage {3}not covered: its entry belongs in owned\[\] of plugins\/x\/\.ownership\.yml$/m)
+})
+
+test('a path a .gitignore excludes is said so, and its coverage is not evaluated', t => {
+  assert.match(explain(tempRepo(t, FILES), 'dist/out.js'), /^coverage {3}not a repository file: a \.gitignore excludes it, so coverage is not evaluated$/m)
+})
+
+test('a directory is explained as a directory, with or without the trailing slash', t => {
+  const root = tempRepo(t, FILES, { codeowners: 'src/ @team\n' })
+  const expected = ['path       src/', ...SRC_ENTRY, 'generated  —', 'ignore     —', 'CODEOWNERS line 1: @team — declared owner listed', ''].join('\n')
+
+  assert.equal(explain(root, 'src/'), expected)
+  assert.equal(explain(root, 'src'), expected)
+})
+
+test('the path may be absolute or start with ./', t => {
+  const root = tempRepo(t, FILES)
+  const expected = explain(root, 'src/a.ts')
+
+  assert.equal(explain(root, join(root, 'src', 'a.ts')), expected)
+  assert.equal(explain(root, './src/a.ts'), expected)
+})
+
+test('a missing path, an extra path or a path outside the repository exits 2', t => {
+  const root = tempRepo(t, FILES)
+  const cases: [string[], RegExp][] = [
+    [[], /^ownership: explain needs a path/],
+    [['a.ts', 'b.ts'], /^ownership: explain takes one path; got 2/],
+    [['../elsewhere.ts'], /^ownership: "\.\.\/elsewhere\.ts" is outside the repository/],
+    [['.'], /^ownership: "\." is the repository itself/],
+  ]
+
+  for (const [args, message] of cases) {
+    const result = runCli(['explain', ...args], { cwd: root })
+
+    assert.equal(result.status, 2, args.join(' '))
+    assert.equal(result.stdout, '')
+    assert.match(result.stderr, message)
+  }
+})
+
+test('a repository without an ownership file has nothing to explain, and a load error exits 2', t => {
+  const none = runCli(['explain', 'a.txt'], { cwd: tempRepo(t, { 'a.txt': '' }) })
+  const broken = runCli(['explain', 'a.txt'], { cwd: tempRepo(t, { '.ownership.yml': 'version: 2\n', 'a.txt': '' }) })
+
+  assert.equal(none.status, 0)
+  assert.equal(none.stdout, 'ownership: no ownership file found; nothing to explain.\n')
+  assert.equal(broken.status, 2)
+  assert.equal(broken.stdout, '')
+  assert.match(broken.stderr, /version 2 is not supported/)
+})
+
+test('explain never prunes: an error in an include that cannot hold the path still shows', t => {
+  const root = tempRepo(t, { '.ownership.yml': 'version: 1\ninclude:\n  - plugins/x/\n', 'plugins/x/.ownership.yml': 'version: 2\n', 'README.md': '' })
+  const result = runCli(['explain', 'README.md'], { cwd: root })
+
+  assert.equal(result.status, 2)
+  assert.match(result.stderr, /^plugins\/x\/\.ownership\.yml:1: version 2 is not supported/)
+})
+```
+
+- [ ] **Step 2: Run it to see it fail**
+
+Run: `node --test test/cli/explain.test.ts`
+Expected: FAIL — every run exits 2 with `ownership: unknown command "explain"`.
+
+- [ ] **Step 3: Write the command**
+
+`plugins/ownership/plugin/src/cli/explain.ts`:
+
+```ts
+import { statSync } from 'node:fs'
+import { isAbsolute, relative, resolve } from 'node:path'
+import { parseArgs } from 'node:util'
+
+import { loadCodeowners } from '../codeowners/locate.ts'
+import { normalizePath, toPosix } from '../paths/paths.ts'
+import { isInsideWorkTree, listRepoFiles } from '../repo/repo.ts'
+import { explainPath } from '../resolve/explain.ts'
+import type { PathExplanation } from '../resolve/explain.ts'
+import { resolveOwnership } from '../resolve/resolve.ts'
+import type { RuleOrigin } from '../resolve/types.ts'
+import type { Io } from './main.ts'
+import { USAGE, UsageError } from './usage.ts'
+
+const LABEL_WIDTH = 11
+const NONE = '—'
+
+function row(label: string, text: string): string {
+  return `${label.padEnd(LABEL_WIDTH)}${text}`
+}
+
+function at(origin: RuleOrigin): string {
+  return origin.line === undefined ? `(${origin.file})` : `(${origin.file}:${origin.line})`
+}
+
+function isDirectory(path: string): boolean {
+  try {
+    return statSync(path).isDirectory()
+  } catch {
+    return false
+  }
+}
+
+/** The path as the repository names it: relative to the root, with `/`, and a trailing `/` when it is a directory. */
+function repositoryPath(root: string, given: string): string {
+  const absolute = resolve(root, given)
+  const fromRoot = relative(root, absolute)
+
+  if (fromRoot === '') {
+    throw new UsageError(`"${given}" is the repository itself; explain takes a file or a directory inside it`)
+  }
+
+  if (fromRoot.startsWith('..') || isAbsolute(fromRoot)) {
+    throw new UsageError(`"${given}" is outside the repository`)
+  }
+
+  const path = normalizePath(toPosix(fromRoot))
+
+  return /[\\/]$/.test(given) || isDirectory(absolute) ? `${path}/` : path
+}
+
+function codeownersText(explanation: PathExplanation): string {
+  const result = explanation.codeowners
+
+  if (result.kind === 'no-codeowners') {
+    return 'the repository has no CODEOWNERS'
+  }
+
+  if (result.kind === 'unmatched') {
+    return 'no line matches this path'
+  }
+
+  const assigned = `line ${result.line}: ${result.owners.length === 0 ? 'no owner' : result.owners.join(' ')}`
+  const owner = explanation.owned?.owner
+
+  if (owner === undefined) {
+    return assigned
+  }
+
+  const listed = result.owners.some(candidate => candidate.toLowerCase() === owner.toLowerCase())
+
+  return `${assigned} ${NONE} declared owner ${listed ? 'listed' : `${owner} not listed`}`
+}
+
+function coverageText(explanation: PathExplanation): string | null {
+  const coverage = explanation.coverage
+
+  switch (coverage.kind) {
+    case 'covered':
+      return null
+    case 'ignored':
+      return explanation.owned === null
+        ? 'outside coverage: an ignore leaves it out'
+        : `outside coverage: the ignore leaves it out of ${explanation.owned.path}`
+    case 'gitignored':
+      return 'not a repository file: a .gitignore excludes it, so coverage is not evaluated'
+    case 'uncovered':
+      return coverage.file === null
+        ? 'not covered: no ownership file has a base that contains it'
+        : `not covered: its entry belongs in owned[] of ${coverage.file}`
+  }
+}
+
+/** The fixed blocks of an explanation, one per line, with `—` for what the path does not have. */
+export function formatExplanation(explanation: PathExplanation): string {
+  const lines = [row('path', explanation.path)]
+  const { owned, generated, ignore } = explanation
+
+  if (owned === null) {
+    lines.push(row('owned', NONE))
+  } else {
+    lines.push(row('owned', `${owned.path}  owner ${owned.owner}  skill ${owned.skill ?? NONE}  ${at(owned.origin)}`))
+
+    for (const name of Object.keys(owned.plugins).sort()) {
+      lines.push(row('', `plugin ${name}: ${JSON.stringify(owned.plugins[name])}`))
+    }
+  }
+
+  if (generated === null) {
+    lines.push(row('generated', NONE))
+  } else if (generated.source === 'declared') {
+    lines.push(row('generated', `generated[]  command ${generated.rule.command}  ${at(generated.rule.origin)}`))
+  } else {
+    lines.push(row('generated', 'marker "generated: do not edit" on its first line; not declared in generated[]'))
+  }
+
+  lines.push(row('ignore', ignore === null ? NONE : `${ignore.path}  ${at(ignore.origin)}`))
+  lines.push(row('CODEOWNERS', codeownersText(explanation)))
+
+  const coverage = coverageText(explanation)
+
+  if (coverage !== null) {
+    lines.push(row('coverage', coverage))
+  }
+
+  return `${lines.join('\n')}\n`
+}
+
+/** Like validate, explain reads every ownership file: it never prunes. */
+export function explainCommand(args: readonly string[], root: string, io: Io): number {
+  const { values, positionals } = parseArgs({
+    args: [...args],
+    strict: true,
+    allowPositionals: true,
+    options: {
+      ownership: { type: 'string' },
+      help: { type: 'boolean', short: 'h' },
+    },
+  })
+
+  if (values.help === true) {
+    io.stdout(USAGE)
+
+    return 0
+  }
+
+  const [given, ...extra] = positionals
+
+  if (given === undefined || given === '') {
+    throw new UsageError('explain needs a path: ownership explain <path>')
+  }
+
+  if (extra.length > 0) {
+    throw new UsageError(`explain takes one path; got ${positionals.length}`)
+  }
+
+  const path = repositoryPath(root, given)
+  const repoFiles = isInsideWorkTree(root) ? listRepoFiles(root) : new Set<string>()
+  const config = resolveOwnership(root, { repoFiles, ...(values.ownership === undefined ? {} : { ownership: values.ownership }) })
+
+  if (config === null) {
+    io.stdout('ownership: no ownership file found; nothing to explain.\n')
+
+    return 0
+  }
+
+  io.stdout(formatExplanation(explainPath(config, path, { repoFiles, codeowners: loadCodeowners(root) })))
+
+  return 0
+}
+```
+
+- [ ] **Step 4: Add the command to the CLI**
+
+In `plugins/ownership/plugin/src/cli/main.ts`, add the import after the one of `OwnershipError`:
+
+```ts
+import { explainCommand } from './explain.ts'
+```
+
+and the case after `validate`:
+
+```ts
+      case 'validate':
+        return await validateCommand(args, root, io)
+      case 'explain':
+        return explainCommand(args, root, io)
+```
+
+- [ ] **Step 5: Run it to see it pass**
+
+Run: `node --test test/cli/explain.test.ts test/cli/main.test.ts`
+Expected: PASS (14 + 3 tests).
+
+- [ ] **Step 6: Commit**
+
+```bash
+../../spur format && ../../spur check
+git -C ../.. add plugins/ownership/plugin/src/cli plugins/ownership/test/cli/explain.test.ts
+git commit -m "feat(ownership): ownership explain shows every rule that reaches a path
+
+Changelog: none — the plugin is not published yet
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 16: Derive and render the initial ownership file
+
+**Files:**
+- Create: `plugins/ownership/plugin/src/init/derive.ts`
+- Create: `plugins/ownership/plugin/src/init/render.ts`
+- Test: `plugins/ownership/test/init/derive.test.ts`
+- Test: `plugins/ownership/test/init/render.test.ts`
+
+**Interfaces:**
+- Consumes: `ownersOf`, `Codeowners`, `OwnersResult`, `parseCodeowners` (Task 9), `isGeneratedByMarker`, `readHead` (Task 10), `caseCollisions`, `literalProblem` (Task 3), `parseOwnershipFile` (Task 4, in the tests).
+- Produces (`init/derive.ts`):
+  - `type InitMode = { readonly kind: 'skeleton' } | { readonly kind: 'owner'; readonly owner: string } | { readonly kind: 'codeowners'; readonly codeowners: Codeowners }`
+  - `interface InitEntry { readonly path: string; readonly owner: string; readonly note?: string }`
+  - `interface LeftOut { readonly path: string; readonly owner: string; readonly reason: string }` — a path that would be an entry but that an ownership file cannot declare: it differs from another only in case, or it is not literal (`app/[slug]/`).
+  - `interface InitPlan { readonly mode: 'skeleton' | 'owner' | 'codeowners'; readonly entries: readonly InitEntry[]; readonly leftOut: readonly LeftOut[]; readonly templates: readonly string[]; readonly unowned: number }`
+  - `rootChildren(repoFiles: Iterable<string>): string[]`
+  - `deriveInit(repoFiles: ReadonlySet<string>, mode: InitMode): InitPlan` — pure: it reads no file.
+  - `markerFiles(root: string, repoFiles: Iterable<string>): string[]` — sorted.
+- Produces (`init/render.ts`):
+  - `SCHEMA_URL: string`
+  - `renderOwnershipFile(plan: InitPlan, markers: readonly string[]): string` — written line by line, never by the `yaml` serializer.
+
+- [ ] **Step 1: Write the failing tests**
+
+`plugins/ownership/test/init/derive.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+
+import { parseCodeowners } from '../../plugin/src/codeowners/parse.ts'
+import { deriveInit, markerFiles, rootChildren } from '../../plugin/src/init/derive.ts'
+import { tempRepo } from '../helpers/repo.ts'
+
+const FILES = new Set(['.ownership.yml', 'README.md', 'docs/a.md', 'docs/adr/1.md', 'src/a.ts', 'src/lib/b.ts'])
+
+function fromCodeowners(files: string[], codeowners: string) {
+  return deriveInit(new Set(files), { kind: 'codeowners', codeowners: parseCodeowners(codeowners) })
+}
+
+test('the root children are the first level, directories with a slash, sorted', () => {
+  assert.deepEqual(rootChildren(FILES), ['.ownership.yml', 'README.md', 'docs/', 'src/'])
+  assert.deepEqual(rootChildren([]), [])
+})
+
+test('skeleton mode writes no entry: a model per root child, and every file is still without an owner', () => {
+  assert.deepEqual(deriveInit(FILES, { kind: 'skeleton' }), {
+    mode: 'skeleton',
+    entries: [],
+    leftOut: [],
+    templates: ['.ownership.yml', 'README.md', 'docs/', 'src/'],
+    unowned: 6,
+  })
+})
+
+test('single-owner mode gives every root child to that owner', () => {
+  assert.deepEqual(deriveInit(FILES, { kind: 'owner', owner: '@me' }), {
+    mode: 'owner',
+    entries: [
+      { path: '.ownership.yml', owner: '@me' },
+      { path: 'README.md', owner: '@me' },
+      { path: 'docs/', owner: '@me' },
+      { path: 'src/', owner: '@me' },
+    ],
+    leftOut: [],
+    templates: [],
+    unowned: 0,
+  })
+})
+
+test('a root child whose files all have the same owners, and that has them itself, is one entry', () => {
+  const plan = fromCodeowners(['docs/a.md', 'docs/adr/1.md', 'src/a.ts'], 'docs/ @docs\nsrc/ @dev\n')
+
+  assert.deepEqual(plan.entries, [
+    { path: 'docs/', owner: '@docs' },
+    { path: 'src/', owner: '@dev' },
+  ])
+  assert.equal(plan.unowned, 0)
+})
+
+test('a directory with mixed owners is split into the smallest disjoint cover', () => {
+  const plan = fromCodeowners(['docs/a.md', 'docs/adr/1.md', 'docs/adr/2.md', 'docs/api/v1/x.md'], 'docs/ @docs\ndocs/adr/ @arch\n')
+
+  assert.deepEqual(plan.entries, [
+    { path: 'docs/a.md', owner: '@docs' },
+    { path: 'docs/adr/', owner: '@arch' },
+    { path: 'docs/api/', owner: '@docs' },
+  ])
+})
+
+test('a directory whose files are covered by a line that does not match the directory itself is split', () => {
+  const plan = fromCodeowners(['docs/a.md', 'docs/x/b.md'], 'docs/**/*.md @docs\n')
+
+  assert.deepEqual(
+    plan.entries.map(entry => entry.path),
+    ['docs/a.md', 'docs/x/b.md'],
+  )
+})
+
+test('the owner is the first of the effective line, and the others go in a note with the line number', () => {
+  const plan = fromCodeowners(['src/a.ts'], '# owners\n\nsrc/ @a @b @c\n')
+
+  assert.deepEqual(plan.entries, [{ path: 'src/', owner: '@a', note: 'CODEOWNERS line 3 also lists @b @c' }])
+})
+
+test('owner sets are compared without regard to case or order', () => {
+  const plan = fromCodeowners(['src/a.ts', 'src/b.md'], 'src/ @A @b\n*.md @B @a\n')
+
+  assert.deepEqual(
+    plan.entries.map(entry => entry.path),
+    ['src/'],
+  )
+})
+
+test('a file with no effective line, or on a line without owners, gets no entry and is counted', () => {
+  const plan = fromCodeowners(['a.md', 'vendor/x.js', 'vendor/y.js', 'src/a.ts'], '* @all\nvendor/\nsrc/ @dev\n')
+
+  assert.deepEqual(
+    plan.entries.map(entry => entry.path),
+    ['a.md', 'src/'],
+  )
+  assert.equal(plan.unowned, 2)
+  assert.equal(fromCodeowners(['a.md', 'b.md'], 'a.md @a\n').unowned, 1)
+})
+
+test('paths that differ only in case are left out, in every mode that writes entries', () => {
+  const files = new Set(['Docs/a.md', 'docs/b.md', 'src/a.ts'])
+  const expected = [
+    { path: 'Docs/', owner: '@me', reason: 'differs from another path only in case' },
+    { path: 'docs/', owner: '@me', reason: 'differs from another path only in case' },
+  ]
+  const owner = deriveInit(files, { kind: 'owner', owner: '@me' })
+  const codeowners = deriveInit(files, { kind: 'codeowners', codeowners: parseCodeowners('* @me\n') })
+
+  assert.deepEqual(owner.leftOut, expected)
+  assert.deepEqual(owner.entries, [{ path: 'src/', owner: '@me' }])
+  assert.equal(owner.unowned, 2)
+  assert.deepEqual(codeowners.leftOut, expected)
+  assert.equal(codeowners.unowned, 2)
+})
+
+test('a path an ownership file cannot declare is left out with the reason', () => {
+  const plan = fromCodeowners(['app/[slug]/page.tsx', 'app/layout.tsx'], '* @routes\napp/layout.tsx @web\n')
+
+  assert.deepEqual(plan.entries, [{ path: 'app/layout.tsx', owner: '@web' }])
+  assert.deepEqual(plan.leftOut, [{ path: 'app/[slug]/', owner: '@routes', reason: 'contains "["; paths are literal, without glob or negation' }])
+  assert.equal(plan.unowned, 1)
+})
+
+test('the same files and the same mode give the same plan, whatever the order of the files', () => {
+  const shuffled = new Set([...FILES].reverse())
+  const mode = { kind: 'codeowners', codeowners: parseCodeowners('docs/ @docs\n* @all\n') } as const
+
+  assert.deepEqual(deriveInit(shuffled, mode), deriveInit(FILES, mode))
+})
+
+test('the files whose first line carries the marker are found, sorted; a missing file is not one', t => {
+  const root = tempRepo(
+    t,
+    { 'b.md': '<!-- generated: do not edit -->\n', 'a/x.ts': '// GENERATED: DO NOT EDIT\n', 'c.md': '# Title\ngenerated: do not edit\n' },
+    { git: false },
+  )
+
+  assert.deepEqual(markerFiles(root, ['b.md', 'c.md', 'a/x.ts', 'missing.md']), ['a/x.ts', 'b.md'])
+})
+```
+
+`plugins/ownership/test/init/render.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+
+import { parseCodeowners } from '../../plugin/src/codeowners/parse.ts'
+import { deriveInit } from '../../plugin/src/init/derive.ts'
+import type { InitPlan } from '../../plugin/src/init/derive.ts'
+import { renderOwnershipFile, SCHEMA_URL } from '../../plugin/src/init/render.ts'
+import { parseOwnershipFile } from '../../plugin/src/schema/parse.ts'
+
+const HEADER = `# yaml-language-server: $schema=${SCHEMA_URL}\nversion: 1\n`
+const FILES = new Set(['.ownership.yml', 'README.md', 'docs/a.md', 'src/a.ts'])
+
+function load(text: string) {
+  return parseOwnershipFile(text, '.ownership.yml', { isRoot: true })
+}
+
+test('the schema comment carries the published URL', () => {
+  assert.equal(SCHEMA_URL, 'https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json')
+})
+
+test('skeleton mode: the schema comment, the version and a commented model per root child', () => {
+  assert.equal(
+    renderOwnershipFile(deriveInit(FILES, { kind: 'skeleton' }), []),
+    [
+      `# yaml-language-server: $schema=${SCHEMA_URL}`,
+      'version: 1',
+      '',
+      '# No entry was written: only you can name the owner of each path. Uncomment',
+      '# the entries, give each one its owner, and split a directory into its',
+      '# children when its parts have different owners.',
+      '# owned:',
+      '#   - path: .ownership.yml',
+      '#     owner: "@owner"',
+      '#   - path: README.md',
+      '#     owner: "@owner"',
+      '#   - path: docs/',
+      '#     owner: "@owner"',
+      '#   - path: src/',
+      '#     owner: "@owner"',
+      '',
+    ].join('\n'),
+  )
+})
+
+test('single-owner mode: one entry per root child, owners in double quotes', () => {
+  assert.equal(
+    renderOwnershipFile(deriveInit(FILES, { kind: 'owner', owner: '@me' }), []),
+    [
+      `# yaml-language-server: $schema=${SCHEMA_URL}`,
+      'version: 1',
+      '',
+      'owned:',
+      '  - path: .ownership.yml',
+      '    owner: "@me"',
+      '  - path: README.md',
+      '    owner: "@me"',
+      '  - path: docs/',
+      '    owner: "@me"',
+      '  - path: src/',
+      '    owner: "@me"',
+      '',
+    ].join('\n'),
+  )
+})
+
+test('CODEOWNERS mode: the other owners of the line are a comment above the entry', () => {
+  const plan = deriveInit(new Set(['docs/a.md', 'src/a.ts']), { kind: 'codeowners', codeowners: parseCodeowners('docs/ @docs\nsrc/ @a @b\n') })
+
+  assert.equal(
+    renderOwnershipFile(plan, []),
+    `${HEADER}\nowned:\n  - path: docs/\n    owner: "@docs"\n  # CODEOWNERS line 2 also lists @b\n  - path: src/\n    owner: "@a"\n`,
+  )
+})
+
+test('paths left out and files with the marker are written as comments', () => {
+  const plan = deriveInit(new Set(['Docs/a.md', 'docs/b.md', 'src/gen.ts']), { kind: 'owner', owner: '@me' })
+
+  assert.equal(
+    renderOwnershipFile(plan, ['src/gen.ts']),
+    [
+      `# yaml-language-server: $schema=${SCHEMA_URL}`,
+      'version: 1',
+      '',
+      'owned:',
+      '  - path: src/',
+      '    owner: "@me"',
+      '',
+      '# Left out, and so without an owner: an ownership file cannot declare these',
+      '# paths as they are.',
+      '#   differs from another path only in case:',
+      '#   - path: Docs/',
+      '#     owner: "@me"',
+      '#   differs from another path only in case:',
+      '#   - path: docs/',
+      '#     owner: "@me"',
+      '',
+      '# These files carry the "generated: do not edit" marker. Uncomment the block',
+      '# and give each one the command that prints its content.',
+      '# generated:',
+      '#   - path: src/gen.ts',
+      '#     command: <command that prints this file>',
+      '',
+    ].join('\n'),
+  )
+})
+
+test('the file never seeds ignore, plugins or include, and has no generated key of its own', () => {
+  const text = renderOwnershipFile(deriveInit(FILES, { kind: 'owner', owner: '@me' }), ['src/a.ts'])
+
+  assert.doesNotMatch(text, /^(?:ignore|plugins|include|generated):/m)
+})
+
+test('the result of every mode loads without a load error and gives back the same entries', () => {
+  const plans: InitPlan[] = [
+    deriveInit(FILES, { kind: 'skeleton' }),
+    deriveInit(FILES, { kind: 'owner', owner: '@me' }),
+    deriveInit(FILES, { kind: 'codeowners', codeowners: parseCodeowners('* @all @lead\ndocs/ @docs\n') }),
+    deriveInit(FILES, { kind: 'codeowners', codeowners: parseCodeowners('nothing/ @x\n') }),
+    deriveInit(new Set(['Docs/a.md', 'docs/b.md']), { kind: 'owner', owner: '@me' }),
+  ]
+
+  for (const plan of plans) {
+    const loaded = load(renderOwnershipFile(plan, ['docs/a.md']))
+
+    assert.deepEqual(
+      loaded.owned.map(entry => [entry.path, entry.owner]),
+      plan.entries.map(entry => [entry.path, entry.owner]),
+    )
+    assert.deepEqual(loaded.generated, [])
+  }
+})
+
+test('a path YAML would read as something else, or cut short, is written in double quotes', () => {
+  const names = ['my file #1.md', '123', '1.5', 'true', 'Null', '@scope/', '- dash', 'key: value', '.5', 'ação/', "it's", '-x', '~', '{a}', 'tab\there']
+  const plan = deriveInit(new Set(names.map(name => (name.endsWith('/') ? `${name}x.md` : name))), { kind: 'owner', owner: '@me' })
+
+  assert.deepEqual(plan.leftOut, [])
+  assert.deepEqual(
+    load(renderOwnershipFile(plan, []))
+      .owned.map(entry => entry.path)
+      .sort(),
+    [...names].sort(),
+  )
+})
+
+test('the same plan renders to the same bytes', () => {
+  const plan = deriveInit(FILES, { kind: 'owner', owner: '@me' })
+
+  assert.equal(renderOwnershipFile(plan, ['b', 'a']), renderOwnershipFile(plan, ['b', 'a']))
+})
+```
+
+- [ ] **Step 2: Run them to see them fail**
+
+Run: `node --test test/init/derive.test.ts test/init/render.test.ts`
+Expected: FAIL — modules not found.
+
+- [ ] **Step 3: Write the derivation**
+
+`plugins/ownership/plugin/src/init/derive.ts`:
+
+```ts
+import { join } from 'node:path'
+
+import { ownersOf } from '../codeowners/match.ts'
+import type { Codeowners, OwnersResult } from '../codeowners/types.ts'
+import { isGeneratedByMarker, readHead } from '../generated/marker.ts'
+import { caseCollisions, literalProblem } from '../paths/paths.ts'
+
+export type InitMode =
+  { readonly kind: 'skeleton' } | { readonly kind: 'owner'; readonly owner: string } | { readonly kind: 'codeowners'; readonly codeowners: Codeowners }
+
+export interface InitEntry {
+  readonly path: string
+  readonly owner: string
+  /** A comment written above the entry. */
+  readonly note?: string
+}
+
+/** A path that would be an entry, but that an ownership file cannot declare as it is. */
+export interface LeftOut {
+  readonly path: string
+  readonly owner: string
+  readonly reason: string
+}
+
+export interface InitPlan {
+  readonly mode: InitMode['kind']
+  readonly entries: readonly InitEntry[]
+  readonly leftOut: readonly LeftOut[]
+  /** The root children, written as a commented model in skeleton mode; empty in the other modes. */
+  readonly templates: readonly string[]
+  /** How many repository files no entry covers. */
+  readonly unowned: number
+}
+
+/** The first level of the repository files, directories with a trailing `/`, sorted. */
+export function rootChildren(repoFiles: Iterable<string>): string[] {
+  const children = new Set<string>()
+
+  for (const file of repoFiles) {
+    const slash = file.indexOf('/')
+
+    children.add(slash === -1 ? file : file.slice(0, slash + 1))
+  }
+
+  return [...children].sort()
+}
+
+interface TreeNode {
+  readonly path: string
+  /** Null for a file. */
+  readonly children: Map<string, TreeNode> | null
+}
+
+function buildTree(repoFiles: Iterable<string>): TreeNode {
+  const root: TreeNode = { path: '', children: new Map() }
+
+  for (const file of repoFiles) {
+    const segments = file.split('/')
+    let node = root
+
+    segments.forEach((segment, i) => {
+      const isFile = i === segments.length - 1
+      let child = node.children?.get(segment)
+
+      if (child === undefined) {
+        child = { path: `${node.path}${segment}${isFile ? '' : '/'}`, children: isFile ? null : new Map() }
+        node.children?.set(segment, child)
+      }
+
+      node = child
+    })
+  }
+
+  return root
+}
+
+function sortedChildren(node: TreeNode): TreeNode[] {
+  return [...(node.children?.values() ?? [])].sort((a, b) => (a.path < b.path ? -1 : 1))
+}
+
+const NO_OWNER = ''
+
+/** The owner set of a CODEOWNERS answer as one comparable text; no line and a line without owners are both "no owner". */
+function ownerKey(result: OwnersResult): string {
+  return result.kind === 'matched' ? [...new Set(result.owners.map(owner => owner.toLowerCase()))].sort().join(' ') : NO_OWNER
+}
+
+/**
+ * The smallest disjoint cover the CODEOWNERS allows. A node becomes an entry
+ * when every repository file under it has the same owners and the node's own
+ * path gets those owners too; otherwise its children are tried. The second
+ * condition matters because a line such as `docs/**\/*.md @x` gives every file
+ * of `docs/` to `@x` without matching `docs/` itself.
+ */
+function fromCodeowners(repoFiles: Iterable<string>, codeowners: Codeowners): InitEntry[] {
+  const keys = new Map<TreeNode, string | null>()
+
+  const keyOf = (node: TreeNode): string | null => {
+    const known = keys.get(node)
+
+    if (known !== undefined) {
+      return known
+    }
+
+    let key: string | null
+
+    if (node.children === null) {
+      key = ownerKey(ownersOf(codeowners, node.path))
+    } else {
+      const below = new Set([...node.children.values()].map(keyOf))
+      const [only] = below
+
+      key = below.size === 1 && only !== undefined ? only : null
+    }
+
+    keys.set(node, key)
+
+    return key
+  }
+
+  const entries: InitEntry[] = []
+
+  const visit = (node: TreeNode): void => {
+    const key = keyOf(node)
+    const own = ownersOf(codeowners, node.path)
+    const [owner, ...others] = own.kind === 'matched' ? own.owners : []
+
+    if (key !== null && key !== NO_OWNER && own.kind === 'matched' && owner !== undefined && ownerKey(own) === key) {
+      entries.push({ path: node.path, owner, ...(others.length === 0 ? {} : { note: `CODEOWNERS line ${own.line} also lists ${others.join(' ')}` }) })
+
+      return
+    }
+
+    sortedChildren(node).forEach(visit)
+  }
+
+  sortedChildren(buildTree(repoFiles)).forEach(visit)
+
+  return entries
+}
+
+function countUnowned(repoFiles: Iterable<string>, entries: readonly InitEntry[]): number {
+  const declared = new Set(entries.map(entry => entry.path))
+  let unowned = 0
+
+  for (const file of repoFiles) {
+    let covered = declared.has(file)
+
+    for (let slash = file.indexOf('/'); !covered && slash !== -1; slash = file.indexOf('/', slash + 1)) {
+      covered = declared.has(file.slice(0, slash + 1))
+    }
+
+    if (!covered) {
+      unowned += 1
+    }
+  }
+
+  return unowned
+}
+
+/**
+ * What `ownership init` writes for these repository files. An entry never
+ * gets an owner nobody named: it comes from the mode, or there is no entry.
+ */
+export function deriveInit(repoFiles: ReadonlySet<string>, mode: InitMode): InitPlan {
+  if (mode.kind === 'skeleton') {
+    return { mode: 'skeleton', entries: [], leftOut: [], templates: rootChildren(repoFiles), unowned: repoFiles.size }
+  }
+
+  const candidates =
+    mode.kind === 'owner' ? rootChildren(repoFiles).map((path): InitEntry => ({ path, owner: mode.owner })) : fromCodeowners(repoFiles, mode.codeowners)
+  const collisions = new Set(caseCollisions(candidates.map(entry => entry.path)).flat())
+  const entries: InitEntry[] = []
+  const leftOut: LeftOut[] = []
+
+  for (const entry of candidates) {
+    const reason = collisions.has(entry.path) ? 'differs from another path only in case' : literalProblem(entry.path)
+
+    if (reason === null) {
+      entries.push(entry)
+    } else {
+      leftOut.push({ path: entry.path, owner: entry.owner, reason })
+    }
+  }
+
+  return { mode: mode.kind, entries, leftOut, templates: [], unowned: countUnowned(repoFiles, entries) }
+}
+
+/** The repository files whose first line says they are generated. */
+export function markerFiles(root: string, repoFiles: Iterable<string>): string[] {
+  const found: string[] = []
+
+  for (const file of repoFiles) {
+    const head = readHead(join(root, file))
+
+    if (head !== null && isGeneratedByMarker(head)) {
+      found.push(file)
+    }
+  }
+
+  return found.sort()
+}
+```
+
+- [ ] **Step 4: Write the rendering**
+
+`plugins/ownership/plugin/src/init/render.ts`:
+
+```ts
+import type { InitPlan } from './derive.ts'
+
+export const SCHEMA_URL = 'https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json'
+
+const PLAIN = /^[A-Za-z_][A-Za-z0-9_./-]*$|^\.[A-Za-z_][A-Za-z0-9_./-]*$/
+const RESERVED = /^(?:true|false|null)$/i
+
+/** A YAML scalar that reads back as this exact text: plain when that is safe, in double quotes otherwise. */
+function scalar(text: string): string {
+  return PLAIN.test(text) && !RESERVED.test(text) ? text : JSON.stringify(text)
+}
+
+function entryLines(path: string, owner: string): string[] {
+  return [`  - path: ${scalar(path)}`, `    owner: ${JSON.stringify(owner)}`]
+}
+
+function commented(lines: readonly string[]): string[] {
+  return lines.map(line => `# ${line}`)
+}
+
+/**
+ * The text of the root ownership file. It is written by hand, line by line,
+ * and not by a YAML serializer, so the same plan gives the same bytes on every
+ * machine and in every version of the dependencies.
+ */
+export function renderOwnershipFile(plan: InitPlan, markers: readonly string[]): string {
+  const lines = [`# yaml-language-server: $schema=${SCHEMA_URL}`, 'version: 1', '']
+
+  if (plan.mode === 'skeleton') {
+    lines.push(
+      '# No entry was written: only you can name the owner of each path. Uncomment',
+      '# the entries, give each one its owner, and split a directory into its',
+      '# children when its parts have different owners.',
+      ...commented(['owned:', ...plan.templates.flatMap(path => entryLines(path, '@owner'))]),
+    )
+  } else if (plan.entries.length === 0) {
+    lines.push('# No entry could be derived. Declare each path with its owner under "owned:".')
+  } else {
+    lines.push('owned:')
+
+    for (const entry of plan.entries) {
+      if (entry.note !== undefined) {
+        lines.push(`  # ${entry.note}`)
+      }
+
+      lines.push(...entryLines(entry.path, entry.owner))
+    }
+  }
+
+  if (plan.leftOut.length > 0) {
+    lines.push('', '# Left out, and so without an owner: an ownership file cannot declare these', '# paths as they are.')
+
+    for (const item of plan.leftOut) {
+      lines.push(`#   ${item.reason}:`, ...commented(entryLines(item.path, item.owner)))
+    }
+  }
+
+  if (markers.length > 0) {
+    lines.push(
+      '',
+      '# These files carry the "generated: do not edit" marker. Uncomment the block',
+      '# and give each one the command that prints its content.',
+      ...commented(['generated:', ...markers.flatMap(path => [`  - path: ${scalar(path)}`, '    command: <command that prints this file>'])]),
+    )
+  }
+
+  return `${lines.join('\n')}\n`
+}
+```
+
+- [ ] **Step 5: Run them to see them pass**
+
+Run: `node --test test/init/derive.test.ts test/init/render.test.ts`
+Expected: PASS (13 + 9 tests).
+
+- [ ] **Step 6: Commit**
+
+```bash
+../../spur format && ../../spur check
+git -C ../.. add plugins/ownership/plugin/src/init plugins/ownership/test/init
+git commit -m "feat(ownership): derive and render the initial ownership file
+
+Three modes — a skeleton, a single owner, the CODEOWNERS — give a plan,
+and the plan is written line by line so the same tree gives the same
+bytes.
+
+Changelog: none — the plugin is not published yet
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 17: `ownership init`
+
+**Files:**
+- Create: `plugins/ownership/plugin/src/cli/init.ts`
+- Modify: `plugins/ownership/plugin/src/cli/main.ts`
+- Test: `plugins/ownership/test/cli/init.test.ts`
+
+**Interfaces:**
+- Consumes: `deriveInit`, `markerFiles`, `InitMode`, `InitPlan`, `renderOwnershipFile`, `SCHEMA_URL` (Task 16), `CODEOWNERS_LOCATIONS`, `findCodeowners`, `loadCodeowners` (Task 9), `ROOT_CANDIDATES` (Task 7), `isInsideWorkTree`, `listRepoFiles` (Task 5), `normalizePath`, `toPosix` (Task 3), `Io`, `USAGE`, `UsageError` (Task 14).
+- Produces:
+  - `initCommand(args: readonly string[], root: string, io: Io): number` — 0 on success; every refusal is a `UsageError` or an `OwnershipError`, which `main` turns into exit 2. Never 1.
+  - `main` gains the `init` case.
+- The checks run in this order, and the first that fails is the one reported: inside a Git work tree; the target inside the repository and not a directory; neither the target nor a root candidate exists; `--owner` and `--from-codeowners` not together; `--owner` starts with `@`; `--from-codeowners` has a CODEOWNERS.
+- The target path is added to the repository files before the entries are derived.
+- With `--stdout`, the file goes to stdout, the summary to stderr, and nothing is written. Otherwise the summary goes to stdout.
+
+- [ ] **Step 1: Write the failing test**
+
+`plugins/ownership/test/cli/init.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { SCHEMA_URL } from '../../plugin/src/init/render.ts'
+import { runCli } from '../helpers/cli.ts'
+import { tempRepo } from '../helpers/repo.ts'
+
+const HEADER = `# yaml-language-server: $schema=${SCHEMA_URL}\nversion: 1\n`
+const FILES = { 'README.md': '', 'docs/a.md': '', 'src/a.ts': '', 'src/lib/b.ts': '' }
+
+function read(root: string, path = '.ownership.yml'): string {
+  return readFileSync(join(root, path), 'utf8')
+}
+
+test('without an option, init writes the skeleton and says validate fails on purpose', t => {
+  const root = tempRepo(t, FILES)
+  const result = runCli(['init'], { cwd: root })
+
+  assert.equal(result.stderr, '')
+  assert.equal(result.status, 0)
+  assert.equal(
+    result.stdout,
+    [
+      'ownership: wrote .ownership.yml with 0 entries.',
+      'ownership: 5 repository files have no owner.',
+      'ownership: declare every path in owned[]; "ownership validate" fails on purpose until every file has an owner.',
+      'ownership: next step: ownership validate',
+      '',
+    ].join('\n'),
+  )
+  assert.match(read(root), /^# owned:\n# {3}- path: \.ownership\.yml\n# {5}owner: "@owner"\n# {3}- path: README\.md\n/m)
+  assert.equal(runCli(['validate', '--check', 'ownership/owner-coverage'], { cwd: root }).status, 1)
+})
+
+test('skeleton mode never switches to the CODEOWNERS on its own; it mentions --from-codeowners', t => {
+  const root = tempRepo(t, FILES, { codeowners: '* @all\n' })
+  const result = runCli(['init'], { cwd: root })
+
+  assert.equal(result.status, 0)
+  assert.match(result.stdout, /^ownership: wrote \.ownership\.yml with 0 entries\.$/m)
+  assert.match(result.stdout, /^ownership: this repository has a CODEOWNERS; "ownership init --from-codeowners" derives the entries from it\.$/m)
+})
+
+test('--owner gives every root child to that owner, the new file included, and coverage passes', t => {
+  const root = tempRepo(t, FILES)
+  const result = runCli(['init', '--owner', '@me'], { cwd: root })
+
+  assert.equal(result.status, 0)
+  assert.equal(
+    result.stdout,
+    ['ownership: wrote .ownership.yml with 4 entries.', 'ownership: every repository file has an owner.', 'ownership: next step: ownership validate', ''].join(
+      '\n',
+    ),
+  )
+  assert.equal(
+    read(root),
+    `${HEADER}\nowned:\n  - path: .ownership.yml\n    owner: "@me"\n  - path: README.md\n    owner: "@me"\n  - path: docs/\n    owner: "@me"\n  - path: src/\n    owner: "@me"\n`,
+  )
+
+  const validate = runCli(['validate', '--check', 'ownership/owner-coverage'], { cwd: root })
+
+  assert.equal(validate.stdout, 'ownership: no violations found.\n')
+  assert.equal(validate.status, 0)
+})
+
+test('--from-codeowners derives entries that pass codeowners-match by construction, and counts the files left without an owner', t => {
+  const root = tempRepo(t, FILES, { codeowners: '.ownership.yml @docs\nCODEOWNERS @docs\ndocs/ @docs @lead\nsrc/ @dev\nsrc/lib/ @lib\n' })
+  const result = runCli(['init', '--from-codeowners'], { cwd: root })
+
+  assert.equal(result.status, 0)
+  assert.equal(
+    result.stdout,
+    [
+      'ownership: wrote .ownership.yml with 5 entries.',
+      'ownership: 1 repository file has no owner.',
+      'ownership: declare every path in owned[]; "ownership validate" fails on purpose until every file has an owner.',
+      'ownership: next step: ownership validate',
+      '',
+    ].join('\n'),
+  )
+  assert.equal(
+    read(root),
+    [
+      `# yaml-language-server: $schema=${SCHEMA_URL}`,
+      'version: 1',
+      '',
+      'owned:',
+      '  - path: .ownership.yml',
+      '    owner: "@docs"',
+      '  - path: CODEOWNERS',
+      '    owner: "@docs"',
+      '  # CODEOWNERS line 3 also lists @lead',
+      '  - path: docs/',
+      '    owner: "@docs"',
+      '  - path: src/a.ts',
+      '    owner: "@dev"',
+      '  - path: src/lib/',
+      '    owner: "@lib"',
+      '',
+    ].join('\n'),
+  )
+  assert.equal(runCli(['validate', '--check', 'ownership/codeowners-match'], { cwd: root }).stdout, 'ownership: no violations found.\n')
+  assert.match(runCli(['validate', '--check', 'ownership/owner-coverage'], { cwd: root }).stdout, /^README\.md {2}ownership\/owner-coverage/m)
+})
+
+test('--stdout prints the file, sends the summary to stderr and writes nothing', t => {
+  const root = tempRepo(t, FILES)
+  const printed = runCli(['init', '--owner', '@me', '--stdout'], { cwd: root })
+
+  assert.equal(printed.status, 0)
+  assert.equal(existsSync(join(root, '.ownership.yml')), false)
+  assert.equal(
+    printed.stderr,
+    [
+      'ownership: printed .ownership.yml with 4 entries; nothing was written.',
+      'ownership: every repository file has an owner.',
+      'ownership: next step: ownership validate',
+      '',
+    ].join('\n'),
+  )
+
+  runCli(['init', '--owner', '@me'], { cwd: root })
+
+  assert.equal(printed.stdout, read(root))
+})
+
+test('the same tree and the same options give the same file, byte for byte', t => {
+  const codeowners = 'docs/ @docs\n* @all\n'
+  const one = runCli(['init', '--from-codeowners', '--stdout'], { cwd: tempRepo(t, FILES, { codeowners }) })
+  const two = runCli(['init', '--from-codeowners', '--stdout'], { cwd: tempRepo(t, FILES, { codeowners, add: true }) })
+
+  assert.equal(one.status, 0)
+  assert.equal(one.stdout, two.stdout)
+})
+
+test('--ownership creates the file elsewhere in the repository, and that file is covered too', t => {
+  const root = tempRepo(t, FILES)
+  const result = runCli(['init', '--owner', '@me', '--ownership', 'config/own.yml'], { cwd: root })
+
+  assert.equal(result.status, 0)
+  assert.match(result.stdout, /^ownership: wrote config\/own\.yml with 4 entries\.$/m)
+  assert.match(read(root, 'config/own.yml'), /^ {2}- path: config\/\n {4}owner: "@me"$/m)
+  assert.equal(runCli(['validate', '--ownership', 'config/own.yml', '--check', 'ownership/owner-coverage'], { cwd: root }).status, 0)
+})
+
+test('files with the marker go into a commented generated block, and the file still loads', t => {
+  const root = tempRepo(t, { 'src/gen.ts': '// generated: do not edit\n', 'src/a.ts': '' })
+
+  assert.equal(runCli(['init', '--owner', '@me'], { cwd: root }).status, 0)
+  assert.match(read(root), /^# generated:\n# {3}- path: src\/gen\.ts\n# {5}command: <command that prints this file>$/m)
+  assert.equal(runCli(['validate', '--check', 'ownership/owner-coverage'], { cwd: root }).status, 0)
+})
+
+test('paths that differ only in case are left out, listed, and the file still loads', t => {
+  const root = tempRepo(t, { 'Docs/a.md': '', 'docs/b.md': '', 'src/a.ts': '' })
+
+  if (existsSync(join(root, 'Docs', 'b.md'))) {
+    t.skip('this file system does not tell Docs/ from docs/; CI (ubuntu) runs this proof')
+
+    return
+  }
+
+  const result = runCli(['init', '--owner', '@me'], { cwd: root })
+
+  assert.equal(result.status, 0)
+  assert.match(result.stdout, /^ownership: left out 2 paths an ownership file cannot declare: Docs\/, docs\/$/m)
+  assert.match(result.stdout, /^ownership: 2 repository files have no owner\.$/m)
+  assert.equal(runCli(['validate', '--check', 'ownership/owner-coverage'], { cwd: root }).status, 1)
+})
+
+test('init never overwrites: the target or any root candidate already there is an error that names it', t => {
+  const cases: [Record<string, string>, string[], string][] = [
+    [{ '.ownership.yml': 'version: 1\n' }, [], 'ownership: .ownership.yml already exists; ownership init never overwrites an ownership file\n'],
+    [{ 'docs/.ownership.yml': 'version: 1\n' }, [], 'ownership: docs/.ownership.yml already exists; ownership init never overwrites an ownership file\n'],
+    [
+      { '.ownership.yml': 'keep me\n' },
+      ['--ownership', 'config/own.yml'],
+      'ownership: .ownership.yml already exists; ownership init never overwrites an ownership file\n',
+    ],
+    [
+      { 'config/own.yml': 'keep me\n' },
+      ['--ownership', 'config/own.yml', '--stdout'],
+      'ownership: config/own.yml already exists; ownership init never overwrites an ownership file\n',
+    ],
+  ]
+
+  for (const [files, args, message] of cases) {
+    const root = tempRepo(t, files)
+    const before = Object.entries(files).map(([path]) => read(root, path))
+    const result = runCli(['init', '--owner', '@me', ...args], { cwd: root })
+
+    assert.equal(result.status, 2)
+    assert.equal(result.stdout, '')
+    assert.equal(result.stderr, message)
+    assert.deepEqual(
+      Object.entries(files).map(([path]) => read(root, path)),
+      before,
+    )
+  }
+})
+
+test('every other refusal exits 2, never 1, and creates nothing', t => {
+  const root = tempRepo(t, FILES)
+  const cases: [string[], RegExp][] = [
+    [['--owner', '@me', '--from-codeowners'], /^ownership: --owner and --from-codeowners cannot be used together; pick one mode\n$/],
+    [['--owner', 'me'], /^ownership: --owner must start with "@"; got "me"\n$/],
+    [
+      ['--from-codeowners'],
+      /^ownership: --from-codeowners needs a CODEOWNERS, and the repository has none in \.github\/CODEOWNERS, CODEOWNERS, docs\/CODEOWNERS\n$/,
+    ],
+    [['--ownership', '../own.yml'], /^ownership: --ownership "\.\.\/own\.yml" is outside the repository; the root ownership file lives inside it\n$/],
+    [['--ownership', 'docs'], /^ownership: --ownership "docs" is a directory; name the file to create\n$/],
+    [['--force'], /^ownership: Unknown option '--force'/],
+    [['--owner'], /^ownership: /],
+  ]
+
+  for (const [args, message] of cases) {
+    const result = runCli(['init', ...args], { cwd: root })
+
+    assert.equal(result.status, 2, args.join(' '))
+    assert.equal(result.stdout, '')
+    assert.match(result.stderr, message)
+    assert.equal(existsSync(join(root, '.ownership.yml')), false)
+  }
+})
+
+test('outside a Git work tree, init exits 2', t => {
+  const result = runCli(['init', '--owner', '@me'], { cwd: tempRepo(t, FILES, { git: false }) })
+
+  assert.equal(result.status, 2)
+  assert.match(result.stderr, /is not inside a Git work tree; ownership init needs one\n$/)
+})
+
+test('more than one CODEOWNERS refuses --from-codeowners but not the skeleton', t => {
+  const root = tempRepo(t, { ...FILES, '.github/CODEOWNERS': '* @a\n' }, { codeowners: '* @b\n' })
+  const derived = runCli(['init', '--from-codeowners'], { cwd: root })
+
+  assert.equal(derived.status, 2)
+  assert.match(derived.stderr, /more than one CODEOWNERS: \.github\/CODEOWNERS, CODEOWNERS/)
+  assert.equal(runCli(['init'], { cwd: root }).status, 0)
+})
+```
+
+- [ ] **Step 2: Run it to see it fail**
+
+Run: `node --test test/cli/init.test.ts`
+Expected: FAIL — every run exits 2 with `ownership: unknown command "init"`.
+
+- [ ] **Step 3: Write the command**
+
+`plugins/ownership/plugin/src/cli/init.ts`:
+
+```ts
+import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
+import { dirname, isAbsolute, relative, resolve } from 'node:path'
+import { parseArgs } from 'node:util'
+
+import { CODEOWNERS_LOCATIONS, findCodeowners, loadCodeowners } from '../codeowners/locate.ts'
+import { deriveInit, markerFiles } from '../init/derive.ts'
+import type { InitMode, InitPlan } from '../init/derive.ts'
+import { renderOwnershipFile } from '../init/render.ts'
+import { normalizePath, toPosix } from '../paths/paths.ts'
+import { isInsideWorkTree, listRepoFiles } from '../repo/repo.ts'
+import { ROOT_CANDIDATES } from '../resolve/load.ts'
+import type { Io } from './main.ts'
+import { USAGE, UsageError } from './usage.ts'
+
+const DEFAULT_TARGET = ROOT_CANDIDATES[0]
+
+function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`
+}
+
+function isDirectory(path: string): boolean {
+  try {
+    return statSync(path).isDirectory()
+  } catch {
+    return false
+  }
+}
+
+/** The target as the repository names it. It lives inside the repository, and it is a file. */
+function targetPath(root: string, given: string): string {
+  const absolute = resolve(root, given)
+  const fromRoot = relative(root, absolute)
+
+  if (fromRoot === '' || fromRoot.startsWith('..') || isAbsolute(fromRoot)) {
+    throw new UsageError(`--ownership "${given}" is outside the repository; the root ownership file lives inside it`)
+  }
+
+  if (/[\\/]$/.test(given) || isDirectory(absolute)) {
+    throw new UsageError(`--ownership "${given}" is a directory; name the file to create`)
+  }
+
+  return normalizePath(toPosix(fromRoot))
+}
+
+/** For the hint of skeleton mode only: two CODEOWNERS are for `validate` to report, not a reason to refuse a skeleton. */
+function hasCodeowners(root: string): boolean {
+  try {
+    return findCodeowners(root) !== null
+  } catch {
+    return true
+  }
+}
+
+function summary(target: string, plan: InitPlan, written: boolean, codeownersHint: boolean): string {
+  const entries = plural(plan.entries.length, 'entry', 'entries')
+  const lines = [written ? `ownership: wrote ${target} with ${entries}.` : `ownership: printed ${target} with ${entries}; nothing was written.`]
+
+  if (plan.leftOut.length > 0) {
+    lines.push(
+      `ownership: left out ${plural(plan.leftOut.length, 'path', 'paths')} an ownership file cannot declare: ${plan.leftOut.map(item => item.path).join(', ')}`,
+    )
+  }
+
+  lines.push(
+    plan.unowned === 0
+      ? 'ownership: every repository file has an owner.'
+      : `ownership: ${plural(plan.unowned, 'repository file has', 'repository files have')} no owner.`,
+  )
+
+  if (plan.mode === 'skeleton' || plan.unowned > 0) {
+    lines.push('ownership: declare every path in owned[]; "ownership validate" fails on purpose until every file has an owner.')
+  }
+
+  if (codeownersHint) {
+    lines.push('ownership: this repository has a CODEOWNERS; "ownership init --from-codeowners" derives the entries from it.')
+  }
+
+  lines.push('ownership: next step: ownership validate')
+
+  return `${lines.join('\n')}\n`
+}
+
+/**
+ * Creates the root ownership file and never overwrites one: an owner already
+ * written down is a decision, and starting over is a deletion somebody makes
+ * by hand. It produces no finding, so it exits 0 or 2 and never 1.
+ */
+export function initCommand(args: readonly string[], root: string, io: Io): number {
+  const { values } = parseArgs({
+    args: [...args],
+    strict: true,
+    allowPositionals: false,
+    options: {
+      owner: { type: 'string' },
+      'from-codeowners': { type: 'boolean' },
+      stdout: { type: 'boolean' },
+      ownership: { type: 'string' },
+      help: { type: 'boolean', short: 'h' },
+    },
+  })
+
+  if (values.help === true) {
+    io.stdout(USAGE)
+
+    return 0
+  }
+
+  if (!isInsideWorkTree(root)) {
+    throw new UsageError(`${toPosix(root)} is not inside a Git work tree; ownership init needs one`)
+  }
+
+  const target = targetPath(root, values.ownership ?? DEFAULT_TARGET)
+  const existing = [...new Set([target, ...ROOT_CANDIDATES])].filter(candidate => existsSync(resolve(root, candidate)))
+
+  if (existing.length > 0) {
+    throw new UsageError(`${existing.join(' and ')} already ${existing.length === 1 ? 'exists' : 'exist'}; ownership init never overwrites an ownership file`)
+  }
+
+  if (values.owner !== undefined && values['from-codeowners'] === true) {
+    throw new UsageError('--owner and --from-codeowners cannot be used together; pick one mode')
+  }
+
+  if (values.owner !== undefined && !values.owner.startsWith('@')) {
+    throw new UsageError(`--owner must start with "@"; got "${values.owner}"`)
+  }
+
+  let mode: InitMode = { kind: 'skeleton' }
+
+  if (values.owner !== undefined) {
+    mode = { kind: 'owner', owner: values.owner }
+  } else if (values['from-codeowners'] === true) {
+    const codeowners = loadCodeowners(root)
+
+    if (codeowners === null) {
+      throw new UsageError(`--from-codeowners needs a CODEOWNERS, and the repository has none in ${CODEOWNERS_LOCATIONS.join(', ')}`)
+    }
+
+    mode = { kind: 'codeowners', codeowners }
+  }
+
+  // The file about to be created counts as a repository file, so it is born with an owner.
+  const repoFiles = new Set([...listRepoFiles(root), target].sort())
+  const plan = deriveInit(repoFiles, mode)
+  const text = renderOwnershipFile(plan, markerFiles(root, repoFiles))
+  const report = summary(target, plan, values.stdout !== true, mode.kind === 'skeleton' && hasCodeowners(root))
+
+  if (values.stdout === true) {
+    io.stdout(text)
+    io.stderr(report)
+
+    return 0
+  }
+
+  mkdirSync(dirname(resolve(root, target)), { recursive: true })
+  writeFileSync(resolve(root, target), text, { flag: 'wx' })
+  io.stdout(report)
+
+  return 0
+}
+```
+
+- [ ] **Step 4: Add the command to the CLI**
+
+In `plugins/ownership/plugin/src/cli/main.ts`, add the import after the one of `explainCommand`:
+
+```ts
+import { initCommand } from './init.ts'
+```
+
+and the case after `explain`:
+
+```ts
+      case 'explain':
+        return explainCommand(args, root, io)
+      case 'init':
+        return initCommand(args, root, io)
+```
+
+- [ ] **Step 5: Run it to see it pass**
+
+Run: `node --test test/cli/init.test.ts test/cli/main.test.ts`
+Expected: PASS (13 + 3 tests). On a file system that does not tell `Docs/` from `docs/` (Windows, macOS), the case test reports SKIP.
+
+- [ ] **Step 6: Commit**
+
+```bash
+../../spur format && ../../spur check
+git -C ../.. add plugins/ownership/plugin/src/cli plugins/ownership/test/cli/init.test.ts
+git commit -m "feat(ownership): ownership init creates the root ownership file
+
+It never overwrites one, never picks an owner nobody named, and counts
+the file it creates as a repository file, so that file is born covered.
+
+Changelog: none — the plugin is not published yet
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 18: The JSON Schema and its corpus
+
+**Files:**
+- Create: `plugins/ownership/plugin/ownership.schema.json`
+- Test: `plugins/ownership/test/schema/json-schema.test.ts`
+
+**Interfaces:**
+- Consumes: `parseOwnershipFile` (Task 4), `SCHEMA_URL` (Task 16), `PLUGIN_ROOT` (Task 2), `ajv` and `yaml` from `node_modules`.
+- Produces: `ownership.schema.json`, draft 2020-12, with `$id` equal to `SCHEMA_URL`. It is written by hand. The test runs one corpus of ownership files through the schema and through the loader, and both must give the same verdict on each one: that is what keeps the two in agreement when either changes.
+- The schema describes a root file, so it allows `plugins`. What depends on more than one file or on the repository — relations between paths, includes, the base, `plugins` in an included file — stays with the loader, and the corpus holds no such case.
+
+- [ ] **Step 1: Write the failing test**
+
+`plugins/ownership/test/schema/json-schema.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { Ajv2020 } from 'ajv/dist/2020.js'
+import { parse } from 'yaml'
+
+import { OwnershipError } from '../../plugin/src/errors.ts'
+import { SCHEMA_URL } from '../../plugin/src/init/render.ts'
+import { parseOwnershipFile } from '../../plugin/src/schema/parse.ts'
+import { PLUGIN_ROOT } from '../helpers/roots.ts'
+
+const schema = JSON.parse(readFileSync(join(PLUGIN_ROOT, 'ownership.schema.json'), 'utf8')) as Record<string, unknown>
+const validate = new Ajv2020({ allErrors: true }).compile(schema)
+
+/** Ownership files a root file may be, and the same files broken in one way the schema can express. */
+const VALID: Record<string, string> = {
+  'only the version': 'version: 1\n',
+  'every key': [
+    'version: 1',
+    'basePath: sub/',
+    'plugins:',
+    '  docs-kit: {}',
+    '  other-kit:',
+    '    anything: [1, { goes: true }]',
+    'owned:',
+    '  - path: docs/',
+    "    owner: '@org/team'",
+    '    skill: docs-keeper',
+    '    plugins:',
+    '      docs-kit:',
+    '        id-prefix: ADR',
+    '      other-kit: {}',
+    '  - path: src/a b.ts',
+    "    owner: '@me'",
+    'generated:',
+    '  - path: docs/api.md',
+    '    command: node gen.mjs',
+    'ignore:',
+    '  - docs/vendor/',
+    'include:',
+    '  - plugins/x/',
+    '  - plugins/y/.ownership.yml',
+    '',
+  ].join('\n'),
+  'empty lists': 'version: 1\nowned: []\ngenerated: []\nignore: []\ninclude: []\nplugins: {}\n',
+  'a path with dots, dashes and accents': "version: 1\nowned:\n  - path: ./docs/ação-1.md\n    owner: '@a'\n",
+}
+
+const INVALID: Record<string, string> = {
+  'an empty file': '',
+  'a list at the top': '- version: 1\n',
+  'no version': 'owned: []\n',
+  'version 2': 'version: 2\n',
+  'version as text': "version: '1'\n",
+  'an unknown top-level key': 'version: 1\nwatches: []\n',
+  'a $schema key': 'version: 1\n$schema: https://example.com/schema.json\n',
+  'owned that is not a list': 'version: 1\nowned:\n  path: docs/\n',
+  'owned with no value': 'version: 1\nowned:\n',
+  'an owned entry that is not a map': 'version: 1\nowned:\n  - docs/\n',
+  'an owned entry without path': "version: 1\nowned:\n  - owner: '@a'\n",
+  'an owned entry without owner': 'version: 1\nowned:\n  - path: docs/\n',
+  'an owner without @': 'version: 1\nowned:\n  - path: docs/\n    owner: team\n',
+  'an owner that is not text': 'version: 1\nowned:\n  - path: docs/\n    owner: 12\n',
+  'an empty path': "version: 1\nowned:\n  - path: ''\n    owner: '@a'\n",
+  'an empty skill': "version: 1\nowned:\n  - path: docs/\n    owner: '@a'\n    skill: ''\n",
+  'an unknown key in an owned entry': "version: 1\nowned:\n  - path: docs/\n    owner: '@a'\n    states: [draft]\n",
+  'a glob in an owned path': "version: 1\nowned:\n  - path: docs/*.md\n    owner: '@a'\n",
+  'a question mark in an owned path': "version: 1\nowned:\n  - path: docs/?.md\n    owner: '@a'\n",
+  'a bracket in an owned path': "version: 1\nowned:\n  - path: 'docs/[ab].md'\n    owner: '@a'\n",
+  'a negation in an owned path': "version: 1\nowned:\n  - path: '!docs/'\n    owner: '@a'\n",
+  'a leading slash in an owned path': "version: 1\nowned:\n  - path: /docs/\n    owner: '@a'\n",
+  'a generated path that is a directory': 'version: 1\ngenerated:\n  - path: out/\n    command: gen\n',
+  'a generated entry without command': 'version: 1\ngenerated:\n  - path: out.md\n',
+  'a generated entry with an empty command': "version: 1\ngenerated:\n  - path: out.md\n    command: ''\n",
+  'an unknown key in a generated entry': "version: 1\ngenerated:\n  - path: out.md\n    command: gen\n    owner: '@a'\n",
+  'a glob in a generated path': 'version: 1\ngenerated:\n  - path: out/*.md\n    command: gen\n',
+  'a glob in ignore': "version: 1\nignore:\n  - '**/node_modules/'\n",
+  'an ignore item that is not text': 'version: 1\nignore:\n  - 12\n',
+  'an empty include item': "version: 1\ninclude:\n  - ''\n",
+  'basePath that is not text': 'version: 1\nbasePath: [sub]\n',
+  'plugins as a list': 'version: 1\nplugins: [docs-kit]\n',
+  'a plugin name outside the pattern': 'version: 1\nplugins:\n  Docs_Kit: {}\n',
+  'a global plugin block that is not a map': 'version: 1\nplugins:\n  docs-kit: true\n',
+  'an entry plugin block that is null': "version: 1\nowned:\n  - path: docs/\n    owner: '@a'\n    plugins:\n      docs-kit:\n",
+  'an entry plugin block that is a list': "version: 1\nowned:\n  - path: docs/\n    owner: '@a'\n    plugins:\n      docs-kit: []\n",
+  'an entry plugin name outside the pattern': "version: 1\nowned:\n  - path: docs/\n    owner: '@a'\n    plugins:\n      2fast: {}\n",
+}
+
+function loads(text: string): boolean {
+  try {
+    parseOwnershipFile(text, '.ownership.yml', { isRoot: true })
+
+    return true
+  } catch (error) {
+    assert.ok(error instanceof OwnershipError, `expected a load error, got ${String(error)}`)
+
+    return false
+  }
+}
+
+test('the schema is draft 2020-12 and is published at the URL the init comment points at', () => {
+  assert.equal(schema.$schema, 'https://json-schema.org/draft/2020-12/schema')
+  assert.equal(schema.$id, SCHEMA_URL)
+})
+
+test('every object of the core is closed, and a plugin block is any object', () => {
+  const defs = schema.$defs as Record<string, Record<string, unknown>>
+
+  assert.equal(schema.additionalProperties, false)
+  assert.equal(defs.owned?.additionalProperties, false)
+  assert.equal(defs.generated?.additionalProperties, false)
+  assert.deepEqual(defs.pluginBlocks?.propertyNames, { pattern: '^[a-z][a-z0-9-]*$' })
+  assert.deepEqual(defs.pluginBlocks?.additionalProperties, { type: 'object' })
+})
+
+for (const [name, text] of Object.entries(VALID)) {
+  test(`the schema and the loader both accept ${name}`, () => {
+    assert.equal(validate(parse(text)), true, JSON.stringify(validate.errors))
+    assert.equal(loads(text), true)
+  })
+}
+
+for (const [name, text] of Object.entries(INVALID)) {
+  test(`the schema and the loader both reject ${name}`, () => {
+    assert.equal(validate(parse(text)), false)
+    assert.equal(loads(text), false)
+  })
+}
+
+test('the package ships the schema', () => {
+  const manifest = JSON.parse(readFileSync(join(PLUGIN_ROOT, 'package.json'), 'utf8')) as { files: string[] }
+
+  assert.ok(manifest.files.includes('ownership.schema.json'))
+})
+```
+
+- [ ] **Step 2: Run it to see it fail**
+
+Run: `node --test test/schema/json-schema.test.ts`
+Expected: FAIL — `ENOENT: no such file or directory, open '.../plugin/ownership.schema.json'`.
+
+- [ ] **Step 3: Write the schema**
+
+`plugins/ownership/plugin/ownership.schema.json`:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json",
+  "title": "Ownership file",
+  "description": "Who owns each path of a repository and which files are generated. What depends on more than one file or on the repository - how declared paths relate, includes, the base of each file - is checked by `ownership validate`, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
+  "properties": {
+    "version": {
+      "description": "The schema version. This release supports 1.",
+      "const": 1
+    },
+    "plugins": {
+      "description": "Global configuration per plugin. Root file only. It links no path: only an entry of `owned` does.",
+      "$ref": "#/$defs/pluginBlocks"
+    },
+    "basePath": {
+      "description": "A directory below the directory of this file; the paths of the file are relative to it. Ignored in the root file, whose base is the repository root.",
+      "type": "string"
+    },
+    "owned": {
+      "description": "The owner of each path. Paths are disjoint: none repeats or contains another.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/owned" }
+    },
+    "generated": {
+      "description": "Files produced by a command. Each one sits under an `owned` entry.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/generated" }
+    },
+    "ignore": {
+      "description": "Paths left out of owner coverage.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/path" }
+    },
+    "include": {
+      "description": "Other ownership files to read: a file, or a directory (trailing `/`) that holds exactly one.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "path": {
+      "description": "A literal path relative to the base of the file: no glob, no negation, no leading `/`. A trailing `/` means a directory.",
+      "type": "string",
+      "pattern": "^(?!/)[^*?\\[!]+$"
+    },
+    "filePath": {
+      "description": "A literal path of a file relative to the base of the file: no glob, no negation, no leading or trailing `/`.",
+      "type": "string",
+      "pattern": "^(?!/)[^*?\\[!]*[^*?\\[!/]$"
+    },
+    "pluginBlocks": {
+      "description": "Plugin name to block. The content of a block belongs to the plugin.",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" },
+      "additionalProperties": { "type": "object" }
+    },
+    "owned": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "owner"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "owner": {
+          "description": "A user or a team, as in CODEOWNERS: `@user` or `@org/team`.",
+          "type": "string",
+          "pattern": "^@"
+        },
+        "skill": {
+          "description": "The skill that answers for the path.",
+          "type": "string",
+          "minLength": 1
+        },
+        "plugins": {
+          "description": "The plugins this path belongs to. `name: {}` links the path without configuration.",
+          "$ref": "#/$defs/pluginBlocks"
+        }
+      }
+    },
+    "generated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "command"],
+      "properties": {
+        "path": { "$ref": "#/$defs/filePath" },
+        "command": {
+          "description": "Run at the repository root; what it prints must equal the file.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
+```
+
+- [ ] **Step 4: Run it to see it pass**
+
+Run: `node --test test/schema/json-schema.test.ts`
+Expected: PASS (44 tests: 4 valid and 37 invalid files of the corpus, plus 3). When a case fails on one side only, the schema and the loader disagree: correct the one that departs from the requirements, never the corpus.
+
+- [ ] **Step 5: Commit**
+
+```bash
+../../spur format && ../../spur check
+git -C ../.. add plugins/ownership/plugin/ownership.schema.json plugins/ownership/test/schema/json-schema.test.ts
+git commit -m "feat(ownership): publish a JSON Schema of the ownership file
+
+A corpus of valid and invalid files goes through the schema and through
+the loader, and both must agree on each one.
+
+Changelog: none — the plugin is not published yet
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 19: The `generated-guard` hook
+
+**Files:**
+- Create: `plugins/ownership/plugin/src/hooks/paths.ts`
+- Create: `plugins/ownership/plugin/src/hooks/io.ts`
+- Create: `plugins/ownership/plugin/src/hooks/generated-guard.ts`
+- Create: `plugins/ownership/plugin/src/hooks/main.ts`
+- Create: `plugins/ownership/plugin/hooks/hooks.json`
+- Create: `plugins/ownership/plugin/hooks/run-hook.sh` (mode `100755`)
+- Create: `plugins/ownership/test/helpers/hook.ts`
+- Test: `plugins/ownership/test/hooks/paths.test.ts`
+- Test: `plugins/ownership/test/hooks/generated-guard.test.ts`
+- Test: `plugins/ownership/test/hooks/run-hook.test.ts`
+
+**Interfaces:**
+- Consumes: `resolveOwnership` with `prune` (Task 8), `findGeneratedRule`, `deepestOwnershipFile` (Task 8), `isGeneratedByMarker`, `readHead` (Task 10), `normalizePath`, `toPosix` (Task 3).
+- Produces:
+  - `toRepoPath(filePath: string, roots: readonly string[]): string | null` (`hooks/paths.ts`) — repository-relative with `/` and NFC, or `null` outside every root; backslashes normalized; the root prefix compared without regard to case; a relative path is taken as already relative to the repository.
+  - `readStdin(): Promise<string>`, `denyOutput(reason: string): string` (`hooks/io.ts`)
+  - `interface HookEnv { readonly root: string; readonly hostRoot?: string }`, `type Decision = { readonly action: 'allow' } | { readonly action: 'deny'; readonly reason: string }`, `decideGeneratedGuard(payload: unknown, env: HookEnv): Decision` (`hooks/generated-guard.ts`) — never throws: anything that keeps it from judging allows.
+  - `hooks/main.ts` — the entry point: `node src/hooks/main.ts generated-guard`, payload on stdin, the repository in `CLAUDE_PROJECT_DIR`, the extra root in `OWNERSHIP_HOST_ROOT`; it ends itself after 5 s and always exits 0.
+  - `hooks/run-hook.sh <hook>` — silent and exit 0 without node, on a timeout, on any error, and for any output that is not JSON.
+  - Test helpers `bashExecutable(): string | null` and `runHook(bash, hook, payload, { project, input?, env?, pluginRoot? })` (`test/helpers/hook.ts`); Task 21 reuses them with `pluginRoot`.
+
+- [ ] **Step 1: Write the test helper and the failing tests**
+
+`plugins/ownership/test/helpers/hook.ts`:
+
+```ts
+import { spawnSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { join, sep } from 'node:path'
+
+import { PLUGIN_ROOT } from './roots.ts'
+
+/**
+ * The bash that runs the hooks, by its full path so that a test can empty the
+ * PATH. On Windows, the `bash` on PATH may be the WSL one; the host runs hooks
+ * with the Git for Windows one.
+ */
+export function bashExecutable(): string | null {
+  if (process.platform !== 'win32') {
+    return existsSync('/bin/bash') ? '/bin/bash' : 'bash'
+  }
+
+  const candidate = join(process.env.ProgramFiles ?? 'C:\\Program Files', 'Git', 'bin', 'bash.exe')
+
+  return existsSync(candidate) ? candidate : null
+}
+
+export interface HookRun {
+  status: number | null
+  stdout: string
+  stderr: string
+}
+
+export interface HookOptions {
+  /** The session's project directory. */
+  project: string
+  /** Raw text for stdin instead of the payload as JSON. */
+  input?: string
+  env?: NodeJS.ProcessEnv
+  /** The plugin directory to run the wrapper from (default: the one of this project). */
+  pluginRoot?: string
+}
+
+/** Runs the hooks wrapper as the host does: through bash, with the payload on stdin. */
+export function runHook(bash: string, hook: string, payload: unknown, options: HookOptions): HookRun {
+  const env: NodeJS.ProcessEnv = { ...process.env, CLAUDE_PROJECT_DIR: options.project }
+
+  delete env.OWNERSHIP_HOST_ROOT
+  delete env.OWNERSHIP_CONFIG
+  delete env.NODE_OPTIONS
+  Object.assign(env, options.env)
+
+  const script = join(options.pluginRoot ?? PLUGIN_ROOT, 'hooks', 'run-hook.sh')
+    .split(sep)
+    .join('/')
+  const result = spawnSync(bash, [script, hook], { cwd: options.project, env, input: options.input ?? JSON.stringify(payload), encoding: 'utf8' })
+
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr }
+}
+```
+
+`plugins/ownership/test/hooks/paths.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+
+import { toRepoPath } from '../../plugin/src/hooks/paths.ts'
+
+test('an absolute path under the root becomes relative to it', () => {
+  assert.equal(toRepoPath('/work/proj/docs/a.md', ['/work/proj']), 'docs/a.md')
+  assert.equal(toRepoPath('/work/proj/docs/a.md', ['/work/proj/']), 'docs/a.md')
+  assert.equal(toRepoPath('/work/proj/docs/../src//a.ts', ['/work/proj']), 'src/a.ts')
+})
+
+test('backslashes are normalized and the drive letter may differ in case', () => {
+  assert.equal(toRepoPath('C:\\Users\\Dan\\proj\\docs\\a.md', ['C:\\Users\\Dan\\proj']), 'docs/a.md')
+  assert.equal(toRepoPath('c:\\users\\dan\\proj\\docs\\a.md', ['C:\\Users\\Dan\\proj']), 'docs/a.md')
+  assert.equal(toRepoPath('c:/Users/Dan/proj/docs/a.md', ['C:\\Users\\Dan\\proj\\']), 'docs/a.md')
+})
+
+test('only the root prefix ignores case: the path inside the repository keeps its own', () => {
+  assert.equal(toRepoPath('/WORK/Proj/Docs/A.md', ['/work/proj']), 'Docs/A.md')
+})
+
+test('a second root is accepted, in the order given', () => {
+  assert.equal(toRepoPath('/host/proj/out.md', ['/workspace', '/host/proj']), 'out.md')
+})
+
+test('a path outside every root, or the root itself, is no repository path', () => {
+  assert.equal(toRepoPath('/work/other/a.md', ['/work/proj']), null)
+  assert.equal(toRepoPath('/work/proj-two/a.md', ['/work/proj']), null)
+  assert.equal(toRepoPath('/work/proj/../other/a.md', ['/work/proj']), null)
+  assert.equal(toRepoPath('/work/proj', ['/work/proj']), null)
+  assert.equal(toRepoPath('D:\\proj\\a.md', ['C:\\proj']), null)
+})
+
+test('a relative path is already relative to the repository, unless it leaves it', () => {
+  assert.equal(toRepoPath('docs\\a.md', ['/work/proj']), 'docs/a.md')
+  assert.equal(toRepoPath('./docs/a.md', ['/work/proj']), 'docs/a.md')
+  assert.equal(toRepoPath('../a.md', ['/work/proj']), null)
+  assert.equal(toRepoPath('docs/../../a.md', ['/work/proj']), null)
+})
+
+test('a decomposed name comes back in NFC', () => {
+  assert.equal(toRepoPath('/work/proj/cafe\u0301.md', ['/work/proj']), 'caf\u00e9.md')
+})
+```
+
+`plugins/ownership/test/hooks/generated-guard.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { existsSync, symlinkSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { decideGeneratedGuard } from '../../plugin/src/hooks/generated-guard.ts'
+import type { Decision } from '../../plugin/src/hooks/generated-guard.ts'
+import { tempRepo } from '../helpers/repo.ts'
+
+const OWNERSHIP = [
+  'version: 1',
+  'owned:',
+  '  - path: .ownership.yml',
+  "    owner: '@a'",
+  '  - path: docs/',
+  "    owner: '@a'",
+  'generated:',
+  '  - path: docs/api.md',
+  '    command: node tools/gen.mjs',
+  '',
+].join('\n')
+
+const FILES = { '.ownership.yml': OWNERSHIP, 'docs/api.md': 'api\n', 'docs/guide.md': '# Guide\n', 'docs/marked.md': '<!-- GENERATED: DO NOT EDIT -->\nbody\n' }
+
+const DECLARED =
+  'docs/api.md is a generated file, declared in .ownership.yml:8: do not edit it by hand. Change what it is generated from and run: node tools/gen.mjs > docs/api.md'
+
+function decide(root: string, tool: string, input: Record<string, unknown>, hostRoot?: string): Decision {
+  return decideGeneratedGuard({ tool_name: tool, tool_input: input }, hostRoot === undefined ? { root } : { root, hostRoot })
+}
+
+function reasonOf(decision: Decision): string {
+  assert.equal(decision.action, 'deny')
+
+  return decision.action === 'deny' ? decision.reason : ''
+}
+
+test('a file declared in generated[] is denied, naming where it is declared and its command', t => {
+  const root = tempRepo(t, FILES)
+
+  assert.equal(reasonOf(decide(root, 'Edit', { file_path: join(root, 'docs', 'api.md') })), DECLARED)
+})
+
+test('every file tool is judged, by file_path or by notebook_path', t => {
+  const root = tempRepo(t, FILES)
+
+  for (const tool of ['Edit', 'Write', 'MultiEdit']) {
+    assert.equal(decide(root, tool, { file_path: join(root, 'docs', 'api.md') }).action, 'deny', tool)
+  }
+
+  assert.equal(decide(root, 'NotebookEdit', { notebook_path: join(root, 'docs', 'api.md') }).action, 'deny')
+})
+
+test('a declared file is denied even before it exists', t => {
+  const root = tempRepo(t, { '.ownership.yml': OWNERSHIP, 'docs/guide.md': '' })
+
+  assert.equal(reasonOf(decide(root, 'Write', { file_path: join(root, 'docs', 'api.md'), content: 'x' })), DECLARED)
+})
+
+test('a file whose first line carries the marker is denied, asking to declare it', t => {
+  const root = tempRepo(t, FILES)
+
+  assert.equal(
+    reasonOf(decide(root, 'Edit', { file_path: join(root, 'docs', 'marked.md') })),
+    'docs/marked.md carries the "generated: do not edit" marker on its first line: do not edit it by hand. Declare it in generated[] of .ownership.yml with the command that produces it.',
+  )
+})
+
+test('an ordinary file is allowed', t => {
+  const root = tempRepo(t, FILES)
+
+  assert.deepEqual(decide(root, 'Edit', { file_path: join(root, 'docs', 'guide.md') }), { action: 'allow' })
+  assert.deepEqual(decide(root, 'Write', { file_path: join(root, 'docs', 'new.md'), content: '# New\n' }), { action: 'allow' })
+})
+
+test('a Write whose content carries the marker is denied, whether or not the file exists', t => {
+  const root = tempRepo(t, FILES)
+  const content = '<!-- generated: do not edit -->\nbody\n'
+
+  assert.equal(
+    reasonOf(decide(root, 'Write', { file_path: join(root, 'docs', 'new.md'), content })),
+    'The content for docs/new.md carries the "generated: do not edit" marker: a generated file is not written by hand. Declare docs/new.md in generated[] of .ownership.yml and produce it with: <command> > docs/new.md',
+  )
+  assert.equal(decide(root, 'Write', { file_path: join(root, 'docs', 'guide.md'), content }).action, 'deny')
+})
+
+test('a Write into a directory that does not exist yet is still judged by the payload path', t => {
+  const root = tempRepo(t, FILES)
+  const file = join(root, 'not', 'yet', 'there', 'out.md')
+
+  assert.match(reasonOf(decide(root, 'Write', { file_path: file, content: 'generated: do not edit\n' })), /^The content for not\/yet\/there\/out\.md carries/)
+  assert.deepEqual(decide(root, 'Write', { file_path: file, content: 'plain\n' }), { action: 'allow' })
+})
+
+test('a Write of a declared file gets the message that names the command, marker or not', t => {
+  const root = tempRepo(t, FILES)
+
+  assert.equal(reasonOf(decide(root, 'Write', { file_path: join(root, 'docs', 'api.md'), content: 'generated: do not edit\n' })), DECLARED)
+})
+
+test('an Edit that introduces the marker into a file without it is not judged by its new text', t => {
+  const root = tempRepo(t, FILES)
+
+  assert.deepEqual(decide(root, 'Edit', { file_path: join(root, 'docs', 'guide.md'), old_string: '# Guide', new_string: 'generated: do not edit' }), {
+    action: 'allow',
+  })
+})
+
+test('the payload path may be relative, use backslashes or come under the host root', t => {
+  const root = tempRepo(t, FILES)
+
+  assert.equal(decide(root, 'Edit', { file_path: 'docs/api.md' }).action, 'deny')
+  assert.equal(decide(root, 'Edit', { file_path: 'docs\\api.md' }).action, 'deny')
+  assert.equal(decide(root, 'Edit', { file_path: '/host/checkout/docs/api.md' }, '/host/checkout').action, 'deny')
+  assert.equal(decide(root, 'Edit', { file_path: 'C:\\Host\\Checkout\\docs\\api.md' }, 'c:\\host\\checkout').action, 'deny')
+})
+
+test('a path outside the roots, or a payload without a path, is allowed', t => {
+  const root = tempRepo(t, FILES)
+
+  assert.deepEqual(decide(root, 'Edit', { file_path: '/somewhere/else/docs/api.md' }), { action: 'allow' })
+  assert.deepEqual(decide(root, 'Edit', { file_path: '/host/checkout/docs/api.md' }), { action: 'allow' })
+  assert.deepEqual(decide(root, 'Edit', {}), { action: 'allow' })
+  assert.deepEqual(decide(root, 'Edit', { file_path: 12 }), { action: 'allow' })
+  assert.deepEqual(decideGeneratedGuard(null, { root }), { action: 'allow' })
+  assert.deepEqual(decideGeneratedGuard('text', { root }), { action: 'allow' })
+  assert.deepEqual(decideGeneratedGuard({ tool_name: 'Edit', tool_input: [] }, { root }), { action: 'allow' })
+})
+
+test('a link to a generated file is denied: the path behind the link is judged too', t => {
+  const root = tempRepo(t, FILES)
+
+  try {
+    symlinkSync(join(root, 'docs', 'api.md'), join(root, 'docs', 'alias.md'), 'file')
+    symlinkSync(join(root, 'docs', 'marked.md'), join(root, 'docs', 'alias-marked.md'), 'file')
+  } catch {
+    t.skip('this machine cannot create symbolic links; CI (ubuntu) runs this proof')
+
+    return
+  }
+
+  assert.match(
+    reasonOf(decide(root, 'Edit', { file_path: join(root, 'docs', 'alias.md') })),
+    /^docs\/alias\.md is a generated file, declared in \.ownership\.yml:8/,
+  )
+  assert.match(
+    reasonOf(decide(root, 'Edit', { file_path: join(root, 'docs', 'alias-marked.md') })),
+    /^docs\/alias-marked\.md carries the "generated: do not edit" marker/,
+  )
+})
+
+test('a path through a linked directory is judged by where it really is', t => {
+  const root = tempRepo(t, FILES)
+
+  // A junction needs no privilege on Windows; elsewhere this is an ordinary directory link.
+  symlinkSync(join(root, 'docs'), join(root, 'manual'), process.platform === 'win32' ? 'junction' : 'dir')
+
+  assert.match(
+    reasonOf(decide(root, 'Edit', { file_path: join(root, 'manual', 'api.md') })),
+    /^manual\/api\.md is a generated file, declared in \.ownership\.yml:8/,
+  )
+  assert.match(
+    reasonOf(decide(root, 'Edit', { file_path: join(root, 'manual', 'marked.md') })),
+    /^manual\/marked\.md carries the "generated: do not edit" marker/,
+  )
+  assert.deepEqual(decide(root, 'Edit', { file_path: join(root, 'manual', 'guide.md') }), { action: 'allow' })
+})
+
+test('a link that leads outside the repository is judged by the payload path alone', t => {
+  const root = tempRepo(t, FILES)
+  const outside = tempRepo(t, { 'marked.md': 'generated: do not edit\n' }, { git: false })
+
+  try {
+    symlinkSync(join(outside, 'marked.md'), join(root, 'docs', 'out-link.md'), 'file')
+  } catch {
+    t.skip('this machine cannot create symbolic links; CI (ubuntu) runs this proof')
+
+    return
+  }
+
+  assert.deepEqual(decide(root, 'Edit', { file_path: join(root, 'docs', 'out-link.md') }), { action: 'allow' })
+})
+
+test('without an ownership file, or with one that does not load, the guard is silent', t => {
+  const none = tempRepo(t, { 'docs/marked.md': 'generated: do not edit\n' })
+  const broken = tempRepo(t, { '.ownership.yml': 'version: 2\n', 'docs/marked.md': 'generated: do not edit\n' })
+  const noGit = tempRepo(t, FILES, { git: false })
+
+  assert.deepEqual(decide(none, 'Edit', { file_path: join(none, 'docs', 'marked.md') }), { action: 'allow' })
+  assert.deepEqual(decide(broken, 'Edit', { file_path: join(broken, 'docs', 'marked.md') }), { action: 'allow' })
+  assert.deepEqual(decide(noGit, 'Edit', { file_path: join(noGit, 'docs', 'api.md') }), { action: 'allow' })
+})
+
+test('only the includes that can hold the path are read: a broken one elsewhere does not silence the guard', t => {
+  const root = tempRepo(t, {
+    ...FILES,
+    '.ownership.yml': `${OWNERSHIP}include:\n  - plugins/x/\n  - plugins/y/\n`,
+    'plugins/x/.ownership.yml': 'version: 2\n',
+    'plugins/y/.ownership.yml': "version: 1\nowned:\n  - path: out/\n    owner: '@y'\ngenerated:\n  - path: out/gen.md\n    command: make gen\n",
+  })
+
+  assert.equal(decide(root, 'Edit', { file_path: join(root, 'docs', 'api.md') }).action, 'deny')
+  assert.equal(
+    reasonOf(decide(root, 'Edit', { file_path: join(root, 'plugins', 'y', 'out', 'gen.md') })),
+    'plugins/y/out/gen.md is a generated file, declared in plugins/y/.ownership.yml:6: do not edit it by hand. Change what it is generated from and run: make gen > plugins/y/out/gen.md',
+  )
+  assert.deepEqual(decide(root, 'Edit', { file_path: join(root, 'plugins', 'x', 'a.md') }), { action: 'allow' })
+  assert.equal(existsSync(join(root, 'plugins', 'x', '.ownership.yml')), true)
+})
+
+test('a marker file inside an included base is to be declared in that ownership file', t => {
+  const root = tempRepo(t, {
+    '.ownership.yml': 'version: 1\ninclude:\n  - plugins/y/\n',
+    'plugins/y/.ownership.yml': 'version: 1\n',
+    'plugins/y/gen.md': 'generated: do not edit\n',
+  })
+
+  assert.match(
+    reasonOf(decide(root, 'Edit', { file_path: join(root, 'plugins', 'y', 'gen.md') })),
+    /Declare it in generated\[\] of plugins\/y\/\.ownership\.yml /,
+  )
+})
+```
+
+`plugins/ownership/test/hooks/run-hook.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { bashExecutable, runHook } from '../helpers/hook.ts'
+import { tempRepo } from '../helpers/repo.ts'
+import { PLUGIN_ROOT } from '../helpers/roots.ts'
+
+const OWNERSHIP = "version: 1\nowned:\n  - path: docs/\n    owner: '@a'\ngenerated:\n  - path: docs/api.md\n    command: node tools/gen.mjs\n"
+const FILES = { '.ownership.yml': OWNERSHIP, 'docs/api.md': 'api\n', 'docs/guide.md': '# Guide\n' }
+
+const bash = bashExecutable()
+const skip = bash === null ? 'no Git for Windows bash on this machine; CI (ubuntu) runs this proof' : false
+
+function edit(root: string, file: string): unknown {
+  return { tool_name: 'Edit', tool_input: { file_path: join(root, ...file.split('/')) } }
+}
+
+test('the hook is registered before every file tool, through the wrapper', () => {
+  const hooks = JSON.parse(readFileSync(join(PLUGIN_ROOT, 'hooks', 'hooks.json'), 'utf8')) as {
+    hooks: Record<string, { matcher: string; hooks: { type: string; command: string }[] }[]>
+  }
+
+  assert.deepEqual(Object.keys(hooks.hooks), ['PreToolUse'])
+  assert.equal(hooks.hooks.PreToolUse?.length, 1)
+  assert.equal(hooks.hooks.PreToolUse?.[0]?.matcher, 'Edit|Write|MultiEdit|NotebookEdit')
+  assert.deepEqual(
+    hooks.hooks.PreToolUse?.[0]?.hooks.map(hook => [hook.type, hook.command]),
+    [['command', '"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh" generated-guard']],
+  )
+})
+
+test('editing a generated file prints one deny decision and exits 0', { skip }, t => {
+  const root = tempRepo(t, FILES)
+  const run = runHook(bash ?? '', 'generated-guard', edit(root, 'docs/api.md'), { project: root })
+
+  assert.equal(run.status, 0, run.stderr)
+  assert.deepEqual(JSON.parse(run.stdout), {
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason:
+        'docs/api.md is a generated file, declared in .ownership.yml:6: do not edit it by hand. Change what it is generated from and run: node tools/gen.mjs > docs/api.md',
+    },
+  })
+})
+
+test('a payload path under the host root is judged against the project directory', { skip }, t => {
+  const root = tempRepo(t, FILES)
+  // A root in the form of the platform: on Windows, bash rewrites a POSIX-looking value before node sees it.
+  const hostRoot = process.platform === 'win32' ? 'C:\\Host\\Checkout' : '/host/checkout'
+  const payload = {
+    tool_name: 'Edit',
+    tool_input: { file_path: process.platform === 'win32' ? 'c:\\host\\checkout\\docs\\api.md' : '/host/checkout/docs/api.md' },
+  }
+
+  assert.equal(runHook(bash ?? '', 'generated-guard', payload, { project: root }).stdout, '')
+  assert.match(runHook(bash ?? '', 'generated-guard', payload, { project: root, env: { OWNERSHIP_HOST_ROOT: hostRoot } }).stdout, /"permissionDecision":"deny"/)
+})
+
+test('the hook is silent and exits 0 whenever it has nothing to deny or cannot judge', { skip }, t => {
+  const root = tempRepo(t, FILES)
+  const broken = tempRepo(t, { ...FILES, '.ownership.yml': 'version: 2\n' })
+  const empty = tempRepo(t, { 'docs/api.md': '' })
+  const runs = [
+    runHook(bash ?? '', 'generated-guard', edit(root, 'docs/guide.md'), { project: root }),
+    runHook(bash ?? '', 'generated-guard', edit(broken, 'docs/api.md'), { project: broken }),
+    runHook(bash ?? '', 'generated-guard', edit(empty, 'docs/api.md'), { project: empty }),
+    runHook(bash ?? '', 'generated-guard', null, { project: root, input: 'this is not JSON' }),
+    runHook(bash ?? '', 'generated-guard', null, { project: root, input: '' }),
+    runHook(bash ?? '', 'no-such-hook', edit(root, 'docs/api.md'), { project: root }),
+    runHook(bash ?? '', '', edit(root, 'docs/api.md'), { project: root }),
+  ]
+
+  for (const run of runs) {
+    assert.equal(run.status, 0)
+    assert.equal(run.stdout, '')
+  }
+})
+
+test('without node on the PATH, the wrapper is silent and exits 0', { skip }, t => {
+  const root = tempRepo(t, FILES)
+  const run = runHook(bash ?? '', 'generated-guard', edit(root, 'docs/api.md'), { project: root, env: { PATH: '/nonexistent', Path: '/nonexistent' } })
+
+  assert.equal(run.status, 0)
+  assert.equal(run.stdout, '')
+})
+```
+
+- [ ] **Step 2: Run them to see them fail**
+
+Run: `node --test test/hooks/paths.test.ts test/hooks/generated-guard.test.ts test/hooks/run-hook.test.ts`
+Expected: FAIL — modules not found, and `ENOENT` for `hooks/hooks.json`.
+
+- [ ] **Step 3: Write the path conversion and the payload io**
+
+`plugins/ownership/plugin/src/hooks/paths.ts`:
+
+```ts
+import { posix } from 'node:path'
+
+import { normalizePath, toPosix } from '../paths/paths.ts'
+
+function clean(path: string): string {
+  const normalized = posix.normalize(toPosix(path))
+
+  return normalized.length > 1 ? normalized.replace(/\/+$/, '') : normalized
+}
+
+function isAbsolutePath(path: string): boolean {
+  return path.startsWith('/') || /^[A-Za-z]:\//.test(path)
+}
+
+/**
+ * A path from a tool payload as the repository names it, or null when it is
+ * outside every root. The root prefix is compared without regard to case,
+ * because it comes from the operating system — a drive letter may arrive as
+ * `c:` or `C:` — while the part inside the repository keeps its case.
+ */
+export function toRepoPath(filePath: string, roots: readonly string[]): string | null {
+  const path = clean(filePath)
+
+  if (!isAbsolutePath(path)) {
+    return path === '.' || path === '..' || path.startsWith('../') ? null : normalizePath(path)
+  }
+
+  for (const root of roots) {
+    const prefix = `${clean(root)}/`
+
+    if (path.length > prefix.length && path.slice(0, prefix.length).toLowerCase() === prefix.toLowerCase()) {
+      return normalizePath(path.slice(prefix.length))
+    }
+  }
+
+  return null
+}
+```
+
+`plugins/ownership/plugin/src/hooks/io.ts`:
+
+```ts
+/** Everything the host wrote to stdin. */
+export async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = []
+
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk as Buffer)
+  }
+
+  return Buffer.concat(chunks).toString('utf8')
+}
+
+/** The answer that makes the host refuse the tool call and show the reason to the agent. */
+export function denyOutput(reason: string): string {
+  return JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason } })
+}
+```
+
+- [ ] **Step 4: Write the guard and its entry point**
+
+`plugins/ownership/plugin/src/hooks/generated-guard.ts`:
+
+```ts
+import { realpathSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
+
+import { isGeneratedByMarker, readHead } from '../generated/marker.ts'
+import { deepestOwnershipFile, findGeneratedRule } from '../resolve/lookup.ts'
+import { resolveOwnership } from '../resolve/resolve.ts'
+import { toRepoPath } from './paths.ts'
+
+export interface HookEnv {
+  /** The repository judged: the project directory of the session. */
+  readonly root: string
+  /** Another root the payload paths may start with, for a session that sees the repository under a different path. */
+  readonly hostRoot?: string
+}
+
+export type Decision = { readonly action: 'allow' } | { readonly action: 'deny'; readonly reason: string }
+
+const ALLOW: Decision = { action: 'allow' }
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+/**
+ * Where `absolute` really is, links followed. A file about to be created has
+ * no real path, nor may its directory: the nearest ancestor that exists is
+ * resolved and the rest of the path is put back.
+ */
+function realPathOf(absolute: string): string | null {
+  const rest: string[] = []
+  let current = absolute
+
+  for (;;) {
+    try {
+      return join(realpathSync.native(current), ...rest)
+    } catch {
+      const parent = dirname(current)
+
+      if (parent === current) {
+        return null
+      }
+
+      rest.unshift(basename(current))
+      current = parent
+    }
+  }
+}
+
+function judge(payload: unknown, env: HookEnv): Decision {
+  const input = isRecord(payload) && isRecord(payload.tool_input) ? payload.tool_input : null
+  const given = input === null ? undefined : (input.file_path ?? input.notebook_path)
+
+  if (input === null || typeof given !== 'string' || given === '') {
+    return ALLOW
+  }
+
+  const roots = env.hostRoot === undefined || env.hostRoot === '' ? [env.root] : [env.root, env.hostRoot]
+  const path = toRepoPath(given, roots)
+
+  if (path === null || path === '') {
+    return ALLOW
+  }
+
+  // A link to a generated file must not be a way around the guard, so the path
+  // behind the link is judged too. A real path outside the roots is not.
+  const real = realPathOf(join(env.root, path))
+  const realRoot = realPathOf(env.root)
+  const realPath = real === null ? null : toRepoPath(real, realRoot === null ? roots : [realRoot, ...roots])
+  const paths = realPath === null || realPath === '' || realPath === path ? [path] : [path, realPath]
+  const config = resolveOwnership(env.root, { prune: paths })
+
+  if (config === null) {
+    return ALLOW
+  }
+
+  for (const candidate of paths) {
+    const rule = findGeneratedRule(config, candidate)
+
+    if (rule !== null) {
+      const origin = rule.origin.line === undefined ? rule.origin.file : `${rule.origin.file}:${rule.origin.line}`
+
+      return {
+        action: 'deny',
+        reason: `${path} is a generated file, declared in ${origin}: do not edit it by hand. Change what it is generated from and run: ${rule.command} > ${rule.path}`,
+      }
+    }
+  }
+
+  const ownershipFile = deepestOwnershipFile(config, path) ?? config.rootFile
+  const head = real === null || realPath === null ? null : readHead(real)
+
+  if (head !== null && isGeneratedByMarker(head)) {
+    return {
+      action: 'deny',
+      reason: `${path} carries the "generated: do not edit" marker on its first line: do not edit it by hand. Declare it in generated[] of ${ownershipFile} with the command that produces it.`,
+    }
+  }
+
+  if (isRecord(payload) && payload.tool_name === 'Write' && typeof input.content === 'string' && isGeneratedByMarker(input.content)) {
+    return {
+      action: 'deny',
+      reason: `The content for ${path} carries the "generated: do not edit" marker: a generated file is not written by hand. Declare ${path} in generated[] of ${ownershipFile} and produce it with: <command> > ${path}`,
+    }
+  }
+
+  return ALLOW
+}
+
+/**
+ * Whether a file tool may touch the path of its payload. Anything that keeps
+ * the question from being answered — no ownership file, a load error, a
+ * payload it cannot read — allows: the guard never blocks work by a defect of
+ * its own.
+ */
+export function decideGeneratedGuard(payload: unknown, env: HookEnv): Decision {
+  try {
+    return judge(payload, env)
+  } catch {
+    return ALLOW
+  }
+}
+```
+
+`plugins/ownership/plugin/src/hooks/main.ts`:
+
+```ts
+import { decideGeneratedGuard } from './generated-guard.ts'
+import { denyOutput, readStdin } from './io.ts'
+
+// The process ends itself after the budget: not every machine has a `timeout`
+// command for the wrapper to use. The timer alone does not keep it alive.
+setTimeout(() => process.exit(0), 5000).unref()
+
+try {
+  if (process.argv[2] === 'generated-guard') {
+    const payload: unknown = JSON.parse(await readStdin())
+    const hostRoot = process.env.OWNERSHIP_HOST_ROOT
+    const decision = decideGeneratedGuard(payload, { root: process.env.CLAUDE_PROJECT_DIR ?? process.cwd(), ...(hostRoot === undefined ? {} : { hostRoot }) })
+
+    if (decision.action === 'deny') {
+      process.stdout.write(`${denyOutput(decision.reason)}\n`)
+    }
+  }
+} catch {
+  // Silence: a hook never gets in the way because of a defect of its own.
+}
+
+process.exitCode = 0
+```
+
+- [ ] **Step 5: Register the hook and write the wrapper**
+
+`plugins/ownership/plugin/hooks/hooks.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [{ "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh\" generated-guard", "shell": "bash", "async": false }]
+      }
+    ]
+  }
+}
+```
+
+`plugins/ownership/plugin/hooks/run-hook.sh` (LF line ends):
+
+```bash
+#!/usr/bin/env bash
+# Runs one hook of this plugin on the machine's node.
+#
+# It fails open: without node, without the dependencies, on a timeout or on
+# any error, it prints nothing and exits 0. A hook never blocks work because of
+# a defect of its own.
+
+HOOK="${1:-}"
+
+[ -n "$HOOK" ] || exit 0
+command -v node >/dev/null 2>&1 || exit 0
+
+# hooks/ and src/ sit side by side in the plugin directory.
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INPUT="$(cat)"
+
+# `timeout` is not on every machine (macOS has none); the hook also ends itself
+# after the same five seconds.
+if command -v timeout >/dev/null 2>&1; then
+  OUTPUT="$(printf '%s' "$INPUT" | timeout 5 node "$PLUGIN_ROOT/src/hooks/main.ts" "$HOOK" 2>/dev/null)"
+  STATUS=$?
+else
+  OUTPUT="$(printf '%s' "$INPUT" | node "$PLUGIN_ROOT/src/hooks/main.ts" "$HOOK" 2>/dev/null)"
+  STATUS=$?
+fi
+
+[ "$STATUS" -eq 0 ] || exit 0
+[ -n "$OUTPUT" ] || exit 0
+
+# Whatever is not one JSON value is dropped: the host would read it as a broken answer.
+if printf '%s' "$OUTPUT" | node -e 'JSON.parse(require("node:fs").readFileSync(0, "utf8"))' >/dev/null 2>&1; then
+  printf '%s\n' "$OUTPUT"
+fi
+
+exit 0
+```
+
+Then make it executable, in the work tree and in the index — on Windows the file system keeps no such bit, so only the index does:
+
+```bash
+chmod +x plugin/hooks/run-hook.sh
+git add plugin/hooks/run-hook.sh
+git update-index --chmod=+x plugin/hooks/run-hook.sh
+git ls-files -s plugin/hooks/run-hook.sh
+```
+
+Expected: the last command prints a line that starts with `100755`.
+
+- [ ] **Step 6: Run them to see them pass**
+
+Run: `node --test test/hooks/paths.test.ts test/hooks/generated-guard.test.ts test/hooks/run-hook.test.ts`
+Expected: PASS (7 + 17 + 5 tests). The two tests that create a symbolic link to a file report SKIP on a machine that cannot create one (Windows without the privilege); the test of the linked directory runs everywhere. The `run-hook` tests report SKIP only on a Windows machine without Git for Windows' bash.
+
+- [ ] **Step 7: Commit**
+
+```bash
+../../spur format && ../../spur check
+git -C ../.. add plugins/ownership/plugin/src/hooks plugins/ownership/plugin/hooks plugins/ownership/test/hooks plugins/ownership/test/helpers/hook.ts
+git commit -m "feat(ownership): refuse a hand edit of a generated file in the session
+
+The generated-guard hook runs before Edit, Write, MultiEdit and
+NotebookEdit. It denies a file declared in generated[], a file whose
+first line carries the marker, and a Write whose content carries it. It
+judges the path behind a link too, and stays silent whenever it cannot
+judge.
+
+Changelog: none — the plugin is not published yet
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 20: The `/ownership:init` slash command
+
+**Files:**
+- Create: `plugins/ownership/plugin/commands/init.md`
+- Test: `plugins/ownership/test/distribution/command.test.ts`
+
+**Interfaces:**
+- Consumes: the CLI (`init`, `explain`, `validate`) as built by Tasks 14, 15 and 17; `PLUGIN_ROOT` (Task 2).
+- Produces: `commands/init.md`. The host names a command after the plugin and the file: `ownership` + `init.md` is `/ownership:init`. The text is a script for the agent, and it is shipped: it cites no requirement ID and no path of this repository (Task 21 enforces it).
+- The test pins what the command must not lose: the file is created only by `ownership init`, the mode and every owner are the human's choice, the CODEOWNERS is never touched, and it ends with the two checks that run no generator.
+
+- [ ] **Step 1: Write the failing test**
+
+`plugins/ownership/test/distribution/command.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { parse } from 'yaml'
+
+import { PLUGIN_ROOT } from '../helpers/roots.ts'
+
+const text = readFileSync(join(PLUGIN_ROOT, 'commands', 'init.md'), 'utf8')
+const CLI = 'node "${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts"'
+
+test('the command file is commands/init.md, so the host names it /ownership:init', () => {
+  const manifest = JSON.parse(readFileSync(join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json'), 'utf8')) as { name: string }
+
+  assert.equal(manifest.name, 'ownership')
+})
+
+test('the frontmatter describes the command and lets it run the CLI and edit the file', () => {
+  const frontmatter = /^---\n([\s\S]*?)\n---\n/.exec(text)
+
+  assert.ok(frontmatter !== null, 'the command starts with a frontmatter block')
+
+  const meta = parse(frontmatter[1] ?? '') as Record<string, unknown>
+
+  assert.equal(typeof meta.description, 'string')
+  assert.notEqual(meta.description, '')
+  assert.match(String(meta['allowed-tools']), /Bash\(node:\*\)/)
+  assert.match(String(meta['allowed-tools']), /\bEdit\b/)
+})
+
+test('the file is created only by running the init of the CLI', () => {
+  assert.ok(text.includes(`${CLI} init [--owner <@owner> | --from-codeowners] [--ownership <path>]`))
+  assert.match(text, /only way the file is created/)
+})
+
+test('the command ends with the two checks that run no generator', () => {
+  assert.ok(text.includes(`${CLI} validate --check ownership/owner-coverage --check ownership/codeowners-match`))
+  assert.doesNotMatch(text, /--check ownership\/generated-drift/)
+})
+
+test('the script keeps the decisions with the human', () => {
+  for (const rule of [
+    /Never pick one on your own/,
+    /Never fill in an owner/,
+    /wait for an explicit yes/,
+    /Never create or change the CODEOWNERS/,
+    /--from-codeowners` first/,
+  ]) {
+    assert.match(text, rule)
+  }
+})
+```
+
+- [ ] **Step 2: Run it to see it fail**
+
+Run: `node --test test/distribution/command.test.ts`
+Expected: FAIL — `ENOENT: no such file or directory, open '.../plugin/commands/init.md'`.
+
+- [ ] **Step 3: Write the command**
+
+`plugins/ownership/plugin/commands/init.md`:
+
+````markdown
+---
+description: Create the ownership file of this repository and settle, with you, who owns each path
+argument-hint: '[--owner <@owner> | --from-codeowners] [--ownership <path>]'
+allowed-tools: Bash(node:*), Read, Edit, Glob, Grep
+---
+
+# Initialize the ownership file
+
+You are setting up the ownership file of this repository with the person you are
+working with. The file says who owns each path; **only a human can name an
+owner**. Arguments given to this command: `$ARGUMENTS`
+
+The CLI of this plugin is run as:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts" <command> [options]
+```
+
+It needs Node 24 or later and runs in the repository root. If it fails with
+`ERR_MODULE_NOT_FOUND`, the plugin's dependency is not installed: run
+`npm ci --omit=dev --ignore-scripts` in `${CLAUDE_PLUGIN_ROOT}` and try again.
+
+## 1. Choose the mode — the human chooses
+
+`init` has three modes. Never pick one on your own, and never infer an owner
+from the Git history, from file contents or from a guess.
+
+| Mode         | Option              | What it writes                                                           |
+| ------------ | ------------------- | ------------------------------------------------------------------------ |
+| Skeleton     | none                | No entry: a commented model for each file and directory of the root.     |
+| Single owner | `--owner <@owner>`  | One entry for each file and directory of the root, all with that owner.  |
+| CODEOWNERS   | `--from-codeowners` | Entries derived from the CODEOWNERS, so both files agree from the start. |
+
+- If the arguments already name a mode, use it and skip the question.
+- Otherwise, check whether the repository has a CODEOWNERS (`.github/CODEOWNERS`,
+  `CODEOWNERS` or `docs/CODEOWNERS`) and ask which mode to use. When there is a
+  CODEOWNERS, offer `--from-codeowners` first and say why. For the single-owner
+  mode, ask who the owner is.
+- If the person is unsure, run the mode they are considering with `--stdout`:
+  it prints the file and writes nothing.
+
+## 2. Create the file — only through the CLI
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts" init [--owner <@owner> | --from-codeowners] [--ownership <path>]
+```
+
+- This command is the only way the file is created. Never write the initial
+  file yourself, and never edit it before the command has run.
+- It refuses to run when an ownership file already exists, and it has no option
+  to overwrite. If it refuses, show the message and stop: starting over means
+  the person deletes the existing file themselves.
+- Show its output as it is. It says how many entries were written, how many
+  repository files have no owner and which paths were left out.
+
+## 3. Split the paths that still have no owner — propose, ask, then edit
+
+Do this when the output says repository files have no owner (always in skeleton
+mode), or when the person wants to divide what a single owner received.
+
+1. Read the file that was created and list the files and directories of the root
+   and, where it helps, one level below them.
+2. Propose a split into `owned` entries. Paths are literal — no `*`, no `**`, no
+   negation — and they are disjoint: no entry repeats another, and no entry
+   contains another. A directory whose parts have different owners is replaced
+   by its children, one entry each. A part of a directory that needs no owner
+   goes in `ignore`, not in `owned`.
+3. Ask who owns **each** proposed path. Never fill in an owner the person did
+   not give you, and do not reuse one owner for a path they did not assign it to.
+4. Show the entries you are about to write and wait for an explicit yes. Only
+   then edit the ownership file.
+5. Files listed in the commented `generated:` block carry the
+   `generated: do not edit` marker. Ask for the command that prints each one
+   before uncommenting its entry; without a command, leave it commented.
+
+## 4. Leave the CODEOWNERS alone
+
+Never create or change the CODEOWNERS. When the repository has one, tell the
+person which of the paths being declared would fail `ownership/codeowners-match`:
+a path no CODEOWNERS line matches, or a path whose effective line — the last one
+that matches it — does not list the declared owner. To see what the CODEOWNERS
+says about a path:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts" explain <path>
+```
+
+Changing the CODEOWNERS is the person's decision and their edit.
+
+## 5. Finish by validating
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts" validate --check ownership/owner-coverage --check ownership/codeowners-match
+```
+
+Show the result as it is. Exit code 1 with findings is the expected state while
+paths are still without an owner: the check fails on purpose until every
+repository file is declared. Do not run the other check here — it executes the
+repository's generator commands.
+````
+
+- [ ] **Step 4: Run it to see it pass**
+
+Run: `node --test test/distribution/command.test.ts`
+Expected: PASS (5 tests).
+
+- [ ] **Step 5: Commit**
+
+```bash
+../../spur format && ../../spur check
+git -C ../.. add plugins/ownership/plugin/commands plugins/ownership/test/distribution/command.test.ts
+git commit -m "feat(ownership): the /ownership:init command conducts the initialization
+
+It creates the file only by running ownership init, asks the mode and
+the owner of each path, and never touches the CODEOWNERS.
+
+Changelog: none — the plugin is not published yet
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 21: The public surface and the distribution tests
+
+**Files:**
+- Create: `plugins/ownership/plugin/src/index.ts`
+- Create: `plugins/ownership/test/helpers/surface.ts`
+- Test: `plugins/ownership/test/distribution/public-api.test.ts`
+- Test: `plugins/ownership/test/distribution/packaging.test.ts`
+- Test: `plugins/ownership/test/distribution/plugin-cache.test.ts`
+- Test: `plugins/ownership/test/distribution/no-internal-trace.test.ts`
+
+**Interfaces:**
+- Consumes: everything built so far; `bashExecutable`, `runHook` (Task 19); `runCli`, `tempRepo`, `PROJECT_ROOT`, `PLUGIN_ROOT` (Task 2); `SCHEMA_URL` (Task 16).
+- Produces:
+  - `plugin/src/index.ts`, the package entry. Its run-time names, exactly: `OwnershipError`, `coreCheckCatalog`, `coreChecks`, `entriesForPlugin`, `explainPath`, `findGeneratedRule`, `findOwnedRule`, `isGeneratedByMarker`, `loadCodeowners`, `ownersOf`, `parseCodeowners`, `resolveOwnership`. It also exports the types of the resolved configuration, of the checks, of CODEOWNERS and of the errors.
+  - `PUBLIC_NAMES` (`test/helpers/surface.ts`) — that list, sorted, shared by the tests that pin it on the source, under the `development` condition and on the compiled package.
+- The packaging and the plugin-cache tests download `yaml` from the npm registry: they need the network.
+- The plugin-cache and the trace tests take the files of `plugin/` from Git — tracked ones and new ones no `.gitignore` excludes — so they see a file of this task before it is committed.
+
+- [ ] **Step 1: Write the failing tests**
+
+`plugins/ownership/test/helpers/surface.ts`:
+
+```ts
+/** Every name the package exports at run time, sorted. Types are not listed: they do not exist at run time. */
+export const PUBLIC_NAMES = [
+  'OwnershipError',
+  'coreCheckCatalog',
+  'coreChecks',
+  'entriesForPlugin',
+  'explainPath',
+  'findGeneratedRule',
+  'findOwnedRule',
+  'isGeneratedByMarker',
+  'loadCodeowners',
+  'ownersOf',
+  'parseCodeowners',
+  'resolveOwnership',
+] as const
+```
+
+`plugins/ownership/test/distribution/public-api.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
+
+import * as surface from '../../plugin/src/index.ts'
+import type { Check, CheckContext, Finding, OwnersResult, PathExplanation, PluginEntry, ResolvedOwnership, Severity } from '../../plugin/src/index.ts'
+import { tempRepo } from '../helpers/repo.ts'
+import { PROJECT_ROOT } from '../helpers/roots.ts'
+import { PUBLIC_NAMES } from '../helpers/surface.ts'
+
+test('the package exports exactly its public names', () => {
+  assert.deepEqual(Object.keys(surface).sort(), [...PUBLIC_NAMES])
+})
+
+test('the public catalog carries the three core checks: id, name, command and when each fails', () => {
+  assert.deepEqual(
+    surface.coreCheckCatalog.map(entry => [entry.id, entry.command]),
+    [
+      ['ownership/owner-coverage', 'ownership validate --check ownership/owner-coverage'],
+      ['ownership/codeowners-match', 'ownership validate --check ownership/codeowners-match'],
+      ['ownership/generated-drift', 'ownership validate --check ownership/generated-drift'],
+    ],
+  )
+  assert.ok(surface.coreCheckCatalog.every(entry => entry.name !== '' && entry.failsWhen !== ''))
+  assert.ok(Object.isFrozen(surface.coreCheckCatalog) && Object.isFrozen(surface.coreChecks))
+})
+
+test('a domain plugin can do its work with the public names alone', async t => {
+  const root = tempRepo(
+    t,
+    {
+      '.ownership.yml': "version: 1\nplugins:\n  docs-kit:\n    lang: en\nowned:\n  - path: docs/\n    owner: '@Docs'\n    plugins:\n      docs-kit: {}\n",
+      'docs/a.md': '<!-- generated: do not edit -->\n',
+    },
+    { codeowners: 'docs/ @docs\n' },
+  )
+  const config: ResolvedOwnership | null = surface.resolveOwnership(root, { prune: ['docs/a.md'] })
+
+  assert.ok(config !== null)
+
+  const entries: PluginEntry[] = surface.entriesForPlugin(config, 'docs-kit')
+  const owners: OwnersResult = surface.ownersOf(surface.loadCodeowners(root), 'docs/a.md')
+  const explanation: PathExplanation = surface.explainPath(config, 'docs/a.md', {
+    repoFiles: new Set(['docs/a.md']),
+    codeowners: surface.parseCodeowners('docs/ @docs\n'),
+  })
+  const severity: Severity = 'warning'
+  const own: Check = {
+    id: 'docs-kit/example',
+    name: 'Example',
+    failsWhen: 'always',
+    run: (ctx: CheckContext): Promise<Finding[]> => Promise.resolve([{ file: ctx.config.rootFile, checkId: 'docs-kit/example', severity, message: 'example' }]),
+  }
+
+  assert.deepEqual(entries, [{ path: 'docs/', owner: '@Docs', source: '.ownership.yml', entry: {}, global: { lang: 'en' } }])
+  assert.deepEqual(owners, { kind: 'matched', owners: ['@docs'], line: 1 })
+  assert.equal(surface.findOwnedRule(config, 'docs/a.md')?.owner, '@Docs')
+  assert.equal(surface.findGeneratedRule(config, 'docs/a.md'), null)
+  assert.deepEqual(explanation.generated, { source: 'marker' })
+  assert.equal(surface.isGeneratedByMarker('generated: do not edit\n'), true)
+  assert.equal((await own.run({ root, config, repoFiles: new Set(), jobs: 1, codeowners: () => null }))[0]?.severity, 'warning')
+  assert.throws(() => surface.entriesForPlugin(config, 'Bad_Name'), surface.OwnershipError)
+})
+
+test('with the development condition, the package name resolves to the TypeScript source, with no build', { timeout: 60_000 }, () => {
+  const script = 'import("@esliph/ownership").then(m => console.log(JSON.stringify(Object.keys(m).sort())))'
+  const result = spawnSync(process.execPath, ['--conditions=development', '--input-type=module', '-e', script], { cwd: PROJECT_ROOT, encoding: 'utf8' })
+
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(result.stdout), [...PUBLIC_NAMES])
+})
+```
+
+`plugins/ownership/test/distribution/packaging.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
+import { PLUGIN_ROOT } from '../helpers/roots.ts'
+import { PUBLIC_NAMES } from '../helpers/surface.ts'
+
+function npm(command: string, cwd: string): { status: number | null; stdout: string; stderr: string } {
+  // `npm` is a .cmd on Windows, which only a shell can start.
+  const result = spawnSync(`npm ${command}`, { cwd, encoding: 'utf8', shell: true })
+
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr }
+}
+
+test('the packed package installs, exports its public names from the compiled code and runs its bin', { timeout: 300_000 }, () => {
+  const pack = npm('pack --json', PLUGIN_ROOT)
+
+  assert.equal(pack.status, 0, pack.stderr)
+
+  const [packed] = JSON.parse(pack.stdout) as { filename: string; files: { path: string }[] }[]
+
+  assert.ok(packed !== undefined)
+
+  const tarball = join(PLUGIN_ROOT, packed.filename)
+  const consumer = mkdtempSync(join(tmpdir(), 'ownership-pack-'))
+
+  try {
+    const shipped = packed.files.map(file => file.path)
+
+    assert.ok(shipped.includes('ownership.schema.json'))
+    assert.ok(shipped.includes('dist/index.js') && shipped.includes('dist/index.d.ts') && shipped.includes('dist/cli/index.js'))
+    assert.deepEqual(
+      shipped.filter(path => path.startsWith('src/') || path.startsWith('hooks/') || path.startsWith('commands/')),
+      [],
+      'the npm package carries the compiled code only',
+    )
+
+    writeFileSync(join(consumer, 'package.json'), JSON.stringify({ name: 'consumer', private: true, type: 'module' }))
+
+    const install = npm(`install ${JSON.stringify(tarball)} --no-audit --no-fund`, consumer)
+
+    assert.equal(install.status, 0, install.stderr)
+
+    const names = spawnSync(
+      process.execPath,
+      ['--input-type=module', '-e', 'import("@esliph/ownership").then(m => console.log(JSON.stringify(Object.keys(m).sort())))'],
+      {
+        cwd: consumer,
+        encoding: 'utf8',
+      },
+    )
+
+    assert.equal(names.status, 0, names.stderr)
+    assert.deepEqual(JSON.parse(names.stdout), [...PUBLIC_NAMES])
+
+    const manifest = JSON.parse(readFileSync(join(consumer, 'node_modules', '@esliph', 'ownership', 'package.json'), 'utf8')) as { bin: Record<string, string> }
+    const bin = spawnSync(process.execPath, [join(consumer, 'node_modules', '@esliph', 'ownership', manifest.bin.ownership ?? ''), '--help'], {
+      cwd: consumer,
+      encoding: 'utf8',
+    })
+
+    assert.equal(bin.status, 0, bin.stderr)
+    assert.match(bin.stdout, /^Usage: ownership <command>/)
+  } finally {
+    rmSync(consumer, { recursive: true, force: true })
+    rmSync(tarball, { force: true })
+    rmSync(join(PLUGIN_ROOT, 'dist'), { recursive: true, force: true })
+  }
+
+  assert.equal(existsSync(join(PLUGIN_ROOT, 'dist')), false, 'the compiled code exists only while packing')
+})
+```
+
+`plugins/ownership/test/distribution/plugin-cache.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { execFileSync, spawnSync } from 'node:child_process'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+
+import { runCli } from '../helpers/cli.ts'
+import { bashExecutable, runHook } from '../helpers/hook.ts'
+import { tempRepo } from '../helpers/repo.ts'
+import { PLUGIN_ROOT } from '../helpers/roots.ts'
+
+const OWNERSHIP = "version: 1\nowned:\n  - path: docs/\n    owner: '@a'\ngenerated:\n  - path: docs/api.md\n    command: node tools/gen.mjs\n"
+
+/** What Git would hand over of the distributed directory: tracked files and new ones no .gitignore excludes. */
+function distributedFiles(): string[] {
+  return execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', '.'], { cwd: PLUGIN_ROOT, encoding: 'utf8' })
+    .split('\0')
+    .filter(file => file !== '')
+}
+
+test('the hooks wrapper is versioned as executable', () => {
+  const entry = execFileSync('git', ['ls-files', '-s', '--', 'hooks/run-hook.sh'], { cwd: PLUGIN_ROOT, encoding: 'utf8' })
+
+  assert.equal(entry.split(/\s+/)[0], '100755')
+})
+
+test('the distributed directory carries the plugin and nothing of the project around it', () => {
+  const files = distributedFiles()
+
+  for (const needed of [
+    '.claude-plugin/plugin.json',
+    'hooks/hooks.json',
+    'hooks/run-hook.sh',
+    'commands/init.md',
+    'ownership.schema.json',
+    'package.json',
+    'package-lock.json',
+    'src/index.ts',
+  ]) {
+    assert.ok(files.includes(needed), `${needed} is missing from the distributed directory`)
+  }
+
+  assert.deepEqual(
+    files.filter(file => /^(?:test|docs|dist|node_modules)\//.test(file) || /\.test\.ts$/.test(file)),
+    [],
+  )
+})
+
+test('copied alone into the plugin cache, the plugin installs from its lockfile and the hook and the CLI answer from there', { timeout: 300_000 }, t => {
+  const bash = bashExecutable()
+
+  if (bash === null) {
+    t.skip('no Git for Windows bash on this machine; CI (ubuntu) runs this proof')
+
+    return
+  }
+
+  const cache = mkdtempSync(join(tmpdir(), 'ownership-cache-'))
+  const project = tempRepo(t, { '.ownership.yml': OWNERSHIP, 'docs/api.md': 'api\n' })
+  const payload = { tool_name: 'Edit', tool_input: { file_path: join(project, 'docs', 'api.md') } }
+
+  t.after(() => rmSync(cache, { recursive: true, force: true }))
+
+  for (const file of distributedFiles()) {
+    mkdirSync(dirname(join(cache, file)), { recursive: true })
+    copyFileSync(join(PLUGIN_ROOT, file), join(cache, file))
+  }
+
+  assert.equal(existsSync(join(cache, 'node_modules')), false)
+
+  // Control: without its dependency the hook cannot run and, by contract, stays silent.
+  const before = runHook(bash, 'generated-guard', payload, { project, pluginRoot: cache })
+
+  assert.equal(before.status, 0)
+  assert.equal(before.stdout, '')
+
+  const install = spawnSync('npm ci --ignore-scripts --omit=dev --no-audit --no-fund', { cwd: cache, encoding: 'utf8', shell: true })
+
+  assert.equal(install.status, 0, install.stderr)
+
+  const after = runHook(bash, 'generated-guard', payload, { project, pluginRoot: cache })
+
+  assert.equal(after.status, 0, after.stderr)
+  assert.equal((JSON.parse(after.stdout) as { hookSpecificOutput: { permissionDecision: string } }).hookSpecificOutput.permissionDecision, 'deny')
+
+  const cli = spawnSync(process.execPath, [join(cache, 'src', 'cli', 'index.ts'), 'explain', 'docs/api.md'], { cwd: project, encoding: 'utf8' })
+
+  assert.equal(cli.status, 0, cli.stderr)
+  assert.equal(cli.stdout, runCli(['explain', 'docs/api.md'], { cwd: project }).stdout)
+})
+```
+
+`plugins/ownership/test/distribution/no-internal-trace.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { SCHEMA_URL } from '../../plugin/src/init/render.ts'
+import { PLUGIN_ROOT } from '../helpers/roots.ts'
+
+/** What a shipped file must not say: it would send whoever installs the plugin to a place they do not have. */
+const TRACES: [string, RegExp][] = [
+  ['a requirement ID', /\bREQ-[A-Z]+-\d+/],
+  ['a section of the specification', /§\s*\d/],
+  ['a document of this repository', /\bdocs\/(?:requirements|superpowers)\b/],
+  ['a path of this repository', /\bplugins\/ownership\b/],
+]
+
+function shippedFiles(): string[] {
+  return execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', '.'], { cwd: PLUGIN_ROOT, encoding: 'utf8' })
+    .split('\0')
+    .filter(file => file !== '' && file !== 'package-lock.json')
+}
+
+test('nothing the plugin ships points inside the repository that develops it', () => {
+  const files = shippedFiles()
+  const found: string[] = []
+
+  assert.ok(files.length > 30, `scan too empty: ${files.length} files`)
+
+  for (const file of files) {
+    readFileSync(join(PLUGIN_ROOT, file), 'utf8')
+      .split('\n')
+      .forEach((line, index) => {
+        // The address the schema is published at is the one path of this repository a shipped file may carry.
+        const text = line.replaceAll(SCHEMA_URL, '')
+
+        for (const [what, pattern] of TRACES) {
+          if (pattern.test(text)) {
+            found.push(`${file}:${index + 1}: ${what}: ${line.trim()}`)
+          }
+        }
+      })
+  }
+
+  assert.deepEqual(found, [])
+})
+```
+
+- [ ] **Step 2: Run them to see them fail**
+
+Run: `node --test "test/distribution/*.test.ts"`
+Expected: `public-api.test.ts` FAILS with `Cannot find module '.../plugin/src/index.ts'`; `packaging.test.ts` FAILS while packing (`tsc` finds no `index.ts` to emit `dist/index.js` from, so the file list lacks it); `plugin-cache.test.ts` FAILS on `src/index.ts is missing from the distributed directory`. The other tests of the directory pass already.
+
+- [ ] **Step 3: Write the public surface**
+
+`plugins/ownership/plugin/src/index.ts`:
+
+```ts
+// The public surface. Renaming or removing a name here breaks whoever builds on this package.
+
+export { resolveOwnership } from './resolve/resolve.ts'
+export { findGeneratedRule, findOwnedRule } from './resolve/lookup.ts'
+export { explainPath } from './resolve/explain.ts'
+export { entriesForPlugin } from './resolve/plugins.ts'
+export type { GeneratedRule, IgnoreRule, OwnedRule, OwnershipFileInfo, ResolvedOwnership, ResolveOptions, Rule, RuleOrigin, TrieNode } from './resolve/types.ts'
+export type { Coverage, ExplainContext, GeneratedOrigin, PathExplanation } from './resolve/explain.ts'
+export type { PluginEntry } from './resolve/plugins.ts'
+export type { PluginBlock, PluginBlocks } from './schema/types.ts'
+
+export { coreCheckCatalog, coreChecks } from './checks/core.ts'
+export type { CatalogEntry } from './checks/core.ts'
+export type { Check, CheckContext, Finding, Severity } from './checks/types.ts'
+
+export { loadCodeowners } from './codeowners/locate.ts'
+export { ownersOf } from './codeowners/match.ts'
+export { parseCodeowners } from './codeowners/parse.ts'
+export type { Codeowners, CodeownersLine, OwnersResult } from './codeowners/types.ts'
+
+export { isGeneratedByMarker } from './generated/marker.ts'
+
+export { OwnershipError } from './errors.ts'
+export type { Issue } from './errors.ts'
+```
+
+- [ ] **Step 4: Run them to see them pass**
+
+Run: `node --test "test/distribution/*.test.ts"`
+Expected: PASS (14 tests in the five files, `command.test.ts` of Task 20 included). If `no-internal-trace.test.ts` fails, it names the file and the line: reword that comment or message so that it explains the reason in its own words.
+
+Run: `git status --short plugin/` (from `plugins/ownership/`)
+Expected: no `plugin/dist/` and no `.tgz` — the packaging test removes what it builds.
+
+- [ ] **Step 5: Commit**
+
+```bash
+../../spur format && ../../spur check
+git -C ../.. add plugins/ownership/plugin/src/index.ts plugins/ownership/test/distribution plugins/ownership/test/helpers/surface.ts
+git commit -m "feat(ownership): the public surface of the package, and proof that it ships
+
+The package exports exactly the names other plugins build on. Tests pack
+it, install the tarball, import those names from the compiled code and
+run the bin; copy the plugin directory alone, install it from its
+lockfile and run the hook from there; and check that nothing shipped
+points inside the repository that develops it.
+
+Changelog: none — the plugin is not published yet
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 22: Performance and language independence
+
+**Files:**
+- Test: `plugins/ownership/test/perf/owner-coverage.perf.ts`
+- Test: `plugins/ownership/test/cli/language.test.ts`
+
+**Interfaces:**
+- Consumes: the CLI; `runCli`, `git`, `tempRepo` (Task 2). The `perf` task of the `Spurfile` (Task 2) runs `test/**/*.perf.ts`; the `test` task does not, because its glob is `*.test.ts`.
+- Produces: no code. Two properties of the whole are pinned: `validate --check ownership/owner-coverage` on 100,000 files inside 2 s, and the same findings for the same structure whatever language the files are written in.
+- Building the fixture takes about a minute; the measured runs take under a second each. The budget is checked on the fastest of three runs.
+
+- [ ] **Step 1: Write the performance test**
+
+`plugins/ownership/test/perf/owner-coverage.perf.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { runCli } from '../helpers/cli.ts'
+import { git, tempRepo } from '../helpers/repo.ts'
+
+const TOP = 20
+const SUB = 50
+const PER_DIRECTORY = 100
+const FILES = TOP * SUB * PER_DIRECTORY
+const BUDGET_MS = 2000
+
+const name = (prefix: string, index: number): string => `${prefix}-${String(index).padStart(2, '0')}`
+
+/** 100,000 empty files, half of them tracked and half new: the listing has to merge the index with a walk of the tree. */
+function populate(root: string): void {
+  const fill = (from: number, to: number): void => {
+    for (let top = 0; top < TOP; top++) {
+      for (let sub = from; sub < to; sub++) {
+        const dir = join(root, name('pkg', top), name('mod', sub))
+
+        mkdirSync(dir, { recursive: true })
+
+        for (let file = 0; file < PER_DIRECTORY; file++) {
+          writeFileSync(join(dir, `file-${file}.ts`), '')
+        }
+      }
+    }
+  }
+
+  fill(0, SUB / 2)
+  git(root, 'add', '-A')
+  fill(SUB / 2, SUB)
+}
+
+test(`owner coverage of a repository of ${FILES} files takes less than ${BUDGET_MS} ms`, { timeout: 900_000 }, t => {
+  const entries = Array.from({ length: TOP }, (_, top) => `  - path: ${name('pkg', top)}/\n    owner: '@team-${top}'\n`).join('')
+  const root = tempRepo(t, { '.ownership.yml': `version: 1\nowned:\n  - path: .ownership.yml\n    owner: '@root'\n${entries}`, 'stray.ts': '' })
+
+  populate(root)
+
+  const args = ['validate', '--check', 'ownership/owner-coverage']
+  const expected = [
+    'stray.ts  ownership/owner-coverage  error  no owned entry covers this file',
+    '  → declare it in owned[] of .ownership.yml, or leave it out with ignore[]',
+    'ownership: 1 error, 0 warnings.',
+    '',
+  ].join('\n')
+
+  // The first run warms the file system cache and proves the check saw every file: the one without an owner is the only finding.
+  const warmUp = runCli(args, { cwd: root })
+
+  assert.equal(warmUp.stderr, '')
+  assert.equal(warmUp.stdout, expected)
+
+  // The best of three: the budget is about the work the check does, not about a busy machine.
+  const times = Array.from({ length: 3 }, () => {
+    const start = performance.now()
+    const result = runCli(args, { cwd: root })
+
+    assert.equal(result.status, 1)
+    assert.equal(result.stdout, expected)
+
+    return performance.now() - start
+  })
+
+  t.diagnostic(`runs: ${times.map(time => `${Math.round(time)} ms`).join(', ')}`)
+  assert.ok(Math.min(...times) < BUDGET_MS, `the fastest of three runs took ${Math.round(Math.min(...times))} ms`)
+})
+```
+
+- [ ] **Step 2: Run it**
+
+Run: `../../spur perf`
+Expected: PASS (1 test), with a line such as `runs: 693 ms, 758 ms, 763 ms`.
+
+If the budget is missed, measure before changing anything — in the fixture (print `root` and comment out the `t.after` of `tempRepo` to keep it), time each Git call of `listRepoFiles` on its own:
+
+```bash
+time git -c core.quotePath=false ls-files -z --cached --others --exclude-per-directory=.gitignore > /dev/null
+time git diff-files -z --name-only --diff-filter=D --relative > /dev/null
+```
+
+The two together are most of the run. The check itself must stay one pass over the files against the index, with no file read and no `stat`.
+
+- [ ] **Step 3: Write the language test**
+
+`plugins/ownership/test/cli/language.test.ts`:
+
+```ts
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+
+import { runCli } from '../helpers/cli.ts'
+import { tempRepo } from '../helpers/repo.ts'
+
+/** The same structure twice: once written in English, once in Portuguese and Japanese. */
+const ENGLISH = {
+  '.ownership.yml': [
+    '# Who owns what in this repository.',
+    'version: 1',
+    'owned:',
+    '  # The documentation team.',
+    '  - path: docs/',
+    "    owner: '@docs'",
+    '  - path: missing/',
+    "    owner: '@docs'",
+    'generated:',
+    '  - path: docs/api.md',
+    '    command: node gen.mjs',
+    '',
+  ].join('\n'),
+  CODEOWNERS: '# Reviewers of the documentation\ndocs/ @other\n',
+  'docs/guide.md': '# Guide\n\nThis file is generated: do not edit it, said the prose on line three.\n',
+  'docs/api.md': '# The API\n',
+  'docs/marked.md': '<!-- generated: do not edit -->\n# A generated page\n',
+  'README.md': '# Read me\n\nNobody owns this file yet.\n',
+}
+
+const OTHER = {
+  '.ownership.yml': ENGLISH['.ownership.yml']
+    .replace('# Who owns what in this repository.', '# Quem é dono de quê neste repositório.')
+    .replace('# The documentation team.', '# ドキュメントチーム。'),
+  CODEOWNERS: '# Revisores da documentação\ndocs/ @other\n',
+  'docs/guide.md': '# Guia\n\nEste arquivo é gerado: não edite, dizia a prosa na linha três.\n',
+  'docs/api.md': '# A API\n',
+  'docs/marked.md': '<!-- generated: do not edit -->\n# 生成されたページ\n',
+  'README.md': '# Leia-me\n\nNinguém é dono deste arquivo ainda.\n',
+}
+
+test('a repository written in another language gives exactly the same findings', t => {
+  const english = runCli(['validate', '--format', 'json'], { cwd: tempRepo(t, ENGLISH) })
+  const other = runCli(['validate', '--format', 'json'], { cwd: tempRepo(t, OTHER) })
+  const findings = (JSON.parse(english.stdout) as { findings: { checkId: string }[] }).findings
+
+  assert.equal(english.status, 1)
+  assert.equal(other.stdout, english.stdout)
+  assert.deepEqual([...new Set(findings.map(item => item.checkId))].sort(), [
+    'ownership/codeowners-match',
+    'ownership/generated-drift',
+    'ownership/owner-coverage',
+  ])
+})
+```
+
+- [ ] **Step 4: Run it**
+
+Run: `node --test test/cli/language.test.ts`
+Expected: PASS (1 test). It passes at once: no check reads prose. It is here so that a check that starts to does not go unnoticed.
+
+- [ ] **Step 5: Commit**
+
+```bash
+../../spur format && ../../spur check
+git -C ../.. add plugins/ownership/test/perf plugins/ownership/test/cli/language.test.ts
+git commit -m "test(ownership): pin the coverage budget and language independence
+
+Changelog: none — the plugin is not published yet
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 23: README, CHANGELOG and the marketplace entry
+
+**Files:**
+- Create: `plugins/ownership/README.md`
+- Create: `plugins/ownership/CHANGELOG.md`
+- Modify: `.claude-plugin/marketplace.json`
+- Modify: `README.md` (the plugin table)
+- Modify: `CHANGELOG.md`
+
+**Interfaces:**
+- Consumes: the behavior of every earlier task. Both READMEs and both CHANGELOGs are for whoever installs: they explain in running text and cite no requirement ID.
+- Produces: the plugin listed in the marketplace with `source: ./plugins/ownership/plugin`.
+- Commands of this task run from the repository root.
+
+- [ ] **Step 1: Write the plugin README**
+
+`plugins/ownership/README.md`:
+
+````markdown
+# ownership
+
+One file, `.ownership.yml`, says who owns each path of a repository and which
+files are generated by a command. This plugin checks those promises in two
+places: in the Claude Code session, where it refuses a hand edit of a generated
+file, and in CI, where `ownership validate` fails when a file has no owner, when
+the `CODEOWNERS` disagrees, or when a generated file drifted from its generator.
+
+It works on its own, and it is also a library other plugins build on.
+
+## Install
+
+```text
+/plugin marketplace add esliph/agent-plugins
+/plugin install ownership@esliph
+```
+
+It needs Node 24 or later and Git on the machine. In a repository without an
+ownership file the plugin does nothing; without Node, its hook stays silent and
+blocks nothing.
+
+## Start
+
+In a Claude Code session, run `/ownership:init`. It asks how you want to start,
+creates the file and helps you divide the repository among its owners — it
+proposes the paths, and you name the owner of each one.
+
+From a terminal, `ownership init` creates the same file:
+
+| Command                            | Writes                                                                  |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| `ownership init`                   | No entry: a commented model for each file and directory of the root.    |
+| `ownership init --owner @you`      | One entry for each file and directory of the root, all with that owner. |
+| `ownership init --from-codeowners` | Entries derived from the `CODEOWNERS`, so the two files agree.          |
+
+`--stdout` prints the file instead of writing it, and `--ownership <path>`
+creates it somewhere else in the repository. `init` never overwrites an
+ownership file: to start over, delete the file yourself.
+
+The skeleton, and any start that leaves files without an owner, makes
+`ownership validate` fail on purpose. Nobody has said yet who owns those files,
+and that is the decision this plugin exists to make explicit.
+
+## The ownership file
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json
+version: 1
+
+owned:
+  - path: docs/
+    owner: '@acme/docs'
+    skill: docs-keeper
+  - path: src/
+    owner: '@acme/platform'
+  - path: README.md
+    owner: '@acme/docs'
+
+generated:
+  - path: docs/api.md
+    command: node tools/gen-api.mjs
+
+ignore:
+  - src/vendor/
+
+include:
+  - packages/billing/
+```
+
+| Key         | Declares                                                                                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `version`   | The schema version. Always `1`.                                                                                                                                                            |
+| `owned`     | The owner of each path: `path`, `owner` (starting with `@`) and, optionally, the `skill` that answers for it and a `plugins` map.                                                          |
+| `generated` | Files produced by a command: `path` and `command`. The command runs at the repository root and prints the file. Each generated file sits under an `owned` entry, which gives it its owner. |
+| `ignore`    | Paths that need no owner.                                                                                                                                                                  |
+| `include`   | Other ownership files to read: a file, or a directory (trailing `/`) that holds exactly one.                                                                                               |
+| `basePath`  | In an included file, a directory below it that its paths are relative to.                                                                                                                  |
+| `plugins`   | In the root file only: configuration for the plugins built on this one.                                                                                                                    |
+
+The root file is `.ownership.yml` or `docs/.ownership.yml`. Having both is an
+error; so is anything else ambiguous. The plugin never picks one for you.
+
+### Paths are literal and disjoint
+
+A path is written as it is, relative to the directory of its file: no `*`, no
+`**`, no negation, no leading `/`. A trailing `/` means a directory, and `docs/`
+is the directory `docs` at that place — never "any directory named `docs`".
+
+No `owned` path repeats or contains another, so the question "which entry
+covers this file" has one answer, whatever the order of the file. A directory
+whose parts have different owners is declared part by part; when two entries
+collide, the error lists the entries that would replace the outer one. A part of
+an owned directory that needs no owner goes in `ignore`.
+
+Paths are case-sensitive, as they are on GitHub, even on a file system that is
+not. Two declared paths that differ only in case are an error.
+
+### What counts as a file of the repository
+
+Every file Git tracks, plus every new file that no `.gitignore` excludes. What a
+`.gitignore` excludes — installed dependencies, build output — needs neither an
+owner nor an `ignore`. A submodule counts as one file, and a symbolic link as
+the link itself.
+
+### Editor support
+
+The comment on the first line gives editors that speak the YAML language server
+completion and validation. It is a comment because the keys of the file are a
+closed list: a `$schema` key would be an error.
+
+### Monorepos
+
+`include` reads another ownership file, usually one per package. Its paths are
+relative to its own directory, and they cannot reach outside it. An included
+file is read once, and the paths of all the files together obey the same rules
+as the paths of one.
+
+## Blocks for other plugins
+
+A plugin built on this one is configured under its name:
+
+```yaml
+version: 1
+
+plugins:
+  docs-kit:
+    language: en
+
+owned:
+  - path: docs/
+    owner: '@acme/docs'
+    plugins:
+      docs-kit:
+        id-prefix: ADR
+```
+
+- A path belongs to a plugin when, and only when, the `owned` entry that covers
+  it has a block under the plugin's name. `docs-kit: {}` links the path without
+  configuring anything.
+- The block under `plugins` at the top of the root file is that plugin's global
+  configuration. It links no path.
+- **Plugin names are not checked.** This plugin does not know which plugins
+  exist, so a misspelled name is not an error: it is a plugin that never sees
+  the path. `ownership validate` ends with every plugin name in use and how many
+  entries each one has; that list is where a typo shows.
+
+  ```text
+  ownership: plugins in use:
+    docs-kit   12 entries  global config
+    docs-kti    1 entry
+  ```
+
+- **The global block and the block of an entry are never merged.** A plugin
+  receives the two separately and decides which one wins; its own documentation
+  says how.
+- What goes inside a block is the plugin's business. A wrong key inside it shows
+  only when that plugin runs.
+
+## In the session
+
+One hook runs before `Edit`, `Write`, `MultiEdit` and `NotebookEdit`:
+
+| When                                                                         | The hook                                                             |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| The file is declared in `generated`                                          | Denies the edit, naming where it is declared and its command.        |
+| The first line of the file carries `generated: do not edit`                  | Denies the edit and asks for the file to be declared in `generated`. |
+| A `Write` whose content starts with a line carrying `generated: do not edit` | Denies it: a generated file is not written by hand.                  |
+
+The marker is matched in any case, on the first line of the file. A symbolic
+link to a generated file is refused like the file itself.
+
+The hook does not see a file written through the shell, nor a marker that an
+edit adds to a file that did not have one. `ownership validate` catches both
+later.
+
+Whenever it cannot judge — no Node, no ownership file, an ownership file with an
+error, anything unexpected — the hook stays silent. It never blocks work because
+of a defect of its own.
+
+## In CI
+
+```bash
+ownership validate
+```
+
+`validate` always covers the whole repository.
+
+| Check                        | Fails when                                                                                                                                                                 |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ownership/owner-coverage`   | A file of the repository has neither an `owned` entry nor an `ignore`; an `owned` path does not exist, or all its files are ignored.                                       |
+| `ownership/codeowners-match` | The repository has a `CODEOWNERS` and an `owned` path has no matching line in it, or the line that decides — the last one that matches — does not list the declared owner. |
+| `ownership/generated-drift`  | A generated file differs from what its command prints; the command fails; the file is missing; a file carries the `generated: do not edit` marker without being declared.  |
+
+A `CODEOWNERS` is optional: without one, `ownership/codeowners-match` has
+nothing to check. With one, the declared owner must be on the line GitHub would
+use, compared without regard to case; the line may list other owners too.
+
+| Option                        | Effect                                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------------------- |
+| `--check <id>`                | Runs only that check; repeat it for more. The scope is still the whole repository.              |
+| `--format text\|json\|github` | `json` prints one object; `github` prints annotations that show on the lines of a pull request. |
+| `--jobs <n>`                  | How many generator commands run at the same time. The default is the number of CPUs.            |
+| `--ownership <path>`          | Uses this root ownership file. The `OWNERSHIP_CONFIG` variable does the same.                   |
+
+Exit codes: `0` when no check fails, `1` when one does, `2` when the command
+could not run — an ownership file with an error, an unknown option.
+
+**Generators run in parallel.** The commands of `generated` run at the same
+time. Generators that share state on disk — a cache, a temporary directory —
+must be independent of each other, or run with `--jobs 1`.
+
+`ownership/owner-coverage` alone reads no file and runs no command, so it fits a
+pre-commit hook:
+
+```bash
+ownership validate --check ownership/owner-coverage
+```
+
+In a GitHub workflow:
+
+```yaml
+- run: ownership validate --format github
+```
+
+The commands run on the current directory; `OWNERSHIP_REPO_ROOT` points them at
+another repository.
+
+The package is not on npm yet. Until it is, run the CLI from a checkout of this
+repository, after `./spur install`:
+
+```bash
+node plugins/ownership/plugin/src/cli/index.ts validate
+```
+
+## Asking about one path
+
+```bash
+ownership explain docs/adr/0001.md
+```
+
+```text
+path       docs/adr/0001.md
+owned      docs/adr/  owner @acme/docs  skill —  (.ownership.yml:12)
+           plugin docs-kit: {"id-prefix":"ADR"}
+generated  —
+ignore     —
+CODEOWNERS line 4: @acme/docs @lead — declared owner listed
+```
+
+It shows every rule that reaches the path and where each one was written. For a
+path nothing covers, it names the ownership file where the missing entry
+belongs.
+
+## As a library
+
+Other plugins import the package instead of reading the file themselves:
+
+| Export                                                                        | Use                                                                                  |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `resolveOwnership(root, options?)`                                            | Every ownership file of the repository, read and checked. `null` when there is none. |
+| `findOwnedRule(config, path)`, `findGeneratedRule(config, path)`              | The rule that covers a path.                                                         |
+| `explainPath(config, path, context)`                                          | What `ownership explain` shows, as data.                                             |
+| `entriesForPlugin(config, name)`                                              | The `owned` entries linked to a plugin, each with its own block and the global one.  |
+| `loadCodeowners(root)`, `parseCodeowners(text)`, `ownersOf(codeowners, path)` | The owners the `CODEOWNERS` gives a path, decided as GitHub decides them.            |
+| `isGeneratedByMarker(content)`                                                | Whether a content carries the generated marker.                                      |
+| `coreChecks`, `coreCheckCatalog`                                              | The three checks and their public description.                                       |
+| `OwnershipError`                                                              | Every error found while reading the files, with the file, the key and the line.      |
+
+The types `Check`, `CheckContext`, `Finding` and `Severity` let a plugin write
+checks of its own in the same shape. The fields of `Finding` — `file`, `line`,
+`column`, `checkId`, `severity`, `message`, `fix` — are what `--format json`
+prints, and they do not change name.
+
+## Working on this plugin
+
+The project is `plugins/ownership/`; what is installed is its `plugin/`
+directory. From the project directory:
+
+```bash
+../../spur install   # dependencies, from the lockfile
+../../spur check     # tests, type-check, lint and formatting
+../../spur perf      # the performance test, on a repository of 100,000 files
+../../spur --list    # every task
+```
+
+The code runs straight from TypeScript, on Node's type stripping; `plugin/dist/`
+exists only while the package is being packed and is never committed. What the
+plugin must do is written in `docs/requirements/ownership.md`.
+````
+
+- [ ] **Step 2: Write the plugin CHANGELOG**
+
+`plugins/ownership/CHANGELOG.md`:
+
+```markdown
+# Changelog
+
+This file is aimed at whoever **uses** the `ownership` plugin. Single test: if
+an entry only makes sense to whoever wrote the code, it does not belong here.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+An entry is born in the change that causes it, not on the eve of the release.
+
+## [Unreleased]
+
+### Added
+
+- The ownership file, `version: 1`: `owned` (the owner of each path, with an
+  optional skill), `generated` (files produced by a command), `ignore`,
+  `include` and `basePath`. Paths are literal, case-sensitive and disjoint.
+- `ownership validate`, with three checks over the whole repository:
+  `ownership/owner-coverage`, `ownership/codeowners-match` and
+  `ownership/generated-drift`. `--check` selects checks, `--format` prints
+  `text`, `json` or `github` annotations, and `--jobs` sets how many generators
+  run at the same time.
+- `ownership explain <path>`: every rule that reaches a path and where it was
+  declared.
+- `ownership init` and the `/ownership:init` command: create the root ownership
+  file as a skeleton, for a single owner, or derived from the `CODEOWNERS`.
+- A session hook that refuses a hand edit of a generated file, declared or
+  marked with `generated: do not edit` on its first line.
+- `plugins` blocks: configuration that other plugins read, at the top of the
+  root file and in each `owned` entry.
+- A JSON Schema for the ownership file, for completion and validation in the
+  editor.
+- The package as a library for other plugins: the resolved configuration, the
+  checks, the `CODEOWNERS` evaluation and the generated marker.
+```
+
+- [ ] **Step 3: Add the plugin to the marketplace**
+
+Replace `.claude-plugin/marketplace.json` with:
+
+```json
+{
+  "name": "esliph",
+  "description": "",
+  "owner": {
+    "name": "Dan Ruan",
+    "email": "danrsaquetti@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "ownership",
+      "description": "Who owns each path of a repository and which files are generated, checked in the agent session and in CI.",
+      "version": "0.1.0",
+      "source": "./plugins/ownership/plugin"
+    }
+  ]
+}
+```
+
+- [ ] **Step 4: Rewrite the row of the root README**
+
+In `README.md`, replace the table under the first paragraph (header, separator and the `ownership` row) with:
+
+```markdown
+| Plugin                                     | Use it to                                                                                                                                          |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`ownership`](plugins/ownership/README.md) | Declare, in one file, who owns each path of a repository and which files are generated — and have it checked in the Claude Code session and in CI. |
+```
+
+The old row promised a link between code and documents that this plugin no longer has.
+
+- [ ] **Step 5: Add the entry to the root CHANGELOG**
+
+Append to `CHANGELOG.md`, under `## [Unreleased]`:
+
+```markdown
+### Added
+
+- The `ownership` plugin: one file says who owns each path of a repository and
+  which files are generated, and the plugin checks it in the Claude Code session
+  and in CI. Its own changelog is in `plugins/ownership/CHANGELOG.md`.
+```
+
+- [ ] **Step 6: Check what was written**
+
+Run:
+
+```bash
+node -e "
+const m = JSON.parse(require('fs').readFileSync('.claude-plugin/marketplace.json', 'utf8'))
+const p = JSON.parse(require('fs').readFileSync(m.plugins[0].source + '/.claude-plugin/plugin.json', 'utf8'))
+if (m.plugins.length !== 1 || p.name !== m.plugins[0].name || p.version !== m.plugins[0].version) throw new Error('marketplace and plugin manifest disagree')
+console.log('marketplace ok:', p.name, p.version)
+"
+grep -nE 'REQ-[A-Z]+-[0-9]+|§' plugins/ownership/README.md plugins/ownership/CHANGELOG.md README.md CHANGELOG.md
+(cd plugins/ownership && ../../spur format && ../../spur check)
+```
+
+Expected: `marketplace ok: ownership 0.1.0`; no output from `grep`; the check passes (Prettier may realign the tables of the plugin README — that is the formatting to commit).
+
+Then try the examples of the README against the CLI, in a scratch repository, and correct the README wherever the output differs:
+
+```bash
+tmp=$(mktemp -d) && git -C "$tmp" init -q && mkdir -p "$tmp/docs/adr" && touch "$tmp/docs/adr/0001.md"
+cli="$PWD/plugins/ownership/plugin/src/cli/index.ts"
+(cd "$tmp" && node "$cli" init --owner @acme/docs && node "$cli" explain docs/adr/0001.md && node "$cli" validate; echo "exit $?")
+rm -rf "$tmp"
+```
+
+Expected: `init` reports 2 entries, `explain` prints the five blocks with `CODEOWNERS the repository has no CODEOWNERS`, and `validate` ends with `ownership: no violations found.` and `exit 0`.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add plugins/ownership/README.md plugins/ownership/CHANGELOG.md .claude-plugin/marketplace.json README.md CHANGELOG.md
+git commit -m "docs(ownership): document the plugin and list it in the marketplace
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 24: The root `Spurfile` and CI
+
+**Files:**
+- Create: `Spurfile`
+- Create: `.github/workflows/plugin-ownership.yml`
+
+**Interfaces:**
+- Consumes: the plugin `Spurfile` (Task 2) and the CLI. The vendored `./spur` runs a task of the `Spurfile` of the current directory; `./spur -C <dir> <task>` runs one of another directory; inside a task, `spur` is the runner itself.
+- Produces: the root tasks `install`, `plugins`, `validate` and `check`, and one workflow on Node 24 that runs the plugin's `check`, its `perf` and the repository's `validate`.
+- A `Spurfile` is verified by running its tasks, not by a test. Its task bodies are indented with two spaces and the file has LF line ends.
+- Commands of this task run from the repository root, in Git Bash on Windows.
+
+- [ ] **Step 1: Write the root Spurfile**
+
+`Spurfile`:
+
+```sh
+# The repository's commands. Each plugin with a toolchain owns its commands in
+# plugins/<name>/Spurfile; this file only delegates to them. The order is
+# load-bearing — a plugin comes after the ones it depends on — so it is written
+# here and never taken from a glob.
+PLUGINS="ownership"
+
+# Runs one task in every plugin that has it, in order. A plugin owes the root
+# nothing: one with no Spurfile, or with a Spurfile that lacks the task, is
+# skipped with a notice. The Spurfile is checked here, before delegating,
+# because spur searches the parent directories for one and would find this
+# file. A name in PLUGINS that is not a directory is a mistake in this file and
+# fails. `set -e` stops at the first plugin that fails, with its exit code.
+each() {
+  for plugin in $PLUGINS; do
+    if [ ! -d "plugins/$plugin" ]; then
+      echo "plugins/$plugin: listed in PLUGINS, but it does not exist" >&2
+      exit 1
+    fi
+    if [ ! -f "plugins/$plugin/Spurfile" ]; then
+      echo "$plugin: no Spurfile, skipped '$1'" >&2
+      continue
+    fi
+    names=$(spur -C "plugins/$plugin" --names)
+    if ! printf '%s\n' "$names" | grep -qxF -- "$1"; then
+      echo "$plugin: no task '$1', skipped" >&2
+      continue
+    fi
+    spur -C "plugins/$plugin" "$1"
+  done
+}
+
+install: ## run `install` in every plugin that has it, in order
+  each install
+
+plugins: ## run `check` in every plugin that has it, in order
+  each check
+
+## The ownership plugin checks the repository that develops it. Arguments go
+## to its CLI:
+##   ./spur validate --check ownership/owner-coverage
+validate: ## validate who owns each path of this repository
+  node plugins/ownership/plugin/src/cli/index.ts validate "$@"
+
+## What has to pass before a change is done, in that order.
+check: ## install, every plugin's checks and the repository's validation
+  spur install
+  spur plugins
+  spur validate
+```
+
+- [ ] **Step 2: Run every task**
+
+Run: `./spur --list`
+Expected: the four tasks — `install`, `plugins`, `validate`, `check` — each with its description.
+
+Run: `./spur validate`
+Expected: `ownership: no ownership file found; nothing to validate.` and exit 0 — the repository has no ownership file until Task 25.
+
+Run: `./spur validate --format json`
+Expected: a JSON object with empty `findings` and `plugins` and zero `errors` and `warnings`, which shows that arguments reach the CLI.
+
+Run: `./spur check`
+Expected: `npm ci` in `plugins/ownership/`, then the plugin's tests, type-check, lint and formatting, then the validation; exit 0.
+
+- [ ] **Step 3: Write the workflow**
+
+`.github/workflows/plugin-ownership.yml`:
+
+```yaml
+name: plugin-ownership
+
+# No path filter: the last step checks that every file of the repository has
+# an owner, and a file added anywhere can break that.
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # The floor is `engines.node` in the plugin's package.json.
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: plugins/ownership/package-lock.json
+
+      - name: Install dependencies
+        run: ./spur install
+
+      - name: Tests, type-check, lint and formatting
+        run: ./spur plugins
+
+      - name: Performance
+        run: ./spur -C plugins/ownership perf
+
+      - name: Validate this repository
+        run: ./spur validate --format github
+```
+
+- [ ] **Step 4: Check the workflow parses**
+
+Run: `(cd plugins/ownership && npx --no-install prettier --check ../../.github/workflows/plugin-ownership.yml)`
+Expected: `All matched files use Prettier code style!` — Prettier parses the YAML to check it, so a syntax error would show here. Every `run:` of the workflow is a command Step 2 already ran, except `perf`, which Task 22 ran.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add Spurfile .github/workflows/plugin-ownership.yml
+git commit -m "ci: run the ownership plugin's checks and validate this repository with it
+
+Changelog: none — the toolchain of this repository is not visible to whoever installs a plugin
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 25: Dogfooding — this repository passes its own `ownership validate`
+
+**Files:**
+- Modify: `CODEOWNERS`
+- Create: `.ownership.yml`
+- Create: `plugins/ownership/.ownership.yml`
+
+**Interfaces:**
+- Consumes: `ownership init --from-codeowners` (Task 17), `./spur validate` (Task 24).
+- Produces: the root ownership file, which includes the plugin project's own. Done when `./spur validate` prints `ownership: no violations found.`
+- `init` writes entries only; it creates no `include`. The `plugins/ownership/` entry it derives is replaced by hand with the include, and the project declares its own paths.
+- Commands of this task run from the repository root.
+
+- [ ] **Step 1: Remove the CODEOWNERS lines of paths that no longer exist**
+
+`CODEOWNERS` becomes:
+
+```text
+# Mirrors the `owner` field of the ownership files. One path, one owner.
+# Each plugin project is covered as a whole; its own .ownership.yml details it.
+
+docs/superpowers/ @esliph/engineering
+CONTRIBUTING.md @esliph/engineering
+CLAUDE.md @esliph/engineering
+CHANGELOG.md @esliph/engineering
+README.md @esliph/engineering
+.ownership.yml @esliph/engineering
+plugins/ownership/ @esliph/engineering
+.github/ @esliph/engineering
+.claude-plugin/ @esliph/engineering
+CODEOWNERS @esliph/engineering
+.editorconfig @esliph/engineering
+.gitattributes @esliph/engineering
+.gitignore @esliph/engineering
+.prettierignore @esliph/engineering
+.prettierrc @esliph/engineering
+spur @esliph/engineering
+Spurfile @esliph/engineering
+```
+
+Five lines went away: `docs/decisions/adr/`, `docs/open-decisions.md`, `docs/requirements/`, `docs/definition-of-done.md` and `docs/ids-retired.txt`. `docs/superpowers/` stays: it holds the design and this plan.
+
+- [ ] **Step 2: Create the root ownership file from the CODEOWNERS**
+
+Run: `node plugins/ownership/plugin/src/cli/index.ts init --from-codeowners`
+
+Expected:
+
+```text
+ownership: wrote .ownership.yml with 17 entries.
+ownership: every repository file has an owner.
+ownership: next step: ownership validate
+```
+
+If it reports files without an owner, a file exists that no CODEOWNERS line matches: `./spur validate --check ownership/owner-coverage` names it. Add its line to `CODEOWNERS`, delete `.ownership.yml` and run `init` again.
+
+Run: `./spur validate`
+Expected: `ownership: no violations found.` — the repository is covered with `plugins/ownership/` as one entry.
+
+- [ ] **Step 3: Replace the plugin's entry with an include**
+
+In `.ownership.yml`, remove the two lines of the `plugins/ownership/` entry and add the `include:` block at the end. The file becomes:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json
+version: 1
+
+owned:
+  - path: .claude-plugin/
+    owner: "@esliph/engineering"
+  - path: .editorconfig
+    owner: "@esliph/engineering"
+  - path: .gitattributes
+    owner: "@esliph/engineering"
+  - path: .github/
+    owner: "@esliph/engineering"
+  - path: .gitignore
+    owner: "@esliph/engineering"
+  - path: .ownership.yml
+    owner: "@esliph/engineering"
+  - path: .prettierignore
+    owner: "@esliph/engineering"
+  - path: .prettierrc
+    owner: "@esliph/engineering"
+  - path: CHANGELOG.md
+    owner: "@esliph/engineering"
+  - path: CLAUDE.md
+    owner: "@esliph/engineering"
+  - path: CODEOWNERS
+    owner: "@esliph/engineering"
+  - path: CONTRIBUTING.md
+    owner: "@esliph/engineering"
+  - path: README.md
+    owner: "@esliph/engineering"
+  - path: Spurfile
+    owner: "@esliph/engineering"
+  - path: docs/superpowers/
+    owner: "@esliph/engineering"
+  - path: spur
+    owner: "@esliph/engineering"
+
+# Each plugin project declares its own paths, relative to its directory.
+include:
+  - plugins/ownership/
+```
+
+Run: `./spur validate`
+Expected: exit 2, with
+
+```text
+.ownership.yml:40: include[0] names the directory plugins/ownership/, which holds no ownership file
+  → add .ownership.yml to it, or name the file to include
+```
+
+- [ ] **Step 4: Declare the paths of the plugin project**
+
+`plugins/ownership/.ownership.yml`:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/esliph/agent-plugins/master/plugins/ownership/plugin/ownership.schema.json
+# The paths of the ownership plugin project, relative to this directory. The
+# root ownership file includes this one.
+version: 1
+
+owned:
+  # What the plugin must do, and what is told to whoever installs it.
+  - path: docs/
+    owner: '@esliph/engineering'
+  - path: README.md
+    owner: '@esliph/engineering'
+  - path: CHANGELOG.md
+    owner: '@esliph/engineering'
+  - path: .ownership.yml
+    owner: '@esliph/engineering'
+
+  # What is installed, and its tests.
+  - path: plugin/
+    owner: '@esliph/engineering'
+  - path: test/
+    owner: '@esliph/engineering'
+
+  # The toolchain of the project.
+  - path: .gitignore
+    owner: '@esliph/engineering'
+  - path: Spurfile
+    owner: '@esliph/engineering'
+  - path: eslint.config.mjs
+    owner: '@esliph/engineering'
+  - path: package.json
+    owner: '@esliph/engineering'
+  - path: package-lock.json
+    owner: '@esliph/engineering'
+  - path: tsconfig.json
+    owner: '@esliph/engineering'
+  - path: tsconfig.build.json
+    owner: '@esliph/engineering'
+```
+
+- [ ] **Step 5: Validate**
+
+Run: `./spur validate`
+Expected: `ownership: no violations found.` and exit 0. All three checks ran: every file has an owner, every declared path has its owner on the CODEOWNERS line that decides, and no file carries the generated marker.
+
+Run: `node plugins/ownership/plugin/src/cli/index.ts explain plugins/ownership/plugin/src/index.ts`
+Expected:
+
+```text
+path       plugins/ownership/plugin/src/index.ts
+owned      plugins/ownership/plugin/  owner @esliph/engineering  skill —  (plugins/ownership/.ownership.yml:18)
+generated  —
+ignore     —
+CODEOWNERS line 10: @esliph/engineering — declared owner listed
+```
+
+Then see the check catch a file nobody owns:
+
+```bash
+touch stray.txt && ./spur validate; echo "exit $?"; rm stray.txt
+```
+
+Expected: `stray.txt  ownership/owner-coverage  error  no owned entry covers this file`, `ownership: 1 error, 0 warnings.` and `exit 1`.
+
+Run: `./spur check`
+Expected: exit 0. The plugin's formatter now reads `plugins/ownership/.ownership.yml` too; if it reformats the file, that is the formatting to commit.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add CODEOWNERS .ownership.yml plugins/ownership/.ownership.yml
+git commit -m "chore: declare who owns each path of this repository
+
+The root ownership file comes from ownership init --from-codeowners; the
+ownership plugin project declares its own paths in a file the root
+includes. CODEOWNERS loses the lines of paths that no longer exist.
+
+Changelog: none — who owns the paths of this repository is not visible to whoever installs a plugin
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 26: `CLAUDE.md` and `CONTRIBUTING.md` without the references that died
+
+**Files:**
+- Modify: `CLAUDE.md`
+- Modify: `CONTRIBUTING.md`
+
+**Interfaces:**
+- Consumes: what exists after Task 25 — the `ownership` plugin, its two checks of ownership, its guard and its drift check, `./spur check`.
+- Produces: the two documents pointing only at things that exist. No policy is added. What goes away is what named a mechanism that is gone: artifact IDs, the definition of done, open decisions, frozen decision records, code-to-document watches and their hooks, recorded debt, review dates, the audience mark and the skill that kept these documents.
+- Commands of this task run from the repository root.
+
+- [ ] **Step 1: See the dead references**
+
+Run: `grep -nE 'RN-|RNF-|ADR-|DA-|TDR|last-reviewed|watches|watch-reminder|commit-guard|definition-of-done|open-decision|/debt|working-agreements|audience: external|consumer-change-logged|living-documentation' CLAUDE.md CONTRIBUTING.md`
+Expected: more than twenty lines.
+
+- [ ] **Step 2: Rewrite `CLAUDE.md`**
+
+`CLAUDE.md`:
+
+```markdown
+# Agent contract — esliph agent plugins
+
+Index and policy for every plugin in this marketplace. **No factual claim lives
+here**: each one lives in the artifact that owns it and is read from there. A
+plugin's toolchain and commands are in its `Spurfile` and its `README.md`.
+
+## Before touching anything
+
+- Who owns each path is in `.ownership.yml` and the files it includes, one per
+  plugin project under `plugins/<name>/`. No path is guessed: it is read from
+  there.
+- How we work here: `CONTRIBUTING.md`.
+- What a plugin must do is in its own `docs/requirements/`.
+
+## Policy
+
+- **The rule comes before the code.** What a plugin must do is in its
+  `docs/requirements/`; if the rule does not exist, stop and ask. Do not invent
+  the rule that is missing.
+- **You do not edit a generated artifact.** What is in `generated[]` (or carries
+  the marker) changes through the source and the generator —
+  `ownership/generated-guard` denies and `ownership/generated-drift` enforces.
+- **A change visible to whoever consumes travels with an entry in the
+  `CHANGELOG.md` of the plugin it changes** — or with the reason written in the
+  commit, as `Changelog: none — <reason>`.
+- **Text for readers on the outside carries no requirement ID.** A README and a
+  CHANGELOG explain in running text; the ID stays in the requirements.
+- **What a plugin ships does not point inside this repository.** A skill, a
+  command and a CLI or hook message stay free of requirement IDs and of paths
+  from here; the why goes into the code comment — the distribution test
+  enforces it.
+- **Every file has a declared owner.** An ownership file says who owns it;
+  CODEOWNERS, who reviews — `ownership/owner-coverage` and
+  `ownership/codeowners-match` enforce both.
+- **Tests and commits cite no requirement ID.** A test name says the behavior
+  it proves; a commit message uses `type(scope): subject`.
+
+## What to never do
+
+- Write a document that narrates the code.
+- Create a documentation artifact outside a `docs/` or outside version control.
+- Copy the content of any artifact above into here.
+```
+
+- [ ] **Step 3: Rewrite `CONTRIBUTING.md`**
+
+`CONTRIBUTING.md` (the front matter goes away: who owns the file is in `.ownership.yml`, and nothing reads a review date any more):
+
+````markdown
+# How to contribute
+
+This repository is a marketplace of Claude Code plugins, and the first consumer
+of each one: what a plugin requires of a project, this repository fulfils.
+
+## The environment
+
+Each plugin is a project under `plugins/<name>/`, with its own toolchain. The
+root has none. Every plugin with code needs Node 24 or greater with its npm, and
+a POSIX shell with `awk` to run `./spur` — on Windows, Git Bash or WSL. Every
+command is a task of `./spur`, the runner vendored at the root: `./spur --list`
+shows the root's tasks, and `../../spur --list` from a plugin project shows that
+plugin's. Dependencies come in with `./spur install`:
+
+```bash
+./spur install
+./spur plugins
+./spur validate
+./spur check
+```
+
+A command that fails with `ERR_MODULE_NOT_FOUND` is a command run before
+`./spur install` — it is not the environment that is wrong.
+
+## Adding a plugin
+
+A plugin is a project under `plugins/<name>/`, and what is installed is its
+`plugin/` directory. The minimum:
+
+- `plugins/<name>/plugin/.claude-plugin/plugin.json`, and what the plugin ships
+  (`skills/`, `commands/`, `agents/`, `hooks/`) beside it, inside `plugin/`;
+- `plugins/<name>/README.md` for whoever installs, `CHANGELOG.md`, and
+  `.ownership.yml` declaring the project's paths relative to its directory;
+- one entry in `.claude-plugin/marketplace.json` with
+  `source: ./plugins/<name>/plugin`, one `include:` line in the root
+  `.ownership.yml`, one line in `CODEOWNERS`, one row in the root `README.md`
+  and one `Added` entry in the root `CHANGELOG.md` — a new plugin is a change
+  for whoever installs from the marketplace.
+
+A plugin with code adds its own toolchain in the project (a `package.json`, a
+`pyproject.toml`) and a `.github/workflows/plugin-<name>.yml`. Tests,
+documentation and toolchain stay outside `plugin/`.
+
+A plugin with commands of its own keeps them in a `Spurfile` in its project,
+each task calling its tools directly; its workflow runs them through
+`../../spur`. Which tasks it has is the plugin's call. The root `Spurfile` knows
+two names and requires neither: `./spur install` runs the plugin's `install`,
+and `./spur plugins` runs its `check` — everything that must pass before a
+change to it is done. A plugin with no `Spurfile`, or without one of those
+tasks, is skipped with a notice. The root `Spurfile` lists the plugin in
+`PLUGINS`, after any plugin it depends on. An existing plugin's `Spurfile` is
+the model.
+
+Its documents live in `plugins/<name>/docs/`.
+
+## The cycle
+
+1. **The rule before the code.** New behavior starts with a requirement in the
+   plugin's `docs/requirements/`. If the rule does not exist and nobody knows
+   what it is, the implementation **stops** and the question is asked —
+   inventing the rule is the error this repository exists to avoid.
+2. **A test before the implementation.** Its name says the behavior it proves,
+   without citing a requirement ID.
+3. **Minimal implementation.** What has no requirement is not scope.
+4. **A commit in the form `type(scope): subject`.**
+5. **Done is `./spur check` passing**: every plugin's checks and the
+   repository's own `ownership validate`.
+6. **A change visible to whoever uses a plugin** travels with an entry in that
+   plugin's `CHANGELOG.md`. When the change really is not visible, write the
+   reason in the commit message — `Changelog: none — <reason>`. A label with no
+   reason does not count: it is the ticked box.
+
+## Where the truth lives
+
+| Question                         | Artifact                                |
+| -------------------------------- | --------------------------------------- |
+| What a plugin must do            | `plugins/<name>/docs/requirements/`     |
+| Why a plugin was built this way  | `docs/superpowers/specs/`               |
+| Who owns each path               | `.ownership.yml` and `CODEOWNERS`       |
+| What changed for whoever uses it | `CHANGELOG.md`, here and in each plugin |
+| How to use a plugin              | `plugins/<name>/README.md`              |
+
+None of these answers is copied anywhere else. A duplicate rots, and the old
+version beats the new one by repetition.
+
+## Language
+
+Everything versioned here is English: prose, comments, test names and
+commit messages. Commit messages use the form `type(scope): subject`.
+
+## When an agent goes wrong for lack of context
+
+That is not an accident, it is a symptom: a line is missing in some document. The
+fix is to add that line — in `CLAUDE.md` if it is policy or an index, in the
+owning artifact if it is a rule.
+````
+
+- [ ] **Step 4: Check nothing dead is left and every path named exists**
+
+Run the `grep` of Step 1 again.
+Expected: no output.
+
+Run:
+
+```bash
+for path in .ownership.yml CODEOWNERS CONTRIBUTING.md CHANGELOG.md Spurfile spur .claude-plugin/marketplace.json docs/superpowers/specs plugins/ownership/docs/requirements plugins/ownership/README.md plugins/ownership/CHANGELOG.md plugins/ownership/Spurfile; do
+  [ -e "$path" ] || echo "missing: $path"
+done
+```
+
+Expected: no output — every artifact the two documents send a reader to is there.
+
+- [ ] **Step 5: The whole branch, one last time**
+
+Run: `./spur check`
+Expected: exit 0 — dependencies, the plugin's tests, type-check, lint and formatting, and `ownership: no violations found.` for the repository.
+
+Run: `./spur -C plugins/ownership perf`
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add CLAUDE.md CONTRIBUTING.md
+git commit -m "docs: point the agent contract and the contributing guide at what exists
+
+Changelog: none — how this repository is developed is not visible to whoever installs a plugin
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
