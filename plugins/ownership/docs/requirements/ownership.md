@@ -832,8 +832,10 @@ starts from each root child and, if needed, descends:
 - A node becomes an entry when all the repository files under it have the same set of owners by
   `ownersOf` (REQ-API-04) **and** `ownersOf` of the declared path itself returns that set.
   Otherwise, init descends to the children of the node.
-- The owner of the entry is the first one on the effective line. The others go in a comment on
-  the entry (`# CODEOWNERS line 12 also lists @b @c`).
+- The owner of the entry is the first owner on the effective line that starts with `@`, since
+  an ownership file accepts only such an owner (REQ-SCH-03). The other owners on that line,
+  emails included, go in a comment on the entry, in the order of the line
+  (`# CODEOWNERS line 12 also lists @b dev@example.com`).
 - A file without an effective line generates no entry. This includes a line with a pattern and
   no owners, which on GitHub unsets the owner. The output says how many files ended up in that
   situation, and `owner-coverage` fails on them.
